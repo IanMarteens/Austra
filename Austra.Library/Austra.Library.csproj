@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net7.0</TargetFramework>
+	  <LangVersion>latest</LangVersion>
+	  <Nullable>enable</Nullable>
+	  <Authors>Ian Marteens</Authors>
+	  <Company>Intuitive Sight</Company>
+	  <Description>Supports operations with dense matrices, statistical functions, FFT, time series and a mean-variance optimizer following the Markowitz algorithm.</Description>
+	  <PackageIcon>austra.png</PackageIcon>
+	  <PackageTags>linear algebra, matrix, vector, vmo, financial series</PackageTags>
+	  <ApplicationIcon>austra.ico</ApplicationIcon>
+	  <RepositoryUrl></RepositoryUrl>
+	  <PackageId>Austra.Library</PackageId>
+	  <Product>AUSTRA</Product>
+	  <Copyright>Copyright © 2020-2023, by Ian Marteens</Copyright>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <AssemblyVersion>1.2.37</AssemblyVersion>
+	  <FileVersion>1.2.37</FileVersion>
+	  <Version>1.2.37</Version>
+	  <RootNamespace>Austra.Library</RootNamespace>
+	  <AssemblyName>Austra.Library</AssemblyName>
+	  <Title>A high-performance library for linear algebra.</Title>
+	  <PackageReadmeFile>ReadMe.md</PackageReadmeFile>
+	  <PackageOutputPath>D:\Source\Packages</PackageOutputPath>
+	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="austra.ico" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Using Include="System" />
+		<Using Include="System.Math" Static="true" />
+		<Using Include="System.Collections" />
+		<Using Include="System.Collections.Generic" />
+		<Using Include="System.Diagnostics.Contracts" />
+		<Using Include="System.Linq" />
+		<Using Include="System.Numerics" />
+		<Using Include="System.Runtime.CompilerServices" />
+		<Using Include="System.Runtime.InteropServices" />
+		<Using Include="System.Runtime.Intrinsics" />
+		<Using Include="System.Runtime.Intrinsics.X86" />
+		<Using Include="System.Text" />
+		<Using Include="System.Text.Json" />
+		<Using Include="System.Text.Json.Serialization" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="austra.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Update="ReadMe.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<RootNamespace>Austra.Parser</RootNamespace>
+		<AssemblyName>Austra.Parser</AssemblyName>
+		<PackageIcon>au256.png</PackageIcon>
+		<Authors>Ian Marteens</Authors>
+		<Company>Intuitive Sight</Company>
+		<Product>AUSTRA</Product>
+		<Copyright>Copyright © 2020-2023, by Intuitive Sight</Copyright>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<LangVersion>latest</LangVersion>
+		<PackageReadmeFile>ReadMe.md</PackageReadmeFile>
+		<PackageOutputPath>D:\Source\Packages</PackageOutputPath>
+		<AssemblyVersion>1.2.37</AssemblyVersion>
+		<FileVersion>1.2.37</FileVersion>
+		<Version>1.2.37</Version>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<Nullable>enable</Nullable>
+		<Description>Implements a compiler for the AUSTRA's formula language.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\.editorconfig" Link=".editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Austra.Library\Austra.Library.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Austra.Library" />
+		<Using Include="System" />
+		<Using Include="System.Collections.Generic" />
+		<Using Include="System.Diagnostics" />
+		<Using Include="System.Globalization" />
+		<Using Include="System.Linq" />
+		<Using Include="System.Linq.Expressions" />
+		<Using Include="System.Reflection" />
+		<Using Include="System.Runtime.CompilerServices" />
+		<Using Include="System.Text" />
+		<Using Include="System.Text.RegularExpressions" />
+		<Using Include="Austra.Library.Accumulator" Alias="Acc" />
+		<Using Include="System.Numerics.Complex" Alias="Complex" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="au256.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Update="ReadMe.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+</Project>

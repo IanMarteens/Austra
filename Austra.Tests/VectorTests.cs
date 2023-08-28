@@ -1,0 +1,160 @@
+﻿namespace Austra.Tests;
+
+[TestFixture]
+public class VectorTests
+{
+    [SetUp]
+    public void Setup()
+    {
+    }
+
+    /// <summary>
+    /// Check that the Euclidean norm of a vector is calculated correctly.
+    /// </summary>
+    [Test]
+    public void EuclideanNorm([Values(12, 25, 39)] int size)
+    {
+        Vector v = new(size, 1.0);
+        Assert.That(v.Norm(), Is.EqualTo(Math.Sqrt(size)).Within(1E-16));
+    }
+
+    /// <summary>
+    /// Check that vector subtraction yields a true zero vector.
+    /// </summary>
+    [Test]
+    public void VectorDifference([Values(12, 25, 45)] int size)
+    {
+        Vector v = new(size, Random.Shared);
+        Assert.That((v - v).Norm(), Is.EqualTo(0));
+    }
+
+    /// <summary>
+    /// Check that vector subtraction yields a true zero vector.
+    /// </summary>
+    [Test]
+    public void VectorDistance([Values(511)] int size)
+    {
+        Vector v = new(size, Random.Shared), v1 = v + 4;
+        Assert.That(v.Distance(v1), Is.EqualTo(4));
+    }
+
+    [Test]
+    public void CheckIndexOf()
+    {
+        Vector v = new(1024, Random.Shared);
+        int index = Random.Shared.Next(1024);
+        v[index] = Math.PI;
+        Assert.That(v.IndexOf(Math.PI), Is.EqualTo(index));
+    }
+
+    [Test]
+    public void CheckIndexOfFrom()
+    {
+        Vector v = new(1024, Random.Shared);
+        int index1 = Random.Shared.Next(1024);
+        int index2 = Random.Shared.Next(1024);
+        while (index2 == index1)
+            index2 = Random.Shared.Next(1024);
+        if (index2 < index1)
+            (index1, index2) = (index2, index1);
+        v[index1] = Math.PI;
+        v[index2] = Math.PI;
+        int i1 = v.IndexOf(Math.PI), i2 = -1;
+        if (i1 >= 0)
+            i2 = v.IndexOf(Math.PI, i1 + 1);
+        Assert.Multiple(() =>
+        {
+            Assert.That(i1, Is.EqualTo(index1));
+            Assert.That(i2, Is.EqualTo(index2));
+        });
+    }
+
+    [Test]
+    public void CheckIndexOfNotFound()
+    {
+        Vector v = new(1024, Random.Shared);
+        Assert.That(v.IndexOf(Math.PI), Is.EqualTo(-1));
+    }
+
+    [Test]
+    public void CheckIndexOfFromNotFound()
+    {
+        Vector v = new(1024, Random.Shared);
+        int index = Random.Shared.Next(1024);
+        v[index] = Math.PI;
+        int i1 = v.IndexOf(Math.PI), i2 = -1;
+        if (i1 >= 0)
+            i2 = v.IndexOf(Math.PI, i1 + 1);
+        Assert.Multiple(() =>
+        {
+            Assert.That(i1, Is.EqualTo(index));
+            Assert.That(i2, Is.EqualTo(-1));
+        });
+    }
+
+    [Test]
+    public void CheckMultiplyAdd()
+    {
+        Vector x = new(1024, Random.Shared);
+        Vector y = new(1024, Random.Shared);
+        Vector z = new(1024, Random.Shared);
+        Vector d = x.PointwiseMultiply(y) + z;
+        Vector e = x.MultiplyAdd(y, z);
+        Assert.That((d - e).AMax(), Is.LessThan(1E-14));
+    }
+
+    [Test]
+    public void CheckMultiplyAddScalar()
+    {
+        Vector x = new(1024, Random.Shared);
+        double y = Random.Shared.NextDouble();
+        Vector z = new(1024, Random.Shared);
+        Vector d = x * y + z;
+        Vector e = x.MultiplyAdd(y, z);
+        Assert.That((d - e).AMax(), Is.LessThan(1E-14));
+    }
+
+    [Test]
+    public void CheckMultiplySubtract()
+    {
+        Vector x = new(1024, Random.Shared);
+        Vector y = new(1024, Random.Shared);
+        Vector z = new(1024, Random.Shared);
+        Vector d = x.PointwiseMultiply(y) - z;
+        Vector e = x.MultiplySubtract(y, z);
+        Assert.That((d - e).AMax(), Is.LessThan(1E-14));
+    }
+
+    [Test]
+    public void CheckMultiplySubtractScalar()
+    {
+        Vector x = new(1024, Random.Shared);
+        double y = Random.Shared.NextDouble();
+        Vector z = new(1024, Random.Shared);
+        Vector d = x * y - z;
+        Vector e = x.MultiplySubtract(y, z);
+        Assert.That((d - e).AMax(), Is.LessThan(1E-14));
+    }
+
+    [Test]
+    public void CheckComplexVectorCtor() 
+    {
+        Complex[] values = new Complex[Random.Shared.Next(1023)];
+        for (int i = 0; i < values.Length; i++)
+            values[i] = new(Random.Shared.NextDouble(), Random.Shared.NextDouble());
+        ComplexVector v = new(values);
+        Assert.That(v, Has.Length.EqualTo(values.Length));
+        for (int i = 0; i < values.Length; i++)
+            Assert.That(v[i], Is.EqualTo(values[i]));
+    }
+
+    [Test]
+    public void CheckComplexVector2ComplexArray()
+    {
+        ComplexVector v = new(515, Random.Shared);
+        Complex[] values = (Complex[])v;
+        Assert.That(v, Has.Length.EqualTo(values.Length));
+        for (int i = 0; i < values.Length; i++)
+            Assert.That(v[i], Is.EqualTo(values[i]));
+    }
+}
