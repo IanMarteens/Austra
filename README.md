@@ -18,6 +18,8 @@ Why yet another numeric library?
 * The __sweet spot__ that Austra targets. I started writing this library when dealing with a financial application that used squared matrices in the order of 32-128 rows and columns. In this range of problems, AVX + pointers provide the faster solutions, without losing precision, and without needing any third-party low-level provider.
 * Austra is a library _plus_ a language. It is easier to try the functionality through the language, and then use the library directly in your code.
 
+More sophisticated use cases are also supported. For instance, your final customer may need customizable expressions in an application. Austra can then be used as a __scripting engine__ for your application, with a very simple syntax and little overhead.
+
 ## How to give the language a try
 
 There is a Big Bad Austra Desktop application, written in WPF, with all the required bells and whistles... but it uses third-party controls, so I cannot open source it.
@@ -47,6 +49,10 @@ This project is still in a very early state of development. Most compelling need
 * The lexical scanner should be rewritten. I'm sure there's a lot of index checking going on in the dark. But I cannot use spans, or pointers, or managed references, or whatever as long as the scanner is programmed as an iterator.
 * A reasonably good desktop application is needed.
 * Both the REPL and any desktop app, should have control on formatting output and sending it to external files (Excel, JSON, CSV). It could be interesting formatting some kind of outputs to C# format.
+* Parameterized definitions, that is, actual functions.
+* Connectors, to access external data sources with real time series, such as stock prices, meteorological data, etc.
+
+In fact, we already have code for storing series in SQL Server, and it will be added to the repository in the near future, after some cleaning.
 
 The library, of course, must be also expanded:
 
@@ -56,5 +62,9 @@ The library, of course, must be also expanded:
 * A good simplex implementation could be nice.
 * We'll probably need to add support for 64 bits integers.
 * Optional task-based concurrency for big matrices and vectors.
+* Sparse matrices.
+* It can be useful to allow date homogenization for time series, both by adjusting common ranges and by interpolating missing values.
 
-Any suggestions would be welcomed...
+Any suggestions would be welcomed.
+
+Feel free to use the code as you need.
