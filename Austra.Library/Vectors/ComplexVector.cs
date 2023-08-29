@@ -773,6 +773,17 @@ public readonly struct ComplexVector :
         return j == Length ? this : new(newRe[..j], newIm[..j]);
     }
 
+    /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
+    /// <param name="seed">The initial value.</param>
+    /// <param name="reducer">The reducing function.</param>
+    /// <returns>The final synthesized value.</returns>
+    public Complex Reduce(Complex seed, Func<Complex, Complex, Complex> reducer)
+    {
+        foreach (Complex value in this)
+            seed = reducer(seed, value);
+        return seed;
+    }
+
     /// <summary>Combines the common prefix of two vectors.</summary>
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>

@@ -1031,11 +1031,16 @@ internal static partial class Parser
         if (paramInfo.Length == 2 &&
             paramInfo[1].ParameterType.IsAssignableTo(typeof(Delegate)))
         {
-            // This is a zip method call.
+            // This is a zip or reduce method call.
             ctx.Skip2();
             Expression e1 = ParseConditional(ctx);
             if (e1.Type != firstParam)
-                throw Error($"{firstParam.Name} expected", ctx);
+                if (firstParam == typeof(double) && IsArithmetic(e1))
+                    e1 = ToDouble(e1);
+                else if (firstParam == typeof(Complex) && IsArithmetic(e1))
+                    e1 = Expression.Convert(ToDouble(e1), typeof(Complex));
+                else
+                    throw Error($"{firstParam.Name} expected", ctx);
             ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
             Type[] genTypes = paramInfo[1].ParameterType.GenericTypeArguments;
             Expression λ = ParseLambda(ctx, genTypes[0], genTypes[1], genTypes[^1]);

@@ -37,3 +37,24 @@ Last, but not least, the main resource for AVX/AVX2 optimizations has been the e
 A PDF manual, covering mainly the language, is available [here](https://marteens.com/austra/austra.pdf). An online help version of the same manual is [also available](https://marteens.com/austra/).
 
 We have plans to create a full online help for Visual Studio using Sandcastle in the near future.
+
+## Next steps
+
+This project is still in a very early state of development. Most compelling needs are, not necessarily in that order:
+
+* Adding a `seq` class for doing calculations that, right now, are only possible when using vectors... and consuming space.
+* The parser should use a more flexible way to match arguments versus parameters. Right now, it is a very ad hoc algorithm, full of special cases.
+* The lexical scanner should be rewritten. I'm sure there's a lot of index checking going on in the dark. But I cannot use spans, or pointers, or managed references, or whatever as long as the scanner is programmed as an iterator.
+* A reasonably good desktop application is needed.
+* Both the REPL and any desktop app, should have control on formatting output and sending it to external files (Excel, JSON, CSV). It could be interesting formatting some kind of outputs to C# format.
+
+The library, of course, must be also expanded:
+
+* More matrix decompositions are crucial.
+* Complex matrices.
+* More transforms.
+* A good simplex implementation could be nice.
+* We'll probably need to add support for 64 bits integers.
+* Optional task-based concurrency for big matrices and vectors.
+
+Any suggestions would be welcomed...

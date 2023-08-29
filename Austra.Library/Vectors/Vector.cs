@@ -861,6 +861,17 @@ public readonly struct Vector :
         return j == 0 ? Array.Empty<double>() : j == Length ? this : newValues[..j];
     }
 
+    /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
+    /// <param name="seed">The initial value.</param>
+    /// <param name="reducer">The reducing function.</param>
+    /// <returns>The final synthesized value.</returns>
+    public double Reduce(double seed, Func<double, double, double> reducer)
+    {
+        foreach (double value in values)
+            seed = reducer(seed, value);
+        return seed;
+    }
+
     /// <summary>Combines the common prefix of two vectors.</summary>
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>
