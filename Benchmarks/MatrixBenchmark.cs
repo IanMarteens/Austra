@@ -4,8 +4,6 @@ public class MatrixBenchmark : BenchmarkControl
 {
     private readonly Matrix cm1, cm2;
     private readonly Vector cv1;
-    private readonly MdMatrix mm1, mm2;
-    private readonly MdVector mv1;
 
     public MatrixBenchmark()
     {
@@ -14,9 +12,6 @@ public class MatrixBenchmark : BenchmarkControl
         cm1 = new Matrix(size, size, rnd, 0.1);
         cm2 = new Matrix(size, size, rnd, 0.1);
         cv1 = new Vector(size, rnd);
-        mm1 = MdMatrix.Build.DenseOfArray((double[,])cm1);
-        mm2 = MdMatrix.Build.DenseOfArray((double[,])cm2);
-        mv1 = MdVector.Build.DenseOfArray((double[])cv1);
     }
 
     [Benchmark]
@@ -36,22 +31,4 @@ public class MatrixBenchmark : BenchmarkControl
 
     [Benchmark]
     public Vector AustraTransMatrixVector() => cm1.TransposeMultiply(cv1);
-
-    [Benchmark]
-    public MdMatrix MdAddMatrix() => mm1 + mm2;
-
-    [Benchmark]
-    public MdMatrix MdSubMatrix() => mm1 - mm2;
-
-    [Benchmark]
-    public MdMatrix MdMulMatrix() => mm1 * mm2;
-
-    [Benchmark]
-    public MdMatrix MdTransMatrix() => mm1.Transpose();
-
-    [Benchmark]
-    public MdMatrix MdMulTMatrix() => mm1.TransposeAndMultiply(mm2);
-
-    [Benchmark]
-    public MdVector MdTransMatrixVector() => mm1.TransposeThisAndMultiply(mv1);
 }

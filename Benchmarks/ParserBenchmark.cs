@@ -1,6 +1,4 @@
-﻿using Austra.Parser;
-
-namespace Benchmarks;
+﻿namespace Benchmarks;
 
 public class ParserBenchmark : BenchmarkControl
 {

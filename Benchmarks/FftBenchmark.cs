@@ -33,38 +33,6 @@ public class FftBenchmark : BenchmarkControl
     [Benchmark]
     public Complex[] Fft2048() => FFT.Transform((double[])v2048);
 
-    [Benchmark]
-    public Complex[] MdFft533()
-    {
-        var cv533 = v533.Select(c => new Complex(c, 0)).ToArray();
-        MathNet.Numerics.IntegralTransforms.Fourier.Forward(cv533);
-        return cv533;
-    }
-
-    [Benchmark]
-    public Complex[] MdFft583()
-    {
-        var cv583 = v583.Select(c => new Complex(c, 0)).ToArray();
-        MathNet.Numerics.IntegralTransforms.Fourier.Forward(cv583);
-        return cv583;
-    }
-
-    [Benchmark]
-    public Complex[] MdFft1024()
-    {
-        var cv1024 = v1024.Select(c => new Complex(c, 0)).ToArray();
-        MathNet.Numerics.IntegralTransforms.Fourier.Forward(cv1024);
-        return cv1024;
-    }
-
-    [Benchmark]
-    public Complex[] MdFft2048()
-    {
-        var cv2048 = v2048.Select(c => new Complex(c, 0)).ToArray();
-        MathNet.Numerics.IntegralTransforms.Fourier.Forward(cv2048);
-        return cv2048;
-    }
-
     internal static void Trace()
     {
         Trace(FftTest(533));
@@ -83,10 +51,10 @@ public class FftBenchmark : BenchmarkControl
 
         static void Trace(Complex[] r)
         {
-            Console.WriteLine($"Length: {r.Length}\tChecksum: {r.Sum(c => c.Magnitude)}");
-            Console.WriteLine($"{r[0].Magnitude}, {r[1].Magnitude}, {r[2].Magnitude}, {r[3].Magnitude}");
-            Console.WriteLine($"{r[^4].Magnitude}, {r[^3].Magnitude}, {r[^2].Magnitude}, {r[^1].Magnitude}");
-            Console.WriteLine();
+            WriteLine($"Length: {r.Length}\tChecksum: {r.Sum(c => c.Magnitude)}");
+            WriteLine($"{r[0].Magnitude}, {r[1].Magnitude}, {r[2].Magnitude}, {r[3].Magnitude}");
+            WriteLine($"{r[^4].Magnitude}, {r[^3].Magnitude}, {r[^2].Magnitude}, {r[^1].Magnitude}");
+            WriteLine();
         }
     }
 

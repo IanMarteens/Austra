@@ -8,8 +8,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.13.7" />
-		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-		<PackageReference Include="MathNet.Numerics.MKL.Win-x64" Version="3.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -19,16 +17,12 @@
 
 	<ItemGroup>
 		<Using Include="Austra.Library" />
+		<Using Include="Austra.Parser" />
 		<Using Include="Benchmarks" />
 		<Using Include="BenchmarkDotNet.Attributes" />
 		<Using Include="BenchmarkDotNet.Running" />
-		<Using Include="MathNet.Numerics" />
-		<Using Include="MathNet.Numerics.LinearAlgebra.Factorization.Cholesky&lt;double&gt;" Alias="MdCholesky" />
-		<Using Include="MathNet.Numerics.LinearAlgebra.Factorization.Evd&lt;double&gt;" Alias="MdEvd" />
-		<Using Include="MathNet.Numerics.LinearAlgebra.Factorization.LU&lt;double&gt;" Alias="MdLU" />
-		<Using Include="MathNet.Numerics.LinearAlgebra.Matrix&lt;double&gt;" Alias="MdMatrix" />
-		<Using Include="MathNet.Numerics.LinearAlgebra.Vector&lt;double&gt;" Alias="MdVector" />
 		<Using Include="System" />
+		<Using Include="System.Console" Static="true"/>
 		<Using Include="System.Linq" />
 		<Using Include="System.Numerics.Complex" Alias="Complex" />
 		<Using Include="System.Runtime.Intrinsics" />

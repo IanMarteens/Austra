@@ -24,7 +24,7 @@ public abstract class Spline<ARG> where ARG : struct
         this.xs = xs;
         LastCoordinate = ys[^1];
         K = new Polynomial[xs.Length - 1];
-        scale = K.Length / (xs[^1] - xs[0]); 
+        scale = K.Length / (xs[^1] - xs[0]);
         CalculateSplines(xs, ys);
     }
 
@@ -77,7 +77,7 @@ public abstract class Spline<ARG> where ARG : struct
                 (Add(ref ry, i + 1) - Add(ref ry, i)) * dx2 * dx2) * 3 - last * dx1) * b;
         }
         // Last row.
-        Add(ref rr, n - 1) = last = ((Add(ref ry, n - 1) - Add(ref ry, n - 2)) 
+        Add(ref rr, n - 1) = last = ((Add(ref ry, n - 1) - Add(ref ry, n - 2))
             / (Add(ref rx, n - 1) - Add(ref rx, n - 2)) * 3 - last) / (2 - Add(ref rc, n - 2));
         // Solve by backward substitution and create final coefficients.
         for (int i = n - 2; i >= 0; i--)
@@ -113,15 +113,17 @@ public abstract class Spline<ARG> where ARG : struct
     {
         get
         {
-            if (x < xs[0] || x > xs[^1])
+            ref double rx = ref MemoryMarshal.GetArrayDataReference(xs);
+            if (x < rx || x > Add(ref rx, xs.Length - 1))
                 throw new ArgumentOutOfRangeException(nameof(x));
-            if (x == xs[^1])
+            if (x == Add(ref rx, xs.Length - 1))
                 return LastCoordinate;
             int i = Array.BinarySearch(xs, x);
             if (i < 0)
             {
                 i = ~i - 1;
-                return K[i].Eval((x - xs[i]) / (xs[i + 1] - xs[i]));
+                double xi = Add(ref rx, i);
+                return K[i].Eval((x - xi) / (Add(ref rx, i + 1) - xi));
             }
             else
                 return K[i].K0;
@@ -133,13 +135,15 @@ public abstract class Spline<ARG> where ARG : struct
     /// <returns>The cubic approximation to the derivative.</returns>
     protected double Derivative(double x)
     {
-        if (x < xs[0] || x > xs[^1])
+        ref double rx = ref MemoryMarshal.GetArrayDataReference(xs);
+        if (x < rx || x > Add(ref rx, xs.Length - 1))
             throw new ArgumentOutOfRangeException(nameof(x));
         int i = Array.BinarySearch(xs, x);
         if (i < 0)
         {
             i = ~i - 1;
-            return K[i].Derivative((x - xs[i]) / (xs[i + 1] - xs[i])) * scale;
+            double xi = Add(ref rx, i);
+            return K[i].Derivative((x - xi) / (Add(ref rx, i + 1) - xi)) * scale;
         }
         else
             return K[i].K1 * scale;

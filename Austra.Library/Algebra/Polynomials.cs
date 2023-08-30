@@ -35,12 +35,18 @@ public static class Polynomials
     /// <returns>The evaluation of the derivate of the polynomial.</returns>
     public static Complex PolyDerivative(Complex value, Vector coefficients)
     {
-        Complex result = Complex.Zero;
+        Complex res = Complex.Zero;
         int k = coefficients.Length - 1;
         for (int i = 0; i < coefficients.Length - 1; i++)
-            result = result * value + k-- * coefficients[i];
-        return result;
+        {
+            double c = coefficients[i] * k--;
+            res = new(
+                FusedMultiplyAdd(res.Real, value.Real, c - res.Imaginary * value.Imaginary),
+                FusedMultiplyAdd(res.Real, value.Imaginary, res.Imaginary * value.Real));
+        }
+        return res;
     }
+
 
     /// <summary>Evaluates the derivative of a polynomial with real coefficients.</summary>
     /// <param name="value">Value to substitute.</param>
