@@ -321,9 +321,8 @@ internal static partial class Parser
                     ? throw Error("First operand must be a matrix", opLex)
                     : e2.Type != typeof(Vector) && e2.Type != typeof(Matrix)
                     ? throw Error("Second operand must be a vector or a matrix", opLex)
-                    : Expression.Call(
-                        Expression.Call(e1, typeof(Matrix).Get(nameof(Matrix.LU))),
-                        typeof(LU).GetMethod(nameof(LU.Solve), new[] { e2.Type }), e2);
+                    : Expression.Call(e1, typeof(Matrix).GetMethod(
+                        nameof(Matrix.Solve), new[] { e2.Type }), e2); 
             else if (opLex.Kind == Token.PointTimes)
                 e1 = e1.Type == e2.Type && e1.Type.IsAssignableTo(
                         typeof(IPointwiseMultiply<>).MakeGenericType(e1.Type))

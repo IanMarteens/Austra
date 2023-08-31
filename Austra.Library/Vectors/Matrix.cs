@@ -1170,6 +1170,16 @@ public readonly struct Matrix :
     /// <returns>The inverse matrix using LU factorization.</returns>
     public Matrix Inverse() => LU().Solve(Identity(Rows));
 
+    /// <summary>Solves the equation Ax = b for x.</summary>
+    /// <param name="v">The right side of the equation.</param>
+    /// <returns>The solving vector.</returns>
+    public Vector Solve(Vector v) => LU().Solve(v);
+
+    /// <summary>Solves the equation AX = B for the matrix X.</summary>
+    /// <param name="m">The right side of the equation.</param>
+    /// <returns>The solving matrix.</returns>
+    public Matrix Solve(Matrix m) => LU().Solve(m);
+
     /// <summary>Computes the eigenvalue decomposition.</summary>
     /// <remarks>Use this method when the symmetricity is unknown.</remarks>
     /// <returns>Eigenvectors and eigenvalues.</returns>

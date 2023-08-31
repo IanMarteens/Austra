@@ -69,7 +69,7 @@ public static class FFT
                     {
                         var x = Sse2.LoadVector128(pb + 2 * (i % n2));
                         var y = Sse2.Xor(Sse2.LoadVector128(pb + 2 * ((n2 - i) % n2)), cnj);
-                        double θ = -2 * PI * i / n;
+                        double θ = -Tau * i / n;
                         var v = Vector128.Create(-Sin(θ), Cos(θ));
                         var t1 = Sse2.Subtract(y, x);
                         var t2 = Sse3.HorizontalSubtract(
@@ -90,7 +90,7 @@ public static class FFT
                         Complex x = new(pb[idx + 0], pb[idx + 1]);
                         idx = 2 * ((n2 - i) % n2);
                         Complex y = new(pb[idx + 0], -pb[idx + 1]);
-                        double θ = -2 * PI * i / n;
+                        double θ = -Tau * i / n;
                         pf[i] = (x + y - new Complex(-Sin(θ), Cos(θ)) * (x - y)) * 0.5;
                     }
                     for (int i = n2 + 1; i < n; i++)

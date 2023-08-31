@@ -21,6 +21,19 @@ Austra provides classes for the following matrix decompositions:
 
 `Matrix.Solve(Vector)` and `Matrix.Solve(Matrix)` uses LU decomposition internally.
 
+## Time series
+
+The kernel of Austra was our implementation of the Mean-Variance optimizer. This means that time series were implemented before vectors and matrices.
+
+Series are collections of pairs date/value, and they are sorted by date. Values can be used as vectors, but there are some differences. Vector operations check, at run time, that the operands have the same length. The same behavior would be hard to enforce for series. On one hand, each series can have a different first available date. On the other hand, even series with the same frequency could have reported values at different days of the week or the month, and still, it could be interesting to mix them.
+
+So, the rules for mixing two series in an operation are:
+
+* They must have the same frequency, and their frequencies are checked at runtime.
+* However, they may have different lengths. If this is the case, the shorter length is chosen for the result.
+* The points of the series are aligned according to their most recent points.
+* The list of dates assigned to the result series is chosen arbitrarily from the first operand.
+
 ## Polynomials and root finding
 
 The `Polynomials` static class provides methods for polynomial evaluation and root finding. The `Solver` class implements a simple variant of the Newton-Raphson method for root finding.

@@ -70,7 +70,7 @@ public sealed class NormalRandom
         hasItem = true;
         double u = Log(1 - random.NextDouble());
         double r = Sqrt(-u - u) * stdDev;
-        double v = 2 * PI * random.NextDouble();
+        double v = Tau * random.NextDouble();
         item = FusedMultiplyAdd(Sin(v), r, mean);
         return FusedMultiplyAdd(Cos(v), r, mean);
     }
@@ -83,7 +83,7 @@ public sealed class NormalRandom
     {
         double u = Log(1 - random.NextDouble());
         double r = Sqrt(-u - u) * stdDev;
-        double v = 2 * PI * random.NextDouble();       
+        double v = Tau * random.NextDouble();       
         return (FusedMultiplyAdd(Sin(v), r, mean), FusedMultiplyAdd(Cos(v), r, mean));
     }
 }

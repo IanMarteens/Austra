@@ -43,10 +43,10 @@ The parser is also able to perform some optimizations:
 
 Some simple constant folding also takes place, but it only affects numeric expressions. In any case, most of the time spent by the parser has to do with compiling to IL.
 
-One thing that makes this parser different is the use of synonyms for methods and properties. For example, `i.mag` is equivalent to `i.magnitude`. This is done to make the language more natural to use, but complicates the parser a bit.
+One thing that makes this parser different is the use of synonyms for methods and properties. For example, `i.mag` is equivalent to `i.magnitude`. This is done to make the language more natural to use but complicates the parser a bit.
 
 ## Experimental features
 
-There are also some experimental features, like operator elision for multiplications. For example, `2i` is equivalent to `2*i`, and you can write `5x^3 + 3x^2 / 2y` instead of `5*x^3 + 3*x^2 / (2*y)`. This feature only works with numerical variables.
+There are also some experimental features included, like operator elision for multiplications. For example, `2i` is equivalent to `2*i`, and you can write `5x^3 + 3x^2 / 2y` instead of `5*x^3 + 3*x^2 / (2*y)`. This feature only works with numerical variables.
 
 `1 / 2x` is equivalent to `1 / (2*x)`. However, `2x^2` is parsed as `2*(x^2)`, not as `(2*x)^2)`, and `2x.phase` means `2*(x.phase)`, which is the most sensible interpretation. 

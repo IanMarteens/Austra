@@ -34,7 +34,7 @@ public sealed partial class FftPlan
         public Op Type { get; }
         /// <summary>Repetition count.</summary>
         public int Count { get; }
-        /// <summary>Number of microvectors in operand.</summary>
+        /// <summary>Number of micro-vectors in operand.</summary>
         public int Size { get; }
         public int Param0 { readonly get; set; }
         public int Param1 { readonly get; init; }
@@ -57,7 +57,7 @@ public sealed partial class FftPlan
             Op.TwiddleFactors => $"Twiddle factors, {Param0}x{Size / Param0}",
             Op.Transpose or Op.SmallTranspose => $"Transpose {Param0}x{Size / Param0}",
             Op.ParallelCall => $"Parallel call",
-            Op.Start => $"Sub, chunksize: {TotalSize}",
+            Op.Start => $"Sub, chunk size: {TotalSize}",
             _ => "",
         };
     }
@@ -72,11 +72,11 @@ public sealed partial class FftPlan
     /// <summary>Mask vector to conjugate two complex values at once.</summary>
     private static readonly Vector256<double> CNJ = Vector256.Create(0.0, -0.0, 0.0, -0.0);
 
-    private static readonly double Cos2πOver3 = Cos(2 * PI / 3);
-    private static readonly double Sin2πOver3 = Sin(2 * PI / 3);
-    private static readonly double Cos2πOver5 = Cos(2 * PI / 5);
+    private static readonly double Cos2πOver3 = Cos(Tau / 3);
+    private static readonly double Sin2πOver3 = Sin(Tau / 3);
+    private static readonly double Cos2πOver5 = Cos(Tau / 5);
     private static readonly double Cos4πOver5 = Cos(4 * PI / 5);
-    private static readonly double Sin2πOver5 = Sin(2 * PI / 5);
+    private static readonly double Sin2πOver5 = Sin(Tau / 5);
     private static readonly double Sin4πOver5 = Sin(4 * PI / 5);
     private static readonly double CosπOver3 = Cos(-PI / 3);
     private static readonly double SinπOver3 = Sin(-PI / 3);
@@ -185,18 +185,18 @@ public sealed partial class FftPlan
         FindSmoothRec(n, 1, 2, ref best);
         return best;
 
-        static void FindSmoothRec(int n, int seed, int leastfactor, ref int best)
+        static void FindSmoothRec(int n, int seed, int leastFactor, ref int best)
         {
             if (seed >= n)
             {
                 best = Min(best, seed);
                 return;
             }
-            if (leastfactor <= 2)
+            if (leastFactor <= 2)
                 FindSmoothRec(n, seed * 2, 2, ref best);
-            if (leastfactor <= 3)
+            if (leastFactor <= 3)
                 FindSmoothRec(n, seed * 3, 3, ref best);
-            if (leastfactor <= 5)
+            if (leastFactor <= 5)
                 FindSmoothRec(n, seed * 5, 5, ref best);
         }
     }
@@ -302,7 +302,7 @@ public sealed partial class FftPlan
             else if (n1 <= MAX_RADIX)
             {
                 // Specialized transformation for small N1:
-                // * N2 short inplace FFT's, each N1-point, with integrated twiddle factors
+                // * N2 short in-place FFT's, each N1-point, with integrated twiddle factors
                 // * N1 long FFT's
                 // * final transposition
                 Push(Op.IntegratedCodelet, k, n1, 2 * n2);
@@ -418,7 +418,7 @@ public sealed partial class FftPlan
 
         void PrecomputeRader(int rootInverse, double* prec)
         {
-            double TwoPiOverN = -2 * PI / n;
+            double TwoPiOverN = -Tau / n;
             for (int q = 0, kiq = 1; q <= n - 2; q++, kiq = kiq * rootInverse % n)
             {
                 double v = TwoPiOverN * kiq;
@@ -501,13 +501,13 @@ public sealed partial class FftPlan
                 case Op.ParallelCall:
                     {
                         int param0 = e.Param0;
-                        int childsize = Unsafe.Add(ref entry0, param0++).TotalSize;
-                        int chunksize = Max(RecursiveThreshold / childsize, 1);
+                        int childSize = Unsafe.Add(ref entry0, param0++).TotalSize;
+                        int chunkSize = Max(RecursiveThreshold / childSize, 1);
                         int count = reps * e.Count;
-                        for (int i = 0; i < count; i += chunksize)
+                        for (int i = 0; i < count; i += chunkSize)
                         {
-                            chunksize = Min(chunksize, count - i);
-                            Execute(param0, a + i * childsize, buffer, chunksize);
+                            chunkSize = Min(chunkSize, count - i);
+                            Execute(param0, a + i * childSize, buffer, chunkSize);
                         }
                     }
                     row++;
@@ -1038,7 +1038,7 @@ public sealed partial class FftPlan
     /// <summary>Integrated codelet for size 2.</summary>
     /// <param name="a">Input/output array.</param>
     /// <param name="count">Operands count.</param>
-    /// <param name="mv">Microvector size.</param>
+    /// <param name="mv">Micro-vector size.</param>
     private static unsafe void Codelet2(double* a, int count, int mv)
     {
         int m = mv / 2;
@@ -1099,11 +1099,11 @@ public sealed partial class FftPlan
     /// <summary>Integrated codelet for size 3.</summary>
     /// <param name="a">Input/output array.</param>
     /// <param name="count">Operands count.</param>
-    /// <param name="mv">Microvector size.</param>
+    /// <param name="mv">Micro-vector size.</param>
     private static unsafe void Codelet3(double* a, int count, int mv)
     {
         int m = mv / 2;
-        double θ = -2 * PI / (3 * m);
+        double θ = -Tau / (3 * m);
         double tw0 = -2 * Sqr(Sin(0.5 * θ)), tw1 = Sin(θ);
         double c1 = Cos2πOver3 - 1, c2 = Sin2πOver3;
         var c1v = Vector128.Create(c1);
@@ -1175,7 +1175,7 @@ public sealed partial class FftPlan
                 }
                 if ((j + 1) % UPDATE_TW == 0)
                 {
-                    θ = -2 * PI * (j + 1) / (3 * m);
+                    θ = -Tau * (j + 1) / (3 * m);
                     (twx, twy) = (1.0 - 2 * Sqr(Sin(0.5 * θ)), Sin(θ));
                 }
                 else
@@ -1192,7 +1192,7 @@ public sealed partial class FftPlan
     /// <summary>Integrated codelet for size 4.</summary>
     /// <param name="a">Input/output array.</param>
     /// <param name="count">Operands count.</param>
-    /// <param name="mv">Microvector size.</param>
+    /// <param name="mv">Micro-vector size.</param>
     private static unsafe void Codelet4(double* a, int count, int mv)
     {
         int m = mv / 2;
@@ -1294,11 +1294,11 @@ public sealed partial class FftPlan
     /// <summary>Integrated codelet for size 5.</summary>
     /// <param name="a">Input/output array.</param>
     /// <param name="count">Operands count.</param>
-    /// <param name="mv">Microvector size.</param>
+    /// <param name="mv">Micro-vector size.</param>
     private static unsafe void Codelet5(double* a, int count, int mv)
     {
         int m = mv / 2;
-        double θ = -2 * PI / (5 * m);
+        double θ = -Tau / (5 * m);
         double tw0 = -2 * Sqr(Sin(0.5 * θ)), tw1 = Sin(θ);
         double c1 = (Cos2πOver5 + Cos4πOver5) / 2 - 1, c2 = (Cos2πOver5 - Cos4πOver5) / 2;
         double c3 = -Sin2πOver5;
@@ -1429,7 +1429,7 @@ public sealed partial class FftPlan
                 }
                 if ((j + 1) % UPDATE_TW == 0)
                 {
-                    θ = -2 * PI * (j + 1) / (5 * m);
+                    θ = -Tau * (j + 1) / (5 * m);
                     (twx, twy) = (1.0 - 2 * Sqr(Sin(0.5 * θ)), Sin(θ));
                 }
                 else
@@ -1446,7 +1446,7 @@ public sealed partial class FftPlan
     /// <summary>Integrated codelet for size 6.</summary>
     /// <param name="a">Input/output array.</param>
     /// <param name="count">Operands count.</param>
-    /// <param name="mv">Microvector size.</param>
+    /// <param name="mv">Micro-vector size.</param>
     private static unsafe void Codelet6(double* a, int count, int mv)
     {
         int m = mv / 2;
@@ -1639,7 +1639,7 @@ public sealed partial class FftPlan
         //      a[2m]=(X*TwX-Y*TwY, X*TwY+Y*TwX);
         const int UPDATE_TW2 = UPDATE_TW / 2;
         int n = n1 * n2, halfN1 = n1 / 2;
-        double θ = -2 * PI / n;
+        double θ = -Tau / n;
         double twBaseX = 1.0 - 2 * Sqr(Sin(0.5 * θ)), twBaseY = Sin(θ);
         double twRowX = 1, twRowY = 0;
         for (int i = 0; i < n2; i++)
@@ -1669,9 +1669,9 @@ public sealed partial class FftPlan
                 {
                     double x = a[0], y = a[1];
                     a[0] = x * twx - y * twy; a[1] = x * twy + y * twx;
-                    double tmpx = twx * twRowX - twy * twRowY;
+                    double tmpX = twx * twRowX - twy * twRowY;
                     twy = twx * twRowY + twy * twRowX;
-                    twx = tmpx;
+                    twx = tmpX;
                     x = a[2]; y = a[3];
                     a[2] = x * twx - y * twy; a[3] = x * twy + y * twx;
                 }
@@ -1682,9 +1682,9 @@ public sealed partial class FftPlan
                 }
                 else
                 {
-                    double tmpx = twx * twRowX - twy * twRowY;
+                    double tmpX = twx * twRowX - twy * twRowY;
                     twy = twx * twRowY + twy * twRowX;
-                    twx = tmpx;
+                    twx = tmpX;
                 }
             }
             if (n1 % 2 == 1)
@@ -1704,9 +1704,9 @@ public sealed partial class FftPlan
                 }
                 else
                 {
-                    double tmpx = twRowX * twBaseX - twRowY * twBaseY;
+                    double tmpX = twRowX * twBaseX - twRowY * twBaseY;
                     twRowY = twRowX * twBaseY + twRowY * twBaseX;
-                    twRowX = tmpx;
+                    twRowX = tmpX;
                 }
             }
         }

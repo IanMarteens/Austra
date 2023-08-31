@@ -42,8 +42,8 @@ public static class CommonMatrix
     /// <returns>A vector containing values in the main diagonal.</returns>
     public unsafe static Vector Diagonal(double[,] values)
     {
-        int rows = values.GetLength(0), cells = values.GetLength(1);
-        int r = cells + 1, size = Min(rows, cells);
+        int rows = values.GetLength(0), cols = values.GetLength(1);
+        int r = cols + 1, size = Min(rows, cols);
         double[] result = new double[size];
         fixed (double* pA = values, pB = result)
             for (double* p = pA, q = pB; size-- > 0; p += r)
@@ -57,8 +57,8 @@ public static class CommonMatrix
     public unsafe static double Trace(double[,] values)
     {
         double trace = 0;
-        int rows = values.GetLength(0), cells = values.GetLength(1);
-        int r = cells + 1, size = Min(rows, cells);
+        int rows = values.GetLength(0), cols = values.GetLength(1);
+        int r = cols + 1, size = Min(rows, cols);
         if (size <= 4)
             for (int s = size; s-- > 0;)
                 trace += values[s, s];
@@ -74,8 +74,8 @@ public static class CommonMatrix
     /// <returns>The product of the main diagonal.</returns>
     public unsafe static double DiagonalProduct(double[,] values)
     {
-        int rows = values.GetLength(0), cells = values.GetLength(1);
-        int r = cells + 1, size = Min(rows, cells);
+        int rows = values.GetLength(0), cols = values.GetLength(1);
+        int r = cols + 1, size = Min(rows, cols);
         double product = 1.0;
         fixed (double* pA = values)
             for (double* p = pA; size-- > 0; p += r)

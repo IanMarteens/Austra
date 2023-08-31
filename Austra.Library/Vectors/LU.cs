@@ -18,7 +18,7 @@ public readonly struct LU
     /// <param name="m">The underlying matrix.</param>
     public LU(Matrix m)
     {
-        var data = (double[,])m.Clone();
+        double[,] data = (double[,])m.Clone();
         values = data;
         perm = new int[m.Rows];
         for (int i = 0; i < perm.Length; i++)
@@ -52,7 +52,7 @@ public readonly struct LU
                     int k = 0;
                     if (Avx.IsSupported)
                     {
-                        var ac = Vector256<double>.Zero;
+                        Vector256<double> ac = Vector256<double>.Zero;
                         for (; k < lastBlock; k += 4)
                             ac = ac.MultiplyAdd(pAi + k, buf + k);
                         s = ac.Sum();
@@ -235,7 +235,7 @@ public readonly struct LU
                 int i = k + 1;
                 if (Avx2.IsSupported)
                 {
-                    var vm = Vector256.Create(m);
+                    Vector256<double> vm = Vector256.Create(m);
                     var vx = Vector128.Create(0, size, 2 * size, 3 * size);
                     for (double* p = a + i * size + k; i < size - 4; i += 4, p += 4 * size)
                         Avx.Store(c + i, Avx.Subtract(Avx.LoadVector256(c + i),
@@ -250,7 +250,7 @@ public readonly struct LU
                 int i = 0;
                 if (Avx2.IsSupported)
                 {
-                    var vm = Vector256.Create(m);
+                    Vector256<double> vm = Vector256.Create(m);
                     var vx = Vector128.Create(0, size, 2 * size, 3 * size);
                     for (double* p = a + k; i < k - 4; i += 4, p += size * 4)
                         Avx.Store(c + i, Avx.Subtract(Avx.LoadVector256(c + i),
@@ -323,7 +323,7 @@ public readonly struct LU
                 double mult = pA[k * size + k];
                 int l = 0;
                 if (Avx.IsSupported)
-                    for (var vm = Vector256.Create(1.0 / mult); l < top; l += 4)
+                    for (Vector256<double> vm = Vector256.Create(1.0 / mult); l < top; l += 4)
                         Avx.Store(pck + l, Avx.Multiply(Avx.LoadVector256(pck + l), vm));
                 for (; l < size; l++)
                     pck[l] /= mult;
