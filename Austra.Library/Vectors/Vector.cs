@@ -761,6 +761,28 @@ public readonly struct Vector :
         return result;
     }
 
+    /// <summary>Calculates the product of the vector's items.</summary>
+    /// <returns>The product of all vector's items.</returns>
+    public unsafe double Product()
+    {
+        Contract.Requires(IsInitialized);
+
+        double result = 1d;
+        fixed (double* p = values)
+        {
+            int i = 0;
+            if (Avx.IsSupported)
+            {
+                Vector256<double> prod = Vector256.Create(1d);
+                for (int top = values.Length & Simd.AVX_MASK; i < top; i += 4)
+                    prod = Avx.Multiply(Avx.LoadVector256(p + i), prod);
+                result = prod.Product();
+            }
+            for (; i < values.Length; i++)
+                result *= p[i];
+        }
+        return result;
+    }
     /// <summary>Computes the mean of the vector's items.</summary>
     /// <returns><code>this.Sum() / this.Length</code></returns>
     public double Mean() => Sum() / Length;

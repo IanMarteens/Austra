@@ -166,6 +166,7 @@ internal static partial class Parser
             ("norm", "Gets the norm of the vector"),
             ("sqr", "Gets the squared norm of the vector"),
             ("sum", "Gets the sum of all values"),
+            ("prod", "Gets the product of all values"),
             ("mean", "Gets the mean value"),
             ("sqrt", "Pointwise squared root"),
             ("abs", "Pointwise absolute value"),

@@ -297,6 +297,8 @@ internal static partial class Parser
                 ["sqr"] = typeof(Vector).Get(nameof(Vector.Squared)),
                 ["stats"] = typeof(Vector).Get(nameof(Vector.Stats)),
                 ["sum"] = typeof(Vector).Get(nameof(Vector.Sum)),
+                ["prod"] = typeof(Vector).Get(nameof(Vector.Product)),
+                ["product"] = typeof(Vector).Get(nameof(Vector.Product)),
                 ["sqrt"] = typeof(Vector).Get(nameof(Vector.Sqrt)),
                 ["amax"] = typeof(Vector).Get(nameof(Vector.AMax)),
                 ["amin"] = typeof(Vector).Get(nameof(Vector.AMin)),

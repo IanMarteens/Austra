@@ -21,6 +21,16 @@ public static class Simd
         return v.ToScalar() + v.GetElement(2);
     }
 
+    /// <summary>Multiplies all the elements in a vector.</summary>
+    /// <param name="v">A intrinsics vector with four doubles.</param>
+    /// <returns>The product of all items.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static double Product(this Vector256<double> v)
+    {
+        Vector128<double> x = Sse2.Multiply(v.GetLower(), v.GetUpper());
+        return x.ToScalar() * x.GetElement(1);
+    }
+
     /// <summary>Gets the maximum component in a vector.</summary>
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The maximum component.</returns>
