@@ -126,12 +126,7 @@ public readonly struct RMatrix :
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Trace()
-    {
-        Contract.Requires(IsInitialized);
-
-        return CommonMatrix.Trace(values);
-    }
+    public double Trace() => CommonMatrix.Trace(values);
 
     /// <summary>Gets the value at a single cell.</summary>
     /// <param name="row">The row number, between 0 and Rows - 1.</param>
@@ -188,10 +183,10 @@ public readonly struct RMatrix :
                     for (; col < lastBlockIndex; col += 4)
                     {
                         Avx.Store(
-                            address: pC + k,
-                            source: Avx.Add(
-                                left: Avx.LoadVector256(pA + k),
-                                right: Avx.LoadVector256(pB + k)));
+                            pC + k,
+                            Avx.Add(
+                                Avx.LoadVector256(pA + k),
+                                Avx.LoadVector256(pB + k)));
                         k += 4;
                     }
                 }
@@ -231,21 +226,12 @@ public readonly struct RMatrix :
                 if (Avx.IsSupported)
                 {
                     int lastBlockIndex = (c - row) & Simd.AVX_MASK + row;
-                    for (; col < lastBlockIndex; col += 4)
-                    {
-                        Avx.Store(
-                            address: pC + k,
-                            source: Avx.Subtract(
-                                left: Avx.LoadVector256(pA + k),
-                                right: Avx.LoadVector256(pB + k)));
-                        k += 4;
-                    }
+                    for (; col < lastBlockIndex; col += 4, k += 4)
+                        Avx.Store(pC + k,
+                            Avx.Subtract(Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
                 }
-                for (; col < c; col++)
-                {
+                for (; col < c; col++, k++)
                     pC[k] = pA[k] - pB[k];
-                    k++;
-                }
                 offset += c;
             }
         }
@@ -321,21 +307,12 @@ public readonly struct RMatrix :
                 if (Avx.IsSupported)
                 {
                     int top = (c - row) & Simd.AVX_MASK + row;
-                    for (; col < top; col += 4)
-                    {
-                        Avx.Store(
-                            address: pC + k,
-                            source: Avx.Multiply(
-                                left: Avx.LoadVector256(pA + k),
-                                right: vec));
-                        k += 4;
-                    }
+                    for (; col < top; col += 4, k += 4)
+                        Avx.Store(pC + k, Avx.Multiply(Avx.LoadVector256(pA + k), vec));
                 }
-                for (; col < c; col++)
-                {
+                for (; col < c; col++, k++)
                     pC[k] = pA[k] * d;
                     k++;
-                }
                 offset += c;
             }
         }

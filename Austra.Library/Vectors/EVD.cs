@@ -13,35 +13,35 @@ public readonly struct EVD
     public unsafe EVD(Matrix m, bool isSymmetric)
     {
         int r = m.Rows;
-        double* d = stackalloc double[r];
-        double* e = stackalloc double[r];
+        double[] d = new double[r], e = new double[r];
         if (isSymmetric)
         {
             Vectors = m.Clone();
-            fixed (double* pA = (double[,])Vectors)
+            fixed (double* pA = (double[,])Vectors, pd = d, pe = e)
             {
                 Buffer.MemoryCopy(
                     source: pA + (r - 1) * r,
-                    destination: d,
+                    destination: pd,
                     destinationSizeInBytes: r * sizeof(double),
                     sourceBytesToCopy: r * sizeof(double));
-                SymmetricTridiagonalize(pA, d, e, r);
-                SymmetricDiagonalize(pA, d, e, r);
+                SymmetricTridiagonalize(pA, pd, pe, r);
+                SymmetricDiagonalize(pA, pd, pe, r);
                 CommonMatrix.Transpose(pA, r);
             }
         }
         else
         {
             Vectors = Matrix.Identity(r);
-            fixed (double* pA = (double[,])Vectors, pH = (double[,])m.Transpose())
+            fixed (double* pA = (double[,])Vectors, pH = (double[,])m.Transpose(),
+                pd = d, pe = e)
             {
-                ReduceToHessenberg(pA, pH, d, r);
-                ReduceToSchur(pA, pH, d, e, r);
+                ReduceToHessenberg(pA, pH, pd, r);
+                ReduceToSchur(pA, pH, pd, pe, r);
                 CommonMatrix.Transpose(pA, r);
             }
         }
-        Values = new(d, e, r);
-        var values = Values;
+        Values = new(d, e);
+        ComplexVector values = Values;
         diagonal = new(() => CreateDiagonal(values), true);
 
     }
@@ -89,10 +89,10 @@ public readonly struct EVD
                 int m = 0;
                 if (Avx.IsSupported)
                 {
-                    var sum = Vector256<double>.Zero;
-                    for (var scl = Vector256.Create(1.0 / scale); m < top; m += 4)
+                    Vector256<double> sum = Vector256<double>.Zero;
+                    for (Vector256<double> scl = Vector256.Create(1.0 / scale); m < top; m += 4)
                     {
-                        var dvec = Avx.Multiply(Avx.LoadVector256(d + m), scl);
+                        Vector256<double> dvec = Avx.Multiply(Avx.LoadVector256(d + m), scl);
                         sum = sum.MultiplyAdd(dvec, dvec);
                         Avx.Store(d + m, dvec);
                     }
@@ -115,7 +115,7 @@ public readonly struct EVD
                 m = 0;
                 if (Avx.IsSupported)
                 {
-                    var zero = Vector256<double>.Zero;
+                    Vector256<double> zero = Vector256<double>.Zero;
                     for (; m < top; m += 4)
                         Avx.Store(e + m, zero);
                 }
@@ -133,10 +133,10 @@ public readonly struct EVD
                     int k = j + 1;
                     if (Avx.IsSupported)
                     {
-                        var vg = Vector256<double>.Zero;
-                        for (var vf = Vector256.Create(f); k < i - 4; k += 4)
+                        Vector256<double> vg = Vector256<double>.Zero;
+                        for (Vector256<double> vf = Vector256.Create(f); k < i - 4; k += 4)
                         {
-                            var va = Avx.LoadVector256(aj + k);
+                            Vector256<double> va = Avx.LoadVector256(aj + k);
                             vg = vg.MultiplyAdd(Avx.LoadVector256(d + k), va);
                             Avx.Store(e + k, Avx.LoadVector256(e + k).MultiplyAdd(va, vf));
                         }
@@ -154,10 +154,10 @@ public readonly struct EVD
                 m = 0;
                 if (Avx.IsSupported)
                 {
-                    var s = Vector256<double>.Zero;
-                    for (var scl = Vector256.Create(1.0 / h); m < top; m += 4)
+                    Vector256<double> s = Vector256<double>.Zero;
+                    for (Vector256<double> scl = Vector256.Create(1.0 / h); m < top; m += 4)
                     {
-                        var v = Avx.Multiply(Avx.LoadVector256(e + m), scl);
+                        Vector256<double> v = Avx.Multiply(Avx.LoadVector256(e + m), scl);
                         Avx.Store(e + m, v);
                         s = s.MultiplyAdd(v, Avx.LoadVector256(d + m));
                     }
@@ -172,7 +172,7 @@ public readonly struct EVD
                 double hh = f / (h + h);
                 m = 0;
                 if (Avx.IsSupported)
-                    for (var v = Vector256.Create(-hh); m < top; m += 4)
+                    for (Vector256<double> v = Vector256.Create(-hh); m < top; m += 4)
                         Avx.Store(e + m, Avx.LoadVector256(e + m).MultiplyAdd(d + m, v));
                 for (; m < i; m++)
                     e[m] -= hh * d[m];
@@ -184,8 +184,8 @@ public readonly struct EVD
                     int k = j;
                     if (Avx.IsSupported)
                     {
-                        var vf = Vector256.Create(f);
-                        var vg = Vector256.Create(g);
+                        Vector256<double> vf = Vector256.Create(f);
+                        Vector256<double> vg = Vector256.Create(g);
                         for (; k < i - 4; k += 4)
                         {
                             Avx.Store(aj + k, Avx.Subtract(
@@ -215,7 +215,7 @@ public readonly struct EVD
                 h = 1.0 / h;
                 int k = 0;
                 if (Avx.IsSupported)
-                    for (var v = Vector256.Create(h); k <= i - 4; k += 4)
+                    for (Vector256<double> v = Vector256.Create(h); k <= i - 4; k += 4)
                         Avx.Store(d + k, Avx.Multiply(Avx.LoadVector256(ai1 + k), v));
                 for (; k <= i; k++)
                     d[k] = ai1[k] * h;
@@ -226,7 +226,7 @@ public readonly struct EVD
                     k = 0;
                     if (Avx.IsSupported)
                     {
-                        var v = Vector256<double>.Zero;
+                        Vector256<double> v = Vector256<double>.Zero;
                         for (; k <= i - 4; k += 4)
                             v = v.MultiplyAdd(
                                 Avx.LoadVector256(ai1 + k),
@@ -237,7 +237,7 @@ public readonly struct EVD
                         g += ai1[k] * aj[k];
                     k = 0;
                     if (Avx.IsSupported)
-                        for (var vmg = Vector256.Create(-g); k <= i - 4; k += 4)
+                        for (Vector256<double> vmg = Vector256.Create(-g); k <= i - 4; k += 4)
                             Avx.Store(aj + k,
                                 Avx.LoadVector256(aj + k).MultiplyAdd(d + k, vmg));
                     for (; k <= i; k++)
@@ -299,7 +299,7 @@ public readonly struct EVD
                     double dl1 = d[l + 1], h = g - d[l];
                     int i = l + 2;
                     if (Avx.IsSupported)
-                        for (var vh = Vector256.Create(h); i < r - 4; i += 4)
+                        for (Vector256<double> vh = Vector256.Create(h); i < r - 4; i += 4)
                             Avx.Store(d + i, Avx.Subtract(Avx.LoadVector256(d + i), vh));
                     for (; i < r; i++)
                         d[i] -= h;
@@ -326,12 +326,12 @@ public readonly struct EVD
                         int k = 0;
                         if (Avx.IsSupported)
                         {
-                            var vs = Vector256.Create(s);
-                            var vc = Vector256.Create(c);
+                            Vector256<double> vs = Vector256.Create(s);
+                            Vector256<double> vc = Vector256.Create(c);
                             for (int top = r & Simd.AVX_MASK; k < top; k += 4)
                             {
-                                var vh = Avx.LoadVector256(ai1 + k);
-                                var vk = Avx.LoadVector256(ai + k);
+                                Vector256<double> vh = Avx.LoadVector256(ai1 + k);
+                                Vector256<double> vk = Avx.LoadVector256(ai + k);
                                 Avx.Store(ai1 + k, Avx.Multiply(vc, vh).MultiplyAdd(vs, vk));
                                 Avx.Store(ai + k, Avx.Multiply(vs, vh).MultiplySub(vc, vk));
                             }
@@ -373,7 +373,7 @@ public readonly struct EVD
                 if (Avx.IsSupported)
                     for (int t = r & Simd.AVX_MASK; j < t; j += 4)
                     {
-                        var v = Avx.LoadVector256(ai + j);
+                        Vector256<double> v = Avx.LoadVector256(ai + j);
                         Avx.Store(ai + j, Avx.LoadVector256(ak + j));
                         Avx.Store(ak + j, v);
                     }
@@ -423,17 +423,23 @@ public readonly struct EVD
                 {
                     int jO = j * rank;
                     double f = 0.0;
-                    int i = rank - 1;
-                    for (; i >= m; i--)
+                    int i = m;
+                    if (Avx.IsSupported)
+                    {
+                        Vector256<double> vf = Vector256<double>.Zero;
+                        for (int top = (rank - m) & Simd.AVX_MASK + m; i < top; i += 4)
+                            vf = vf.MultiplyAdd(ort + i, h + jO + i);
+                        f = vf.Sum();
+                    }
+                    for (; i < rank; i++)
                         f += ort[i] * h[jO + i];
                     f /= hh;
 
                     i = m;
                     if (Avx.IsSupported)
-                        for (var vf = Vector256.Create(f); i < rm4; i += 4)
-                            Avx.Store(h + jO + i, Avx.Subtract(
-                                Avx.LoadVector256(h + jO + i),
-                                Avx.Multiply(vf, Avx.LoadVector256(ort + i))));
+                        for (Vector256<double> vf = Vector256.Create(f); i < rm4; i += 4)
+                            Avx.Store(h + jO + i,
+                                Avx.LoadVector256(h + jO + i).MultiplyAddNeg(ort + i, vf));
                     for (; i < rank; i++)
                         h[jO + i] -= f * ort[i];
                 }
@@ -474,7 +480,7 @@ public readonly struct EVD
                     int i = m;
                     if (Avx.IsSupported)
                     {
-                        var vg = Vector256<double>.Zero;
+                        Vector256<double> vg = Vector256<double>.Zero;
                         for (; i < rm4; i += 4)
                             vg = vg.MultiplyAdd(ort + i, a + jO + i);
                         g = vg.Sum();
@@ -485,7 +491,7 @@ public readonly struct EVD
                     g = g / ort[m] / h[mm1Om];
                     i = m;
                     if (Avx.IsSupported)
-                        for (var vg = Vector256.Create(g); i < rm4; i += 4)
+                        for (Vector256<double> vg = Vector256.Create(g); i < rm4; i += 4)
                             Avx.Store(a + jO + i,
                                 Avx.LoadVector256(a + jO + i).MultiplyAdd(ort + i, vg));
                     for (; i < rank; i++)
@@ -548,7 +554,7 @@ public readonly struct EVD
                 int nO = n * rank, nm1 = n - 1, nm1O = nm1 * rank, nOn = nO + n;
                 double w = h[nm1O + n] * h[nO + nm1];
                 p = (h[nm1O + nm1] - h[nOn]) * 0.5;
-                q = p * p + w;
+                q = FusedMultiplyAdd(p, p, w);
                 z = Sqrt(Abs(q));
                 h[nOn] += exshift;
                 h[nm1O + nm1] += exshift;
@@ -582,16 +588,16 @@ public readonly struct EVD
                     int i = 0;
                     if (Avx.IsSupported)
                     {
-                        var vp = Vector256.Create(p);
-                        var vq = Vector256.Create(q);
+                        Vector256<double> vp = Vector256.Create(p);
+                        Vector256<double> vq = Vector256.Create(q);
                         for (; i + 4 <= n; i += 4)
                         {
-                            var vz = Avx.LoadVector256(h + nm1O + i);
-                            var va = Avx.LoadVector256(h + nO + i);
+                            Vector256<double> vz = Avx.LoadVector256(h + nm1O + i);
+                            Vector256<double> va = Avx.LoadVector256(h + nO + i);
                             Avx.Store(h + nm1O + i,
                                 Avx.Multiply(vp, va).MultiplyAdd(vq, vz));
                             Avx.Store(h + nO + i,
-                                Avx.Subtract(Avx.Multiply(vq, va), Avx.Multiply(vp, vz)));
+                                Avx.Multiply(vq, va).MultiplyAddNeg(vp, vz));
                         }
                     }
                     for (; i <= n; i++)
@@ -604,6 +610,20 @@ public readonly struct EVD
 
                     // Accumulate transformations
                     i = 0;
+                    if (Avx.IsSupported)
+                    {
+                        Vector256<double> vp = Vector256.Create(p);
+                        Vector256<double> vq = Vector256.Create(q);
+                        for (int top = rank & Simd.AVX_MASK; i < top; i += 4)
+                        {
+                            Vector256<double> vz = Avx.LoadVector256(a + nm1O + i);
+                            Avx.Store(a + nm1O + i,
+                                Avx.Multiply(vq, vz) .MultiplyAdd(a + nO + i, vp));
+                            Avx.Store(a + nO + i,
+                                Avx.Multiply(vq, Avx.LoadVector256(a + nO + i))
+                                    .MultiplyAddNeg(vp, vz));
+                        }
+                    }
                     for (; i < rank; i++)
                     {
                         int nOi = nO + i;
@@ -743,19 +763,20 @@ public readonly struct EVD
                         int i = 0;
                         if (Avx.IsSupported)
                         {
-                            var vx = Vector256.Create(x);
-                            var vy = Vector256.Create(y);
-                            var vz = Vector256.Create(z);
-                            var vr = Vector256.Create(r);
-                            var vq = Vector256.Create(q);
+                            Vector256<double> vx = Vector256.Create(x);
+                            Vector256<double> vy = Vector256.Create(y);
+                            Vector256<double> vz = Vector256.Create(z);
+                            Vector256<double> vr = Vector256.Create(r);
+                            Vector256<double> vq = Vector256.Create(q);
                             for (; i <= upm4; i += 4)
                             {
-                                var v1 = Avx.LoadVector256(h + kO + i);
-                                var v2 = Avx.LoadVector256(h + kp1O + i);
-                                var vp = Avx.Add(Avx.Multiply(vx, v1), Avx.Multiply(vy, v2));
+                                Vector256<double> v1 = Avx.LoadVector256(h + kO + i);
+                                Vector256<double> v2 = Avx.LoadVector256(h + kp1O + i);
+                                Vector256<double> vp = Avx.Add(
+                                    Avx.Multiply(vx, v1), Avx.Multiply(vy, v2));
                                 if (notlast)
                                 {
-                                    var v3 = Avx.LoadVector256(h + kp2O + i);
+                                    Vector256<double> v3 = Avx.LoadVector256(h + kp2O + i);
                                     vp = Avx.Add(vp, Avx.Multiply(vz, v3));
                                     Avx.Store(h + kp2O + i, Avx.Subtract(v3, Avx.Multiply(vp, vr)));
                                 }
@@ -779,19 +800,19 @@ public readonly struct EVD
                         i = 0;
                         if (Avx.IsSupported)
                         {
-                            var vx = Vector256.Create(x);
-                            var vy = Vector256.Create(y);
-                            var vz = Vector256.Create(z);
-                            var vr = Vector256.Create(r);
-                            var vq = Vector256.Create(q);
+                            Vector256<double> vx = Vector256.Create(x);
+                            Vector256<double> vy = Vector256.Create(y);
+                            Vector256<double> vz = Vector256.Create(z);
+                            Vector256<double> vr = Vector256.Create(r);
+                            Vector256<double> vq = Vector256.Create(q);
                             for (; i + 4 < rank; i += 4)
                             {
-                                var v1 = Avx.LoadVector256(a + kO + i);
-                                var v2 = Avx.LoadVector256(a + kp1O + i);
-                                var vp = Avx.Multiply(vy, v2).MultiplyAdd(vx, v1);
+                                Vector256<double> v1 = Avx.LoadVector256(a + kO + i);
+                                Vector256<double> v2 = Avx.LoadVector256(a + kp1O + i);
+                                Vector256<double> vp = Avx.Multiply(vy, v2).MultiplyAdd(vx, v1);
                                 if (notlast)
                                 {
-                                    var v3 = Avx.LoadVector256(a + kp2O + i);
+                                    Vector256<double> v3 = Avx.LoadVector256(a + kp2O + i);
                                     vp = vp.MultiplyAdd(vz, v3);
                                     Avx.Store(a + kp2O + i, Avx.Subtract(v3, Avx.Multiply(vp, vr)));
                                 }
@@ -861,7 +882,7 @@ public readonly struct EVD
                         {
                             int j = i;
                             if (Avx.IsSupported)
-                                for (var vt = Vector256.Create(1 / t); j + 4 <= n; j += 4)
+                                for (Vector256<double> vt = Vector256.Create(1 / t); j + 4 <= n; j += 4)
                                     Avx.Store(h + nO + j,
                                         Avx.Multiply(Avx.LoadVector256(h + nO + j), vt));
                             for (; j <= n; j++)
@@ -931,7 +952,7 @@ public readonly struct EVD
                         {
                             int j = i;
                             if (Avx.IsSupported)
-                                for (var vt = Vector256.Create(1 / t); j + 4 <= n; j += 4)
+                                for (Vector256<double> vt = Vector256.Create(1 / t); j + 4 <= n; j += 4)
                                 {
                                     Avx.Store(h + nm1O + j,
                                         Avx.Multiply(Avx.LoadVector256(h + nm1O + j), vt));
@@ -959,7 +980,7 @@ public readonly struct EVD
                 int k = 0;
                 if (Avx2.IsSupported)
                 {
-                    var acc = Vector256<double>.Zero;
+                    Vector256<double> acc = Vector256<double>.Zero;
                     var vx = Vector128.Create(0, rank, 2 * rank, 3 * rank);
                     for (double* pa = a + i; k + 4 <= j; k += 4, pa += 4 * rank)
                         acc = acc.MultiplyAdd(h + jO + k, Avx2.GatherVector256(pa, vx, 8));

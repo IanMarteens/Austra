@@ -147,19 +147,6 @@ public readonly struct ComplexVector :
         }
     }
 
-    /// <summary>Creates a complex vector from separate component arrays.</summary>
-    /// <param name="re">The real components of the vector.</param>
-    /// <param name="im">The imaginary components of the vector.</param>
-    /// <param name="size">Vector length.</param>
-    internal unsafe ComplexVector(double* re, double* im, int size) : this(size)
-    {
-        fixed (double* tr = this.re, ti = this.im)
-        {
-            Buffer.MemoryCopy(re, tr, size * sizeof(double), size * sizeof(double));
-            Buffer.MemoryCopy(im, ti, size * sizeof(double), size * sizeof(double));
-        }
-    }
-
     /// <summary>
     /// Deconstructs the vector into a tuple of real and imaginary vectors.
     /// </summary>

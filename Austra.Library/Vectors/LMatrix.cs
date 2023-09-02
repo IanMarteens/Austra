@@ -168,12 +168,7 @@ public readonly struct LMatrix :
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Trace()
-    {
-        Contract.Requires(IsInitialized);
-
-        return CommonMatrix.Trace(values);
-    }
+    public double Trace() => CommonMatrix.Trace(values);
 
     /// <summary>Gets the value at a single cell.</summary>
     /// <param name="row">The row number, between 0 and Rows - 1.</param>
@@ -264,11 +259,8 @@ public readonly struct LMatrix :
                 int col = 0, k = offset;
                 if (Avx.IsSupported)                  
                     for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4, k += 4)
-                        Avx.Store(
-                            address: pC + k,
-                            source: Avx.Add(
-                                left: Avx.LoadVector256(pA + k),
-                                right: Avx.LoadVector256(pB + k)));
+                        Avx.Store(pC + k, Avx.Add(
+                            Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
                 for (; col <= row; col++, k++)
                     pC[k] = pA[k] + pB[k];
             }
@@ -278,11 +270,8 @@ public readonly struct LMatrix :
                 int len = m1.values.Length;
                 if (Avx.IsSupported)
                     for (int top = len & Simd.AVX_MASK; idx < top; idx += 4)
-                        Avx.Store(
-                            address: pC + idx,
-                            source: Avx.Add(
-                                left: Avx.LoadVector256(pA + idx),
-                                right: Avx.LoadVector256(pB + idx)));
+                        Avx.Store(pC + idx, Avx.Add(
+                            Avx.LoadVector256(pA + idx), Avx.LoadVector256(pB + idx)));
                 for (; idx < len; idx++)
                     pC[idx] = pA[idx] + pB[idx];
             }
@@ -320,11 +309,8 @@ public readonly struct LMatrix :
                     for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4)
                     {
                         int k = offset + col;
-                        Avx.Store(
-                            address: pC + k,
-                            source: Avx.Subtract(
-                                left: Avx.LoadVector256(pA + k),
-                                right: Avx.LoadVector256(pB + k)));
+                        Avx.Store(pC + k, Avx.Subtract(
+                            Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
                     }
                 for (; col <= row; col++)
                 {
@@ -338,11 +324,8 @@ public readonly struct LMatrix :
                 int len = m1.values.Length;
                 if (Avx.IsSupported)
                     for (int top = len & Simd.AVX_MASK; idx < top; idx += 4)
-                        Avx.Store(
-                            address: pC + idx,
-                            source: Avx.Subtract(
-                                left: Avx.LoadVector256(pA + idx),
-                                right: Avx.LoadVector256(pB + idx)));
+                        Avx.Store(pC + idx, Avx.Subtract(
+                            Avx.LoadVector256(pA + idx), Avx.LoadVector256(pB + idx)));
                 for (; idx < len; idx++)
                     pC[idx] = pA[idx] - pB[idx];
             }
@@ -374,15 +357,11 @@ public readonly struct LMatrix :
                 int col = 0;
                 if (Avx.IsSupported)
                 {
-                    var z = Vector256<double>.Zero;
+                    Vector256<double> z = Vector256<double>.Zero;
                     for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4)
                     {
                         int k = offset + col;
-                        Avx.Store(
-                            address: pC + k,
-                            source: Avx.Subtract(
-                                left: z,
-                                right: Avx.LoadVector256(pA + k)));
+                        Avx.Store(pC + k, Avx.Subtract(z, Avx.LoadVector256(pA + k)));
                     }
                 }
                 for (; col <= row; col++)
@@ -397,13 +376,9 @@ public readonly struct LMatrix :
                 int len = m.values.Length;
                 if (Avx.IsSupported)
                 {
-                    var z = Vector256<double>.Zero;
+                    Vector256<double> z = Vector256<double>.Zero;
                     for (int top = len & Simd.AVX_MASK; idx < top; idx += 4)
-                        Avx.Store(
-                            address: pC + idx,
-                            source: Avx.Subtract(
-                                left: z,
-                                right: Avx.LoadVector256(pA + idx)));
+                        Avx.Store(pC + idx, Avx.Subtract(z, Avx.LoadVector256(pA + idx)));
                 }
                 for (; idx < len; idx++)
                     pC[idx] = -pA[idx];
@@ -437,15 +412,8 @@ public readonly struct LMatrix :
                 offset += c;
                 int col = 0, k = offset;
                 if (Avx.IsSupported) 
-                    for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4)
-                    {
-                        Avx.Store(
-                            address: pC + k,
-                            source: Avx.Multiply(
-                                left: Avx.LoadVector256(pA + k),
-                                right: vec));
-                        k += 4;
-                    }
+                    for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4, k += 4)
+                        Avx.Store(pC + k, Avx.Multiply(Avx.LoadVector256(pA + k), vec));
                 for (; col <= row; col++, k++)
                     pC[k] = pA[k] * d;
             }
@@ -455,11 +423,7 @@ public readonly struct LMatrix :
                 int len = m.values.Length;
                 if (Avx.IsSupported)
                     for (int top = len & Simd.AVX_MASK; idx < top; idx += 4)
-                        Avx.Store(
-                            address: pC + idx,
-                            source: Avx.Multiply(
-                                left: Avx.LoadVector256(pA + idx),
-                                right: vec));
+                        Avx.Store(pC + idx, Avx.Multiply( Avx.LoadVector256(pA + idx), vec));
                 for (; idx < len; idx++)
                     pC[idx] = pA[idx] * d;
             }
@@ -512,7 +476,7 @@ public readonly struct LMatrix :
                     int j = 0;
                     if (Avx.IsSupported)
                     {
-                        var vd = Vector256.Create(d);
+                        Vector256<double> vd = Vector256.Create(d);
                         for (; j < lastBlockIndex; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));

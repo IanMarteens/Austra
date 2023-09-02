@@ -56,6 +56,8 @@ public static class CommonMatrix
     /// <returns>The sum of the cells in the main diagonal.</returns>
     public unsafe static double Trace(double[,] values)
     {
+        ArgumentNullException.ThrowIfNull(values);
+
         double trace = 0;
         int rows = values.GetLength(0), cols = values.GetLength(1);
         int r = cols + 1, size = Min(rows, cols);

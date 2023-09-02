@@ -9,9 +9,12 @@ public class SplineBenchmark: BenchmarkControl
         v = new Vector(10, new NormalRandom());    
     }
 
-    [Benchmark]
+    //[Benchmark]
     public VectorSpline AustraGrid() => new(0, Math.Tau, 1024, Math.Sin);
 
-    [Benchmark]
+    //[Benchmark]
     public Complex AustraPolyDer() => Polynomials.PolyDerivative(new Complex(2.1, 0.1), v);
+
+    [Benchmark]
+    public ComplexVector AustraPolySolve3() => Polynomials.PolySolve(1, 3, -1, -3);
 }

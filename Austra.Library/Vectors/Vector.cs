@@ -916,11 +916,8 @@ public readonly struct Vector :
                     vexy = vexy.MultiplyAdd(x, y);
                     veyy = veyy.MultiplyAdd(y, y);
                 }
-                ex = vex.Sum();
-                ey = vey.Sum();
-                exx = vexx.Sum();
-                exy = vexy.Sum();
-                eyy = veyy.Sum();
+                ex = vex.Sum(); ey = vey.Sum();
+                exx = vexx.Sum(); exy = vexy.Sum(); eyy = veyy.Sum();
             }
             for (; i < count; i++)
             {

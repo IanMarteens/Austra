@@ -44,10 +44,10 @@ public readonly struct Cholesky
                 int m = 0;
                 if (Avx.IsSupported)
                 {
-                    var acc = Vector256<double>.Zero;
+                    Vector256<double> acc = Vector256<double>.Zero;
                     for (int top = j & Simd.AVX_MASK; m < top; m += 4)
                     {
-                        var vec = Avx.LoadVector256(pDj + m);
+                        Vector256<double> vec = Avx.LoadVector256(pDj + m);
                         acc = acc.MultiplyAdd(vec, vec);
                     }
                     v = acc.Sum();
@@ -70,10 +70,7 @@ public readonly struct Cholesky
                 {
                     r = 1 / ajj;
                     Buffer.MemoryCopy(
-                        source: pDj,
-                        destination: tmp,
-                        destinationSizeInBytes: sizeof(double) * rows,
-                        sourceBytesToCopy: sizeof(double) * j);
+                        pDj, tmp, sizeof(double) * j, sizeof(double) * j);
                     for (int i = j; i < n; i++)
                     {
                         v = 0.0;
@@ -81,20 +78,17 @@ public readonly struct Cholesky
                         int k = 0;
                         if (Avx.IsSupported)
                         {
-                            var acc = Vector256<double>.Zero;
+                            Vector256<double> acc = Vector256<double>.Zero;
                             for (int top = j & Simd.AVX_MASK; k < top; k += 4)
                                 acc = acc.MultiplyAdd(pDi + k, tmp + k);
                             v = acc.Sum();
                         }
                         for (; k < j; k++)
-                            v += pDi[k] * tmp[k];
+                            v = FusedMultiplyAdd(pDi[k], tmp[k], v);
                         tmp[i] = v;
                     }
-                    for (int i = j; i < n; i++)
-                    {
-                        int idx = (i + 1) * rows + j;
+                    for (int i = j, idx = (j + 1) * rows + j; i < n; i++, idx += rows)
                         pD[idx] = (pS[idx] - tmp[i]) * r;
-                    }
                 }
             }
         }
@@ -214,9 +208,8 @@ public readonly struct Cholesky
         fixed (double* pA = (double[,])L, pB = (double[,])m)
         {
             int top = size & Simd.AVX_MASK;
-            for (int i = 0; i < size; i++)
+            for (int i = 0, isize = 0; i < size; i++, isize += size)
             {
-                int isize = i * size;
                 double* pbi = pB + isize;
                 for (int k = i - 1; k >= 0; k--)
                 {
@@ -225,7 +218,7 @@ public readonly struct Cholesky
                     int l = 0;
                     if (Avx.IsSupported)
                     {
-                        var vm = Vector256.Create(mult);
+                        Vector256<double> vm = Vector256.Create(mult);
                         for (; l < top; l += 4)
                             Avx.Store(pbi + l,
                                 Avx.LoadVector256(pbi + l).MultiplyAddNeg(pbk + l, vm));
@@ -236,14 +229,13 @@ public readonly struct Cholesky
                 double m1 = 1.0 / pA[isize + i];
                 int j = 0;
                 if (Avx.IsSupported)
-                    for (var vm1 = Vector256.Create(m1); j < top; j += 4)
+                    for (Vector256<double> vm1 = Vector256.Create(m1); j < top; j += 4)
                         Avx.Store(pbi + j, Avx.Multiply(Avx.LoadVector256(pbi + j), vm1));
                 for (; j < size; j++)
                     pbi[j] *= m1;
             }
-            for (int i = size - 1; i >= 0; i--)
+            for (int i = size - 1, isize = i * size; i >= 0; i--, isize -= size)
             {
-                int isize = i * size;
                 double* pbi = pB + isize;
                 for (int k = i + 1; k < size; k++)
                 {
@@ -252,7 +244,7 @@ public readonly struct Cholesky
                     double mult = pA[ksize + i];
                     int l = 0;
                     if (Avx.IsSupported)
-                        for (var vm = Vector256.Create(mult); l < top; l += 4)
+                        for (Vector256<double> vm = Vector256.Create(mult); l < top; l += 4)
                             Avx.Store(pbi + l,
                                 Avx.LoadVector256(pbi + l).MultiplyAddNeg(pbk + l, vm));
                     for (; l < size; l++)
@@ -261,7 +253,7 @@ public readonly struct Cholesky
                 double m1 = 1.0 / pA[isize + i];
                 int j = 0;
                 if (Avx.IsSupported)
-                    for (var vm1 = Vector256.Create(m1); j < top; j += 4)
+                    for (Vector256<double> vm1 = Vector256.Create(m1); j < top; j += 4)
                         Avx.Store( pbi + j, Avx.Multiply(Avx.LoadVector256(pbi + j), vm1));
                 for (; j < size; j++)
                     pbi[j] *= m1;

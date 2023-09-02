@@ -368,12 +368,7 @@ public readonly struct Matrix :
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Trace()
-    {
-        Contract.Requires(IsInitialized);
-
-        return CommonMatrix.Trace(values);
-    }
+    public double Trace() => CommonMatrix.Trace(values);
 
     /// <summary>Gets or sets the value of a single cell.</summary>
     /// <param name="row">The row number, between 0 and Rows - 1.</param>
@@ -1032,15 +1027,12 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Requires(result.Length == Rows);
 
-        int r = Rows;
-        int c = Cols;
-        int top = c & Simd.AVX_MASK;
+        int r = Rows, c = Cols, top = c & Simd.AVX_MASK;
         fixed (double* pA = values, pX = (double[])v, pB = result)
         {
-            double* pA1 = pA;
-            double* pB1 = pB;
+            double* pA1 = pA, pB1 = pB;
             if (c >= 8 && Avx.IsSupported)
-                for (int i = 0; i < r; i++)
+                for (int i = 0; i < r; i++, pA1 += c)
                 {
                     int j = 0;
                     Vector256<double> vec = Vector256<double>.Zero;
@@ -1050,10 +1042,9 @@ public readonly struct Matrix :
                     for (; j < c; j++)
                         d += pA1[j] * pX[j];
                     *pB1++ = d;
-                    pA1 += c;
                 }
             else
-                for (int i = 0; i < r; i++)
+                for (int i = 0; i < r; i++, pA1 += c)
                 {
                     int j = 0;
                     double d = 0;
@@ -1063,7 +1054,6 @@ public readonly struct Matrix :
                     for (; j < c; j++)
                         d += pA1[j] * pX[j];
                     *pB1++ = d;
-                    pA1 += c;
                 }
         }
         return result;
@@ -1080,8 +1070,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Vector>().Length == Cols);
 
-        int r = Rows;
-        int c = Cols;
+        int r = Rows, c = Cols;
         double[] result = new double[r];
         fixed (double* pA = values, pB = (double[])v, pC = result)
         {
@@ -1117,11 +1106,8 @@ public readonly struct Matrix :
     /// <param name="multiplicand">Vector to transform.</param>
     /// <param name="add">Vector to add.</param>
     /// <returns>this * multiplicand + add.</returns>
-    public Vector MultiplyAdd(Vector multiplicand, Vector add)
-    {
-        double[] result = new double[add.Length];
-        return MultiplyAdd(multiplicand, add, result);
-    }
+    public Vector MultiplyAdd(Vector multiplicand, Vector add) =>
+        MultiplyAdd(multiplicand, add, new double[add.Length]);
 
     /// <summary>Computes the Cholesky decomposition of this matrix.</summary>
     /// <returns>A Cholesky decomposition.</returns>

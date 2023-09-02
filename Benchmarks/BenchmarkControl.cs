@@ -2,7 +2,7 @@
 
 public abstract class BenchmarkControl
 {
-    private const int SIZE = 256;
+    private const int SIZE = 32;
 
     protected BenchmarkControl() { }
 

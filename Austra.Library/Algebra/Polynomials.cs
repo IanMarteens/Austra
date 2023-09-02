@@ -144,7 +144,10 @@ public static class Polynomials
         if (k[0] == 0)
             return SolveQuadratic(k[1..]);
 
-        double a = k[0], b = k[1], c = k[2], d = k[3], bb = b * b, ac = a * c;
+        ref double rk = ref MemoryMarshal.GetReference(k);
+        double a = rk, b = Unsafe.Add(ref rk, 1);
+        double c = Unsafe.Add(ref rk, 2), d = Unsafe.Add(ref rk, 3);
+        double bb = b * b, ac = a * c, bc = b * c;
         double A = bb - 3 * ac;
         double B = (2 * bb - 9 * ac) * b + 27 * a * a * d;
         double s = 1 / (-3 * a);
@@ -158,8 +161,8 @@ public static class Polynomials
                 return new(u, u, u);
             }
 
-            Complex v = new((9 * a * d - b * c) / (2 * A), 0d);
-            Complex w = new((4 * a * b * c - 9 * a * a * d - bb * b) / (a * A), 0d);
+            Complex v = new((9 * a * d - bc) / (2 * A), 0d);
+            Complex w = new(((4 * bc - 9 * a * d) * a - bb * b) / (a * A), 0d);
             return new(v, v, w);
         }
 
@@ -177,7 +180,7 @@ public static class Polynomials
         for (int i = 1; i < c.Length - 1; i++)
         {
             companion[i, i - 1] = 1.0;
-            companion[i, c.Length - 2] = -c[^(i+1)] / c0;
+            companion[i, c.Length - 2] = -c[^(i + 1)] / c0;
         }
         return new Matrix(companion).EVD(false).Values;
     }
