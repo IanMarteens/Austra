@@ -2,6 +2,7 @@
 
 /// <summary>Represents a dense complex vector of arbitrary size.</summary>
 public readonly struct ComplexVector :
+    IFormattable,
     IEnumerable<Complex>,
     IEquatable<ComplexVector>,
     IEqualityOperators<ComplexVector, ComplexVector, bool>,
@@ -817,7 +818,7 @@ public readonly struct ComplexVector :
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>Space-separated components.</returns>
-    public string ToString(string format, IFormatProvider? provider = null) =>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℂ({Length})" + Environment.NewLine +
         CommonMatrix.ToString((Complex[])this, v => v.ToString(format, provider));
 

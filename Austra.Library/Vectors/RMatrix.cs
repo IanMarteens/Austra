@@ -5,6 +5,7 @@
 /// Triangular matrices may have a different number of rows and columns.
 /// </remarks>
 public readonly struct RMatrix :
+    IFormattable,
     IAdditionOperators<RMatrix, RMatrix, RMatrix>,
     ISubtractionOperators<RMatrix, RMatrix, RMatrix>,
     IMultiplyOperators<RMatrix, Vector, Vector>,
@@ -398,6 +399,6 @@ public readonly struct RMatrix :
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
-    public string ToString(string format, IFormatProvider? provider = null) =>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
         CommonMatrix.ToString(values, v => v.ToString(format, provider));
 }

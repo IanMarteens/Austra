@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Eigenvalue decomposition.</summary>
-public readonly struct EVD
+public readonly struct EVD: IFormattable
 {
     /// <summary>Gets eigenvalues as a block diagonal matrix.</summary>
     private readonly Lazy<Matrix> diagonal;
@@ -1000,13 +1000,7 @@ public readonly struct EVD
     }
 
     /// <summary>Gets the magnitudes of the eigenvalues.</summary>
-    public Vector GetRealValues()
-    {
-        double[] result = new double[Values.Length];
-        for (int i = 0; i < result.Length; i++)
-            result[i] = Values[i].Magnitude;
-        return result;
-    }
+    public Vector GetRealValues() => Values.Magnitudes();
 
     private static Matrix CreateDiagonal(ComplexVector values)
     {
@@ -1052,5 +1046,19 @@ public readonly struct EVD
     }
 
     /// <inheritdoc/>
-    public override string ToString() => $"Eigenvalues:\r\n{D}\r\nEigenvectors:\r\n{Vectors}";
+    public override string ToString() => 
+        "Eigenvalues:" + Environment.NewLine + 
+        D.ToString() + Environment.NewLine +
+        "Eigenvectors:" + Environment.NewLine +
+        Vectors.ToString();
+
+    /// <summary>Gets a textual representation of this factorization.</summary>
+    /// <param name="format">A format specifier.</param>
+    /// <param name="provider">Supplies culture-specific formatting information.</param>
+    /// <returns>Space-separated components.</returns>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
+        "Eigenvalues:" + Environment.NewLine +
+        D.ToString(format, provider) + Environment.NewLine +
+        "Eigenvectors:" + Environment.NewLine +
+        Vectors.ToString(format, provider);
 }

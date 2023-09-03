@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents the result of a Cholesky decomposition.</summary>
-public readonly struct Cholesky
+public readonly struct Cholesky : IFormattable
 {
     /// <summary>Initializes a Cholesky decomposition.</summary>
     /// <param name="matrix">A lower triangular matrix.</param>
@@ -273,4 +273,11 @@ public readonly struct Cholesky
     /// <summary>Gets a textual representation of this decomposition.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() => L.ToString();
+
+    /// <summary>Gets a textual representation of this decomposition.</summary>
+    /// <param name="format">A format specifier.</param>
+    /// <param name="provider">Supplies culture-specific formatting information.</param>
+    /// <returns>One line for each row, with space separated columns.</returns>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
+        L.ToString(format, provider);
 }

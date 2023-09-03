@@ -6,6 +6,7 @@
 /// </remarks>
 [JsonConverter(typeof(LMatrixJsonConverter))]
 public readonly struct LMatrix :
+    IFormattable,
     IAdditionOperators<LMatrix, LMatrix, LMatrix>,
     ISubtractionOperators<LMatrix, LMatrix, LMatrix>,
     IMultiplyOperators<LMatrix, Matrix, Matrix>,
@@ -761,7 +762,7 @@ public readonly struct LMatrix :
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
-    public string ToString(string format, IFormatProvider? provider = null) =>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
         CommonMatrix.ToString(values, v => v.ToString(format, provider));
 }
 

@@ -2,6 +2,7 @@
 
 /// <summary>Represents a dense vector of arbitrary size.</summary>
 public readonly struct Vector :
+    IFormattable,
     IEnumerable<double>,
     IEquatable<Vector>,
     IEqualityOperators<Vector, Vector, bool>,
@@ -1198,7 +1199,7 @@ public readonly struct Vector :
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>Space-separated components.</returns>
-    public string ToString(string format, IFormatProvider? provider = null) =>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℝ({Length})" + Environment.NewLine +
         CommonMatrix.ToString(values, v => v.ToString(format, provider));
 

@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents a LU decomposition.</summary>
-public readonly struct LU
+public readonly struct LU : IFormattable
 {
     /// <summary>Storage for the L and the U parts.</summary>
     private readonly double[,] values;
@@ -371,6 +371,6 @@ public readonly struct LU
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
-    public string ToString(string format, IFormatProvider? provider = null) =>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
         CommonMatrix.ToString(values, v => v.ToString(format, provider));
 }

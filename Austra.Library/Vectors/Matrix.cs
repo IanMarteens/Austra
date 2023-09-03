@@ -13,6 +13,7 @@ public interface IPointwiseMultiply<T>
 /// <summary>Represents a dense rectangular matrix.</summary>
 [JsonConverter(typeof(MatrixJsonConverter))]
 public readonly struct Matrix :
+    IFormattable,
     IEquatable<Matrix>,
     IEqualityOperators<Matrix, Matrix, bool>,
     IAdditionOperators<Matrix, Matrix, Matrix>,
@@ -1314,7 +1315,7 @@ public readonly struct Matrix :
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
-    public string ToString(string format, IFormatProvider? provider = null) =>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℝ({Rows}⨯{Cols})" + Environment.NewLine +
         CommonMatrix.ToString(values, v => v.ToString(format, provider));
 }

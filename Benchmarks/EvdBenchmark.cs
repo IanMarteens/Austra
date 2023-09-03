@@ -19,10 +19,10 @@ public class EvdBenchmark : BenchmarkControl
     [Benchmark]
     public EVD AustraEvdAsymMatrix() => acm1.EVD(false);
 
-    //[Benchmark]
+    [Benchmark]
     public bool AustraEvdIsSymmetric() => cm1.IsSymmetric();
 
-    //[Benchmark]
+    [Benchmark]
     public bool AustraEvdIsNotSymmetric() => acm1.IsSymmetric();
 
     internal static void Trace(int rank)
