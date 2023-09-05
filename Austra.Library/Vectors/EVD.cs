@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Eigenvalue decomposition.</summary>
-public readonly struct EVD: IFormattable
+public readonly struct EVD : IFormattable
 {
     /// <summary>Gets eigenvalues as a block diagonal matrix.</summary>
     private readonly Lazy<Matrix> diagonal;
@@ -43,7 +43,6 @@ public readonly struct EVD: IFormattable
         Values = new(d, e);
         ComplexVector values = Values;
         diagonal = new(() => CreateDiagonal(values), true);
-
     }
 
     /// <summary>Gets the eigenvector's matrix.</summary>
@@ -66,10 +65,20 @@ public readonly struct EVD: IFormattable
         // Householder reduction to tridiagonal form.
         for (int i = r - 1; i > 0; i--)
         {
+            int top = i & Simd.AVX_MASK;
             // Scale to avoid under/overflow.
             double scale = 0.0;
-            for (int k = 0; k < i; k++)
-                scale += Abs(d[k]);
+            int kk = 0;
+            if (Avx.IsSupported)
+            {
+                Vector256<double> mask = Vector256.Create(-0d);
+                Vector256<double> sum = Vector256<double>.Zero;
+                for (; kk < top; kk += 4)
+                    sum = Avx.Add(Avx.AndNot(mask, Avx.LoadVector256(d + kk)), sum);
+                scale = sum.Sum();
+            }
+            for (; kk < i; kk++)
+                scale += Abs(d[kk]);
             if (scale == 0.0)
             {
                 e[i] = d[i - 1];
@@ -85,7 +94,6 @@ public readonly struct EVD: IFormattable
             {
                 // Generate Householder vector.
                 double h = 0.0;
-                int top = i & Simd.AVX_MASK;
                 int m = 0;
                 if (Avx.IsSupported)
                 {
@@ -123,12 +131,11 @@ public readonly struct EVD: IFormattable
                     e[m] = 0.0;
 
                 // Apply similarity transformation to remaining columns.
-                double* ai = a + i * r;
-                for (int j = 0; j < i; j++)
+                double* ai = a + i * r, aj = a;
+                for (int j = 0; j < i; j++, aj += r)
                 {
                     f = d[j];
                     ai[j] = f;
-                    double* aj = a + j * r;
                     g = FusedMultiplyAdd(aj[j], f, e[j]);
                     int k = j + 1;
                     if (Avx.IsSupported)
@@ -177,21 +184,19 @@ public readonly struct EVD: IFormattable
                 for (; m < i; m++)
                     e[m] -= hh * d[m];
 
-                for (int j = 0; j < i; j++)
+                aj = a;
+                for (int j = 0; j < i; j++, aj += r)
                 {
                     f = d[j]; g = e[j];
-                    double* aj = a + j * r;
                     int k = j;
                     if (Avx.IsSupported)
                     {
                         Vector256<double> vf = Vector256.Create(f);
                         Vector256<double> vg = Vector256.Create(g);
                         for (; k < i - 4; k += 4)
-                        {
                             Avx.Store(aj + k, Avx.Subtract(
                                 Avx.LoadVector256(aj + k),
                                 Avx.Multiply(Avx.LoadVector256(d + k), vg).MultiplyAdd(e + k, vf)));
-                        }
                     }
                     for (; k < i; k++)
                         aj[k] -= f * e[k] + g * d[k];
@@ -204,53 +209,54 @@ public readonly struct EVD: IFormattable
         }
 
         // Accumulate transformations.
-        for (int i = 0; i < r - 1; i++)
+        double* ai1 = a + r;
+        for (int i = 0; i < r - 1; i++, ai1 += r)
         {
             a[i * r + r - 1] = a[i * r + i];
             a[i * r + i] = 1.0;
-            double* ai1 = a + (i + 1) * r;
             double h = d[i + 1];
+            int t = (i + 1) & Simd.AVX_MASK;
             if (h != 0.0)
             {
                 h = 1.0 / h;
                 int k = 0;
                 if (Avx.IsSupported)
-                    for (Vector256<double> v = Vector256.Create(h); k <= i - 4; k += 4)
+                    for (Vector256<double> v = Vector256.Create(h); k < t; k += 4)
                         Avx.Store(d + k, Avx.Multiply(Avx.LoadVector256(ai1 + k), v));
                 for (; k <= i; k++)
                     d[k] = ai1[k] * h;
-                for (int j = 0; j <= i; j++)
+                double* aj = a;
+                for (int j = 0; j <= i; j++, aj += r)
                 {
-                    double* aj = a + j * r;
                     double g = 0;
                     k = 0;
                     if (Avx.IsSupported)
                     {
                         Vector256<double> v = Vector256<double>.Zero;
-                        for (; k <= i - 4; k += 4)
-                            v = v.MultiplyAdd(
-                                Avx.LoadVector256(ai1 + k),
-                                Avx.LoadVector256(aj + k));
+                        for (; k < t; k += 4)
+                            v = v.MultiplyAdd(ai1 + k, aj + k);
                         g = v.Sum();
                     }
                     for (; k <= i; k++)
                         g += ai1[k] * aj[k];
                     k = 0;
                     if (Avx.IsSupported)
-                        for (Vector256<double> vmg = Vector256.Create(-g); k <= i - 4; k += 4)
-                            Avx.Store(aj + k,
-                                Avx.LoadVector256(aj + k).MultiplyAdd(d + k, vmg));
+                        for (Vector256<double> vmg = Vector256.Create(-g); k < t; k += 4)
+                            Avx.Store(aj + k, Avx.LoadVector256(aj + k).MultiplyAdd(d + k, vmg));
                     for (; k <= i; k++)
                         aj[k] -= g * d[k];
                 }
             }
-            for (int k = 0; k <= i; k++)
-                ai1[k] = 0.0;
+            int kk = 0;
+            if (Avx.IsSupported)
+                for (Vector256<double> z = Vector256<double>.Zero; kk < t; kk += 4)
+                    Avx.Store(ai1 + kk, z);
+            for (; kk <= i; kk++)
+                ai1[kk] = 0.0;
         }
 
-        for (int j = 0; j < r; j++)
+        for (int j = 0, idx = r - 1; j < r; j++, idx += r)
         {
-            int idx = j * r + r - 1;
             d[j] = a[idx];
             a[idx] = 0.0;
         }
@@ -268,8 +274,7 @@ public readonly struct EVD: IFormattable
     {
         const int MAX_ITER = 1000;
 
-        int size = (r - 1) * sizeof(double);
-        Buffer.MemoryCopy(e + 1, e, size, size);
+        Buffer.MemoryCopy(e + 1, e, (r - 1) * sizeof(double), (r - 1) * sizeof(double));
         e[r - 1] = 0.0;
 
         double ff = 0.0, tst1 = 0.0, ε = Tolerance.DoublePrecision;
@@ -299,8 +304,11 @@ public readonly struct EVD: IFormattable
                     double dl1 = d[l + 1], h = g - d[l];
                     int i = l + 2;
                     if (Avx.IsSupported)
-                        for (Vector256<double> vh = Vector256.Create(h); i < r - 4; i += 4)
+                    {
+                        Vector256<double> vh = Vector256.Create(h);
+                        for (int top = (r - i) & Simd.AVX_MASK + i; i < top; i += 4)
                             Avx.Store(d + i, Avx.Subtract(Avx.LoadVector256(d + i), vh));
+                    }
                     for (; i < r; i++)
                         d[i] -= h;
                     ff += h;
@@ -309,7 +317,8 @@ public readonly struct EVD: IFormattable
                     p = d[m];
                     double c = 1.0, c2 = 1.0, c3 = 1.0, s = 0.0, s2 = 0.0;
                     double el1 = e[l + 1];
-                    for (i = m - 1; i >= l; i--)
+                    double* ai = a + (m - 1) * r;
+                    for (i = m - 1; i >= l; i--, ai -= r)
                     {
                         c3 = c2; c2 = c; s2 = s;
                         g = c * e[i];
@@ -322,7 +331,7 @@ public readonly struct EVD: IFormattable
                         d[i + 1] = FusedMultiplyAdd(c * g + s * d[i], s, h);
 
                         // Accumulate transformation.
-                        double* ai = a + i * r, ai1 = ai + r;
+                        double* ai1 = ai + r;
                         int k = 0;
                         if (Avx.IsSupported)
                         {
@@ -378,11 +387,7 @@ public readonly struct EVD: IFormattable
                         Avx.Store(ak + j, v);
                     }
                 for (; j < r; j++)
-                {
-                    p = ai[j];
-                    ai[j] = ak[j];
-                    ak[j] = p;
-                }
+                    (ai[j], ak[j]) = (ak[j], ai[j]);
             }
         }
     }
@@ -394,20 +399,42 @@ public readonly struct EVD: IFormattable
     /// <param name="rank">The rank of the matrix</param>
     private unsafe static void ReduceToHessenberg(double* a, double* h, double* ort, int rank)
     {
-        int high = rank - 1, rm4 = rank - 4;
-        for (int m = 1; m < high; m++)
+        for (int m = 1, high = rank - 1; m < high; m++)
         {
             int mm1O = (m - 1) * rank;
+            int top = (rank - m) & Simd.AVX_MASK + m;
             // Scale column.
             double scale = 0.0;
-            for (int i = m; i < rank; i++)
-                scale += Abs(h[mm1O + i]);
+            int ii = m;
+            if (Avx.IsSupported)
+            {
+                Vector256<double> sum = Vector256<double>.Zero;
+                Vector256<double> mask = Vector256.Create(-0d);
+                for (; ii < top; ii += 4)
+                    sum = Avx.Add(Avx.AndNot(mask, Avx.LoadVector256(h + mm1O + ii)), sum);
+                scale = sum.Sum();
+            }
+            for (; ii < rank; ii++)
+                scale += Abs(h[mm1O + ii]);
 
             if (scale != 0.0)
             {
                 // Compute Householder transformation.
                 double hh = 0.0;
-                for (int i = high; i >= m; i--)
+                int i = m;
+                if (Avx.IsSupported)
+                {
+                    Vector256<double> vsc = Vector256.Create(1d / scale);
+                    Vector256<double> vhh = Vector256<double>.Zero;
+                    for (; i < top; i += 4)
+                    {
+                        Vector256<double> v = Avx.Multiply(Avx.LoadVector256(h + mm1O + i), vsc);
+                        Avx.Store(ort + i, v);
+                        vhh = vhh.MultiplyAdd(v, v);
+                    }
+                    hh = vhh.Sum();
+                }
+                for (; i < rank; i++)
                 {
                     ort[i] = h[mm1O + i] / scale;
                     hh += ort[i] * ort[i];
@@ -419,15 +446,14 @@ public readonly struct EVD: IFormattable
                 ort[m] -= g;
 
                 // Apply Householder similarity transformation.
-                for (int j = m; j < rank; j++)
+                for (int j = m, jO = m * rank; j < rank; j++, jO += rank)
                 {
-                    int jO = j * rank;
                     double f = 0.0;
-                    int i = m;
+                    i = m;
                     if (Avx.IsSupported)
                     {
                         Vector256<double> vf = Vector256<double>.Zero;
-                        for (int top = (rank - m) & Simd.AVX_MASK + m; i < top; i += 4)
+                        for (; i < top; i += 4)
                             vf = vf.MultiplyAdd(ort + i, h + jO + i);
                         f = vf.Sum();
                     }
@@ -437,14 +463,14 @@ public readonly struct EVD: IFormattable
 
                     i = m;
                     if (Avx.IsSupported)
-                        for (Vector256<double> vf = Vector256.Create(f); i < rm4; i += 4)
+                        for (Vector256<double> vf = Vector256.Create(f); i < top; i += 4)
                             Avx.Store(h + jO + i,
                                 Avx.LoadVector256(h + jO + i).MultiplyAddNeg(ort + i, vf));
                     for (; i < rank; i++)
                         h[jO + i] -= f * ort[i];
                 }
 
-                for (int i = 0; i < rank; i++)
+                for (i = 0; i < rank; i++)
                 {
                     double f = 0.0;
                     for (int j = high; j >= m; j--)
@@ -461,37 +487,35 @@ public readonly struct EVD: IFormattable
         }
 
         // Accumulate transformations.
-        for (int m = high - 1; m >= 1; m--)
+        for (int m = rank - 2, mm1O = (m - 1) * rank; m >= 1; m--, mm1O -= rank)
         {
-            int mm1O = (m - 1) * rank, mm1Om = mm1O + m;
-            if (h[mm1Om] != 0.0)
+            if (h[mm1O + m] != 0.0)
             {
                 int k = m + 1;
                 if (Avx.IsSupported)
-                    for (; k < rm4; k += 4)
+                    for (int t = (rank - m - 1) & Simd.AVX_MASK + m + 1; k < t; k += 4)
                         Avx.Store(ort + k, Avx.LoadVector256(h + mm1O + k));
                 for (; k < rank; k++)
                     ort[k] = h[mm1O + k];
-
-                for (int j = m; j < rank; j++)
+                int top = (rank - m) & Simd.AVX_MASK + m;
+                for (int j = m, jO = m * rank; j < rank; j++, jO += rank)
                 {
                     double g = 0.0;
-                    int jO = j * rank;
                     int i = m;
                     if (Avx.IsSupported)
                     {
                         Vector256<double> vg = Vector256<double>.Zero;
-                        for (; i < rm4; i += 4)
+                        for (; i < top; i += 4)
                             vg = vg.MultiplyAdd(ort + i, a + jO + i);
                         g = vg.Sum();
                     }
                     for (; i < rank; i++)
                         g += ort[i] * a[jO + i];
                     // Double division avoids possible underflow
-                    g = g / ort[m] / h[mm1Om];
+                    g = g / ort[m] / h[mm1O + m];
                     i = m;
                     if (Avx.IsSupported)
-                        for (Vector256<double> vg = Vector256.Create(g); i < rm4; i += 4)
+                        for (Vector256<double> vg = Vector256.Create(g); i < top; i += 4)
                             Avx.Store(a + jO + i,
                                 Avx.LoadVector256(a + jO + i).MultiplyAdd(ort + i, vg));
                     for (; i < rank; i++)
@@ -517,10 +541,12 @@ public readonly struct EVD: IFormattable
 
         // Compute matrix norm.
         double norm = 0.0;
-        for (int i = 0; i < rank; i++)
+        for (int j = 0, k = 0; j < rank; j++, k += rank)
+            norm += Abs(h[k]);
+        for (int i = 1; i < rank; i++)
         {
-            for (int j = Max(i - 1, 0); j < rank; j++)
-                norm += Abs(h[j * rank + i]);
+            for (int j = i - 1, k = j * rank + i; j < rank; j++, k += rank)
+                norm += Abs(h[k]);
         }
 
         // Outer loop over eigenvalue index
@@ -543,7 +569,7 @@ public readonly struct EVD: IFormattable
             {
                 // One root found
                 int index = n * rank + n;
-                d[n] = (h[index] += exshift);
+                d[n] = h[index] += exshift;
                 e[n] = 0.0;
                 n--;
                 iter = 0;
@@ -576,9 +602,9 @@ public readonly struct EVD: IFormattable
                     p /= r; q /= r;
 
                     // Row modification
-                    for (int j = n - 1; j < rank; j++)
+                    for (int j = n - 1, jO = j * rank; j < rank; j++, jO += rank)
                     {
-                        int jO = j * rank, jOn = jO + n;
+                        int jOn = jO + n;
                         z = h[jO + nm1];
                         h[jO + nm1] = q * z + p * h[jOn];
                         h[jOn] = q * h[jOn] - p * z;
@@ -590,14 +616,12 @@ public readonly struct EVD: IFormattable
                     {
                         Vector256<double> vp = Vector256.Create(p);
                         Vector256<double> vq = Vector256.Create(q);
-                        for (; i + 4 <= n; i += 4)
+                        for (int top = (n + 1) & Simd.AVX_MASK; i < top; i += 4)
                         {
                             Vector256<double> vz = Avx.LoadVector256(h + nm1O + i);
                             Vector256<double> va = Avx.LoadVector256(h + nO + i);
-                            Avx.Store(h + nm1O + i,
-                                Avx.Multiply(vp, va).MultiplyAdd(vq, vz));
-                            Avx.Store(h + nO + i,
-                                Avx.Multiply(vq, va).MultiplyAddNeg(vp, vz));
+                            Avx.Store(h + nm1O + i, Avx.Multiply(vp, va).MultiplyAdd(vq, vz));
+                            Avx.Store(h + nO + i, Avx.Multiply(vq, va).MultiplyAddNeg(vp, vz));
                         }
                     }
                     for (; i <= n; i++)
@@ -618,7 +642,7 @@ public readonly struct EVD: IFormattable
                         {
                             Vector256<double> vz = Avx.LoadVector256(a + nm1O + i);
                             Avx.Store(a + nm1O + i,
-                                Avx.Multiply(vq, vz) .MultiplyAdd(a + nO + i, vp));
+                                Avx.Multiply(vq, vz).MultiplyAdd(a + nO + i, vp));
                             Avx.Store(a + nO + i,
                                 Avx.Multiply(vq, Avx.LoadVector256(a + nO + i))
                                     .MultiplyAddNeg(vp, vz));
@@ -673,7 +697,7 @@ public readonly struct EVD: IFormattable
                         s = Sqrt(s);
                         if (y < x)
                             s = -s;
-                        s = x - w / (((y - x) * 0.5) + s);
+                        s = x - w / FusedMultiplyAdd(y - x, 0.5, s);
                         for (int i = 0; i <= n; i++)
                             h[i * rank + i] -= s;
                         exshift += s;
@@ -759,7 +783,7 @@ public readonly struct EVD: IFormattable
                         }
 
                         // Column modification
-                        int upper = Min(n, k + 3), upm4 = upper - 4;
+                        int upper = Min(n, k + 3);
                         int i = 0;
                         if (Avx.IsSupported)
                         {
@@ -768,20 +792,19 @@ public readonly struct EVD: IFormattable
                             Vector256<double> vz = Vector256.Create(z);
                             Vector256<double> vr = Vector256.Create(r);
                             Vector256<double> vq = Vector256.Create(q);
-                            for (; i <= upm4; i += 4)
+                            for (int top = (upper + 1) & Simd.AVX_MASK; i < top; i += 4)
                             {
                                 Vector256<double> v1 = Avx.LoadVector256(h + kO + i);
                                 Vector256<double> v2 = Avx.LoadVector256(h + kp1O + i);
-                                Vector256<double> vp = Avx.Add(
-                                    Avx.Multiply(vx, v1), Avx.Multiply(vy, v2));
+                                Vector256<double> vp = Avx.Multiply(vx, v1).MultiplyAdd(vy, v2);
                                 if (notlast)
                                 {
                                     Vector256<double> v3 = Avx.LoadVector256(h + kp2O + i);
                                     vp = Avx.Add(vp, Avx.Multiply(vz, v3));
-                                    Avx.Store(h + kp2O + i, Avx.Subtract(v3, Avx.Multiply(vp, vr)));
+                                    Avx.Store(h + kp2O + i, v3.MultiplyAddNeg(vp, vr));
                                 }
                                 Avx.Store(h + kO + i, Avx.Subtract(v1, vp));
-                                Avx.Store(h + kp1O + i, Avx.Subtract(v2, Avx.Multiply(vp, vq)));
+                                Avx.Store(h + kp1O + i, v2.MultiplyAddNeg(vp, vq));
                             }
                         }
                         for (; i <= upper; i++)
@@ -805,7 +828,7 @@ public readonly struct EVD: IFormattable
                             Vector256<double> vz = Vector256.Create(z);
                             Vector256<double> vr = Vector256.Create(r);
                             Vector256<double> vq = Vector256.Create(q);
-                            for (; i + 4 < rank; i += 4)
+                            for (int top = rank & Simd.AVX_MASK; i < top; i += 4)
                             {
                                 Vector256<double> v1 = Avx.LoadVector256(a + kO + i);
                                 Vector256<double> v2 = Avx.LoadVector256(a + kp1O + i);
@@ -814,10 +837,10 @@ public readonly struct EVD: IFormattable
                                 {
                                     Vector256<double> v3 = Avx.LoadVector256(a + kp2O + i);
                                     vp = vp.MultiplyAdd(vz, v3);
-                                    Avx.Store(a + kp2O + i, Avx.Subtract(v3, Avx.Multiply(vp, vr)));
+                                    Avx.Store(a + kp2O + i, v3.MultiplyAddNeg(vp, vr));
                                 }
                                 Avx.Store(a + kO + i, Avx.Subtract(v1, vp));
-                                Avx.Store(a + kp1O + i, Avx.Subtract(v2, Avx.Multiply(vp, vq)));
+                                Avx.Store(a + kp1O + i, v2.MultiplyAddNeg(vp, vq));
                             }
                         }
                         for (; i < rank; i++)
@@ -993,15 +1016,25 @@ public readonly struct EVD: IFormattable
         }
 
         // Complex division.
-        static (double, double) CDv(double xr, double xi, double yr, double yi) =>
-            Abs(yi) < Abs(yr)
-            ? ((xr + xi * (yi / yr)) / (yr + yi * (yi / yr)), (xi - xr * (yi / yr)) / (yr + yi * (yi / yr)))
-            : ((xi + xr * (yr / yi)) / (yi + yr * (yr / yi)), (-xr + xi * (yr / yi)) / (yi + yr * (yr / yi)));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static (double, double) CDv(double xr, double xi, double yr, double yi)
+        {
+            if (Abs(yi) < Abs(yr))
+            {
+                double d = yi / yr, den = yr + yi * d;
+                return ((xr + xi * d) / den, (xi - xr * d) / den);
+            }
+            else
+            {
+                double d = yr / yi, den = yi + yr * d;
+                return ((xi + xr * d) / den, (-xr + xi * d) / den);
+            }
+        }
     }
 
-    /// <summary>Gets the magnitudes of the eigenvalues.</summary>
-    public Vector GetRealValues() => Values.Magnitudes();
-
+    /// <summary>Creates a block diagonal matrix from the eigenvalues.</summary>
+    /// <param name="values">The calculated eigenvalues.</param>
+    /// <returns>A block diagonal matrix with eigenvalues.</returns>
     private static Matrix CreateDiagonal(ComplexVector values)
     {
         int order = values.Length;
@@ -1046,8 +1079,8 @@ public readonly struct EVD: IFormattable
     }
 
     /// <inheritdoc/>
-    public override string ToString() => 
-        "Eigenvalues:" + Environment.NewLine + 
+    public override string ToString() =>
+        "Eigenvalues:" + Environment.NewLine +
         D.ToString() + Environment.NewLine +
         "Eigenvectors:" + Environment.NewLine +
         Vectors.ToString();

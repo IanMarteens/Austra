@@ -1,0 +1,145 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net7.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="ak.ico" />
+		<None Remove="austra.jpg" />
+		<None Remove="austra.xshd" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="ak.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="austra.xshd" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Austra.Library" />
+		<Using Include="Austra.Library.MVO" />
+		<Using Include="Austra.Library.Vector" Alias="RVector" />
+		<Using Include="System" />
+		<Using Include="System.Collections.Generic" />
+		<Using Include="System.Collections.ObjectModel" />
+		<Using Include="System.ComponentModel" />
+		<Using Include="System.Data" />
+		<Using Include="System.Linq" />
+		<Using Include="System.Reflection" />
+		<Using Include="System.Runtime.CompilerServices" />
+		<Using Include="System.Text" />
+		<Using Include="System.Windows" />
+		<Using Include="System.Windows.Controls" />
+		<Using Include="System.Windows.Input" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Themes\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Austra.Library\Austra.Library.csproj" />
+	  <ProjectReference Include="..\Austra.Parser\Austra.Parser.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="austra.jpg" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="images\play.svg">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Page Update="Themes\Button.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\Calendar.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\CheckBox.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\ComboBox.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\Common.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\DataGrid.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\DatePicker.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\Expander.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\GroupBox.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\Icons.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\Label.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\ListBox.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\ListView.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\Menu.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\ProgressBar.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\RadioButton.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\ScrollBar.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\Slider.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\StatusBar.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\TabControl.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\TabItem.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\TextBox.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\ToolBar.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\ToolTip.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+		<Page Update="Themes\TreeView.xaml">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Page>
+	</ItemGroup>
+
+</Project>

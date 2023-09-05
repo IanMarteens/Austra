@@ -1,0 +1,46 @@
+<SyntaxDefinition name="Austra" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+	<Color name="Digits" foreground="DarkBlue" exampleText="3.14" />
+	<Color name="Comment" foreground="DarkGreen" exampleText="-- This is a comment!" />
+	<Color name="String" foreground="DarkRed" />
+	<RuleSet ignoreCase="true">
+		<Span color="Comment" begin="--" />
+		<Span color="String">
+			<Begin>"</Begin>
+			<End>"</End>
+		</Span>
+
+		<Keywords fontWeight="bold" foreground="Blue">
+			<Word>def</Word>
+			<Word>undef</Word>
+			<Word>let</Word>
+            <Word>set</Word>
+            <Word>or</Word>
+            <Word>and</Word>
+            <Word>not</Word>
+			<Word>in</Word>
+			<Word>if</Word>
+            <Word>then</Word>
+            <Word>else</Word>
+            <Word>true</Word>
+            <Word>false</Word>
+        </Keywords>
+		
+		<Keywords fontWeight="bold" foreground="DarkCyan">
+			<Word>matrix</Word>
+			<Word>vector</Word>
+			<Word>complexvector</Word>
+			<Word>series</Word>
+			<Word>model</Word>
+			<Word>spline</Word>
+		</Keywords>
+
+		<Rule foreground="MidnightBlue">
+			\b0[xX][0-9a-fA-F]+  # hex number
+			|    \b
+			(    \d+(\.[0-9]+)?   #number with optional floating point
+			|    \.[0-9]+         #or just starting with floating point
+			)
+			([eE][+-]?[0-9]+)? # optional exponent
+		</Rule>
+	</RuleSet>
+</SyntaxDefinition>

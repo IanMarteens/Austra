@@ -3,6 +3,9 @@
 /// <summary>Common matrix operations.</summary>
 public static class CommonMatrix
 {
+    /// <summary>Number of characters in a line.</summary>
+    public static int TERMINAL_COLUMNS { get; set; } = 80;
+
     /// <summary>Deconstruct a complex number into its real and imaginary parts.</summary>
     /// <param name="complex">The value to be deconstructed.</param>
     /// <param name="real">The real part.</param>
@@ -342,8 +345,8 @@ public static class CommonMatrix
             return "";
         string[] cells = data.Select(formatter).ToArray();
         int width = Max(3, cells.Max(c => c.Length));
-        int cols = (80 + 2) / (width + 2);
-        StringBuilder sb = new(Min(data.Length/ cols, 12) * 82);
+        int cols = (TERMINAL_COLUMNS + 2) / (width + 2);
+        StringBuilder sb = new(Min(data.Length/ cols, 12) * (TERMINAL_COLUMNS + 2));
         int offset = 0;
         for (int row = 0; row < 11 && offset < data.Length; row++)
         {
@@ -419,7 +422,7 @@ public static class CommonMatrix
         {
             (int, string[]) candidate = FormatColumn(j, rows, upper, lower);
             chars += candidate.Item1 + 2;
-            if (chars > 76)
+            if (chars > TERMINAL_COLUMNS - 4)
                 break;
             columnsLeft.Add(candidate);
         }

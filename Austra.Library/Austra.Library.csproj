@@ -15,9 +15,9 @@
 	  <Product>AUSTRA</Product>
 	  <Copyright>Copyright © 2020-2023, by Ian Marteens</Copyright>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <AssemblyVersion>1.2.45</AssemblyVersion>
-	  <FileVersion>1.2.45</FileVersion>
-	  <Version>1.2.45</Version>
+	  <AssemblyVersion>1.2.47</AssemblyVersion>
+	  <FileVersion>1.2.47</FileVersion>
+	  <Version>1.2.47</Version>
 	  <RootNamespace>Austra.Library</RootNamespace>
 	  <AssemblyName>Austra.Library</AssemblyName>
 	  <Title>A high-performance library for linear algebra.</Title>
