@@ -544,20 +544,17 @@ public readonly struct EVD : IFormattable
         for (int j = 0, k = 0; j < rank; j++, k += rank)
             norm += Abs(h[k]);
         for (int i = 1; i < rank; i++)
-        {
             for (int j = i - 1, k = j * rank + i; j < rank; j++, k += rank)
                 norm += Abs(h[k]);
-        }
 
         // Outer loop over eigenvalue index
         for (int iter = 0; n >= 0;)
         {
             // Look for single small sub-diagonal element
             int l = n;
-            for (; l > 0; l--)
+            for (int lm1O = (l - 1) * rank; l > 0; l--, lm1O -= rank)
             {
-                int lm1 = l - 1, lm1O = lm1 * rank;
-                s = Abs(h[lm1O + lm1]) + Abs(h[l * rank + l]);
+                s = Abs(h[lm1O + l - 1]) + Abs(h[lm1O + rank + l]);
                 if (s == 0.0)
                     s = norm;
                 if (Abs(h[lm1O + l]) < ε * s)
@@ -568,8 +565,7 @@ public readonly struct EVD : IFormattable
             if (l == n)
             {
                 // One root found
-                int index = n * rank + n;
-                d[n] = h[index] += exshift;
+                d[n] = h[n * rank + n] += exshift;
                 e[n] = 0.0;
                 n--;
                 iter = 0;
@@ -800,7 +796,7 @@ public readonly struct EVD : IFormattable
                                 if (notlast)
                                 {
                                     Vector256<double> v3 = Avx.LoadVector256(h + kp2O + i);
-                                    vp = Avx.Add(vp, Avx.Multiply(vz, v3));
+                                    vp = vp.MultiplyAdd(vz, v3);
                                     Avx.Store(h + kp2O + i, v3.MultiplyAddNeg(vp, vr));
                                 }
                                 Avx.Store(h + kO + i, Avx.Subtract(v1, vp));
@@ -812,7 +808,7 @@ public readonly struct EVD : IFormattable
                             p = x * h[kO + i] + y * h[kp1O + i];
                             if (notlast)
                             {
-                                p += z * h[kp2O + i];
+                                p = FusedMultiplyAdd(z, h[kp2O + i], p);
                                 h[kp2O + i] -= p * r;
                             }
                             h[kO + i] -= p;
@@ -1004,7 +1000,7 @@ public readonly struct EVD : IFormattable
                 if (Avx2.IsSupported)
                 {
                     Vector256<double> acc = Vector256<double>.Zero;
-                    var vx = Vector128.Create(0, rank, 2 * rank, 3 * rank);
+                    Vector128<int> vx = Vector128.Create(0, rank, 2 * rank, 3 * rank);
                     for (double* pa = a + i; k + 4 <= j; k += 4, pa += 4 * rank)
                         acc = acc.MultiplyAdd(h + jO + k, Avx2.GatherVector256(pa, vx, 8));
                     z = acc.Sum();

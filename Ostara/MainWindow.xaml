@@ -10,7 +10,8 @@
     Icon="\ak.ico"
     Background="Black"
     WindowState="Maximized"
-    Title="OSTARA" Height="450" Width="800">
+    Title="OSTARA" Height="450" Width="800"
+    FocusManager.FocusedElement="{Binding ElementName=avalon}">
     <Window.DataContext>
         <local:RootModel/>
     </Window.DataContext>
@@ -54,6 +55,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="160"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <avalonEdit:TextEditor
@@ -66,7 +68,8 @@
                     VerticalScrollBarVisibility="Auto">
                 </avalonEdit:TextEditor>
                 <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch"/>
-                <FlowDocumentScrollViewer Grid.Row="2" x:Name="document" HorizontalScrollBarVisibility="Auto">
+                <TextBlock Grid.Row="2" Foreground="White" Padding="8,1" FontSize="12" Visibility="{Binding ShowErrorText}" Text="{Binding ErrorText}"/>
+                <FlowDocumentScrollViewer Grid.Row="3" x:Name="document" HorizontalScrollBarVisibility="Auto">
                     <FlowDocument Background="Black" Foreground="White" PageWidth="2048">
                         <Section x:Name="mainSection" FontFamily="Fira Code,Cascadia Code,Courier New" FontSize="10pt">
                         </Section>

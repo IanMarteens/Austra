@@ -11,6 +11,7 @@
 		<None Remove="ak.ico" />
 		<None Remove="austra.jpg" />
 		<None Remove="austra.xshd" />
+		<None Remove="Images\play.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -56,12 +57,7 @@
 
 	<ItemGroup>
 	  <Resource Include="austra.jpg" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Update="images\play.svg">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+	  <Resource Include="Images\play.png" />
 	</ItemGroup>
 
 	<ItemGroup>

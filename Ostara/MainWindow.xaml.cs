@@ -36,11 +36,18 @@ public partial class MainWindow : Window
             else if (char.IsLetter(e.Text[0]))
                 if (avalon.CaretOffset == 0)
                     ShowCodeCompletion(RootModel.Instance.GetRoots());
-                else if (avalon.Document.GetCharAt(avalon.CaretOffset - 1) == '.' &&
-                    avalon.CaretOffset > 1)
+                else if (avalon.CaretOffset > 0)
                 {
-                    string frag = avalon.Document.GetText(0, avalon.CaretOffset - 1);
-                    ShowCodeCompletion(RootModel.Instance.GetMembers(frag));
+                    string fragment = GetFragment(0);
+                    if (fragment.EndsWith('.'))
+                        ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
+                    else if (fragment.EndsWith('('))
+                    {
+                        if (fragment.Length > 2 && char.IsLetterOrDigit(fragment, fragment.Length - 2))
+                            ShowCodeCompletion(RootModel.Instance.GetRoots());
+                    }
+                    else if (fragment.EndsWith("::"))
+                        ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
                 }
     }
 
@@ -51,12 +58,12 @@ public partial class MainWindow : Window
             list = RootModel.Instance.GetMembers(GetFragment());
         else if (e.Text == ":")
             list = RootModel.Instance.GetClassMembers(GetFragment());
-        else 
+        else
             list = new List<(string, string)>();
         ShowCodeCompletion(list);
-
-        string GetFragment() => avalon.Document.GetText(0, avalon.CaretOffset - 1);
     }
+
+    private string GetFragment(int delta = 1) => avalon.Document.GetText(0, avalon.CaretOffset - delta);
 
     private void ShowCodeCompletion(IList<(string, string)> list)
     {

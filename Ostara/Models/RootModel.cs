@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Ostara;
 
@@ -14,12 +15,18 @@ public sealed partial class RootModel : Entity
     private ObservableCollection<ClassNode> classes = new();
     /// <summary>Maps names into variable nodes.</summary>
     private readonly Dictionary<string, VarNode> allVars = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>This timer erases the status bar message after a while.</summary>
+    private readonly DispatcherTimer timer = new();
     private string austraDate = "";
     private ScrollViewer? scrollViewer;
+    private string errorText = "";
+    private Visibility showErrorText = Visibility.Collapsed;
 
     public RootModel()
     {
         CommonMatrix.TERMINAL_COLUMNS = 160;
+        timer.Interval = new TimeSpan(0, 0, 15);
+        timer.Tick += (e, a) => { ErrorText = ""; ShowErrorText = Visibility.Collapsed; timer.Stop(); };
         string dataFile = GetDefaultDataFile();
         if (File.Exists(dataFile))
         {
@@ -54,19 +61,31 @@ public sealed partial class RootModel : Entity
         set => SetField(ref classes, value);
     }
 
+    public string ErrorText
+    {
+        get => errorText;
+        set => SetField(ref errorText, value);
+    }
+
+    public Visibility ShowErrorText
+    {
+        get => showErrorText;
+        set => SetField(ref showErrorText, value);
+    }
+
     private void PrepareWorkspace()
     {
         if (environment != null)
         {
             // Fill the Variables tree.
-            var cList = new List<ClassNode>();
+            List<ClassNode> cList = new();
             allVars.Clear();
             foreach (var g in environment.DataSource.Variables.GroupBy(t => Describe(t.type)))
             {
-                var cNode = new ClassNode(g.Key);
+                ClassNode cNode = new(g.Key);
                 foreach ((string? name, Type? type) in g)
                 {
-                    var n = CreateVarNode(cNode, name, type!, true);
+                    VarNode? n = CreateVarNode(cNode, name, type!, true);
                     if (n != null)
                         cNode.Nodes.Add(n);
                 }
@@ -102,6 +121,12 @@ public sealed partial class RootModel : Entity
             }
         }
     }
+
+    public static void DoEvents() =>
+        Application.Current.Dispatcher.Invoke(
+            DispatcherPriority.Background,
+            new Action(() => { }));
+
 
     private static string Describe(Type? type) =>
         type == typeof(Series)
@@ -170,7 +195,7 @@ public sealed partial class RootModel : Entity
     public IList<(string, string)> GetRoots()
     {
         var result = environment!.Engine.GetRoots();
-        foreach (var item in environment.Engine.GetRootClasses())
+        foreach ((string member, string description) item in environment.Engine.GetRootClasses())
             result.Add(item);
         return result;
     }
@@ -191,6 +216,10 @@ public sealed partial class RootModel : Entity
 
     public void Evaluate(string text)
     {
+        timer.Stop();
+        ShowErrorText = Visibility.Collapsed;
+        if (string.IsNullOrWhiteSpace(text))
+            return;
         try
         {
             var (ans, ansType, ansVar) = environment!.Engine.Eval(text);
@@ -199,12 +228,16 @@ public sealed partial class RootModel : Entity
         }
         catch (AstException e)
         {
-            Editor.CaretOffset = e.Position;
-            MainSection?.ContentEnd.InsertTextInRun(e.Message);
+            Editor.CaretOffset = Math.Min(e.Position, Editor.Text.Length);
+            ErrorText = e.Message;
+            ShowErrorText = Visibility.Visible;
+            timer.Start();
         }
         catch (Exception e)
         {
-            MainSection?.ContentEnd.InsertTextInRun(e.Message);
+            ErrorText = e.Message;
+            ShowErrorText = Visibility.Visible;
+            timer.Start();
         }
     }
 

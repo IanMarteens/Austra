@@ -181,15 +181,9 @@ public readonly struct RMatrix :
                 if (Avx.IsSupported)
                 {
                     int lastBlockIndex = (c - row) & Simd.AVX_MASK + row;
-                    for (; col < lastBlockIndex; col += 4)
-                    {
-                        Avx.Store(
-                            pC + k,
-                            Avx.Add(
-                                Avx.LoadVector256(pA + k),
-                                Avx.LoadVector256(pB + k)));
-                        k += 4;
-                    }
+                    for (; col < lastBlockIndex; col += 4, k += 4)
+                        Avx.Store(pC + k,
+                            Avx.Add(Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
                 }
                 for (; col < c; col++)
                 {

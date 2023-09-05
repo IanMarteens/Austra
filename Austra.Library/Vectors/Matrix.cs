@@ -631,11 +631,8 @@ public readonly struct Matrix :
             int i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(
-                        address: pC + i,
-                        source: Avx.Add(
-                            left: Avx.LoadVector256(pA + i),
-                            right: Avx.LoadVector256(pB + i)));
+                    Avx.Store(pC + i,
+                        Avx.Add(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
             for (; i < len; i++)
                 pC[i] = pA[i] + pB[i];
         }

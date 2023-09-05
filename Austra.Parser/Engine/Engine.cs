@@ -205,8 +205,8 @@ public partial class AustraEngine : IAustraEngine
             ("matrix::", "Allows access to matrix constructors"),
             ("model::", "Allows access to model constructors"),
             ("series::", "Allows access to series constructors"),
-            ("vector::", "Allows access to vector constructors"),
             ("spline::", "Allows access to spline constructors"),
+            ("vector::", "Allows access to vector constructors"),
         };
 
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
