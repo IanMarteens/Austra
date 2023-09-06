@@ -5,6 +5,7 @@
 		<TargetFramework>net7.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
+		<ApplicationIcon>ak.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -19,6 +20,7 @@
 		<None Remove="Images\play.png" />
 		<None Remove="Images\series.png" />
 		<None Remove="Images\store.png" />
+		<None Remove="Images\vector.png" />
 		<None Remove="Images\waves.png" />
 	</ItemGroup>
 
@@ -73,6 +75,7 @@
 	  <Resource Include="Images\play.png" />
 	  <Resource Include="Images\series.png" />
 	  <Resource Include="Images\store.png" />
+	  <Resource Include="Images\vector.png" />
 	  <Resource Include="Images\waves.png" />
 	</ItemGroup>
 

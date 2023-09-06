@@ -33,4 +33,6 @@ public sealed class DefinitionNode : VarNode
 
     [Category("Content")]
     public string Description { get; }
+
+    public string Hint => Description == Name ? TypeName : Description;
 }

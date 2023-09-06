@@ -57,11 +57,15 @@
                                             <Setter Property="Visibility" Value="Visible"/>
                                             <Setter Property="Source" Value="/images/waves.png"/>
                                         </DataTrigger>
-                                        <!--
                                         <DataTrigger Binding="{Binding TypeName}" Value="Vector">
                                             <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Source" Value="{dx:DXImage 'SvgImages/DiagramIcons/Orientation/ListOrientationVertical.svg'}"/>
+                                            <Setter Property="Source" Value="/images/vector.png"/>
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="ComplexVector">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/vector.png"/>
+                                        </DataTrigger>
+                                        <!--
                                         <DataTrigger Binding="{Binding TypeName}" Value="Double">
                                             <Setter Property="Visibility" Value="Visible"/>
                                             <Setter Property="Source" Value="{dx:DXImage 'SvgImages/Spreadsheet/Number.svg'}"/>
@@ -75,7 +79,7 @@
                                 </Style>
                             </Image.Style>
                         </Image>
-                        <TextBlock Text="{Binding DisplayName}" Foreground="White" Margin="2,1"/>
+                        <TextBlock Text="{Binding DisplayName}" Foreground="White" Margin="2,1" ToolTip="{Binding Hint}"/>
                     </StackPanel>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type local:VarNode}">

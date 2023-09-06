@@ -58,10 +58,8 @@ public abstract class Spline<ARG> where ARG : struct
         ref double ry = ref MemoryMarshal.GetArrayDataReference(ys);
         // Allocate temporal and final arrays.
         int n = xs.Length;
-        double[] c = new double[n];
-        double[] r = new double[n];
-        ref double rc = ref MemoryMarshal.GetArrayDataReference(c);
-        ref double rr = ref MemoryMarshal.GetArrayDataReference(r);
+        ref double rc = ref MemoryMarshal.GetArrayDataReference(new double[n]);
+        ref double rr = ref MemoryMarshal.GetArrayDataReference(new double[n]);
         // First row.
         rc = 0.5;
         double last = rr = 1.5 * (Add(ref ry, 1) - ry) / (Add(ref rx, 1) - rx);
