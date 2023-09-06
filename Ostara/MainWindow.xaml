@@ -68,7 +68,7 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem Grid.Column="0">
-                <TextBlock/>
+                <TextBlock Text="{Binding Message}"/>
             </StatusBarItem>
             <Separator Grid.Column="1" />
             <StatusBarItem Grid.Column="2">
@@ -100,7 +100,7 @@
                     VerticalScrollBarVisibility="Auto">
                 </avalonEdit:TextEditor>
                 <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch"/>
-                <StackPanel Grid.Row="2" Orientation="Horizontal">
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Background="#FF363636">
                     <Image Height="15" Width="15" Source="/images/error.png" Visibility="{Binding ShowErrorText}" Margin="2,0,2,0"/>
                     <TextBlock Foreground="White" Padding="8,1" FontSize="12" Visibility="{Binding ShowErrorText}" Text="{Binding ErrorText}"/>
                 </StackPanel>

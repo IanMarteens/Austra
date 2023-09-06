@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
+using ICSharpCode.AvalonEdit.Utils;
 
 namespace Ostara;
 
@@ -14,6 +15,8 @@ public sealed partial class RootModel : Entity
 {
     public static RootModel Instance { get; } = new();
 
+    /// <summary>Global transient message for the status bar.</summary>
+    private string message = "";
     /// <summary>Austra session, containing variables and definitions.</summary>
     private Session? environment;
     /// <summary>The tree of variables, grouped by class. First node are definitions.</summary>
@@ -33,7 +36,13 @@ public sealed partial class RootModel : Entity
     {
         CommonMatrix.TERMINAL_COLUMNS = 160;
         timer.Interval = new TimeSpan(0, 0, 15);
-        timer.Tick += (e, a) => { ErrorText = ""; ShowErrorText = Visibility.Collapsed; timer.Stop(); };
+        timer.Tick += (e, a) => 
+        { 
+            ErrorText = "";
+            Message = "";
+            ShowErrorText = Visibility.Collapsed; 
+            timer.Stop();
+        };
         string dataFile = GetDefaultDataFile();
         if (File.Exists(dataFile))
         {
@@ -45,6 +54,20 @@ public sealed partial class RootModel : Entity
     /// <summary>Gets the version of Austra.Libray.</summary>
     public static string Version { get; } =
         typeof(Series).Assembly.GetName().Version!.ToString(3);
+
+    /// <summary>Gets or sets a message in the status bar for a time lapse.</summary>
+    public string Message
+    {
+        get => message;
+        set
+        {
+            if (SetField(ref message, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                    timer.Start();
+            }
+        }
+    }
 
     /// <summary>Austra session, containing variables and definitions.</summary>
     public Session? Environment
@@ -238,6 +261,7 @@ public sealed partial class RootModel : Entity
     public void Evaluate(string text)
     {
         timer.Stop();
+        Message = "";
         ShowErrorText = Visibility.Collapsed;
         CloseCompletion();
         if (string.IsNullOrWhiteSpace(text))
@@ -245,7 +269,41 @@ public sealed partial class RootModel : Entity
         try
         {
             var (ans, ansType, ansVar) = environment!.Engine.Eval(text);
-            if (ans != null)
+            ShowTimesMessage(true, true);
+
+            if (ans is Definition def)
+            {
+                Message = $"Definition {def.Name.ToUpperInvariant()} of type {def.Type.Name} added.";
+                AllDefinitionsNode? allDefs = Classes.OfType<AllDefinitionsNode>().FirstOrDefault();
+                if (allDefs != null)
+                {
+                    DefinitionNode newNode = new(allDefs, def);
+                    allVars[newNode.Name] = newNode;
+                    allDefs.Nodes.Add(newNode);
+                    allDefs.IsExpanded = true;
+                    newNode.IsSelected = true;
+                }
+            }
+            else if (ans is IList<string> dList)
+            {
+                foreach (string dn in dList)
+                    if (allVars.TryGetValue(dn, out var node))
+                    {
+                        allVars.Remove(dn);
+                        node.Parent!.Nodes.Remove(node);
+                    }
+                Message = $"Definitions {string.Join(", ", dList)} removed.";
+            }
+            else if (string.IsNullOrEmpty(ansVar) &&
+                allVars.TryGetValue(text.Trim(), out var n) &&
+                n is not MiscNode &&
+                n is not DefinitionNode)
+            {
+                n.Show();
+                DoEvents();
+                Editor.Focus();
+            }
+            else if (ans != null)
             {
                 string form = CleanFormula(text);
                 VarNode? node = ans switch
@@ -275,6 +333,19 @@ public sealed partial class RootModel : Entity
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
+    }
+
+    private void ShowTimesMessage(bool showComp, bool showExec)
+    {
+        string msg = "";
+        if (showComp && Environment!.Engine.CompileTime is not null)
+            msg = "Compile: " +
+                Environment.Engine.FormatTime(Environment.Engine.CompileTime.Value);
+        if (showExec && Environment!.Engine.ExecutionTime is not null)
+            msg += (msg.Length > 0 ? ", execution: " : "Execution: ") +
+                Environment!.Engine.FormatTime(Environment.Engine.ExecutionTime.Value);
+        if (msg != "")
+            Message = msg;
     }
 
     private static string CleanFormula(string s)
