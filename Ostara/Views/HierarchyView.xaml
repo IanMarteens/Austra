@@ -7,13 +7,12 @@
     xmlns:local="clr-namespace:Ostara"
     mc:Ignorable="d" 
     d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid HorizontalAlignment="Stretch">
         <TreeView
-                Grid.Column="1"
-                ItemsSource="{Binding Classes}"
-                HorizontalAlignment="Stretch"
-                Width="250"
-                MinWidth="0">
+            Grid.Column="1"
+            ItemsSource="{Binding Classes}"
+            Background="#FF161616"
+            Margin="0">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:ClassNode}"
                                           ItemsSource="{Binding Nodes}">
@@ -25,13 +24,67 @@
                 <DataTemplate DataType="{x:Type local:DefinitionNode}">
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Stretch">
+                        <Image Height="16" Width="16" Margin="0,0,2,0">
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="Matrix">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/matrix.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="LinearModel">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/model.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="ARModel">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/model.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="VectorSpline">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/model.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="DateSpline">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/model.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="Series">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/series.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="FFT Model">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/waves.png"/>
+                                        </DataTrigger>
+                                        <!--
+                                        <DataTrigger Binding="{Binding TypeName}" Value="Vector">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="{dx:DXImage 'SvgImages/DiagramIcons/Orientation/ListOrientationVertical.svg'}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="Double">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="{dx:DXImage 'SvgImages/Spreadsheet/Number.svg'}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="MvoModel">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="{dx:DXImage 'SvgImages/Spreadsheet/FunctionsStatistical.svg'}"/>
+                                        </DataTrigger>
+-->
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
                         <TextBlock Text="{Binding DisplayName}" Foreground="White" Margin="2,1"/>
                     </StackPanel>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type local:VarNode}">
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Stretch">
-                        <TextBlock Text="{Binding DisplayName}" Foreground="White" Margin="2,1"/>
+                        <Image Height="16" Width="16" 
+                               Source="/images/store.png"
+                               Visibility="{Binding StoredVisibility}"/>
+                        <TextBlock Text="{Binding DisplayName}" Foreground="White" Margin="5,1,0,1"/>
                     </StackPanel>
                 </DataTemplate>
             </TreeView.Resources>

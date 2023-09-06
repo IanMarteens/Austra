@@ -33,24 +33,56 @@
                 <MenuItem Header="E_xit" Command="ApplicationCommands.Close"/>
             </MenuItem>
             <MenuItem Header="_Run">
-                <MenuItem Header="_Execute" Command="MediaCommands.Play" InputGestureText="F5"/>
+                <MenuItem Header="_Execute" Command="MediaCommands.Play" InputGestureText="F5">
+                    <MenuItem.Icon>
+                        <Image Source="/images/play.png" Width="15" Height="Auto"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="_Check type" InputGestureText="Ctrl+F5"/>
             </MenuItem>
             <MenuItem Header="_Tools">
-                <MenuItem Header="_Options"/>
+                <MenuItem Header="_Options">
+                    <MenuItem.Icon>
+                        <Image Source="/images/options.png" Width="15" Height="Auto"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_About" Click="AboutClick"/>
+                <MenuItem Header="_About" Click="AboutClick">
+                    <MenuItem.Icon>
+                        <Image Source="/images/info.png" Width="15" Height="Auto"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
         </Menu>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0">
+                <TextBlock/>
+            </StatusBarItem>
+            <Separator Grid.Column="1" />
+            <StatusBarItem Grid.Column="2">
+                <TextBlock Text="{Binding AustraDate}"/>
+            </StatusBarItem>
+        </StatusBar>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="245"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <local:HierarchyView Grid.Column="1"/>
-            <GridSplitter Grid.Column="2" Width="3" VerticalAlignment="Stretch"/>
+            <local:HierarchyView Grid.Column="0"/>
+            <GridSplitter Grid.Column="1" Width="2" Background="Black" VerticalAlignment="Stretch"/>
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="160"/>
@@ -68,9 +100,12 @@
                     VerticalScrollBarVisibility="Auto">
                 </avalonEdit:TextEditor>
                 <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch"/>
-                <TextBlock Grid.Row="2" Foreground="White" Padding="8,1" FontSize="12" Visibility="{Binding ShowErrorText}" Text="{Binding ErrorText}"/>
+                <StackPanel Grid.Row="2" Orientation="Horizontal">
+                    <Image Height="15" Width="15" Source="/images/error.png" Visibility="{Binding ShowErrorText}" Margin="2,0,2,0"/>
+                    <TextBlock Foreground="White" Padding="8,1" FontSize="12" Visibility="{Binding ShowErrorText}" Text="{Binding ErrorText}"/>
+                </StackPanel>
                 <FlowDocumentScrollViewer Grid.Row="3" x:Name="document" HorizontalScrollBarVisibility="Auto">
-                    <FlowDocument Background="Black" Foreground="White" PageWidth="2048">
+                    <FlowDocument Background="#FF161616" Foreground="White" PageWidth="2048">
                         <Section x:Name="mainSection" FontFamily="Fira Code,Cascadia Code,Courier New" FontSize="10pt">
                         </Section>
                     </FlowDocument>

@@ -11,13 +11,17 @@ public sealed partial class RootModel : Entity
 {
     public static RootModel Instance { get; } = new();
 
+    /// <summary>Austra session, containing variables and definitions.</summary>
     private Session? environment;
+    /// <summary>The tree of variables, grouped by class. First node are definitions.</summary>
     private ObservableCollection<ClassNode> classes = new();
     /// <summary>Maps names into variable nodes.</summary>
     private readonly Dictionary<string, VarNode> allVars = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>This timer erases the status bar message after a while.</summary>
     private readonly DispatcherTimer timer = new();
+    /// <summary>Last date of the series. Used to update the status bar.</summary>
     private string austraDate = "";
+    /// <summary>The scroll viewer of the results panel.</summary>
     private ScrollViewer? scrollViewer;
     private string errorText = "";
     private Visibility showErrorText = Visibility.Collapsed;
@@ -39,22 +43,25 @@ public sealed partial class RootModel : Entity
     public static string Version { get; } =
         typeof(Series).Assembly.GetName().Version!.ToString(3);
 
+    /// <summary>Austra session, containing variables and definitions.</summary>
     public Session? Environment
     {
         get => environment;
         set => SetField(ref environment, value, nameof(HasEnvironment));
     }
 
-    public bool HasEnvironment => Environment != null;
+    public bool HasEnvironment => environment != null;
 
-    public bool GetHasEnvironment() => Environment != null;
+    public bool GetHasEnvironment() => environment != null;
 
+    /// <summary>Gets the last date in time series, in Austra date format.</summary>
     public string AustraDate
     {
         get => austraDate;
         set => SetField(ref austraDate, value);
     }
 
+    /// <summary>Gets the root nodes of the variables and definitions tree.</summary>
     public ObservableCollection<ClassNode> Classes
     {
         get => classes;
@@ -117,7 +124,8 @@ public sealed partial class RootModel : Entity
             else
             {
                 var d = environment.DataSource.Series.Select(s => s.Last().Arg).Max();
-                AustraDate = ((DateTime)d).ToString("d@MMMyyyy");
+                AustraDate = ((DateTime)d).ToString("d@MMMyyyy",
+                    System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant();
             }
         }
     }
@@ -177,6 +185,9 @@ public sealed partial class RootModel : Entity
     public static ICSharpCode.AvalonEdit.TextEditor Editor =>
         ((MainWindow)Application.Current.MainWindow).avalon;
 
+    public static void CloseCompletion() =>
+        ((MainWindow)Application.Current.MainWindow).CloseCompletion();
+
     private ScrollViewer? Scroller
     {
         get
@@ -218,6 +229,7 @@ public sealed partial class RootModel : Entity
     {
         timer.Stop();
         ShowErrorText = Visibility.Collapsed;
+        CloseCompletion();
         if (string.IsNullOrWhiteSpace(text))
             return;
         try

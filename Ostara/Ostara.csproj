@@ -11,7 +11,15 @@
 		<None Remove="ak.ico" />
 		<None Remove="austra.jpg" />
 		<None Remove="austra.xshd" />
+		<None Remove="Images\error.png" />
+		<None Remove="Images\info.png" />
+		<None Remove="Images\matrix.png" />
+		<None Remove="Images\model.png" />
+		<None Remove="Images\options.png" />
 		<None Remove="Images\play.png" />
+		<None Remove="Images\series.png" />
+		<None Remove="Images\store.png" />
+		<None Remove="Images\waves.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -57,7 +65,15 @@
 
 	<ItemGroup>
 	  <Resource Include="austra.jpg" />
+	  <Resource Include="Images\error.png" />
+	  <Resource Include="Images\info.png" />
+	  <Resource Include="Images\matrix.png" />
+	  <Resource Include="Images\model.png" />
+	  <Resource Include="Images\options.png" />
 	  <Resource Include="Images\play.png" />
+	  <Resource Include="Images\series.png" />
+	  <Resource Include="Images\store.png" />
+	  <Resource Include="Images\waves.png" />
 	</ItemGroup>
 
 	<ItemGroup>
