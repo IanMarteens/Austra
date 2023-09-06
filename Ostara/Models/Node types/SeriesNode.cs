@@ -9,7 +9,7 @@ public sealed class SeriesNode: VarNode
 
     private readonly Accumulator acc;
 
-    public SeriesNode(ClassNode parent, string varName, string formula, Series value) :
+    public SeriesNode(ClassNode? parent, string varName, string formula, Series value) :
         base(parent, varName, formula, typeof(Series))
     {
         Name = varName;
@@ -18,14 +18,38 @@ public sealed class SeriesNode: VarNode
         acc = value.Stats();
     }
 
-    public SeriesNode(ClassNode parent, string varName, Series value) :
+    public SeriesNode(ClassNode? parent, string varName, Series value) :
     this(parent, varName, varName, value)
     { }
 
     public Series Series { get; }
 
-    override public void Show() =>
-        RootModel.Instance.AppendResult(Name, Series.ToString());
+    override public void Show()
+    {
+        OxyPlot.PlotModel model = new();
+        model.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
+        {
+            Position = OxyPlot.Axes.AxisPosition.Bottom,
+        });
+        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
+        {
+            Position = OxyPlot.Axes.AxisPosition.Left,
+        });
+        OxyPlot.Series.LineSeries lineSeries = new();
+        foreach (Point<Date> p in Series.Points)
+            lineSeries.Points.Add(
+                new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
+        model.Series.Add(lineSeries);
+        OxyPlot.Wpf.PlotView view = new()
+        {
+            Model = model,
+            Width = 900,
+            Height = 250,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
+        };
+        RootModel.Instance.AppendControl(Name, Series.ToString(), view);
+    }
 
     [Category("ID")]
     public string Name { get; }

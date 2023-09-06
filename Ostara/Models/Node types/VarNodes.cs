@@ -6,10 +6,10 @@ public abstract class VarNode : NodeBase
     public VarNode(ClassNode parent, string varName, Type type) =>
         (Parent, VarName, Formula, Type) = (parent, varName, varName, type);
 
-    public VarNode(ClassNode parent, string varName, string formula, Type type) =>
+    public VarNode(ClassNode? parent, string varName, string formula, Type type) =>
         (Parent, VarName, Formula, Type) = (parent, varName, formula, type);
 
-    public ClassNode Parent { get; }
+    public ClassNode? Parent { get; }
     public string VarName { get; }
     public Type Type { get; }
     public string Formula { get; }

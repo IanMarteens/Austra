@@ -1,5 +1,8 @@
-﻿using Austra.Parser;
+﻿using Austra.Library.MVO;
+using Austra.Library;
+using Austra.Parser;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -225,6 +228,13 @@ public sealed partial class RootModel : Entity
         Scroller?.ScrollToEnd();
     }
 
+    public void AppendControl(string variable, string text, UIElement element)
+    {
+        MainSection?.ContentEnd.InsertTextInRun($"> {variable}\n{text}");
+        MainSection?.Blocks.Add(new BlockUIContainer(element));
+        Scroller?.ScrollToEnd();
+    }
+
     public void Evaluate(string text)
     {
         timer.Stop();
@@ -236,7 +246,21 @@ public sealed partial class RootModel : Entity
         {
             var (ans, ansType, ansVar) = environment!.Engine.Eval(text);
             if (ans != null)
-                AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : text, ans.ToString());
+            {
+                string form = CleanFormula(text);
+                VarNode? node = ans switch
+                {
+                    Series s => new SeriesNode(null, ansType?.Name ?? "", form, s),
+                    _ => null
+                };
+                if (node != null)
+                    node.Show();
+                else if (ans != null)
+                {
+                    AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : text, ans.ToString());
+                    return;
+                }
+            }
         }
         catch (AstException e)
         {
@@ -253,7 +277,19 @@ public sealed partial class RootModel : Entity
         }
     }
 
+    private static string CleanFormula(string s)
+    {
+        var m = SetRegex().Match(s);
+        return (m.Success ? m.Groups["name"].Value : s).
+            Replace("\r\n", " ").
+            Replace(" \t", " ").
+            Replace("\t", " ");
+    }
+
     static string GetDefaultDataFile() => Path.Combine(
         System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
         @"Austra\data.austra");
+
+    [GeneratedRegex("^\\s*set\\s*(?'name'[\\w]+)\\s*=", RegexOptions.IgnoreCase, "es-ES")]
+    private static partial Regex SetRegex();
 }
