@@ -1,23 +1,20 @@
 ﻿namespace Ostara;
 
-/// <summary>An abstract autoregressive model.</summary>
-/// <typeparam name="M">Type of model.</typeparam>
-/// <typeparam name="T">Type of original dataset.</typeparam>
-public abstract class ARNode<M, T> : VarNode where M : ARModelBase<T>
+public abstract class LinearModelNode<M, T> : VarNode where M : LinearModelBase<T>
 {
-    protected ARNode(ClassNode? parent, string varName, string formula, M value) :
+    protected LinearModelNode(ClassNode? parent, string varName, string formula, M value) :
         base(parent, varName, formula, value.GetType())
     {
         Name = varName;
-        TypeName = "AR(p) model";
+        TypeName = "Linear Model";
         Model = value;
-        Degree = value.Degrees;
         R2 = value.R2;
         RSS = value.ResidualSumSquares;
         TSS = value.TotalSumSquares;
+        StandardError = value.StandardError;
     }
 
-    protected ARNode(ClassNode? parent, string varName, M value) :
+    protected LinearModelNode(ClassNode? parent, string varName, M value) :
         this(parent, varName, varName, value)
     { }
 
@@ -39,16 +36,13 @@ public abstract class ARNode<M, T> : VarNode where M : ARModelBase<T>
         RootModel.Instance.AppendControl(Formula, text, view);
     }
 
-    public sealed override string DisplayName => $"{VarName}: ARModel";
+    public sealed override string DisplayName => $"{VarName}: LinearModel";
 
     [Category("ID")]
     public string Name { get; }
 
     [Category("ID")]
     public string TypeName { get; }
-
-    [Category("Shape")]
-    public int Degree { get; }
 
     [Category("Stats")]
     public double R2 { get; }
@@ -58,17 +52,19 @@ public abstract class ARNode<M, T> : VarNode where M : ARModelBase<T>
 
     [Category("Stats")]
     public double TSS { get; }
+
+    [Category("Stats")]
+    public double StandardError { get; }
 }
 
-/// <summary>An autoregressive model for a time series.</summary>
-public sealed class ARSNode : ARNode<ARSModel, Series>
+public sealed class LinearSModelNode : LinearModelNode<LinearSModel, Series>
 {
-    public ARSNode(ClassNode? parent, string varName, string formula, ARSModel value) :
+    public LinearSModelNode(ClassNode? parent, string varName, string formula, LinearSModel value) :
         base(parent, varName, formula, value)
     {
     }
 
-    public ARSNode(ClassNode? parent, string varName, ARSModel value) :
+    public LinearSModelNode(ClassNode? parent, string varName, LinearSModel value) :
         this(parent, varName, varName, value)
     { }
 
@@ -98,15 +94,14 @@ public sealed class ARSNode : ARNode<ARSModel, Series>
     }
 }
 
-/// <summary>An autoregressive model for a samples in a vector.</summary>
-public sealed class ARVNode : ARNode<ARVModel, RVector>
+public sealed class LinearVModelNode : LinearModelNode<LinearVModel, RVector>
 {
-    public ARVNode(ClassNode? parent, string varName, string formula, ARVModel value) :
+    public LinearVModelNode(ClassNode? parent, string varName, string formula, LinearVModel value) :
         base(parent, varName, formula, value)
     {
     }
 
-    public ARVNode(ClassNode? parent, string varName, ARVModel value) :
+    public LinearVModelNode(ClassNode? parent, string varName, LinearVModel value) :
         this(parent, varName, varName, value)
     { }
 
@@ -125,14 +120,12 @@ public sealed class ARVNode : ARNode<ARVModel, RVector>
         OxyPlot.Series.LineSeries lineSeries1 = new() { Title = "Original" };
         int idx = 0;
         foreach (double v in Model.Original)
-            lineSeries1.Points.Add(
-                new(idx++, v));
+            lineSeries1.Points.Add(new(idx++, v));
         model.Series.Add(lineSeries1);
         OxyPlot.Series.LineSeries lineSeries2 = new() { Title = "Predicted" };
         idx = 0;
         foreach (double v in Model.Prediction)
-            lineSeries2.Points.Add(
-                new(idx++, v));
+            lineSeries2.Points.Add(new(idx++, v));
         model.Series.Add(lineSeries2);
         Show(model);
     }

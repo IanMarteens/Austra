@@ -3,6 +3,8 @@
 /// <summary>Interaction logic for AboutView.xaml</summary>
 public partial class AboutView : Window
 {
+    private bool clicked;
+
     public AboutView() => InitializeComponent();
 
     public string Version { get; } = "Version: " + RootModel.Version;
@@ -13,11 +15,16 @@ public partial class AboutView : Window
             DragMove();
     }
 
-    private void OkClick(object sender, RoutedEventArgs e) => Close();
+    private void OkClick(object sender, RoutedEventArgs? e)
+    {
+        clicked = true;
+        Close();
+    }
 
     protected override void OnDeactivated(EventArgs e)
     {
         base.OnDeactivated(e);
-        Close();
+        if (!clicked)
+            Close();
     }
 }

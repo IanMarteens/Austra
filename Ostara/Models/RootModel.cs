@@ -4,14 +4,13 @@ using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Xml.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace Ostara;
 
 /// <summary>Represents the initial view-model of Ostara.</summary>
 public sealed partial class RootModel : Entity
 {
+    /// <summary>Gets the global instance of the root view-model.</summary>
     public static RootModel Instance { get; } = new();
 
     /// <summary>Global transient message for the status bar.</summary>
@@ -28,9 +27,12 @@ public sealed partial class RootModel : Entity
     private string austraDate = "";
     /// <summary>The scroll viewer of the results panel.</summary>
     private ScrollViewer? scrollViewer;
+    /// <summary>Either a compiling or a runtime error.</summary>
     private string errorText = "";
+    /// <summary>Is there an error text to show?</summary>
     private Visibility showErrorText = Visibility.Collapsed;
 
+    /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
     {
         CommonMatrix.TERMINAL_COLUMNS = 160;
@@ -93,18 +95,23 @@ public sealed partial class RootModel : Entity
         set => SetField(ref classes, value);
     }
 
+    /// <summary>Gets either a compiling or a runtime error.</summary>
     public string ErrorText
     {
         get => errorText;
         set => SetField(ref errorText, value);
     }
 
+    /// <summary>Is there an error text to show?</summary>
     public Visibility ShowErrorText
     {
         get => showErrorText;
         set => SetField(ref showErrorText, value);
     }
 
+    /// <summary>
+    /// Prepares the workspace, filling the variables tree and selecting the first node.
+    /// </summary>
     private void PrepareWorkspace()
     {
         if (environment != null)
@@ -138,12 +145,6 @@ public sealed partial class RootModel : Entity
             var selectedVar = Classes.Skip(1).FirstOrDefault();
             if (selectedVar != null)
                 selectedVar.IsExpanded = true;
-            // Show the Formula Editor.
-            /*ShowFormulaEditor = Vis.Visible;
-            ViewServices.Instance.DoEvents();
-            Editor.Focus();
-            // Reset serial counters for anonymous expressions.
-            serials.Clear();*/
             if (!environment.DataSource.Series.Any())
                 AustraDate = "";
             else
@@ -172,13 +173,18 @@ public sealed partial class RootModel : Entity
 
     private VarNode? CreateVarNode(ClassNode cNode, string name, Type type, bool stored)
     {
-        VarNode vNode = Environment!.DataSource[name] switch
+        if (Environment == null)
+            return null;
+        VarNode vNode = Environment.DataSource[name] switch
         {
             Series s => new SeriesNode(cNode, name, s) { Stored = stored },
             Tuple<Series, Series> t => new CompareNode(cNode, name, t),
             FftModel fft => new FftNode(cNode, name, fft),
             ARSModel m => new ARSNode(cNode, name, m),
             ARVModel m => new ARVNode(cNode, name, m),
+            Accumulator acc => new AccumNode(cNode, name, acc),
+            LinearSModel lm => new LinearSModelNode(cNode, name, lm),
+            LinearVModel lm => new LinearVModelNode(cNode, name, lm),
             /*Matrix m => new MatrixNode(cNode, name, m),
             LMatrix m => new MatrixNode(cNode, name, m),
             RMatrix m => new MatrixNode(cNode, name, m),
@@ -187,12 +193,9 @@ public sealed partial class RootModel : Entity
             Series<int> s => new CorrNode(cNode, name, s),
             Series<double> s => new PercNode(cNode, name, s),
             EVD evd => new EvdNode(cNode, name, evd),
-            Accumulator acc => new AccumNode(cNode, name, acc),
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
             Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),
             MvoModel m => new MvoNode(cNode, name, m),
-            LinearSModel lm => new LinearSModelNode(cNode, name, lm),
-            LinearVModel lm => new LinearVModelNode(cNode, name, lm),
             DateSpline spline => new DateSplineNode(cNode, name, spline),
             VectorSpline spline => new VectorSplineNode(cNode, name, spline),*/
             _ => new MiscNode(cNode, name, type, Environment.DataSource[name]?.ToString() ?? "")
@@ -313,6 +316,9 @@ public sealed partial class RootModel : Entity
                     FftModel fft => new FftNode(null, typeString, form, fft),
                     ARSModel m1 => new ARSNode(null, typeString, form, m1),
                     ARVModel m2 => new ARVNode(null, typeString, form, m2),
+                    LinearSModel slm => new LinearSModelNode(null, typeString, form, slm),
+                    LinearVModel vlm => new LinearVModelNode(null, typeString, form, vlm),
+                    Accumulator acc => new AccumNode(null, typeString, form, acc),
                     _ => null
                 };
                 if (node != null)
@@ -337,8 +343,20 @@ public sealed partial class RootModel : Entity
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
+        
+        static string CleanFormula(string s)
+        {
+            var m = SetRegex().Match(s);
+            return (m.Success ? m.Groups["name"].Value : s).
+                Replace("\r\n", " ").
+                Replace(" \t", " ").
+                Replace("\t", " ");
+        }
     }
 
+    /// <summary>Shows the compiling and execution time in the status bar.</summary>
+    /// <param name="showComp">Must we show the compiling time?</param>
+    /// <param name="showExec">Must we show the execution time?</param>
     private void ShowTimesMessage(bool showComp, bool showExec)
     {
         string msg = "";
@@ -352,19 +370,11 @@ public sealed partial class RootModel : Entity
             Message = msg;
     }
 
-    private static string CleanFormula(string s)
-    {
-        var m = SetRegex().Match(s);
-        return (m.Success ? m.Groups["name"].Value : s).
-            Replace("\r\n", " ").
-            Replace(" \t", " ").
-            Replace("\t", " ");
-    }
-
     static string GetDefaultDataFile() => Path.Combine(
         System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
         @"Austra\data.austra");
 
+    /// <summary>Gets a regex that matches a set statement</summary>
     [GeneratedRegex("^\\s*set\\s*(?'name'[\\w]+)\\s*=", RegexOptions.IgnoreCase, "es-ES")]
     private static partial Regex SetRegex();
 }

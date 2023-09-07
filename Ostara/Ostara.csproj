@@ -14,6 +14,7 @@
 		<None Remove="austra.xshd" />
 		<None Remove="Images\error.png" />
 		<None Remove="Images\info.png" />
+		<None Remove="Images\linear.png" />
 		<None Remove="Images\matrix.png" />
 		<None Remove="Images\model.png" />
 		<None Remove="Images\options.png" />
@@ -23,6 +24,7 @@
 		<None Remove="Images\store.png" />
 		<None Remove="Images\vector.png" />
 		<None Remove="Images\waves.png" />
+		<None Remove="Images\waves1.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -71,6 +73,7 @@
 	  <Resource Include="austra.jpg" />
 	  <Resource Include="Images\error.png" />
 	  <Resource Include="Images\info.png" />
+	  <Resource Include="Images\linear.png" />
 	  <Resource Include="Images\matrix.png" />
 	  <Resource Include="Images\model.png" />
 	  <Resource Include="Images\options.png" />
@@ -80,6 +83,7 @@
 	  <Resource Include="Images\store.png" />
 	  <Resource Include="Images\vector.png" />
 	  <Resource Include="Images\waves.png" />
+	  <Resource Include="Images\waves1.png" />
 	</ItemGroup>
 
 	<ItemGroup>
