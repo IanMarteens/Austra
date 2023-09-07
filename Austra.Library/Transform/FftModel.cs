@@ -43,6 +43,11 @@ public abstract class FftModel
     /// </summary>
     protected abstract void Calculate();
 
+    /// <summary>
+    /// Gets a short string describing the kind of FFT and the length of the spectrum.
+    /// </summary>
+    public abstract string ToShortString();
+
     /// <summary>Gets a string representation of the FFT.</summary>
     override public string ToString() => Amplitudes.ToString();
 }
@@ -91,6 +96,10 @@ public sealed class FftRModel : FftModel
         }
     }
 
+    /// <inheritdoc/>
+    public override string ToShortString() =>
+        $"FFT : ℝ({Spectrum.Length}) ⊢ ℂ({Length})";
+
     /// <summary>Inverse of the FFT transform.</summary>
     /// <returns>The original samples.</returns>
     public Vector Inverse() => FFT.InverseReal((Complex[])Spectrum);
@@ -113,6 +122,11 @@ public sealed class FftCModel : FftModel
         Amplitudes = Spectrum.Select(c => c.Magnitude).ToArray();
         Phases = Spectrum.Select(c => c.Phase).ToArray();
     }
+
+    /// <inheritdoc/>
+    public override string ToShortString() =>
+        $"FFT : ℂ({Spectrum.Length}) ⊢ ℂ({Length})";
+
     /// <summary>Inverse of the FFT transform.</summary>
     /// <returns>The original samples.</returns>
     public ComplexVector Inverse()

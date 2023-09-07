@@ -74,6 +74,16 @@ static void EvaluateAndShow(IAustraEngine engine, string line, bool includeTime)
     AustraAnswer answer = engine.Eval(line);
     if (answer.Value is Definition def)
         WriteLine($"{def.Name} has been added as a definition.");
+    else if (answer.Value is Tuple<Vector, Vector> tuple)
+    {
+        Write(tuple.Item1);
+        Write(tuple.Item2);
+    }
+    else if (answer.Value is Tuple<ComplexVector, ComplexVector> ctuple)
+    {
+        Write(ctuple.Item1);
+        Write(ctuple.Item2);
+    }
     else if (answer.Value != null)
     {
         string text = answer.Value?.ToString() ?? "";

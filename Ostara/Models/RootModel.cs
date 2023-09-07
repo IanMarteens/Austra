@@ -1,12 +1,10 @@
-﻿using Austra.Library.MVO;
-using Austra.Library;
-using Austra.Parser;
+﻿using Austra.Parser;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
-using ICSharpCode.AvalonEdit.Utils;
+using System.Xml.Linq;
 
 namespace Ostara;
 
@@ -176,17 +174,17 @@ public sealed partial class RootModel : Entity
         VarNode vNode = Environment!.DataSource[name] switch
         {
             Series s => new SeriesNode(cNode, name, s) { Stored = stored },
+            Tuple<Series, Series> t => new CompareNode(cNode, name, t),
+            FftModel fft => new FftNode(cNode, name, fft),
             /*Matrix m => new MatrixNode(cNode, name, m),
             LMatrix m => new MatrixNode(cNode, name, m),
             RMatrix m => new MatrixNode(cNode, name, m),
             RVector v => new RVectorNode(cNode, name, v),
             CVector cv => new CVectorNode(cNode, name, cv),
-            FftModel fft => new FftNode(cNode, name, fft),
             Series<int> s => new CorrNode(cNode, name, s),
             Series<double> s => new PercNode(cNode, name, s),
             EVD evd => new EvdNode(cNode, name, evd),
             Accumulator acc => new AccumNode(cNode, name, acc),
-            Tuple<Series, Series> t => new CompareNode(cNode, name, t),
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
             Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),
             MvoModel m => new MvoNode(cNode, name, m),
@@ -309,6 +307,8 @@ public sealed partial class RootModel : Entity
                 VarNode? node = ans switch
                 {
                     Series s => new SeriesNode(null, ansType?.Name ?? "", form, s),
+                    Tuple<Series, Series> tuple => new CompareNode(null, "Comparison", form, tuple),
+                    FftModel fft => new FftNode(null, ansType?.Name ?? "", form, fft),
                     _ => null
                 };
                 if (node != null)

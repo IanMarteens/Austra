@@ -14,7 +14,7 @@ public partial class MainWindow : Window
         avalon.SyntaxHighlighting = ResLoader.LoadHighlightingDefinition("austra.xshd");
         avalon.TextArea.TextEntered += TextArea_TextEntered;
         avalon.TextArea.TextEntering += TextArea_TextEntering;
-        mainSection.ContentEnd.InsertTextInRun("Welcome to Ostara!\nv" + typeof(Series).Assembly.GetName().Version!.ToString(3) + "\n\n");
+        mainSection.ContentEnd.InsertTextInRun("Welcome to Ostara!\nv" + RootModel.Version + "\n\n");
     }
 
     private RootModel Root => (RootModel)DataContext;
