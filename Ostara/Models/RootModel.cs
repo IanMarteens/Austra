@@ -308,7 +308,7 @@ public sealed partial class RootModel : Entity
                 VarNode? node = ans switch
                 {
                     Series s => new SeriesNode(null, ansType?.Name ?? "", form, s),
-                    Tuple<Series, Series> tuple => new CompareNode(null, "Comparison", form, tuple),
+                    Tuple<Series, Series> t1 => new CompareNode(null, "Comparison", form, t1),
                     FftModel fft => new FftNode(null, ansType?.Name ?? "", form, fft),
                     ARSModel m1 => new ARSNode(null, ansType?.Name ?? "", form, m1),
                     ARVModel m2 => new ARVNode(null, ansType?.Name ?? "", form, m2),

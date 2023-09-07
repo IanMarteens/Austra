@@ -20,6 +20,7 @@ public sealed class CompareNode : VarNode
     public override void Show()
     {
         OxyPlot.PlotModel model = new();
+        model.Legends.Add(new OxyPlot.Legends.Legend());
         model.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
         {
             Position = OxyPlot.Axes.AxisPosition.Bottom,
@@ -28,12 +29,12 @@ public sealed class CompareNode : VarNode
         {
             Position = OxyPlot.Axes.AxisPosition.Left,
         });
-        OxyPlot.Series.LineSeries lineSeries1 = new();
+        OxyPlot.Series.LineSeries lineSeries1 = new() { Title = "First" };
         foreach (Point<Date> p in First.Points)
             lineSeries1.Points.Add(
                 new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
         model.Series.Add(lineSeries1);
-        OxyPlot.Series.LineSeries lineSeries2 = new();
+        OxyPlot.Series.LineSeries lineSeries2 = new() { Title = "Second" };
         foreach (Point<Date> p in Second.Points)
             lineSeries2.Points.Add(
                 new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));

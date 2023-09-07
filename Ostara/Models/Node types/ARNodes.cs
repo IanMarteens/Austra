@@ -20,6 +20,22 @@ public abstract class ARNode<M, T> : VarNode where M : ARModelBase<T>
 
     public M Model { get; }
 
+    protected void Show(OxyPlot.PlotModel oxyModel)
+    {
+        OxyPlot.Wpf.PlotView view = new()
+        {
+            Model = oxyModel,
+            Width = 900,
+            Height = 250,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
+        };
+        string text = Model.ToString();
+        if (text.EndsWith("\r\n"))
+            text = text[..^2];
+        RootModel.Instance.AppendControl(Name, text, view);
+    }
+
     public sealed override string DisplayName => $"{VarName}: ARModel";
 
     [Category("ID")]
@@ -55,6 +71,7 @@ public sealed class ARSNode : ARNode<ARSModel, Series>
     public override void Show()
     {
         OxyPlot.PlotModel model = new();
+        model.Legends.Add(new OxyPlot.Legends.Legend());
         model.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
         {
             Position = OxyPlot.Axes.AxisPosition.Bottom,
@@ -63,25 +80,17 @@ public sealed class ARSNode : ARNode<ARSModel, Series>
         {
             Position = OxyPlot.Axes.AxisPosition.Left,
         });
-        OxyPlot.Series.LineSeries lineSeries1 = new();
+        OxyPlot.Series.LineSeries lineSeries1 = new() { Title = "Original" };
         foreach (Point<Date> p in Model.Original.Points)
             lineSeries1.Points.Add(
                 new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
         model.Series.Add(lineSeries1);
-        OxyPlot.Series.LineSeries lineSeries2 = new();
+        OxyPlot.Series.LineSeries lineSeries2 = new() { Title = "Predicted" };
         foreach (Point<Date> p in Model.Prediction.Points)
             lineSeries2.Points.Add(
                 new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
         model.Series.Add(lineSeries2);
-        OxyPlot.Wpf.PlotView view = new()
-        {
-            Model = model,
-            Width = 900,
-            Height = 250,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
-        };
-        RootModel.Instance.AppendControl(Name, Model.ToString(), view);
+        Show(model);
     }
 }
 
@@ -99,6 +108,7 @@ public sealed class ARVNode : ARNode<ARVModel, RVector>
     public override void Show()
     {
         OxyPlot.PlotModel model = new();
+        model.Legends.Add(new OxyPlot.Legends.Legend());
         model.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
         {
             Position = OxyPlot.Axes.AxisPosition.Bottom,
@@ -107,26 +117,18 @@ public sealed class ARVNode : ARNode<ARVModel, RVector>
         {
             Position = OxyPlot.Axes.AxisPosition.Left,
         });
-        OxyPlot.Series.LineSeries lineSeries1 = new();
+        OxyPlot.Series.LineSeries lineSeries1 = new() { Title = "Original" };
         int idx = 0;
         foreach (double v in Model.Original)
             lineSeries1.Points.Add(
                 new(idx++, v));
         model.Series.Add(lineSeries1);
-        OxyPlot.Series.LineSeries lineSeries2 = new();
+        OxyPlot.Series.LineSeries lineSeries2 = new() { Title = "Predicted" };
         idx = 0;
         foreach (double v in Model.Prediction)
             lineSeries2.Points.Add(
                 new(idx++, v));
         model.Series.Add(lineSeries2);
-        OxyPlot.Wpf.PlotView view = new()
-        {
-            Model = model,
-            Width = 900,
-            Height = 250,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
-        };
-        RootModel.Instance.AppendControl(Name, Model.ToString(), view);
+        Show(model);
     }
 }
