@@ -305,13 +305,14 @@ public sealed partial class RootModel : Entity
             else if (ans != null)
             {
                 string form = CleanFormula(text);
+                string typeString = ansType?.Name ?? "";
                 VarNode? node = ans switch
                 {
-                    Series s => new SeriesNode(null, ansType?.Name ?? "", form, s),
+                    Series s => new SeriesNode(null, typeString, form, s),
                     Tuple<Series, Series> t1 => new CompareNode(null, "Comparison", form, t1),
-                    FftModel fft => new FftNode(null, ansType?.Name ?? "", form, fft),
-                    ARSModel m1 => new ARSNode(null, ansType?.Name ?? "", form, m1),
-                    ARVModel m2 => new ARVNode(null, ansType?.Name ?? "", form, m2),
+                    FftModel fft => new FftNode(null, typeString, form, fft),
+                    ARSModel m1 => new ARSNode(null, typeString, form, m1),
+                    ARVModel m2 => new ARVNode(null, typeString, form, m2),
                     _ => null
                 };
                 if (node != null)
