@@ -18,6 +18,7 @@
 		<None Remove="Images\model.png" />
 		<None Remove="Images\options.png" />
 		<None Remove="Images\play.png" />
+		<None Remove="Images\playt.png" />
 		<None Remove="Images\series.png" />
 		<None Remove="Images\store.png" />
 		<None Remove="Images\vector.png" />
@@ -74,6 +75,7 @@
 	  <Resource Include="Images\model.png" />
 	  <Resource Include="Images\options.png" />
 	  <Resource Include="Images\play.png" />
+	  <Resource Include="Images\playt.png" />
 	  <Resource Include="Images\series.png" />
 	  <Resource Include="Images\store.png" />
 	  <Resource Include="Images\vector.png" />

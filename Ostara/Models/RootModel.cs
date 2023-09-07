@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace Ostara;
 
@@ -176,6 +177,8 @@ public sealed partial class RootModel : Entity
             Series s => new SeriesNode(cNode, name, s) { Stored = stored },
             Tuple<Series, Series> t => new CompareNode(cNode, name, t),
             FftModel fft => new FftNode(cNode, name, fft),
+            ARSModel m => new ARSNode(cNode, name, m),
+            ARVModel m => new ARVNode(cNode, name, m),
             /*Matrix m => new MatrixNode(cNode, name, m),
             LMatrix m => new MatrixNode(cNode, name, m),
             RMatrix m => new MatrixNode(cNode, name, m),
@@ -190,8 +193,6 @@ public sealed partial class RootModel : Entity
             MvoModel m => new MvoNode(cNode, name, m),
             LinearSModel lm => new LinearSModelNode(cNode, name, lm),
             LinearVModel lm => new LinearVModelNode(cNode, name, lm),
-            ARSModel m => new ARSNode(cNode, name, m),
-            ARVModel m => new ARVNode(cNode, name, m),
             DateSpline spline => new DateSplineNode(cNode, name, spline),
             VectorSpline spline => new VectorSplineNode(cNode, name, spline),*/
             _ => new MiscNode(cNode, name, type, Environment.DataSource[name]?.ToString() ?? "")
@@ -309,6 +310,8 @@ public sealed partial class RootModel : Entity
                     Series s => new SeriesNode(null, ansType?.Name ?? "", form, s),
                     Tuple<Series, Series> tuple => new CompareNode(null, "Comparison", form, tuple),
                     FftModel fft => new FftNode(null, ansType?.Name ?? "", form, fft),
+                    ARSModel m1 => new ARSNode(null, ansType?.Name ?? "", form, m1),
+                    ARVModel m2 => new ARVNode(null, ansType?.Name ?? "", form, m2),
                     _ => null
                 };
                 if (node != null)

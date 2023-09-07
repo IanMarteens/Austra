@@ -25,6 +25,8 @@ public abstract class VarNode : NodeBase
         Parent != null ? Visibility.Collapsed : Visibility.Visible;
 
     protected virtual string GetExcelText() => "";
+
+    public virtual string Hint => DisplayName;
 }
 
 

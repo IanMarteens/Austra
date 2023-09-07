@@ -51,6 +51,8 @@ public sealed class SeriesNode: VarNode
         RootModel.Instance.AppendControl(Name, Series.ToString(), view);
     }
 
+    public override string Hint => Series.Stats().Hint;
+
     [Category("ID")]
     public string Name { get; }
 

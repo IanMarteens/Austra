@@ -14,4 +14,10 @@ public partial class AboutView : Window
     }
 
     private void OkClick(object sender, RoutedEventArgs e) => Close();
+
+    protected override void OnDeactivated(EventArgs e)
+    {
+        base.OnDeactivated(e);
+        Close();
+    }
 }

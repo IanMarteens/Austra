@@ -15,6 +15,12 @@ public sealed class SimpleAccumulator
     /// <summary>Creates an empty accumulator.</summary>
     public SimpleAccumulator() { }
 
+    /// <summary>Creates an empty accumulator from a full source.</summary>
+    /// <param name="source">Full-fledged accumulator.</param>
+    public SimpleAccumulator(Accumulator source)
+        => (min, max, m1, m2, Count) 
+        = (source.Minimum, source.Maximum, source.m1, source.m2, source.Count);
+
     /// <summary>Gets the total number of samples.</summary>
     public long Count { get; private set; }
 

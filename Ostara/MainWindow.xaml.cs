@@ -86,5 +86,5 @@ public partial class MainWindow : Window
         Root.Evaluate(avalon.Text);
 
     private void AboutClick(object sender, RoutedEventArgs e) =>
-        new AboutView() { Owner = this }.ShowDialog();
+        new AboutView().Show();
 }

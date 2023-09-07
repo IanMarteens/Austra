@@ -8,9 +8,9 @@ public sealed class Accumulator
     /// <summary>Maximum value.</summary>
     private double max = double.NegativeInfinity;
     /// <summary>Estimated mean.</summary>
-    private double m1;
+    internal double m1;
     /// <summary>Accumulated second moment.</summary>
-    private double m2;
+    internal double m2;
     /// <summary>Accumulated third moment.</summary>
     private double m3;
     /// <summary>Accumulated fourth moment.</summary>
@@ -224,6 +224,18 @@ public sealed class Accumulator
             max = Max(a1.max, a2.max),
         };
     }
+
+    /// <summary>
+    /// Gets a short hint string describing the contents of this accumulator.
+    /// </summary>
+    public string Hint => new StringBuilder(256)
+        .Append("Count:\t").Append(Count).AppendLine()
+        .Append("Min:\t").Append(Minimum.ToString("G6")).AppendLine()
+        .Append("Max:\t").Append(Maximum.ToString("G6")).AppendLine()
+        .Append("Mean:\t").Append(Mean.ToString("G6")).AppendLine()
+        .Append("Var:\t").Append(Variance.ToString("G6")).AppendLine()
+        .Append("StdDv:\t").Append(StandardDeviation.ToString("G6"))
+        .ToString();
 
     /// <inheritdoc/>
     public override string ToString() => new StringBuilder(512)

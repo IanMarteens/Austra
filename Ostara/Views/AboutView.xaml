@@ -18,6 +18,15 @@
     <Window.Background>
         <ImageBrush ImageSource="/austra.jpg"/>
     </Window.Background>
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard>
+                <Storyboard Duration="00:00:3" Storyboard.TargetProperty="Opacity">
+                    <DoubleAnimation From="0" To="1"/>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
     <Grid HorizontalAlignment="Right"
           Width="240" Margin="0,16,8,16">
         <Grid.RowDefinitions>
