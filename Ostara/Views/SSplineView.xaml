@@ -1,0 +1,118 @@
+﻿<UserControl
+    x:Class="Ostara.SSplineView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:local="clr-namespace:Ostara"
+    xmlns:OxyPlot="http://oxyplot.org/wpf"
+    mc:Ignorable="d"
+    Foreground="White"
+    Height="250" Width="1050"
+    Visibility="Visible"
+    HorizontalAlignment="Left"
+    d:DataContext="{d:DesignInstance Type={x:Type local:DateSplineNode}}"
+    d:DesignHeight="250" d:DesignWidth="1050">
+    <UserControl.Resources>
+        <Style x:Key="DatePickerStyle1" TargetType="{x:Type DatePicker}">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="{StaticResource ControlsFontWeight}"/>
+            <Setter Property="FontFamily" Value="{StaticResource ControlsFontFamily}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}"/>
+            <Setter Property="Background" Value="{StaticResource TextBoxOuterBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource TextBoxOuterBorder}"/>
+            <Setter Property="Padding" Value="{StaticResource ControlsPadding}"/>
+            <Setter Property="Margin" Value="{StaticResource ControlsMargin}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CalendarStyle" Value="{StaticResource DefaultCalendarStyle}"/>
+            <Setter Property="IsTodayHighlighted" Value="True"/>
+            <Setter Property="SelectedDateFormat" Value="Short"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DatePicker}">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                            <Grid x:Name="PART_Root" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Viewbox Grid.Column="1" HorizontalAlignment="Left" Margin="3,0,3,0" Grid.Row="0" VerticalAlignment="Top">
+                                    <Button x:Name="PART_Button"  Focusable="False" Foreground="{TemplateBinding Foreground}"  Template="{StaticResource DropDownButtonTemplate}" />
+                                </Viewbox>
+                                <!--<Button x:Name="PART_Button" Cursor="Hand" Grid.Column="1" Foreground="{TemplateBinding Foreground}" Focusable="False" Margin="0" Grid.Row="0" Template="{StaticResource DropDownButtonTemplate}"/>-->
+                                <DatePickerTextBox x:Name="PART_TextBox" Grid.Column="0" FontSize="11" Foreground="{TemplateBinding Foreground}" Focusable="{TemplateBinding Focusable}" HorizontalContentAlignment="Stretch" Grid.Row="0" VerticalContentAlignment="Stretch"/>
+                                <Grid x:Name="PART_DisabledVisual" Grid.Column="0" Grid.ColumnSpan="2" IsHitTestVisible="False" Opacity="0" Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Rectangle Grid.Column="0" Fill="#A5FFFFFF" Grid.Row="0" RadiusX="1" RadiusY="1"/>
+                                    <Rectangle Grid.Column="1" Fill="#A5FFFFFF" Height="18" Margin="3,0,3,0" Grid.Row="0" RadiusX="1" RadiusY="1" Width="19"/>
+                                    <Popup x:Name="PART_Popup" AllowsTransparency="True" Placement="Bottom" PlacementTarget="{Binding ElementName=PART_Button}" StaysOpen="False"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="true">
+                                <Setter Property="Background" Value="{StaticResource FocusedTextBoxOuterBackground}"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource FocusedTextBoxOuterBorder}"/>
+                                <Setter Property="Foreground" Value="{StaticResource FocusedTextBoxForeground}"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" SourceName="PART_TextBox" Value="true">
+                                <Setter Property="Background" Value="{StaticResource FocusedTextBoxOuterBackground}"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource FocusedTextBoxOuterBorder}"/>
+                                <Setter Property="Foreground" Value="{StaticResource FocusedTextBoxForeground}"/>
+                            </Trigger>
+                            <Trigger Property="IsOpen" SourceName="PART_Popup" Value="true">
+                                <Setter Property="Background" Value="{StaticResource FocusedTextBoxOuterBackground}"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource FocusedTextBoxOuterBorder}"/>
+                                <Setter Property="Foreground" Value="{StaticResource FocusedTextBoxForeground}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="{StaticResource DisabledTextBoxOuterBackground}"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource DisabledTextBoxOuterBorder}"/>
+                                <Setter Property="Foreground" Value="{StaticResource DisabledTextBoxForeground}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="850"/>
+        </Grid.ColumnDefinitions>
+        <OxyPlot:PlotView Grid.Column="1" x:Name="plotView" Model="{Binding OxyModel}"/>
+        <GroupBox
+            VerticalAlignment="Top"
+            HorizontalAlignment="Stretch"
+            Width="Auto"
+            Height="Auto"
+            Grid.Column="0" Grid.Row="0"
+            Margin="1,0,0,1"
+            FontSize="11"
+            Header="Interpolate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Content="Date" FontSize="11" Margin="0,0,2,0" VerticalAlignment="Center"/>
+                <DatePicker Style="{DynamicResource DatePickerStyle1}" Grid.Row="0" Grid.Column="1" BorderThickness="0" SelectedDate="{Binding NewDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedDateFormat="Short"
+                            Width="Auto" Height="24" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                <Label Grid.Row="1" Grid.Column="0" FontSize="11" Content="Value" Margin="0,0,2,0" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Width="Auto" HorizontalAlignment="Stretch" Text="{Binding NewValue, Mode=OneWay}" VerticalAlignment="Center" FontSize="11" IsReadOnly="True"/>
+                <Label Grid.Row="2" Grid.Column="0" FontSize="11" Content="Derivative" Margin="0,0,2,0" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Width="Auto" HorizontalAlignment="Stretch" Text="{Binding NewDerivative, Mode=OneWay}" VerticalAlignment="Center" FontSize="11" IsReadOnly="True"/>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>

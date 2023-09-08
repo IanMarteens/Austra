@@ -185,6 +185,7 @@ public sealed partial class RootModel : Entity
             Accumulator acc => new AccumNode(cNode, name, acc),
             LinearSModel lm => new LinearSModelNode(cNode, name, lm),
             LinearVModel lm => new LinearVModelNode(cNode, name, lm),
+            DateSpline spline => new DateSplineNode(cNode, name, spline),
             /*Matrix m => new MatrixNode(cNode, name, m),
             LMatrix m => new MatrixNode(cNode, name, m),
             RMatrix m => new MatrixNode(cNode, name, m),
@@ -196,7 +197,6 @@ public sealed partial class RootModel : Entity
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
             Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),
             MvoModel m => new MvoNode(cNode, name, m),
-            DateSpline spline => new DateSplineNode(cNode, name, spline),
             VectorSpline spline => new VectorSplineNode(cNode, name, spline),*/
             _ => new MiscNode(cNode, name, type, Environment.DataSource[name]?.ToString() ?? "")
         };
@@ -318,6 +318,7 @@ public sealed partial class RootModel : Entity
                     ARVModel m2 => new ARVNode(null, typeString, form, m2),
                     LinearSModel slm => new LinearSModelNode(null, typeString, form, slm),
                     LinearVModel vlm => new LinearVModelNode(null, typeString, form, vlm),
+                    DateSpline dsp => new DateSplineNode(null, typeString, form, dsp),
                     Accumulator acc => new AccumNode(null, typeString, form, acc),
                     _ => null
                 };
