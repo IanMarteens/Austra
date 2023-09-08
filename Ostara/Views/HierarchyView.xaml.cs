@@ -1,8 +1,6 @@
 ﻿namespace Ostara;
 
-/// <summary>
-/// Interaction logic for HierarchyView.xaml
-/// </summary>
+/// <summary>Interaction logic for HierarchyView.xaml</summary>
 public partial class HierarchyView : UserControl
 {
     public HierarchyView() => InitializeComponent();

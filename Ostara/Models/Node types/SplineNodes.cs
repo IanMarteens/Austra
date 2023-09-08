@@ -24,6 +24,8 @@ public abstract class SplineNode<T, A> : VarNode
 
     public sealed override string DisplayName => $"{VarName}: {Type.Name}";
 
+    public OxyPlot.PlotModel? OxyModel { get; protected set; }
+
     public List<Poly> Coefficients { get; }
 
     public Poly? SelectedPoly
@@ -96,7 +98,7 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
     { }
 
     public override void Show()
-    { 
+    {
         if (OxyModel == null)
         {
             OxyModel = new();
@@ -114,12 +116,10 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
                     new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
             OxyModel.Series.Add(lineSeries);
         }
-        RootModel.Instance.AppendControl(Name, Series.ToString(), new SSplineView() { DataContext = this });
+        RootModel.Instance.AppendControl(Formula, Series.ToString(), new DSplineView() { DataContext = this });
     }
 
     public Series Series => Spline.Original;
-
-    public OxyPlot.PlotModel? OxyModel { get; private set; }
 
     public DateTime NewDate
     {
@@ -144,3 +144,60 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
     }
 }
 
+public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
+{
+    private decimal newArg = decimal.MaxValue;
+
+    public VectorSplineNode(ClassNode? parent, string varName, string formula, VectorSpline value) :
+        base(parent, varName, formula, "Vector spline", value) =>
+        NewArg = (decimal)Coefficients[0].From;
+
+    public VectorSplineNode(ClassNode? parent, string varName, VectorSpline value) :
+        this(parent, varName, varName, value)
+    { }
+
+    public override void Show()
+    {
+        if (OxyModel == null)
+        {
+            OxyModel = new();
+            OxyModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
+                Position = OxyPlot.Axes.AxisPosition.Bottom,
+            });
+            OxyModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
+                Position = OxyPlot.Axes.AxisPosition.Left,
+            });
+            OxyPlot.Series.LineSeries lineSeries = new();
+            foreach (Point<double> p in Series.Points)
+                lineSeries.Points.Add(new(p.Arg, p.Value));
+            OxyModel.Series.Add(lineSeries);
+        }
+        RootModel.Instance.AppendControl(Formula, Series.ToString(), new VSplineView() { DataContext = this });
+    }
+
+    public Series<double> Series => Spline.Original;
+
+    public decimal NewArg
+    {
+        get => newArg;
+        set
+        {
+            if (SetField(ref newArg, value))
+            {
+                SelectPoly((double)newArg);
+                try
+                {
+                    NewValue = Spline[(double)newArg].ToString("G8");
+                    NewDerivative = Spline.Derivative((double)newArg).ToString("G8");
+                }
+                catch (Exception ex)
+                {
+                    NewValue = ex.Message;
+                    NewDerivative = "";
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="Ostara.SSplineView"
+    x:Class="Ostara.DSplineView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -85,7 +85,7 @@
             <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="850"/>
         </Grid.ColumnDefinitions>
-        <OxyPlot:PlotView Grid.Column="1" x:Name="plotView" Model="{Binding OxyModel}"/>
+        <OxyPlot:PlotView Grid.Column="1" x:Name="plotView" Model="{Binding OxyModel}" Foreground="Black"/>
         <GroupBox
             VerticalAlignment="Top"
             HorizontalAlignment="Stretch"
