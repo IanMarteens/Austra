@@ -3,15 +3,11 @@
 /// <summary>Represents a session variable.</summary>
 public abstract class VarNode : NodeBase
 {
-    public VarNode(ClassNode parent, string varName, Type type) =>
-        (Parent, VarName, Formula, Type) = (parent, varName, varName, type);
-
-    public VarNode(ClassNode? parent, string varName, string formula, Type type) =>
-        (Parent, VarName, Formula, Type) = (parent, varName, formula, type);
+    protected VarNode(ClassNode? parent, string name, string formula, string type): 
+        base(name, type) =>
+        (Parent, Formula) = (parent, formula);
 
     public ClassNode? Parent { get; }
-    public string VarName { get; }
-    public Type Type { get; }
     public string Formula { get; }
 
     public bool Stored { get; init; }
@@ -19,7 +15,7 @@ public abstract class VarNode : NodeBase
     public Visibility StoredVisibility =>
         Stored ? Visibility.Visible : Visibility.Collapsed;
 
-    public virtual string DisplayName => VarName;
+    public string DisplayName => $"{Name}: {TypeName}";
 
     public Visibility IsOrphan =>
         Parent != null ? Visibility.Collapsed : Visibility.Visible;

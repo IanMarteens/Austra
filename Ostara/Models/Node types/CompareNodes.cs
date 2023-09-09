@@ -4,10 +4,8 @@
 public sealed class CompareNode : VarNode
 {
     public CompareNode(ClassNode? parent, string varName, string formula, Tuple<Series, Series> value) :
-        base(parent, varName, formula, typeof(Tuple<Series, Series>))
+        base(parent, varName, formula, "Series comparison")
     {
-        Name = varName;
-        TypeName = "Series comparison";
         int count = Math.Min(value.Item1.Count, value.Item2.Count);
         First = value.Item1.Prune(count);
         Second = value.Item2.Prune(count);
@@ -52,12 +50,4 @@ public sealed class CompareNode : VarNode
 
     public Series First { get; }
     public Series Second { get; }
-
-    public override string DisplayName => $"{VarName}: Comparison";
-
-    [Category("ID")]
-    public string Name { get; }
-
-    [Category("ID")]
-    public string TypeName { get; }
 }

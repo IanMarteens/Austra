@@ -3,18 +3,14 @@
 public sealed class FftNode : VarNode
 {
     public FftNode(ClassNode? parent, string varName, string formula, FftModel value) :
-        base(parent, varName, formula, typeof(Series<int>))
+        base(parent, varName, formula, "FFT")
     {
-        Name = varName;
-        TypeName = "FFT";
         Model = value;
     }
 
     public FftNode(ClassNode? parent, string varName, FftModel value) :
         this(parent, varName, varName, value)
     { }
-
-    public override string DisplayName => $"{VarName}: {TypeName}";
 
     public override void Show()
     {
@@ -44,12 +40,6 @@ public sealed class FftNode : VarNode
     }
 
     public FftModel Model { get; }
-
-    [Category("ID")]
-    public string Name { get; }
-
-    [Category("ID")]
-    public string TypeName { get; }
 
     [Category("Stats")]
     public long Count => Model.Length;

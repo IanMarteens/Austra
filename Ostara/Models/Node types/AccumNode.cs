@@ -6,10 +6,8 @@ public sealed class AccumNode : VarNode
     private readonly Accumulator acc;
 
     public AccumNode(ClassNode? parent, string varName, string formula, Accumulator value) :
-        base(parent, varName, formula, typeof(Accumulator))
+        base(parent, varName, formula, "Statistics")
     {
-        Name = varName;
-        TypeName = "Statistics";
         acc = value;
     }
 
@@ -17,15 +15,7 @@ public sealed class AccumNode : VarNode
         this(parent, varName, varName, value)
     { }
 
-    public override string DisplayName => $"{VarName}: {Type.Name}";
-
     public override void Show() => RootModel.Instance.AppendResult(Name, acc.ToString());
-
-    [Category("ID")]
-    public string Name { get; }
-
-    [Category("ID")]
-    public string TypeName { get; }
 
     [Category("Stats")]
     public long Count => acc.Count;

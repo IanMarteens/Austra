@@ -3,10 +3,8 @@
 public abstract class LinearModelNode<M, T> : VarNode where M : LinearModelBase<T>
 {
     protected LinearModelNode(ClassNode? parent, string varName, string formula, M value) :
-        base(parent, varName, formula, value.GetType())
+        base(parent, varName, formula, "Linear model")
     {
-        Name = varName;
-        TypeName = "Linear Model";
         Model = value;
         R2 = value.R2;
         RSS = value.ResidualSumSquares;
@@ -35,14 +33,6 @@ public abstract class LinearModelNode<M, T> : VarNode where M : LinearModelBase<
             text = text[..^2];
         RootModel.Instance.AppendControl(Formula, text, view);
     }
-
-    public sealed override string DisplayName => $"{VarName}: LinearModel";
-
-    [Category("ID")]
-    public string Name { get; }
-
-    [Category("ID")]
-    public string TypeName { get; }
 
     [Category("Stats")]
     public double R2 { get; }

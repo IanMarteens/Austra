@@ -6,10 +6,8 @@
 public abstract class ARNode<M, T> : VarNode where M : ARModelBase<T>
 {
     protected ARNode(ClassNode? parent, string varName, string formula, M value) :
-        base(parent, varName, formula, value.GetType())
+        base(parent, varName, formula, "AR(p) model")
     {
-        Name = varName;
-        TypeName = "AR(p) model";
         Model = value;
         Degree = value.Degrees;
         R2 = value.R2;
@@ -38,14 +36,6 @@ public abstract class ARNode<M, T> : VarNode where M : ARModelBase<T>
             text = text[..^2];
         RootModel.Instance.AppendControl(Formula, text, view);
     }
-
-    public sealed override string DisplayName => $"{VarName}: ARModel";
-
-    [Category("ID")]
-    public string Name { get; }
-
-    [Category("ID")]
-    public string TypeName { get; }
 
     [Category("Shape")]
     public int Degree { get; }

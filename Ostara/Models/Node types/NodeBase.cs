@@ -6,6 +6,8 @@ public abstract class NodeBase : Entity
     private bool isSelected;
     private bool isExpanded;
 
+    protected NodeBase(string name, string type) => (Name, TypeName) = (name, type);
+
     /// <summary>Gets or set whether the corresponding tree node is selected.</summary>
     public bool IsSelected
     {
@@ -22,4 +24,10 @@ public abstract class NodeBase : Entity
 
     /// <summary>Shows the corresponding view in the main window.</summary>
     public virtual void Show() { }
+
+    [Category("ID")]
+    public string Name { get; }
+
+    [Category("ID")]
+    public string TypeName { get; }
 }

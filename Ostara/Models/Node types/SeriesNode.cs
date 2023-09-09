@@ -10,17 +10,14 @@ public sealed class SeriesNode: VarNode
     private readonly Accumulator acc;
 
     public SeriesNode(ClassNode? parent, string varName, string formula, Series value) :
-        base(parent, varName, formula, typeof(Series))
+        base(parent, varName, formula, "Series/" + value.Type + freq2str[(int)value.Freq])
     {
-        Name = varName;
-        TypeName = Type.Name + "/" + value.Type + freq2str[(int)value.Freq];
         Series = value;
         acc = value.Stats();
     }
 
     public SeriesNode(ClassNode? parent, string varName, Series value) :
-    this(parent, varName, varName, value)
-    { }
+        this(parent, varName, varName, value) { }
 
     public Series Series { get; }
 
@@ -52,12 +49,6 @@ public sealed class SeriesNode: VarNode
     }
 
     public override string Hint => Series.Stats().Hint;
-
-    [Category("ID")]
-    public string Name { get; }
-
-    [Category("ID")]
-    public string TypeName { get; }
 
     [Category("Stats")]
     public long Count => acc.Count;

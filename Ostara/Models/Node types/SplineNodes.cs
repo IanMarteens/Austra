@@ -12,17 +12,13 @@ public abstract class SplineNode<T, A> : VarNode
     private A austraArg = default;
     private Poly? selected;
 
-    protected SplineNode(ClassNode? parent, string varName, string formula, string typeName, T value) :
-        base(parent, varName, formula, typeof(T))
+    protected SplineNode(ClassNode? parent, string varName, string formula, T value) :
+        base(parent, varName, formula, "Spline")
     {
-        Name = varName;
-        TypeName = typeName;
         Length = value.Length;
         Spline = value;
         Coefficients = Enumerable.Range(0, Length).Select(i => new Poly(Spline, i)).ToList();
     }
-
-    public sealed override string DisplayName => $"{VarName}: {Type.Name}";
 
     public OxyPlot.PlotModel? OxyModel { get; protected set; }
 
@@ -33,12 +29,6 @@ public abstract class SplineNode<T, A> : VarNode
         get => selected;
         set => SetField(ref selected, value);
     }
-
-    [Category("ID")]
-    public string Name { get; }
-
-    [Category("ID")]
-    public string TypeName { get; }
 
     [Category("Shape")]
     public int Length { get; }
@@ -90,7 +80,7 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
     private DateTime newDate;
 
     public DateSplineNode(ClassNode? parent, string varName, string formula, DateSpline value) :
-        base(parent, varName, formula, "Date spline", value) =>
+        base(parent, varName, formula, value) =>
         NewDate = (DateTime)Coefficients[0].From;
 
     public DateSplineNode(ClassNode? parent, string varName, DateSpline value) :
@@ -149,7 +139,7 @@ public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
     private decimal newArg = decimal.MaxValue;
 
     public VectorSplineNode(ClassNode? parent, string varName, string formula, VectorSpline value) :
-        base(parent, varName, formula, "Vector spline", value) =>
+        base(parent, varName, formula, value) =>
         NewArg = (decimal)Coefficients[0].From;
 
     public VectorSplineNode(ClassNode? parent, string varName, VectorSpline value) :

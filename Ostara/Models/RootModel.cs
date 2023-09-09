@@ -175,7 +175,8 @@ public sealed partial class RootModel : Entity
     {
         if (Environment == null)
             return null;
-        VarNode vNode = Environment.DataSource[name] switch
+        object? value = Environment.DataSource[name];
+        VarNode vNode = value switch
         {
             Series s => new SeriesNode(cNode, name, s) { Stored = stored },
             Tuple<Series, Series> t => new CompareNode(cNode, name, t),
@@ -198,7 +199,7 @@ public sealed partial class RootModel : Entity
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
             Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),
             MvoModel m => new MvoNode(cNode, name, m),*/
-            _ => new MiscNode(cNode, name, type, Environment.DataSource[name]?.ToString() ?? "")
+            _  => new MiscNode(cNode, name, type, value?.ToString() ?? "")
         };
         allVars[name] = vNode;
         return vNode;
