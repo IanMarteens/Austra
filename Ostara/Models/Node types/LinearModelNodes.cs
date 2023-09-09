@@ -12,10 +12,6 @@ public abstract class LinearModelNode<M, T> : VarNode where M : LinearModelBase<
         StandardError = value.StandardError;
     }
 
-    protected LinearModelNode(ClassNode? parent, string varName, M value) :
-        this(parent, varName, varName, value)
-    { }
-
     public M Model { get; }
 
     protected void Show(OxyPlot.PlotModel oxyModel)

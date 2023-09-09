@@ -48,7 +48,7 @@ public sealed class SeriesNode: VarNode
         RootModel.Instance.AppendControl(Name, Series.ToString(), view);
     }
 
-    public override string Hint => Series.Stats().Hint;
+    public override string Hint => Series.ToString() + Environment.NewLine + Series.Stats().Hint;
 
     [Category("Stats")]
     public long Count => acc.Count;

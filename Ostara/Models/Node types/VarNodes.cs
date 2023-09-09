@@ -15,14 +15,12 @@ public abstract class VarNode : NodeBase
     public Visibility StoredVisibility =>
         Stored ? Visibility.Visible : Visibility.Collapsed;
 
-    public string DisplayName => $"{Name}: {TypeName}";
-
     public Visibility IsOrphan =>
         Parent != null ? Visibility.Collapsed : Visibility.Visible;
 
     protected virtual string GetExcelText() => "";
 
-    public virtual string Hint => DisplayName;
+    public virtual string Hint => $"{Name}: {TypeName}";
 }
 
 

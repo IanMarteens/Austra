@@ -15,10 +15,6 @@ public abstract class ARNode<M, T> : VarNode where M : ARModelBase<T>
         TSS = value.TotalSumSquares;
     }
 
-    protected ARNode(ClassNode? parent, string varName, M value) :
-        this(parent, varName, varName, value)
-    { }
-
     public M Model { get; }
 
     protected void Show(OxyPlot.PlotModel oxyModel)
