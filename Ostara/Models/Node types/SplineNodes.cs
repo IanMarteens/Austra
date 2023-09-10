@@ -19,6 +19,10 @@ public abstract class SplineNode<T, A> : VarNode<T>
         Coefficients = Enumerable.Range(0, Length).Select(i => new Poly(Model, i)).ToList();
     }
 
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => "/images/model.png";
+
     public OxyPlot.PlotModel? OxyModel { get; protected set; }
 
     public List<Poly> Coefficients { get; }

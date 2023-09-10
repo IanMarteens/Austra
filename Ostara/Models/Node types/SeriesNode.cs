@@ -45,6 +45,10 @@ public sealed class SeriesNode: VarNode<Series>
 
     public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
 
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => Stored ? base.ImageSource : "/images/waves.png";
+  
     [Category("Stats")]
     public long Count => acc.Count;
 

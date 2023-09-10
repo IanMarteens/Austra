@@ -30,6 +30,10 @@ public abstract class ARNode<M, T> : VarNode<M> where M : ARModelBase<T>
         RootModel.Instance.AppendControl(Formula, text, view);
     }
 
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => "/images/model.png";
+
     [Category("Shape")]
     public int Degree { get; }
 

@@ -86,8 +86,8 @@
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Stretch">
                         <Image Height="16" Width="16" 
-                               Source="/images/store.png"
-                               Visibility="{Binding StoredVisibility}"/>
+                               Source="{Binding ImageSource}"
+                               Visibility="{Binding ImageVisibility}"/>
                         <TextBlock Text="{Binding Name}" Foreground="White" ToolTip="{Binding Hint}" Margin="5,1,0,1"/>
                     </StackPanel>
                 </DataTemplate>

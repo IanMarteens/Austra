@@ -11,6 +11,10 @@ public abstract class LinearModelNode<M, T> : VarNode<M> where M : LinearModelBa
         StandardError = value.StandardError;
     }
 
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => "/images/linear.png";
+
     protected void Show(OxyPlot.PlotModel oxyModel)
     {
         OxyPlot.Wpf.PlotView view = new()

@@ -71,8 +71,10 @@ public abstract class VarNode : NodeBase
 
     public bool Stored { get; init; }
 
-    public Visibility StoredVisibility =>
+    public virtual Visibility ImageVisibility =>
         Stored ? Visibility.Visible : Visibility.Collapsed;
+
+    public virtual string ImageSource => Stored ? "/images/store.png" : "";
 
     public Visibility IsOrphan =>
         Parent != null ? Visibility.Collapsed : Visibility.Visible;

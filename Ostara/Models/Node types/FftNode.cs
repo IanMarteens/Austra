@@ -36,6 +36,10 @@ public sealed class FftNode : VarNode<FftModel>
         RootModel.Instance.AppendControl(Formula, Model.ToShortString(), view);
     }
 
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => "/images/waves.png";
+
     [Category("Stats")]
     public long Count => Model.Length;
 }
