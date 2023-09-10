@@ -40,7 +40,7 @@ public sealed class SeriesNode: VarNode<Series>
             HorizontalAlignment = HorizontalAlignment.Left,
             Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
         };
-        RootModel.Instance.AppendControl(Name, Model.ToString(), view);
+        RootModel.Instance.AppendControl(Formula, Model.ToString(), view);
     }
 
     public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;

@@ -23,7 +23,7 @@
             <Setter Property="BorderBrush" Value="{StaticResource TextBoxOuterBorder}"/>
             <Setter Property="Padding" Value="{StaticResource ControlsPadding}"/>
             <Setter Property="Margin" Value="{StaticResource ControlsMargin}"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="CalendarStyle" Value="{StaticResource DefaultCalendarStyle}"/>
             <Setter Property="IsTodayHighlighted" Value="True"/>
             <Setter Property="SelectedDateFormat" Value="Short"/>
@@ -106,7 +106,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" Content="Date" FontSize="11" Margin="0,0,2,0" VerticalAlignment="Center"/>
-                <DatePicker Style="{DynamicResource DatePickerStyle1}" Grid.Row="0" Grid.Column="1" BorderThickness="0" SelectedDate="{Binding NewDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedDateFormat="Short"
+                <DatePicker Style="{DynamicResource DatePickerStyle1}" Grid.Row="0" Grid.Column="1" SelectedDate="{Binding NewDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedDateFormat="Short"
                             Width="Auto" Height="24" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                 <Label Grid.Row="1" Grid.Column="0" FontSize="11" Content="Value" Margin="0,0,2,0" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="1" Grid.Column="1" Width="Auto" HorizontalAlignment="Stretch" Text="{Binding NewValue, Mode=OneWay}" VerticalAlignment="Center" FontSize="11" IsReadOnly="True"/>

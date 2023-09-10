@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Xml.Linq;
 
 namespace Ostara;
 
@@ -188,10 +189,10 @@ public sealed partial class RootModel : Entity
             LinearVModel lm => new LinearVModelNode(cNode, name, lm),
             DateSpline spline => new DateSplineNode(cNode, name, spline),
             VectorSpline spline => new VectorSplineNode(cNode, name, spline),
-            /*Matrix m => new MatrixNode(cNode, name, m),
+            Austra.Library.Matrix m => new MatrixNode(cNode, name, m),
             LMatrix m => new MatrixNode(cNode, name, m),
             RMatrix m => new MatrixNode(cNode, name, m),
-            RVector v => new RVectorNode(cNode, name, v),
+            /*RVector v => new RVectorNode(cNode, name, v),
             CVector cv => new CVectorNode(cNode, name, cv),
             Series<int> s => new CorrNode(cNode, name, s),
             Series<double> s => new PercNode(cNode, name, s),
@@ -199,7 +200,7 @@ public sealed partial class RootModel : Entity
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
             Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),
             MvoModel m => new MvoNode(cNode, name, m),*/
-            _  => new MiscNode(cNode, name, type, value?.ToString() ?? "")
+            _ => new MiscNode(cNode, name, type, value?.ToString() ?? "")
         };
         allVars[name] = vNode;
         return vNode;
@@ -344,6 +345,9 @@ public sealed partial class RootModel : Entity
                     DateSpline dsp => new DateSplineNode(null, typeString, form, dsp),
                     VectorSpline vsp => new VectorSplineNode(null, typeString, form, vsp),
                     Accumulator acc => new AccumNode(null, typeString, form, acc),
+                    Austra.Library.Matrix m => new MatrixNode(null, typeString, form, m),
+                    LMatrix m => new MatrixNode(null, typeString, form, m),
+                    RMatrix m => new MatrixNode(null, typeString, form, m),
                     _ => null
                 };
                 if (node != null)

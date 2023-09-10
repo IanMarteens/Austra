@@ -11,7 +11,7 @@ public sealed class AccumNode : VarNode<Accumulator>
         this(parent, varName, varName, value)
     { }
 
-    public override void Show() => RootModel.Instance.AppendResult(Name, Model.ToString());
+    public override void Show() => RootModel.Instance.AppendResult(Formula, Model.ToString());
 
     [Category("Stats")]
     public long Count => Model.Count;
