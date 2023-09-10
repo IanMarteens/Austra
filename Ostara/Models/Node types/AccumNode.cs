@@ -1,43 +1,39 @@
 ﻿namespace Ostara;
 
 /// <summary>A view-model for a running statistics node.</summary>
-public sealed class AccumNode : VarNode
+public sealed class AccumNode : VarNode<Accumulator>
 {
-    private readonly Accumulator acc;
-
     public AccumNode(ClassNode? parent, string varName, string formula, Accumulator value) :
-        base(parent, varName, formula, "Statistics")
-    {
-        acc = value;
-    }
+        base(parent, varName, formula, "Statistics", value)
+    { }
 
     public AccumNode(ClassNode? parent, string varName, Accumulator value) :
         this(parent, varName, varName, value)
     { }
 
-    public override void Show() => RootModel.Instance.AppendResult(Name, acc.ToString());
+    public override void Show() => RootModel.Instance.AppendResult(Name, Model.ToString());
 
     [Category("Stats")]
-    public long Count => acc.Count;
+    public long Count => Model.Count;
 
     [Category("Stats")]
-    public double Min => acc.Minimum;
+    public double Min => Model.Minimum;
 
     [Category("Stats")]
-    public double Max => acc.Maximum;
+    public double Max => Model.Maximum;
 
     [Category("Stats")]
-    public double Mean => acc.Mean;
+    public double Mean => Model.Mean;
 
     [Category("Stats")]
-    public double Variance => acc.Variance;
+    public double Variance => Model.Variance;
 
     [Category("Stats")]
-    public double Volatility => acc.StandardDeviation;
+    public double Volatility => Model.StandardDeviation;
 
     [Category("Stats")]
-    public double Skewness => acc.Skewness;
+    public double Skewness => Model.Skewness;
 
     [Category("Stats")]
-    public double Kurtosis => acc.Kurtosis;
+    public double Kurtosis => Model.Kurtosis;
 }

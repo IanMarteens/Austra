@@ -1,6 +1,6 @@
 ﻿namespace Ostara;
 
-public sealed class SeriesNode: VarNode
+public sealed class SeriesNode: VarNode<Series>
 {
     private static readonly string[] freq2str =
     {
@@ -10,16 +10,11 @@ public sealed class SeriesNode: VarNode
     private readonly Accumulator acc;
 
     public SeriesNode(ClassNode? parent, string varName, string formula, Series value) :
-        base(parent, varName, formula, "Series/" + value.Type + freq2str[(int)value.Freq])
-    {
-        Series = value;
-        acc = value.Stats();
-    }
+        base(parent, varName, formula, "Series/" + value.Type + freq2str[(int)value.Freq], value)
+        => acc = value.Stats();
 
     public SeriesNode(ClassNode? parent, string varName, Series value) :
         this(parent, varName, varName, value) { }
-
-    public Series Series { get; }
 
     override public void Show()
     {
@@ -33,7 +28,7 @@ public sealed class SeriesNode: VarNode
             Position = OxyPlot.Axes.AxisPosition.Left,
         });
         OxyPlot.Series.LineSeries lineSeries = new();
-        foreach (Point<Date> p in Series.Points)
+        foreach (Point<Date> p in Model.Points)
             lineSeries.Points.Add(
                 new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
         model.Series.Add(lineSeries);
@@ -45,10 +40,10 @@ public sealed class SeriesNode: VarNode
             HorizontalAlignment = HorizontalAlignment.Left,
             Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
         };
-        RootModel.Instance.AppendControl(Name, Series.ToString(), view);
+        RootModel.Instance.AppendControl(Name, Model.ToString(), view);
     }
 
-    public override string Hint => Series.ToString() + Environment.NewLine + Series.Stats().Hint;
+    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
 
     [Category("Stats")]
     public long Count => acc.Count;

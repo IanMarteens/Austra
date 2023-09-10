@@ -3,7 +3,7 @@
 /// <summary>Common base class for nodes representing a spline model.</summary>
 /// <typeparam name="T">The spline type.</typeparam>
 /// <typeparam name="A">The type of the argument of the spline.</typeparam>
-public abstract class SplineNode<T, A> : VarNode
+public abstract class SplineNode<T, A> : VarNode<T>
     where T : Spline<A>
     where A : struct
 {
@@ -13,11 +13,10 @@ public abstract class SplineNode<T, A> : VarNode
     private Poly? selected;
 
     protected SplineNode(ClassNode? parent, string varName, string formula, T value) :
-        base(parent, varName, formula, "Spline")
+        base(parent, varName, formula, "Spline", value)
     {
         Length = value.Length;
-        Spline = value;
-        Coefficients = Enumerable.Range(0, Length).Select(i => new Poly(Spline, i)).ToList();
+        Coefficients = Enumerable.Range(0, Length).Select(i => new Poly(Model, i)).ToList();
     }
 
     public OxyPlot.PlotModel? OxyModel { get; protected set; }
@@ -32,8 +31,6 @@ public abstract class SplineNode<T, A> : VarNode
 
     [Category("Shape")]
     public int Length { get; }
-
-    public T Spline { get; }
 
     public string NewValue
     {
@@ -57,7 +54,7 @@ public abstract class SplineNode<T, A> : VarNode
     {
         try
         {
-            SelectedPoly = Coefficients[Spline.NearestArg(arg)];
+            SelectedPoly = Coefficients[Model.NearestArg(arg)];
             if (SelectedPoly != null)
                 AustraArg = SelectedPoly.From;
         }
@@ -109,7 +106,7 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
         RootModel.Instance.AppendControl(Formula, Series.ToString(), new DSplineView() { DataContext = this });
     }
 
-    public Series Series => Spline.Original;
+    public Series Series => Model.Original;
 
     public DateTime NewDate
     {
@@ -121,8 +118,8 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
                 SelectPoly((double)(Date)newDate);
                 try
                 {
-                    NewValue = Spline[(Date)newDate].ToString("G8");
-                    NewDerivative = Spline.Derivative((Date)newDate).ToString("G8");
+                    NewValue = Model[(Date)newDate].ToString("G8");
+                    NewDerivative = Model.Derivative((Date)newDate).ToString("G8");
                 }
                 catch (Exception ex)
                 {
@@ -167,7 +164,7 @@ public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
         RootModel.Instance.AppendControl(Formula, Series.ToString(), new VSplineView() { DataContext = this });
     }
 
-    public Series<double> Series => Spline.Original;
+    public Series<double> Series => Model.Original;
 
     public decimal NewArg
     {
@@ -179,8 +176,8 @@ public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
                 SelectPoly((double)newArg);
                 try
                 {
-                    NewValue = Spline[(double)newArg].ToString("G8");
-                    NewDerivative = Spline.Derivative((double)newArg).ToString("G8");
+                    NewValue = Model[(double)newArg].ToString("G8");
+                    NewDerivative = Model.Derivative((double)newArg).ToString("G8");
                 }
                 catch (Exception ex)
                 {

@@ -196,6 +196,9 @@ public readonly struct RMatrix :
         return result;
     }
 
+    /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
+    public static unsafe Matrix operator +(RMatrix m1, LMatrix m2) => new Matrix(m1.values) + m2;
+
     /// <summary>Subtracts two upper matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
@@ -387,12 +390,12 @@ public readonly struct RMatrix :
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
-        CommonMatrix.ToString(values, v => v.ToString("G6"));
+        CommonMatrix.ToString(values, v => v.ToString("G6"), 1);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
-        CommonMatrix.ToString(values, v => v.ToString(format, provider));
+        CommonMatrix.ToString(values, v => v.ToString(format, provider), 1);
 }

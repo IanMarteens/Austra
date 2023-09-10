@@ -297,14 +297,36 @@ public sealed partial class RootModel : Entity
                     }
                 Message = $"Definitions {string.Join(", ", dList)} removed.";
             }
-            else if (string.IsNullOrEmpty(ansVar) &&
-                allVars.TryGetValue(text.Trim(), out var n) &&
-                n is not MiscNode &&
-                n is not DefinitionNode)
+            else if (!string.IsNullOrEmpty(ansVar))
             {
-                n.Show();
-                DoEvents();
-                Editor.Focus();
+                if (allVars.TryGetValue(ansVar, out VarNode? node) &&
+                    node is not DefinitionNode)
+                {
+                    node.Parent!.Nodes.Remove(node);
+                    allVars.Remove(node.Name);
+                }
+                if (ansType == null)
+                {
+                    ans = Environment!.Engine.Source[ansVar];
+                    ansType = ans?.GetType();
+                }
+                if (ansType != null)
+                {
+                    string typeName = Describe(ansType);
+                    ClassNode? parent = Classes.FirstOrDefault(c => c.Name == typeName);
+                    if (parent == null)
+                    {
+                        parent = new ClassNode(typeName);
+                        Classes.Add(parent);
+                    }
+                    node = CreateVarNode(parent, ansVar, ansType, false);
+                    if (node != null)
+                    {
+                        parent.Nodes.Add(node);
+                        parent.IsExpanded = true;
+                        node.IsSelected = true;
+                    }
+                }
             }
             else if (ans != null)
             {

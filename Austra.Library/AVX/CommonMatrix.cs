@@ -346,7 +346,7 @@ public static class CommonMatrix
         string[] cells = data.Select(formatter).ToArray();
         int width = Max(3, cells.Max(c => c.Length));
         int cols = (TERMINAL_COLUMNS + 2) / (width + 2);
-        StringBuilder sb = new(Min(data.Length/ cols, 12) * (TERMINAL_COLUMNS + 2));
+        StringBuilder sb = new(Min(data.Length / cols, 12) * (TERMINAL_COLUMNS + 2));
         int offset = 0;
         for (int row = 0; row < 11 && offset < data.Length; row++)
         {
@@ -387,8 +387,10 @@ public static class CommonMatrix
     /// <summary>Gets a text representation of a 2D-array.</summary>
     /// <param name="data">A 2D-array from a matrix.</param>
     /// <param name="formatter">Converts items to text.</param>
+    /// <param name="triangularity">Which part of the matrix is significative.</param>
     /// <returns>A text representation of the matrix.</returns>
-    public static string ToString(double[,] data, Func<double, string> formatter)
+    public static string ToString(double[,] data, Func<double, string> formatter,
+        sbyte triangularity)
     {
         const int upperRows = 8, lowerRows = 4, minLeftColumns = 5, rightColumns = 2;
         int rowCount = data.GetLength(0), colCount = data.GetLength(1);
@@ -464,12 +466,32 @@ public static class CommonMatrix
             string[] c = new string[height];
             int index = 0;
             for (int row = 0; row < upper; row++)
-                c[index++] = formatter(data[row, column]);
+                if (triangularity == 0)
+                    c[index++] = formatter(data[row, column]);
+                else if (triangularity < 0)
+                    if (row >= column)
+                        c[index++] = formatter(data[row, column]);
+                    else
+                        c[index++] = "";
+                else if (row <= column)
+                    c[index++] = formatter(data[row, column]);
+                else
+                    c[index++] = "";
             if (rowEllipsis)
                 c[index++] = "";
             int rowCount = data.GetLength(0);
             for (int row = rowCount - lower; row < rowCount; row++)
-                c[index++] = formatter(data[row, column]);
+                if (triangularity == 0)
+                    c[index++] = formatter(data[row, column]);
+                else if (triangularity < 0)
+                    if (row >= column)
+                        c[index++] = formatter(data[row, column]);
+                    else
+                        c[index++] = "";
+                else if (row >= column)
+                    c[index++] = formatter(data[row, column]);
+                else
+                    c[index++] = "";
             int w = c.Max(x => x.Length);
             if (rowEllipsis)
                 c[upper] = "..";

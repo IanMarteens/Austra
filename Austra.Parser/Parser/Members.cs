@@ -400,7 +400,7 @@ internal static partial class Parser
         {
             char ch = text[i];
             if (char.IsLetterOrDigit(ch) ||
-                ch is '_' or '.' or ':' ||
+                ch is '_' or '.' or ':' or '=' ||
                 char.IsWhiteSpace(ch))
                 i--;
             else if (ch is '(' or '[')

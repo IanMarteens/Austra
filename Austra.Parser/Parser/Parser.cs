@@ -945,14 +945,14 @@ internal static partial class Parser
                 ? typeof(Matrix).New(a.AddNormalRandom())
                 : throw Error("Matrix size expected", ctx),
             "lrandom" => CheckMatrixSize(a)
-                ? Expression.Convert(Expression.Convert(
-                    typeof(LMatrix).New(a.AddRandom()),
-                    typeof(double[,])), typeof(Matrix))
+                ? //Expression.Convert(Expression.Convert(
+                    typeof(LMatrix).New(a.AddRandom())//,
+                    //typeof(double[,])), typeof(Matrix))
                 : throw Error("Matrix size expected", ctx),
             "lnrandom" or "nlrandom" => CheckMatrixSize(a)
-                ? Expression.Convert(Expression.Convert(
-                    typeof(LMatrix).New(a.AddNormalRandom()),
-                    typeof(double[,])), typeof(Matrix))
+                ? //Expression.Convert(Expression.Convert(
+                    typeof(LMatrix).New(a.AddNormalRandom())//,
+                    //typeof(double[,])), typeof(Matrix))
                 : throw Error("Matrix size expected", ctx),
             "zero" or "zeros" => CheckMatrixSize(a)
                 ? typeof(Matrix).New(a)

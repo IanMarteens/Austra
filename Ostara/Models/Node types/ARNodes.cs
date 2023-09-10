@@ -3,19 +3,16 @@
 /// <summary>An abstract autoregressive model.</summary>
 /// <typeparam name="M">Type of model.</typeparam>
 /// <typeparam name="T">Type of original dataset.</typeparam>
-public abstract class ARNode<M, T> : VarNode where M : ARModelBase<T>
+public abstract class ARNode<M, T> : VarNode<M> where M : ARModelBase<T>
 {
     protected ARNode(ClassNode? parent, string varName, string formula, M value) :
-        base(parent, varName, formula, "AR(p) model")
+        base(parent, varName, formula, "AR(p) model", value)
     {
-        Model = value;
         Degree = value.Degrees;
         R2 = value.R2;
         RSS = value.ResidualSumSquares;
         TSS = value.TotalSumSquares;
     }
-
-    public M Model { get; }
 
     protected void Show(OxyPlot.PlotModel oxyModel)
     {

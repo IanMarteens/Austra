@@ -82,6 +82,16 @@ public abstract class VarNode : NodeBase
     public virtual string Hint => $"{Name}: {TypeName}";
 }
 
+/// <summary>Represents a session variable with a stored value.</summary>
+public abstract class VarNode<T>: VarNode
+{
+    protected VarNode(ClassNode? parent, string name, string formula, string type, T model) :
+        base(parent, name, formula, type) => Model = model;
+
+    /// <summary>Gets the value associated to the linked variable.</summary>
+    public T Model { get; }
+}
+
 /// <summary>A catch-all variable node, for variables that are not of a specific type.</summary>
 public class MiscNode : VarNode
 {

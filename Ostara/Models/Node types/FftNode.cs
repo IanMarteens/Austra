@@ -1,13 +1,10 @@
 ﻿namespace Ostara;
 
-public sealed class FftNode : VarNode
+public sealed class FftNode : VarNode<FftModel>
 {
     public FftNode(ClassNode? parent, string varName, string formula, FftModel value) :
-        base(parent, varName, formula, "FFT")
-    {
-        Model = value;
-    }
-
+        base(parent, varName, formula, "FFT", value)
+    { }
     public FftNode(ClassNode? parent, string varName, FftModel value) :
         this(parent, varName, varName, value)
     { }
@@ -38,8 +35,6 @@ public sealed class FftNode : VarNode
         };
         RootModel.Instance.AppendControl(Formula, Model.ToShortString(), view);
     }
-
-    public FftModel Model { get; }
 
     [Category("Stats")]
     public long Count => Model.Length;

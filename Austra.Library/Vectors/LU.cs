@@ -365,12 +365,12 @@ public readonly struct LU : IFormattable
     /// <summary>Gets a textual representation of this decomposition.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
-        CommonMatrix.ToString(values, v => v.ToString("G6"));
+        CommonMatrix.ToString(values, v => v.ToString("G6"), 0);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
-        CommonMatrix.ToString(values, v => v.ToString(format, provider));
+        CommonMatrix.ToString(values, v => v.ToString(format, provider), 0);
 }

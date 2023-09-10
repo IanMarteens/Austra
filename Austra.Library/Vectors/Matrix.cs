@@ -598,16 +598,32 @@ public readonly struct Matrix :
     public static Matrix operator +(Matrix m1, LMatrix lm2) =>
         m1 + new Matrix((double[,])lm2);
 
+    /// <summary>Adds a full matrix to an upper triangular matrix.</summary>
+    public static Matrix operator +(Matrix m1, RMatrix lm2) =>
+        m1 + new Matrix((double[,])lm2);
+
     /// <summary>Adds a lower triangular matrix to a full matrix.</summary>
     public static Matrix operator +(LMatrix lm1, Matrix m2) =>
+        new Matrix((double[,])lm1) + m2;
+
+    /// <summary>Adds an upper triangular matrix to a full matrix.</summary>
+    public static Matrix operator +(RMatrix lm1, Matrix m2) =>
         new Matrix((double[,])lm1) + m2;
 
     /// <summary>Subtracts a lower triangular matrix from a full matrix.</summary>
     public static Matrix operator -(Matrix m1, LMatrix lm2) =>
         m1 - new Matrix((double[,])lm2);
 
+    /// <summary>Subtracts an upper triangular matrix from a full matrix.</summary>
+    public static Matrix operator -(Matrix m1, RMatrix lm2) =>
+        m1 - new Matrix((double[,])lm2);
+
     /// <summary>Subtracts a full matrix from a lower triangular matrix.</summary>
     public static Matrix operator -(LMatrix lm1, Matrix m2) =>
+        new Matrix((double[,])lm1) - m2;
+
+    /// <summary>Subtracts a full matrix from an upper triangular matrix.</summary>
+    public static Matrix operator -(RMatrix lm1, Matrix m2) =>
         new Matrix((double[,])lm1) - m2;
 
     /// <summary>Sums two matrices with the same size.</summary>
@@ -1306,7 +1322,7 @@ public readonly struct Matrix :
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
         $"ans ∊ ℝ({Rows}⨯{Cols})" + Environment.NewLine +
-        CommonMatrix.ToString(values, v => v.ToString("G6"));
+        CommonMatrix.ToString(values, v => v.ToString("G6"), 0);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
@@ -1314,7 +1330,7 @@ public readonly struct Matrix :
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℝ({Rows}⨯{Cols})" + Environment.NewLine +
-        CommonMatrix.ToString(values, v => v.ToString(format, provider));
+        CommonMatrix.ToString(values, v => v.ToString(format, provider), 0);
 }
 
 /// <summary>JSON converter for rectangular matrices.</summary>

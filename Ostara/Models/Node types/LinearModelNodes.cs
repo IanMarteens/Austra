@@ -1,18 +1,15 @@
 ﻿namespace Ostara;
 
-public abstract class LinearModelNode<M, T> : VarNode where M : LinearModelBase<T>
+public abstract class LinearModelNode<M, T> : VarNode<M> where M : LinearModelBase<T>
 {
     protected LinearModelNode(ClassNode? parent, string varName, string formula, M value) :
-        base(parent, varName, formula, "Linear model")
+        base(parent, varName, formula, "Linear model", value)
     {
-        Model = value;
         R2 = value.R2;
         RSS = value.ResidualSumSquares;
         TSS = value.TotalSumSquares;
         StandardError = value.StandardError;
     }
-
-    public M Model { get; }
 
     protected void Show(OxyPlot.PlotModel oxyModel)
     {
