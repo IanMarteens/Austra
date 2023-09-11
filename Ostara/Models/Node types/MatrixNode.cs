@@ -1,14 +1,14 @@
 ﻿namespace Ostara;
 
-public class MatrixNode: VarNode<Matrix>
+public class MatrixNode : VarNode<AMatrix>
 {
     private readonly sbyte triangularity;
 
-    public MatrixNode(ClassNode? parent, string varName, string formula, Matrix value) :
+    public MatrixNode(ClassNode? parent, string varName, string formula, AMatrix value) :
         base(parent, varName, formula, "Matrix", value)
     { }
 
-    public MatrixNode(ClassNode? parent, string varName, Matrix value) :
+    public MatrixNode(ClassNode? parent, string varName, AMatrix value) :
         this(parent, varName, varName, value)
     { }
 
@@ -32,7 +32,8 @@ public class MatrixNode: VarNode<Matrix>
 
     public override string Hint => $"{Name} ∊ ℝ({Model.Rows}⨯{Model.Cols})";
 
-    public override void Show() => 
-        RootModel.Instance.AppendResult(Formula, CommonMatrix.ToString((double[,])Model,
-            v => v.ToString("G6"), triangularity));
+    public override void Show() =>
+        RootModel.Instance.AppendResult(Formula,
+            $"ans ∊ ℝ({Model.Rows}⨯{Model.Cols})" + Environment.NewLine +
+            CommonMatrix.ToString((double[,])Model, v => v.ToString("G6"), triangularity));
 }

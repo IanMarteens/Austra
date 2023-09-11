@@ -39,6 +39,11 @@ public partial class MainWindow : Window
                 else if (avalon.CaretOffset > 0)
                 {
                     string fragment = GetFragment(0);
+                    if (IsIdentifier(fragment))
+                    {
+                        ShowCodeCompletion(RootModel.Instance.GetRoots());
+                    }
+                    fragment = fragment.TrimEnd();
                     if (fragment.EndsWith('.'))
                         ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
                     else if (fragment.EndsWith('('))
@@ -46,9 +51,15 @@ public partial class MainWindow : Window
                         if (fragment.Length > 2 && char.IsLetterOrDigit(fragment, fragment.Length - 2))
                             ShowCodeCompletion(RootModel.Instance.GetRoots());
                     }
+                    else if (fragment.EndsWith(','))
+                        ShowCodeCompletion(RootModel.Instance.GetRoots());
                     else if (fragment.EndsWith("::"))
                         ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
                 }
+
+
+        static bool IsIdentifier(string s) => s.Length > 0 && 
+            char.IsLetter(s[0]) && s.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
 
     private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
@@ -58,8 +69,10 @@ public partial class MainWindow : Window
             list = RootModel.Instance.GetMembers(GetFragment());
         else if (e.Text == ":")
             list = RootModel.Instance.GetClassMembers(GetFragment());
+        else if (e.Text == "(")
+            list = RootModel.Instance.GetRoots();
         else
-            list = new List<(string, string)>();
+            return;
         ShowCodeCompletion(list);
     }
 
@@ -87,4 +100,19 @@ public partial class MainWindow : Window
 
     private void AboutClick(object sender, RoutedEventArgs e) =>
         new AboutView().Show();
+
+    private void CanExecuteCloseAll(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = Root.HasEnvironment;
+
+    private void ExecuteCloseAll(object sender, ExecutedRoutedEventArgs e) =>
+        Root.ExecuteCloseAllCommand();
+
+    private void CanExecutePlay(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = Root.HasEnvironment;
+
+    private void ExecuteOpen(object sender, ExecutedRoutedEventArgs e) =>
+        Root.ExecuteOpenCommand();
+
+    private void CanExecuteOpen(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = true;
 }

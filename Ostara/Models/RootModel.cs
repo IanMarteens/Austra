@@ -2,8 +2,10 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
+using Microsoft.Win32;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Drawing.Imaging;
 
 namespace Ostara;
 
@@ -31,6 +33,10 @@ public sealed partial class RootModel : Entity
     private string errorText = "";
     /// <summary>Is there an error text to show?</summary>
     private Visibility showErrorText = Visibility.Collapsed;
+    /// <summary>Gets the visibility of the code editor.</summary>
+    private Visibility showFormulaEditor = Visibility.Collapsed;
+
+    public static RoutedCommand CloseAll = new();
 
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
@@ -41,7 +47,8 @@ public sealed partial class RootModel : Entity
         { 
             ErrorText = "";
             Message = "";
-            ShowErrorText = Visibility.Collapsed; 
+            ShowErrorText = Visibility.Collapsed;
+            ErrorText = "";
             timer.Stop();
         };
         string dataFile = GetDefaultDataFile();
@@ -80,6 +87,13 @@ public sealed partial class RootModel : Entity
     public bool HasEnvironment => environment != null;
 
     public bool GetHasEnvironment() => environment != null;
+
+    /// <summary>Gets the visibility of the code editor.</summary>
+    public Visibility ShowFormulaEditor
+    {
+        get => showFormulaEditor;
+        set => SetField(ref showFormulaEditor, value);
+    }
 
     /// <summary>Gets the last date in time series, in Austra date format.</summary>
     public string AustraDate
@@ -153,6 +167,8 @@ public sealed partial class RootModel : Entity
                 AustraDate = ((DateTime)d).ToString("d@MMMyyyy",
                     System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant();
             }
+            ShowFormulaEditor = Visibility.Visible;
+            MainSection?.ContentEnd.InsertTextInRun("Welcome to Ostara!\nv" + Version + "\n\n");
         }
     }
 
@@ -162,12 +178,11 @@ public sealed partial class RootModel : Entity
             DispatcherPriority.Background,
             new Action(() => { }));
 
-
     /// <summary>Describes a data type in a human-readable way.</summary>
     private static string Describe(Type? type) =>
         type == typeof(Series)
         ? "Series"
-        : type == typeof(Austra.Library.Matrix) || type == typeof(LMatrix) || type == typeof(RMatrix)
+        : type == typeof(AMatrix) || type == typeof(LMatrix) || type == typeof(RMatrix)
         ? "Matrix"
         : type == typeof(RVector) || type == typeof(ComplexVector)
         ? "Vector"
@@ -190,7 +205,7 @@ public sealed partial class RootModel : Entity
             LinearVModel lm => new LinearVModelNode(cNode, name, lm),
             DateSpline spline => new DateSplineNode(cNode, name, spline),
             VectorSpline spline => new VectorSplineNode(cNode, name, spline),
-            Austra.Library.Matrix m => new MatrixNode(cNode, name, m),
+            AMatrix m => new MatrixNode(cNode, name, m),
             LMatrix m => new MatrixNode(cNode, name, m),
             RMatrix m => new MatrixNode(cNode, name, m),
             RVector v => new VectorNode(cNode, name, v),
@@ -258,10 +273,39 @@ public sealed partial class RootModel : Entity
         Scroller?.ScrollToEnd();
     }
 
+    public void ExecuteOpenCommand()
+    {
+        OpenFileDialog dlg = new()
+        {
+            Filter = "AUSTRA files|*.austra|All files|*.*",
+            Title = "Select AUSTRA definitions files",
+            FilterIndex = 1,
+        };
+        if (dlg.ShowDialog(Application.Current.MainWindow) == true)
+        {
+            ExecuteCloseAllCommand();
+            Environment = new Session(dlg.FileName);
+            PrepareWorkspace();
+        }
+    }
+
+    public void ExecuteCloseAllCommand()
+    {
+        Editor.Text = "";
+        AustraDate = "";
+        allVars.Clear();
+        Classes.Clear();
+        Environment = null;
+        ShowFormulaEditor = Visibility.Collapsed;
+        ShowErrorText = Visibility.Collapsed;
+        MainSection?.Blocks.Clear();
+    }
+
     public void Evaluate(string text)
     {
         timer.Stop();
         Message = "";
+        ErrorText = "";
         ShowErrorText = Visibility.Collapsed;
         CloseCompletion();
         if (string.IsNullOrWhiteSpace(text))
@@ -341,7 +385,7 @@ public sealed partial class RootModel : Entity
                     DateSpline dsp => new DateSplineNode(null, typeString, form, dsp),
                     VectorSpline vsp => new VectorSplineNode(null, typeString, form, vsp),
                     Accumulator acc => new AccumNode(null, typeString, form, acc),
-                    Austra.Library.Matrix m => new MatrixNode(null, typeString, form, m),
+                    AMatrix m => new MatrixNode(null, typeString, form, m),
                     LMatrix m => new MatrixNode(null, typeString, form, m),
                     RMatrix m => new MatrixNode(null, typeString, form, m),
                     RVector v => new VectorNode(null, typeString, form, v),

@@ -7,9 +7,7 @@ public partial class HierarchyView : UserControl
 
     private void TreeViewDoubleClick(object sender, RoutedEventArgs e)
     {
-        if (sender is TreeViewItem item &&
-            item.IsSelected &&
-            item.DataContext is NodeBase node)
+        if (sender is TreeViewItem item && item.IsSelected && item.DataContext is NodeBase node)
             node.Show();
     }
 }

@@ -101,7 +101,10 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
             {
                 Position = OxyPlot.Axes.AxisPosition.Left,
             });
-            OxyPlot.Series.LineSeries lineSeries = new();
+            OxyPlot.Series.LineSeries lineSeries = new()
+            {
+                TrackerFormatString = "{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
+            };
             foreach (Point<Date> p in Series.Points)
                 lineSeries.Points.Add(
                     new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));

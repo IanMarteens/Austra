@@ -71,12 +71,20 @@ public sealed class ARSNode : ARNode<ARSModel, Series>
         {
             Position = OxyPlot.Axes.AxisPosition.Left,
         });
-        OxyPlot.Series.LineSeries lineSeries1 = new() { Title = "Original" };
+        OxyPlot.Series.LineSeries lineSeries1 = new()
+        {
+            Title = "Original",
+            TrackerFormatString = "{0}\n{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
+        };
         foreach (Point<Date> p in Model.Original.Points)
             lineSeries1.Points.Add(
                 new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
         model.Series.Add(lineSeries1);
-        OxyPlot.Series.LineSeries lineSeries2 = new() { Title = "Predicted" };
+        OxyPlot.Series.LineSeries lineSeries2 = new()
+        {
+            Title = "Predicted",
+            TrackerFormatString = "{0}\n{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
+        };
         foreach (Point<Date> p in Model.Prediction.Points)
             lineSeries2.Points.Add(
                 new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));

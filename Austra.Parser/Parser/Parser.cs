@@ -1253,6 +1253,12 @@ internal static partial class Parser
                     : a.Count != 2 || !AreArithmeticTypes(a[0], a[1])
                     ? throw Error("Arguments must be numeric", ctx)
                     : typeof(Complex).New(ToDouble(a[0]), ToDouble(a[1]));
+            case "polar":
+                return a.Count == 1 && IsArithmetic(a[0])
+                    ? Expression.Convert(a[0], typeof(Complex))
+                    : a.Count != 2 || !AreArithmeticTypes(a[0], a[1])
+                    ? throw Error("Arguments must be numeric", ctx)
+                    : typeof(Complex).Call(nameof(Complex.FromPolarCoordinates), ToDouble(a[0]), ToDouble(a[1]));
             case "polyeval":
                 return ParsePolyMethod(nameof(Polynomials.PolyEval));
             case "polyderiv":

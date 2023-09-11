@@ -203,7 +203,8 @@ public partial class AustraEngine : IAustraEngine
         {
             ("abs(", "Absolute value"),
             ("sqrt(", "Squared root"),
-            ("gamma(", "Gamma function"),
+            ("gamma(", "The Gamma function"),
+            ("beta(", "The Beta function"),
             ("erf(", "Error function"),
             ("ncdf(", "Normal cummulative function"),
             ("probit(", "Probit function"),
@@ -222,6 +223,13 @@ public partial class AustraEngine : IAustraEngine
             ("e", "The constant e"),
             ("i", "The imaginary unit"),
             ("today", "The current date"),
+            ("compare(", "Compares two series or vectors"),
+            ("polyEval(", "Evaluates a polynomial at a given point"),
+            ("polyDerivative(", "Evaluates a polynomial first derivative at a given point"),
+            ("polySolve(", "Returns all real and complex roots of a polynomial"),
+            ("solve(", "Approximates a root with the Newton-Raphson algorithm"),
+            ("complex(", "Creates a complex number from its real and imaginary components"),
+            ("polar(", "Creates a complex number from its magnitude and phase components"),
         };  
 
     /// <summary>Gets a list of root classes.</summary>

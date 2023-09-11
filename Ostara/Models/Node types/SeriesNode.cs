@@ -22,12 +22,16 @@ public sealed class SeriesNode: VarNode<Series>
         model.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
         {
             Position = OxyPlot.Axes.AxisPosition.Bottom,
+            StringFormat = "dd/MM/yyyy"
         });
         model.Axes.Add(new OxyPlot.Axes.LinearAxis()
         {
             Position = OxyPlot.Axes.AxisPosition.Left,
         });
-        OxyPlot.Series.LineSeries lineSeries = new();
+        OxyPlot.Series.LineSeries lineSeries = new()
+        {
+            TrackerFormatString = "{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
+        };
         foreach (Point<Date> p in Model.Points)
             lineSeries.Points.Add(
                 new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
