@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents an autoregressive model.</summary>
-public abstract class ARModelBase<T>
+public abstract class ARModelBase<T>: IFormattable
 {
     /// <summary>The Yule-Walker matrix.</summary>
     protected Matrix matrix;
@@ -58,9 +58,14 @@ public abstract class ARModelBase<T>
     }
 
     /// <summary>Gets the string representation of the autoregressive model.</summary>
-    public sealed override string ToString() => new StringBuilder(1024)
-        .Append("Coefficients: ").Append(Coefficients).AppendLine()
-        .Append("(R² = ").Append(R2.ToString("G6")).Append(')').AppendLine()
+    public sealed override string ToString() => ToString("G6", null);
+
+    /// <summary>Gets the string representation of the autoregressive model.</summary>
+    /// <param name="format">A format specifier.</param>
+    /// <param name="provider">Supplies culture-specific formatting information.</param>
+    public string ToString(string? format, IFormatProvider? provider) => new StringBuilder(1024)
+        .Append("Coefficients: ").Append(Coefficients.ToString(format, provider)).AppendLine()
+        .Append("(R² = ").Append(R2.ToString(format, provider)).Append(')').AppendLine()
         .ToString();
 }
 

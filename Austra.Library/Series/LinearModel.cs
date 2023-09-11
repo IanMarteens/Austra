@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents the result of a linear regression.</summary>
-public abstract class LinearModelBase<T>
+public abstract class LinearModelBase<T>: IFormattable
 {
     /// <summary>Initializes and computes a linear regression model.</summary>
     /// <param name="original">The samples to be predicted.</param>
@@ -44,13 +44,18 @@ public abstract class LinearModelBase<T>
     }
 
     /// <inheritdoc/>
-    public sealed override string ToString()
+    public sealed override string ToString() => ToString("G6", null);
+
+    /// <summary>Gets the string representation of the autoregressive model.</summary>
+    /// <param name="format">A format specifier.</param>
+    /// <param name="provider">Supplies culture-specific formatting information.</param>
+    public string ToString(string? format, IFormatProvider? provider)
     {
         const double ε = 1E-15;
         StringBuilder sb = new(1024);
         sb.Append("Original = ");
         if (Abs(Weights[0]) > ε)
-            sb.Append(Weights[0].ToString("G6"));
+            sb.Append(Weights[0].ToString(format, provider));
         for (int i = 0; i < Variables.Count; i++)
         {
             double w = Weights[i + 1], aw = Abs(w);
@@ -62,14 +67,16 @@ public abstract class LinearModelBase<T>
                 if (Abs(aw - 1) <= ε)
                     sb.Append(Variables[i]);
                 else
-                    sb.Append(aw.ToString("G6")).Append(" * ").Append(Variables[i]);
+                    sb.Append(aw.ToString(format, provider)).Append(" * ").Append(Variables[i]);
             }
             else if (Abs(aw - 1) <= ε)
                 sb.Append(Variables[i]);
             else
-                sb.Append(w.ToString("G6")).Append(" * ").Append(Variables[i]);
+                sb.Append(w.ToString(format, provider)).Append(" * ").Append(Variables[i]);
         }
-        sb.AppendLine().Append("(R² = ").Append(R2.ToString("G6")).Append(')').AppendLine();
+        sb.AppendLine()
+            .Append("TStats: ").Append(CommonMatrix.ToString((double[])TStats, d => d.ToString(format, provider)))
+            .Append("R² = ").Append(R2.ToString(format, provider)).AppendLine();
         return sb.ToString();
     }
 }
