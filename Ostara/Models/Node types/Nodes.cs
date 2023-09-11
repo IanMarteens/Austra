@@ -67,6 +67,7 @@ public abstract class VarNode : NodeBase
         (Parent, Formula) = (parent, formula);
 
     public ClassNode? Parent { get; }
+    /// <summary>Gets the expression that yields the value of the variable.</summary>
     public string Formula { get; }
 
     public bool Stored { get; init; }

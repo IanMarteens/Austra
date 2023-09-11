@@ -30,6 +30,8 @@ public class MatrixNode: VarNode<Matrix>
 
     public override string ImageSource => "/images/matrix.png";
 
+    public override string Hint => $"{Name} ∊ ℝ({Model.Rows}⨯{Model.Cols})";
+
     public override void Show() => 
         RootModel.Instance.AppendResult(Formula, CommonMatrix.ToString((double[,])Model,
             v => v.ToString("G6"), triangularity));

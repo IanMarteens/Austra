@@ -168,7 +168,7 @@ public sealed partial class RootModel : Entity
         ? "Series"
         : type == typeof(Austra.Library.Matrix) || type == typeof(LMatrix) || type == typeof(RMatrix)
         ? "Matrix"
-        : type == typeof(RVector)
+        : type == typeof(RVector) || type == typeof(ComplexVector)
         ? "Vector"
         : "Other";
 
@@ -192,9 +192,9 @@ public sealed partial class RootModel : Entity
             Austra.Library.Matrix m => new MatrixNode(cNode, name, m),
             LMatrix m => new MatrixNode(cNode, name, m),
             RMatrix m => new MatrixNode(cNode, name, m),
-            /*RVector v => new RVectorNode(cNode, name, v),
-            CVector cv => new CVectorNode(cNode, name, cv),
-            Series<int> s => new CorrNode(cNode, name, s),
+            RVector v => new VectorNode(cNode, name, v),
+            ComplexVector cv => new CVectorNode(cNode, name, cv),
+            /*Series<int> s => new CorrNode(cNode, name, s),
             Series<double> s => new PercNode(cNode, name, s),
             EVD evd => new EvdNode(cNode, name, evd),
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
@@ -348,6 +348,8 @@ public sealed partial class RootModel : Entity
                     Austra.Library.Matrix m => new MatrixNode(null, typeString, form, m),
                     LMatrix m => new MatrixNode(null, typeString, form, m),
                     RMatrix m => new MatrixNode(null, typeString, form, m),
+                    RVector v => new VectorNode(null, typeString, form, v),
+                    ComplexVector v => new CVectorNode(null, typeString, form, v),
                     _ => null
                 };
                 if (node != null)
