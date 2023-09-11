@@ -10,11 +10,11 @@ public abstract class CommonVectorNode<T>: VarNode<T> where T: struct
         this(parent, varName, varName, value)
     { }
 
-    public override Visibility ImageVisibility => Visibility.Visible;
+    public sealed override Visibility ImageVisibility => Visibility.Visible;
 
-    public override string ImageSource => "/images/vector.png";
+    public sealed override string ImageSource => "/images/vector.png";
 
-    public override void Show() =>
+    public sealed override void Show() =>
         RootModel.Instance.AppendResult(Formula, Model.ToString());
 }
 

@@ -256,7 +256,7 @@ internal static partial class Parser
             ("addMonths(", "Adds a number of months to the date"),
             ("addYears(", "Adds a number of years to the date"),
         },
-        [typeof(System.Numerics.Complex)] = new[]
+        [typeof(Complex)] = new[]
         {
             ("real", "Gets the real part of the complex number"),
             ("imag", "Gets the imaginary part of the complex number"),
@@ -345,23 +345,32 @@ internal static partial class Parser
         string text,
         out Type? type)
     {
-        text = ExtractObjectPath(text).Trim();
-        if (string.IsNullOrEmpty(text))
+        string trimmedText = ExtractObjectPath(text).Trim();
+        if (!string.IsNullOrEmpty(trimmedText))
+            try
+            {
+                return ExtractType(source, trimmedText);
+            }
+            catch
+            {
+                // Give it a second chance, if a let clause was not included.
+                Match m = LetHeaderRegex().Match(text);
+                if (m.Success && !LetHeaderRegex().IsMatch(trimmedText))
+                    try
+                    {
+                        return ExtractType(source, m.Groups["header"] + trimmedText);
+                    }
+                    catch { }
+            }
+        type = null;
+        return Array.Empty<(string, string)>();
+
+        static IList<(string member, string description)> ExtractType(IDataSource source, string text)
         {
-            type = null;
-            return Array.Empty<(string, string)>();
+            AstContext ctx = new(source, Lexer.Lex(text).GetEnumerator());
+            Type type = ParseType(ctx);
+            return members.TryGetValue(type, out var list) ? list : Array.Empty<(string, string)>();
         }
-        try
-        {
-            using AstContext ctx = new(source, Lexer.Lex(text).GetEnumerator());
-            type = ParseType(ctx);
-        }
-        catch
-        {
-            type = null;
-            return Array.Empty<(string, string)>();
-        }
-        return members.TryGetValue(type, out var list) ? list : Array.Empty<(string, string)>();
     }
 
     /// <summary>Gets a list of class members for a given type.</summary>
@@ -400,7 +409,7 @@ internal static partial class Parser
         {
             char ch = text[i];
             if (char.IsLetterOrDigit(ch) ||
-                ch is '_' or '.' or ':' or '=' ||
+                ch is '_' or '.' or ':' or '=' or '\'' ||
                 char.IsWhiteSpace(ch))
                 i--;
             else if (ch is '(' or '[')

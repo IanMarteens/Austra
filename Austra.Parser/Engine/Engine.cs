@@ -193,8 +193,36 @@ public partial class AustraEngine : IAustraEngine
         Source.Variables.Select(t => (t.name, "Variable: " + t.type?.Name))
             .Concat(Source.AllDefinitions
                 .Select(d => (name: d.Name, "Definition: " + d.Type.Name)))
-            .OrderBy(x => x.name)
+            .Concat(GetRootClasses())
+            .Concat(GetGlobalFunctions())
+            .OrderBy(x => x.Item1)
             .ToList();
+
+    private IList<(string member, string definition)> GetGlobalFunctions() =>
+        new[]
+        {
+            ("abs(", "Absolute value"),
+            ("sqrt(", "Squared root"),
+            ("gamma(", "Gamma function"),
+            ("erf(", "Error function"),
+            ("ncdf(", "Normal cummulative function"),
+            ("probit(", "Probit function"),
+            ("log(", "Natural logarithm"),
+            ("log10(", "Base 10 logarithm"),
+            ("exp(", "Exponential function"),
+            ("sin(", "Sine function"),
+            ("cos(", "Cosine function"),
+            ("tan(", "Tangent function"),
+            ("asin(", "Arcsine function"),
+            ("acos(", "Arccosine function"),
+            ("atan(", "Arctangent function"),
+            ("min(", "Minimum function"),
+            ("max(", "Maximum function"),
+            ("pi", "The constant π"),
+            ("e", "The constant e"),
+            ("i", "The imaginary unit"),
+            ("today", "The current date"),
+        };  
 
     /// <summary>Gets a list of root classes.</summary>
     /// <returns>A list of classes that accepts class methods.</returns>
@@ -300,7 +328,6 @@ public partial class AustraEngine : IAustraEngine
             foreach (DataDef d in obj.Definitions)
                 ParseDefinition($"def {d.Name} = {d.Text}", d.Description);
         }
-
     }
 
     /// <summary>Deserializes a datasource from an UTF-8 file.</summary>

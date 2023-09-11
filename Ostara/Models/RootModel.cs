@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Xml.Linq;
 
 namespace Ostara;
 
@@ -157,12 +156,14 @@ public sealed partial class RootModel : Entity
         }
     }
 
+    /// <summary>Allows the event loop to run once.</summary>
     public static void DoEvents() =>
         Application.Current.Dispatcher.Invoke(
             DispatcherPriority.Background,
             new Action(() => { }));
 
 
+    /// <summary>Describes a data type in a human-readable way.</summary>
     private static string Describe(Type? type) =>
         type == typeof(Series)
         ? "Series"
@@ -194,9 +195,9 @@ public sealed partial class RootModel : Entity
             RMatrix m => new MatrixNode(cNode, name, m),
             RVector v => new VectorNode(cNode, name, v),
             ComplexVector cv => new CVectorNode(cNode, name, cv),
+            EVD evd => new EvdNode(cNode, name, evd),
             /*Series<int> s => new CorrNode(cNode, name, s),
             Series<double> s => new PercNode(cNode, name, s),
-            EVD evd => new EvdNode(cNode, name, evd),
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
             Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),
             MvoModel m => new MvoNode(cNode, name, m),*/
@@ -233,13 +234,8 @@ public sealed partial class RootModel : Entity
         }
     }
 
-    public IList<(string, string)> GetRoots()
-    {
-        var result = environment!.Engine.GetRoots();
-        foreach ((string member, string description) item in environment.Engine.GetRootClasses())
-            result.Add(item);
-        return result;
-    }
+    public IList<(string, string)> GetRoots() =>
+        environment!.Engine.GetRoots();
 
     public IList<(string, string)> GetMembers(string text) =>
         environment!.Engine.GetMembers(text);
@@ -350,6 +346,7 @@ public sealed partial class RootModel : Entity
                     RMatrix m => new MatrixNode(null, typeString, form, m),
                     RVector v => new VectorNode(null, typeString, form, v),
                     ComplexVector v => new CVectorNode(null, typeString, form, v),
+                    EVD evd => new EvdNode(null, typeString, form, evd),
                     _ => null
                 };
                 if (node != null)
@@ -406,6 +403,6 @@ public sealed partial class RootModel : Entity
         @"Austra\data.austra");
 
     /// <summary>Gets a regex that matches a set statement</summary>
-    [GeneratedRegex("^\\s*set\\s*(?'name'[\\w]+)\\s*=", RegexOptions.IgnoreCase, "es-ES")]
+    [GeneratedRegex("^\\s*set\\s*(?'name'[\\w]+)\\s*=", RegexOptions.IgnoreCase, "en-US")]
     private static partial Regex SetRegex();
 }
