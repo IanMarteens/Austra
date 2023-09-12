@@ -37,6 +37,7 @@ public sealed partial class RootModel : Entity
     private Visibility showFormulaEditor = Visibility.Collapsed;
 
     public static RoutedCommand CloseAll = new();
+    public static RoutedCommand About = new();
 
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()

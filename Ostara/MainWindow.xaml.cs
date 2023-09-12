@@ -98,9 +98,6 @@ public partial class MainWindow : Window
     private void PlayCmdExecuted(object sender, ExecutedRoutedEventArgs e) =>
         Root.Evaluate(avalon.Text);
 
-    private void AboutClick(object sender, RoutedEventArgs e) =>
-        new AboutView().Show();
-
     private void CanExecuteCloseAll(object sender, CanExecuteRoutedEventArgs e) =>
         e.CanExecute = Root.HasEnvironment;
 
@@ -115,4 +112,7 @@ public partial class MainWindow : Window
 
     private void CanExecuteOpen(object sender, CanExecuteRoutedEventArgs e) =>
         e.CanExecute = true;
+
+    private void ExecuteAbout(object sender, ExecutedRoutedEventArgs e) =>
+        new AboutView().Show();
 }
