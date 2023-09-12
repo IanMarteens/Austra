@@ -51,6 +51,11 @@
             <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource CaptionButtonStyle}">
                 <Setter Property="Content" Value="&#xE106;"/>
             </Style>
+            <Style TargetType="MenuItem">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Foreground" Value="#FFE0E0E0"/>
+                <Setter Property="Padding" Value="0,0,0,1"/>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -206,16 +211,16 @@
                             <RowDefinition Height="18"/>
                         </Grid.RowDefinitions>
                         <avalonEdit:TextEditor
-                        x:Name="avalon"
-                        FontFamily="Fira Code,Cascadia Code,Courier New"
-                        FontSize="10pt"
-                        Padding="8,2"
-                        Visibility="{Binding ShowFormulaEditor}"
-                        HorizontalScrollBarVisibility="Auto"
-                        VerticalScrollBarVisibility="Auto"
-                        Grid.Row="0"
-                        VerticalAlignment="Stretch"
-                        HorizontalAlignment="Stretch">
+                            x:Name="avalon"
+                            FontFamily="Fira Code,Cascadia Code,Courier New"
+                            FontSize="10pt"
+                            Padding="8,2"
+                            Visibility="{Binding ShowFormulaEditor}"
+                            HorizontalScrollBarVisibility="Auto"
+                            VerticalScrollBarVisibility="Auto"
+                            Grid.Row="0"
+                            VerticalAlignment="Stretch"
+                            HorizontalAlignment="Stretch">
                         </avalonEdit:TextEditor>
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Background="#FF363636" Visibility="{Binding ShowFormulaEditor}">
                             <Image Height="15" Width="15" Source="/images/error.png" Visibility="{Binding ShowErrorText}" Margin="2,0,2,0" VerticalAlignment="Center"/>
