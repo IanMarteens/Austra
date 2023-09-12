@@ -230,6 +230,8 @@ public partial class AustraEngine : IAustraEngine
             ("solve(", "Approximates a root with the Newton-Raphson algorithm"),
             ("complex(", "Creates a complex number from its real and imaginary components"),
             ("polar(", "Creates a complex number from its magnitude and phase components"),
+            ("set", "Assigns a value to a variable"),
+            ("let", "Declares local variables"),
         };  
 
     /// <summary>Gets a list of root classes.</summary>

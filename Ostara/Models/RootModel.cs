@@ -344,6 +344,8 @@ public sealed partial class RootModel : Entity
                     node is not DefinitionNode)
                 {
                     node.Parent!.Nodes.Remove(node);
+                    if (node.Parent.Nodes.Count == 0)
+                        Classes.Remove(node.Parent);
                     allVars.Remove(node.Name);
                 }
                 if (ansType == null)
