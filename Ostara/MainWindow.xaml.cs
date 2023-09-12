@@ -10,11 +10,28 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        StateChanged += MainWindowStateChangeRaised;
         DataContext = RootModel.Instance;
         avalon.SyntaxHighlighting = ResLoader.LoadHighlightingDefinition("austra.xshd");
         avalon.TextArea.TextEntered += TextArea_TextEntered;
         avalon.TextArea.TextEntering += TextArea_TextEntering;
         mainSection.ContentEnd.InsertTextInRun("Welcome to Ostara!\nv" + RootModel.Version + "\n\n");
+    }
+
+    private void MainWindowStateChangeRaised(object? sender, EventArgs e)
+    {
+        if (WindowState == WindowState.Maximized)
+        {
+            MainWindowBorder.BorderThickness = new Thickness(8);
+            RestoreButton.Visibility = Visibility.Visible;
+            MaximizeButton.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            MainWindowBorder.BorderThickness = new Thickness(0);
+            RestoreButton.Visibility = Visibility.Collapsed;
+            MaximizeButton.Visibility = Visibility.Visible;
+        }
     }
 
     private RootModel Root => (RootModel)DataContext;
@@ -27,11 +44,7 @@ public partial class MainWindow : Window
             if (completionWindow != null)
             {
                 if (!char.IsLetterOrDigit(e.Text[0]))
-                {
-                    // Whenever a non-letter is typed while the completion window is open,
-                    // insert the currently selected element.
                     completionWindow.CompletionList.RequestInsertion(e);
-                }
             }
             else if (char.IsLetter(e.Text[0]))
                 if (avalon.CaretOffset == 0)
@@ -40,21 +53,22 @@ public partial class MainWindow : Window
                 {
                     string fragment = GetFragment(0);
                     if (IsIdentifier(fragment))
-                    {
                         ShowCodeCompletion(RootModel.Instance.GetRoots());
-                    }
-                    fragment = fragment.TrimEnd();
-                    if (fragment.EndsWith('.'))
-                        ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
-                    else if (fragment.EndsWith('('))
+                    else
                     {
-                        if (fragment.Length > 2 && char.IsLetterOrDigit(fragment, fragment.Length - 2))
+                        fragment = fragment.TrimEnd();
+                        if (fragment.EndsWith('.'))
+                            ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
+                        else if (fragment.EndsWith('('))
+                        {
+                            if (fragment.Length > 2 && char.IsLetterOrDigit(fragment, fragment.Length - 2))
+                                ShowCodeCompletion(RootModel.Instance.GetRoots());
+                        }
+                        else if (fragment.EndsWith(','))
                             ShowCodeCompletion(RootModel.Instance.GetRoots());
+                        else if (fragment.EndsWith("::"))
+                            ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
                     }
-                    else if (fragment.EndsWith(','))
-                        ShowCodeCompletion(RootModel.Instance.GetRoots());
-                    else if (fragment.EndsWith("::"))
-                        ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
                 }
 
 
@@ -64,16 +78,12 @@ public partial class MainWindow : Window
 
     private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
     {
-        IList<(string, string)> list;
-        if (e.Text == ".")
-            list = RootModel.Instance.GetMembers(GetFragment());
+          if (e.Text == ".")
+            ShowCodeCompletion(RootModel.Instance.GetMembers(GetFragment()));
         else if (e.Text == ":")
-            list = RootModel.Instance.GetClassMembers(GetFragment());
+            ShowCodeCompletion(RootModel.Instance.GetClassMembers(GetFragment()));
         else if (e.Text == "(")
-            list = RootModel.Instance.GetRoots();
-        else
-            return;
-        ShowCodeCompletion(list);
+            ShowCodeCompletion(RootModel.Instance.GetRoots());
     }
 
     private string GetFragment(int delta = 1) => avalon.Document.GetText(0, avalon.CaretOffset - delta);
@@ -115,4 +125,21 @@ public partial class MainWindow : Window
 
     private void ExecuteAbout(object sender, ExecutedRoutedEventArgs e) =>
         new AboutView().Show();
+
+    private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = true;
+
+    private void CommandBinding_Executed_Minimize(object sender, ExecutedRoutedEventArgs e) =>
+        SystemCommands.MinimizeWindow(this);
+
+    // Maximize
+    private void CommandBinding_Executed_Maximize(object sender, ExecutedRoutedEventArgs e) =>
+        SystemCommands.MaximizeWindow(this);
+
+    // Restore
+    private void CommandBinding_Executed_Restore(object sender, ExecutedRoutedEventArgs e) =>
+        SystemCommands.RestoreWindow(this);
+
+    private void CommandBinding_Executed_Close(object sender, ExecutedRoutedEventArgs e) =>
+        SystemCommands.CloseWindow(this);
 }
