@@ -13,6 +13,9 @@
     HorizontalAlignment="Left"
     d:DataContext="{d:DesignInstance Type={x:Type local:VectorSplineNode}}"
     d:DesignHeight="250" d:DesignWidth="1050">
+    <UserControl.Resources>
+        <local:FormulaConverter x:Key="Formula"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
@@ -39,7 +42,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" Content="Argument" FontSize="11" Margin="0,0,2,0" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="0" Grid.Column="1" FontSize="11" Width="Auto" HorizontalAlignment="Stretch" Text="{Binding NewArg}"/>
+                <TextBox Grid.Row="0" Grid.Column="1" FontSize="11" Width="Auto" HorizontalAlignment="Stretch" Text="{Binding NewArg, Converter={StaticResource Formula}}"/>
                 <Label Grid.Row="1" Grid.Column="0" FontSize="11" Content="Value" Margin="0,0,2,0" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="1" Grid.Column="1" Width="Auto" HorizontalAlignment="Stretch" Text="{Binding NewValue, Mode=OneWay}" VerticalAlignment="Center" FontSize="11" IsReadOnly="True"/>
                 <Label Grid.Row="2" Grid.Column="0" FontSize="11" Content="Derivative" Margin="0,0,2,0" VerticalAlignment="Center"/>
