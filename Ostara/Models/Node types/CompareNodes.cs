@@ -15,6 +15,10 @@ public sealed class CompareNode : VarNode<Tuple<Series, Series>>
         this(parent, varName, varName, value)
     { }
 
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => "/images/compare.png";
+
     public override void Show()
     {
         OxyPlot.PlotModel model = new();

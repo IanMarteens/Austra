@@ -13,6 +13,7 @@
 		<None Remove="austra.jpg" />
 		<None Remove="austra.xshd" />
 		<None Remove="Images\closeAll.png" />
+		<None Remove="Images\compare.png" />
 		<None Remove="Images\error.png" />
 		<None Remove="Images\evd.png" />
 		<None Remove="Images\exit.png" />
@@ -79,6 +80,7 @@
 	<ItemGroup>
 	  <Resource Include="austra.jpg" />
 	  <Resource Include="Images\closeAll.png" />
+	  <Resource Include="Images\compare.png" />
 	  <Resource Include="Images\error.png" />
 	  <Resource Include="Images\evd.png" />
 	  <Resource Include="Images\exit.png" />
