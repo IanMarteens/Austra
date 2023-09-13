@@ -25,24 +25,36 @@ public sealed class MvoNode : VarNode<MvoModel>
             result.Columns.Add(new TableColumn() { Width = new GridLength(100, GridUnitType.Pixel) });
         TableRowGroup group = new();
         TableRow row = new();
-        row.Cells.Add(new TableCell(new Paragraph(new Run("Return") { FontWeight = FontWeights.DemiBold })));
-        row.Cells.Add(new TableCell(new Paragraph(new Run("Volatility") { FontWeight = FontWeights.DemiBold })));
-        row.Cells.Add(new TableCell(new Paragraph(new Run("Lambda") { FontWeight = FontWeights.DemiBold })));
+        row.Cells.Add(NewHdr("λ"));
+        row.Cells.Add(NewHdr("Return"));
+        row.Cells.Add(NewHdr("Volatility"));
         foreach (string name in Model.Labels)
-            row.Cells.Add(new TableCell(new Paragraph(new Run(name) { FontWeight = FontWeights.DemiBold })));
+            row.Cells.Add(NewHdr(name));
         group.Rows.Add(row);
         for (int i = 0; i < Model.Length; i++)
         {
+            Portfolio p = Model[i];
             row = new();
-            row.Cells.Add(new TableCell(new Paragraph(new Run(Model.Portfolios[i].Mean.ToString("G6")))));
-            row.Cells.Add(new TableCell(new Paragraph(new Run(Model.Portfolios[i].StdDev.ToString("G6")))));
-            row.Cells.Add(new TableCell(new Paragraph(new Run(Model.Portfolios[i].Lambda.ToString("F2")))));
+            row.Cells.Add(NewCell(p.Lambda.ToString("F2")));
+            row.Cells.Add(NewCell(p.Mean.ToString("G6")));
+            row.Cells.Add(NewCell(p.StdDev.ToString("G6")));
             for (int j = 0; j < Model.Size; j++)
-                row.Cells.Add(new TableCell(new Paragraph(new Run(Model.Portfolios[i].Weights[j].ToString("G6")))));
+                row.Cells.Add(NewCell(p.Weights[j].ToString("F6")));
             group.Rows.Add(row);
         }
         result.RowGroups.Add(group);
         return result;
+
+        static TableCell NewCell(string text) => new(new Paragraph(new Run(text))
+        {
+            TextAlignment = TextAlignment.Right
+        });
+
+        static TableCell NewHdr(string header) => new(new Paragraph(new Run(header))
+        {
+            FontWeight = FontWeights.DemiBold,
+            TextAlignment = TextAlignment.Right
+        });
     }
 }
 

@@ -266,7 +266,7 @@ public sealed partial class RootModel : Entity
 
     public void AppendResult(string variable, Block block)
     {
-        MainSection?.ContentEnd.InsertTextInRun($"> {variable}\n");
+        MainSection?.ContentEnd.InsertTextInRun($"> {variable}");
         MainSection?.Blocks.Add(block);
         Scroller?.ScrollToEnd();
     }
