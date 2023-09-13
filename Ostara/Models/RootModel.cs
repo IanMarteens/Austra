@@ -210,10 +210,10 @@ public sealed partial class RootModel : Entity
             RVector v => new VectorNode(cNode, name, v),
             ComplexVector cv => new CVectorNode(cNode, name, cv),
             EVD evd => new EvdNode(cNode, name, evd),
+            MvoModel m => new MvoNode(cNode, name, m),
             /*Series<int> s => new CorrNode(cNode, name, s),
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
-            Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),
-            MvoModel m => new MvoNode(cNode, name, m),*/
+            Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),*/
             _ => new MiscNode(cNode, name, type, value?.ToString() ?? "")
         };
         allVars[name] = vNode;
@@ -261,6 +261,13 @@ public sealed partial class RootModel : Entity
         if (text != null && text.EndsWith('\n') == false)
             text += '\n';
         MainSection?.ContentEnd.InsertTextInRun($"> {variable}\n{text}\n");
+        Scroller?.ScrollToEnd();
+    }
+
+    public void AppendResult(string variable, Block block)
+    {
+        MainSection?.ContentEnd.InsertTextInRun($"> {variable}\n");
+        MainSection?.Blocks.Add(block);
         Scroller?.ScrollToEnd();
     }
 
@@ -392,6 +399,7 @@ public sealed partial class RootModel : Entity
                     RVector v => new VectorNode(null, typeString, form, v),
                     ComplexVector v => new CVectorNode(null, typeString, form, v),
                     EVD evd => new EvdNode(null, typeString, form, evd),
+                    MvoModel mvo => new MvoNode(null, typeString, form, mvo),
                     _ => null
                 };
                 if (node != null)

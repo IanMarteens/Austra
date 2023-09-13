@@ -53,29 +53,23 @@
             </Style>
             <Style TargetType="MenuItem">
                 <Setter Property="FontSize" Value="12"/>
-                <Setter Property="Foreground" Value="#FFE0E0E0"/>
+                <Setter Property="Foreground" Value="#FFC8C8C8"/>
                 <Setter Property="Padding" Value="0,0,0,1"/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
 
     <Window.CommandBindings>
-        <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed_Close" />
-        <CommandBinding Command="{x:Static SystemCommands.MaximizeWindowCommand}" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed_Maximize" />
-        <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed_Minimize" />
-        <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed_Restore" />
-        <CommandBinding Command="ApplicationCommands.Open"
-                        Executed="ExecuteOpen"
-                        CanExecute="CanExecuteOpen"/>
-        <CommandBinding Command="{x:Static local:RootModel.CloseAll}"
-                        Executed="ExecuteCloseAll"
+        <CommandBinding Command="{x:Static SystemCommands.CloseWindowCommand}" Executed="ExecuteClose" />
+        <CommandBinding Command="{x:Static SystemCommands.MaximizeWindowCommand}" Executed="ExecuteMaximize" />
+        <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}" Executed="ExecuteMinimize" />
+        <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}" Executed="ExecuteRestore" />
+        <CommandBinding Command="ApplicationCommands.Open" Executed="ExecuteOpen"/>
+        <CommandBinding Command="{x:Static local:RootModel.CloseAll}" Executed="ExecuteCloseAll"
                         CanExecute="CanExecuteCloseAll"/>
-        <CommandBinding Command="{x:Static local:RootModel.About}"
-                        Executed="ExecuteAbout"/>
-        <CommandBinding Command="ApplicationCommands.Close"
-                  Executed="CloseCmdExecuted"/>
-        <CommandBinding Command="MediaCommands.Play"
-                  Executed="PlayCmdExecuted"
+        <CommandBinding Command="{x:Static local:RootModel.About}" Executed="ExecuteAbout"/>
+        <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCmdExecuted"/>
+        <CommandBinding Command="MediaCommands.Play" Executed="PlayCmdExecuted"
                   CanExecute="CanExecutePlay"/>
     </Window.CommandBindings>
     <Window.InputBindings>
@@ -105,7 +99,11 @@
             </Grid>
             <Menu DockPanel.Dock="Top" Background="#FF202020">
                 <MenuItem Header="_File">
-                    <MenuItem Header="_New"/>
+                    <MenuItem Header="_New">
+                        <MenuItem.Icon>
+                            <Image Source="/images/new.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem Header="_Open" Command="ApplicationCommands.Open">
                         <MenuItem.Icon>
                             <Image Source="/images/open.png" Width="15" Height="Auto"/>
@@ -153,20 +151,20 @@
                 </MenuItem>
             </Menu>
             <ToolBar DockPanel.Dock="Top">
-                <Button Command="ApplicationCommands.Open">
+                <Button Command="ApplicationCommands.Open" ToolTip="Loads a session from a file">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/images/open.png" Margin="0,0,4,0" Width="16" Height="Auto"/>
                         <TextBlock>Open...</TextBlock>
                     </StackPanel>
                 </Button>
-                <Button Command="{x:Static local:RootModel.CloseAll}">
+                <Button Command="{x:Static local:RootModel.CloseAll}" ToolTip="Closes the current session">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/images/closeAll.png" Margin="0,0,4,0" Width="16" Height="Auto"/>
                         <TextBlock>Close all</TextBlock>
                     </StackPanel>
                 </Button>
                 <Separator/>
-                <Button Command="MediaCommands.Play">
+                <Button Command="MediaCommands.Play" ToolTip="Evaluates the current formula">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/images/play.png" Margin="0,0,4,0" Width="16" Height="Auto"/>
                         <TextBlock>Execute</TextBlock>

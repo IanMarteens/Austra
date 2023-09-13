@@ -66,14 +66,14 @@
                                             <Setter Property="Visibility" Value="Visible"/>
                                             <Setter Property="Source" Value="/images/vector.png"/>
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="MvoModel">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/mvo.png"/>
+                                        </DataTrigger>
                                         <!--
                                         <DataTrigger Binding="{Binding TypeName}" Value="Double">
                                             <Setter Property="Visibility" Value="Visible"/>
                                             <Setter Property="Source" Value="{dx:DXImage 'SvgImages/Spreadsheet/Number.svg'}"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding TypeName}" Value="MvoModel">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Setter Property="Source" Value="{dx:DXImage 'SvgImages/Spreadsheet/FunctionsStatistical.svg'}"/>
                                         </DataTrigger>
 -->
                                     </Style.Triggers>

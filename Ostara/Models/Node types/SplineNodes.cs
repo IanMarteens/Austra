@@ -1,4 +1,7 @@
-﻿namespace Ostara;
+﻿using OxyPlot;
+using OxyPlot.Annotations;
+
+namespace Ostara;
 
 /// <summary>Common base class for nodes representing a spline model.</summary>
 /// <typeparam name="T">The spline type.</typeparam>
@@ -101,6 +104,15 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
             {
                 Position = OxyPlot.Axes.AxisPosition.Left,
             });
+            LineAnnotation line = new()
+            {
+                Type = LineAnnotationType.Vertical,
+                Color = OxyColors.RoyalBlue,
+                LineStyle = LineStyle.Solid,
+                StrokeThickness = 1,
+                X = OxyPlot.Axes.Axis.ToDouble(NewDate)
+            };
+            OxyModel.Annotations.Add(line);
             OxyPlot.Series.LineSeries lineSeries = new()
             {
                 TrackerFormatString = "{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
@@ -122,6 +134,11 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
         {
             if (SetField(ref newDate, value))
             {
+                if (OxyModel != null)
+                {
+                    ((LineAnnotation)OxyModel.Annotations[0]).X = OxyPlot.Axes.Axis.ToDouble(newDate);
+                    OxyModel.InvalidatePlot(false);
+                }
                 SelectPoly((double)(Date)newDate);
                 try
                 {
@@ -163,6 +180,15 @@ public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
             {
                 Position = OxyPlot.Axes.AxisPosition.Left,
             });
+            LineAnnotation line = new()
+            {
+                Type = LineAnnotationType.Vertical,
+                Color = OxyColors.RoyalBlue,
+                LineStyle = LineStyle.Solid,
+                StrokeThickness = 1,
+                X = (double)NewArg,
+            };
+            OxyModel.Annotations.Add(line);
             OxyPlot.Series.LineSeries lineSeries = new();
             foreach (Point<double> p in Series.Points)
                 lineSeries.Points.Add(new(p.Arg, p.Value));
@@ -180,6 +206,11 @@ public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
         {
             if (SetField(ref newArg, value))
             {
+                if (OxyModel != null)
+                {
+                    ((LineAnnotation)OxyModel.Annotations[0]).X = (double)newArg;
+                    OxyModel.InvalidatePlot(false);
+                }
                 SelectPoly((double)newArg);
                 try
                 {

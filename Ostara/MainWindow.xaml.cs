@@ -74,7 +74,6 @@ public partial class MainWindow : Window
                     }
                 }
 
-
         static bool IsIdentifier(string s) => s.Length > 0 && 
             char.IsLetter(s[0]) && s.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
@@ -123,26 +122,20 @@ public partial class MainWindow : Window
     private void ExecuteOpen(object sender, ExecutedRoutedEventArgs e) =>
         Root.ExecuteOpenCommand();
 
-    private void CanExecuteOpen(object sender, CanExecuteRoutedEventArgs e) =>
-        e.CanExecute = true;
-
     private void ExecuteAbout(object sender, ExecutedRoutedEventArgs e) =>
         new AboutView().Show();
 
-    private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e) =>
-        e.CanExecute = true;
-
-    private void CommandBinding_Executed_Minimize(object sender, ExecutedRoutedEventArgs e) =>
+    private void ExecuteMinimize(object sender, ExecutedRoutedEventArgs e) =>
         SystemCommands.MinimizeWindow(this);
 
     // Maximize
-    private void CommandBinding_Executed_Maximize(object sender, ExecutedRoutedEventArgs e) =>
+    private void ExecuteMaximize(object sender, ExecutedRoutedEventArgs e) =>
         SystemCommands.MaximizeWindow(this);
 
     // Restore
-    private void CommandBinding_Executed_Restore(object sender, ExecutedRoutedEventArgs e) =>
+    private void ExecuteRestore(object sender, ExecutedRoutedEventArgs e) =>
         SystemCommands.RestoreWindow(this);
 
-    private void CommandBinding_Executed_Close(object sender, ExecutedRoutedEventArgs e) =>
+    private void ExecuteClose(object sender, ExecutedRoutedEventArgs e) =>
         SystemCommands.CloseWindow(this);
 }

@@ -20,6 +20,8 @@
 		<None Remove="Images\linear.png" />
 		<None Remove="Images\matrix.png" />
 		<None Remove="Images\model.png" />
+		<None Remove="Images\mvo.png" />
+		<None Remove="Images\new.png" />
 		<None Remove="Images\open.png" />
 		<None Remove="Images\options.png" />
 		<None Remove="Images\play.png" />
@@ -84,6 +86,8 @@
 	  <Resource Include="Images\linear.png" />
 	  <Resource Include="Images\matrix.png" />
 	  <Resource Include="Images\model.png" />
+	  <Resource Include="Images\mvo.png" />
+	  <Resource Include="Images\new.png" />
 	  <Resource Include="Images\open.png" />
 	  <Resource Include="Images\options.png" />
 	  <Resource Include="Images\play.png" />
