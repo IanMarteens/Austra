@@ -2,9 +2,10 @@
 
 *Austra* seems to be another spelling for *Ostara* or *Ēostre*, a West Germanic spring goddess. It is also a catchy name for a software library, but I may be wrong on this.
 
-It has two main components:
+It has three main components:
 * Austra.Library
 * Austra.Parser
+* Ostara (a WPF application for using the language)
 
 The library has been designed both for direct use and for using it through a simple formula-oriented language.
 
@@ -22,10 +23,11 @@ More sophisticated use cases are also supported. For instance, your final custom
 
 ## How to give the language a try
 
-There is a Big Bad Austra Desktop application, written in WPF, with all the required bells and whistles... but it uses third-party controls, so I cannot open source it.
+The best way is using Ostara. It's a WPF application running on .NET Core 7. You can type formulas in a code editor (based on [AvalonEdit](http://avalonedit.net)), and the results of the evaluation are shown in a WPF document, either as text or as interactive controls. Charts are currently based on [OxyPlot](https://oxyplot.github.io).
 
-Meanwhile, you can try the language through the Austra.Console application. It's a simple console application that reads a formula at a time, evaluates it, and then prints the results to the console.
+You can also try the language through the Austra.REPL application. It's a simple console application that reads a formula at a time, evaluates it, and then prints the results to the console.
 
+Full source code for both applications are included in [AUSTRA's repository](https://github.com/IanMarteens/austra).
 ## Acknowledgments
 
 I have used two libraries as a reference, and as a source of inspiration, for developing Austra: [AlgLib](https://www.alglib.net/) and [Math.NET](https://numerics.mathdotnet.com/). Regarding the algorithms, my main source of information has been these books:
