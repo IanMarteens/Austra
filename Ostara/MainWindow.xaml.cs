@@ -53,7 +53,10 @@ public partial class MainWindow : Window
                 {
                     string fragment = GetFragment(0);
                     if (IsIdentifier(fragment))
+                    {
                         ShowCodeCompletion(RootModel.Instance.GetRoots());
+                        completionWindow!.StartOffset = avalon.CaretOffset - fragment.Length;
+                    }
                     else
                     {
                         fragment = fragment.TrimEnd();

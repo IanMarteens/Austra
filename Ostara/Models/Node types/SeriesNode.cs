@@ -77,3 +77,51 @@ public sealed class SeriesNode: VarNode<Series>
     [Category("Stats")]
     public double Kurtosis => acc.Kurtosis;
 }
+
+public sealed class PercentileNode : VarNode<Series<double>>
+{
+    public PercentileNode(ClassNode? parent, string varName, string formula, Series<double> value) :
+        base(parent, varName, formula, "Percentiles", value)
+    { }
+
+
+    public PercentileNode(ClassNode? parent, string varName, Series<double> value) :
+        this(parent, varName, varName, value)
+    { }
+
+    override public void Show()
+    {
+        OxyPlot.PlotModel model = new();
+        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
+        {
+            Position = OxyPlot.Axes.AxisPosition.Bottom,
+        });
+        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
+        {
+            Position = OxyPlot.Axes.AxisPosition.Left,
+        });
+        OxyPlot.Series.LineSeries lineSeries = new()
+        {
+            TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
+        };
+        foreach (Point<double> p in Model.Points)
+            lineSeries.Points.Add(new(p.Arg, p.Value));
+        model.Series.Add(lineSeries);
+        OxyPlot.Wpf.PlotView view = new()
+        {
+            Model = model,
+            Width = 900,
+            Height = 250,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
+        };
+        RootModel.Instance.AppendControl(Formula, Model.ToString(), view);
+    }
+
+    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
+
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => Stored ? base.ImageSource : "/images/waves.png";
+
+}

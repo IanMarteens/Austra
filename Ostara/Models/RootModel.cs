@@ -1,11 +1,10 @@
 ﻿using Austra.Parser;
+using Microsoft.Win32;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
-using Microsoft.Win32;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Drawing.Imaging;
 
 namespace Ostara;
 
@@ -86,8 +85,6 @@ public sealed partial class RootModel : Entity
     }
 
     public bool HasEnvironment => environment != null;
-
-    public bool GetHasEnvironment() => environment != null;
 
     /// <summary>Gets the visibility of the code editor.</summary>
     public Visibility ShowFormulaEditor
@@ -197,6 +194,7 @@ public sealed partial class RootModel : Entity
         VarNode vNode = value switch
         {
             Series s => new SeriesNode(cNode, name, s) { Stored = stored },
+            Series<double> s => new PercentileNode(cNode, name, s),
             Tuple<Series, Series> t => new CompareNode(cNode, name, t),
             FftModel fft => new FftNode(cNode, name, fft),
             ARSModel m => new ARSNode(cNode, name, m),
@@ -213,7 +211,6 @@ public sealed partial class RootModel : Entity
             ComplexVector cv => new CVectorNode(cNode, name, cv),
             EVD evd => new EvdNode(cNode, name, evd),
             /*Series<int> s => new CorrNode(cNode, name, s),
-            Series<double> s => new PercNode(cNode, name, s),
             Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
             Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),
             MvoModel m => new MvoNode(cNode, name, m),*/
@@ -241,7 +238,7 @@ public sealed partial class RootModel : Entity
         {
             if (scrollViewer == null)
             {
-                // Border is the first child of first child of a ScrolldocumentViewer
+                // The border is the first child!
                 DependencyObject firstChild = VisualTreeHelper.GetChild(Document, 0);
                 Decorator? border = VisualTreeHelper.GetChild(firstChild, 0) as Decorator;
                 scrollViewer = border?.Child as ScrollViewer;
@@ -379,6 +376,7 @@ public sealed partial class RootModel : Entity
                 VarNode? node = ans switch
                 {
                     Series s => new SeriesNode(null, typeString, form, s),
+                    Series<double> s => new PercentileNode(null, typeString, form, s),
                     Tuple<Series, Series> t1 => new CompareNode(null, "Comparison", form, t1),
                     FftModel fft => new FftNode(null, typeString, form, fft),
                     ARSModel m1 => new ARSNode(null, typeString, form, m1),
