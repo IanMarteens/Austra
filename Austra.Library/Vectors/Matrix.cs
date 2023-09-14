@@ -1019,7 +1019,7 @@ public readonly struct Matrix :
     /// <returns>The transformed vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe Vector operator *(Matrix m, Vector v) =>
-        m.Multiply(v, new double[m.Rows]);
+        m.Multiply(v, GC.AllocateUninitializedArray<double>(m.Rows));
 
     /// <summary>Transform a vector using the transposed matrix.</summary>
     /// <param name="v">Vector to transform.</param>

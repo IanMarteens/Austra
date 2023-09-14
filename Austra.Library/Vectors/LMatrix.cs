@@ -643,7 +643,7 @@ public readonly struct LMatrix :
     /// <returns>The transformed vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector operator *(LMatrix m, Vector v) =>
-        m.Multiply(v, new double[m.Rows]);
+        m.Multiply(v, GC.AllocateUninitializedArray<double>(m.Rows));
 
     /// <summary>Transforms a vector using this matrix.</summary>
     /// <param name="v">Vector to transform.</param>

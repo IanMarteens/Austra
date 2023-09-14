@@ -6,6 +6,10 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ApplicationIcon>ak.ico</ApplicationIcon>
+		<Version>1.3.0</Version>
+		<Authors>Ian Marteens</Authors>
+		<Company>Intuitive Sight</Company>
+		<Product>AUSTRA</Product>
 	</PropertyGroup>
 
 	<ItemGroup>

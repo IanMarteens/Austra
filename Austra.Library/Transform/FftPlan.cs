@@ -1796,7 +1796,7 @@ public sealed partial class FftPlan
         {
             if (recycled_objects != null)
             {
-                Entry? result = recycled_objects;
+                Entry result = recycled_objects;
                 recycled_objects = recycled_objects.next_entry;
                 var ret = (result.obj1!, result.obj2!);
                 result.obj1 = result.obj2 = null;

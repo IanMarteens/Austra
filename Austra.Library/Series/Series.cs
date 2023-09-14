@@ -88,7 +88,7 @@ public sealed class Series : Series<Date>,
     /// <returns>A derived series with one less point.</returns>
     public unsafe new Series AsReturns()
     {
-        var newValues = new double[Count - 1];
+        double[] newValues = GC.AllocateUninitializedArray<double>(Count - 1);
         fixed (double* p = values, q = newValues)
         {
             int i = 0, size = newValues.Length;
@@ -110,7 +110,7 @@ public sealed class Series : Series<Date>,
     /// <returns>A derived series with one less point.</returns>
     public unsafe new Series AsLogReturns()
     {
-        var newValues = new double[Count - 1];
+        double[] newValues = GC.AllocateUninitializedArray<double>(Count - 1);
         fixed (double* p = values, q = newValues)
         {
             int i = 0, size = newValues.Length;
@@ -175,7 +175,7 @@ public sealed class Series : Series<Date>,
     public unsafe Series Random()
     {
         NormalRandom rnd = new(Mean(), StandardDeviation());
-        var newValues = new double[Count];
+        double[] newValues = GC.AllocateUninitializedArray<double>(Count);
         fixed (double* p = newValues)
             for (int i = 0; i < newValues.Length; i++)
                 p[i] = rnd.NextDouble();
@@ -216,7 +216,7 @@ public sealed class Series : Series<Date>,
     {
         Vector coeffs = Fit();
         double a = coeffs[0], b = coeffs[1];
-        var newValues = new double[Count];
+        double[] newValues = GC.AllocateUninitializedArray<double>(Count);
         for (int i = 0; i < newValues.Length; i++)
             newValues[i] = a * (uint)args[i] + b;
         return new(Name + ".FITS", Ticker, newValues, this);

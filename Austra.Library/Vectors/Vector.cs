@@ -40,7 +40,7 @@ public readonly struct Vector :
     /// <param name="width">Width for the uniform distribution.</param>
     public Vector(int size, Random rnd, double offset, double width)
     {
-        values = new double[size];
+        values = GC.AllocateUninitializedArray<double>(size);
         for (int i = 0; i < values.Length; i++)
             values[i] = FusedMultiplyAdd(rnd.NextDouble(), width , offset);
     }
@@ -56,7 +56,7 @@ public readonly struct Vector :
     /// <param name="rnd">A normal random number generator.</param>
     public unsafe Vector(int size, NormalRandom rnd)
     {
-        values = new double[size];
+        values = GC.AllocateUninitializedArray<double>(size);
         fixed (double* p = values)
         {
             int i = 0;
@@ -72,7 +72,7 @@ public readonly struct Vector :
     /// <param name="f">A function defining item content.</param>
     public Vector(int size, Func<int, double> f)
     {
-        values = new double[size];
+        values = GC.AllocateUninitializedArray<double>(size);
         for (int i = 0; i < values.Length; i++)
             values[i] = f(i);
     }
@@ -92,7 +92,7 @@ public readonly struct Vector :
     /// <param name="newValue">New value at the right.</param>
     public Vector(Vector prefix, double newValue)
     {
-        values = new double[prefix.Length + 1];
+        values = GC.AllocateUninitializedArray<double>(prefix.Length + 1);
         Array.Copy(prefix.values, values, prefix.Length);
         values[^1] = newValue;
     }
@@ -102,7 +102,7 @@ public readonly struct Vector :
     /// <param name="newValue">New value at the left.</param>
     public Vector(double newValue, Vector suffix)
     {
-        values = new double[suffix.Length + 1];
+        values = GC.AllocateUninitializedArray<double>(suffix.Length + 1);
         values[0] = newValue;
         Array.Copy(suffix.values, 0, values, 1, suffix.Length);
     }
@@ -112,7 +112,7 @@ public readonly struct Vector :
     /// <param name="v2">Second vector.</param>
     public Vector(Vector v1, Vector v2)
     {
-        values = new double[v1.Length + v2.Length];
+        values = GC.AllocateUninitializedArray<double>(v1.Length + v2.Length);
         Array.Copy(v1.values, values, v1.Length);
         Array.Copy(v2.values, 0, values, v1.Length, v2.Length);
     }
@@ -121,7 +121,7 @@ public readonly struct Vector :
     /// <param name="v">An array of vectors.</param>
     public Vector(params Vector[] v)
     {
-        values = new double[v.Sum(v => v.Length)];
+        values = GC.AllocateUninitializedArray<double>(v.Sum(v => v.Length));
         int offset = 0;
         foreach (Vector vi in v)
         {
@@ -271,7 +271,7 @@ public readonly struct Vector :
     /// <returns>The component by component sum.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector operator +(Vector v1, Vector v2) =>
-        v1.Add(v2, new double[v1.Length]);
+        v1.Add(v2, GC.AllocateUninitializedArray<double>(v1.Length));
 
     /// <summary>Adds a vector to this vector.</summary>
     /// <param name="v">Second vector operand.</param>
@@ -311,7 +311,7 @@ public readonly struct Vector :
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == v1.Length);
 
-        double[] result = new double[v1.Length];
+        double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
         fixed (double* pA = v1.values, pB = v2.values, pC = result)
         {
             int len = v1.values.Length;
@@ -334,7 +334,7 @@ public readonly struct Vector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
-        double[] result = new double[v.Length];
+        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
             int len = v.values.Length;
@@ -360,7 +360,7 @@ public readonly struct Vector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
-        double[] result = new double[v.Length];
+        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
             int len = v.values.Length;
@@ -393,7 +393,7 @@ public readonly struct Vector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
-        double[] result = new double[v.Length];
+        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
             int len = v.values.Length;
@@ -419,7 +419,7 @@ public readonly struct Vector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
-        double[] result = new double[v.Length];
+        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
             int len = v.values.Length;
@@ -514,7 +514,7 @@ public readonly struct Vector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
-        double[] result = new double[v.Length];
+        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
             int len = v.values.Length;
@@ -795,7 +795,7 @@ public readonly struct Vector :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        double[] result = new double[values.Length];
+        double[] result = GC.AllocateUninitializedArray<double>(values.Length);
         fixed (double* p = values, q = result)
         {
             int len = values.Length;
@@ -816,7 +816,7 @@ public readonly struct Vector :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        double[] result = new double[values.Length];
+        double[] result = GC.AllocateUninitializedArray<double>(values.Length);
         fixed (double* p = values, q = result)
         {
             int len = values.Length;
@@ -840,7 +840,7 @@ public readonly struct Vector :
     /// <returns>A new vector with transformed content.</returns>
     public unsafe Vector Map(Func<double, double> mapper)
     {
-        double[] newValues = new double[values.Length];
+        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
         fixed (double* p = values)
             for (int i = 0; i < newValues.Length; i++)
                 newValues[i] = mapper(p[i]);
@@ -876,7 +876,7 @@ public readonly struct Vector :
     /// <returns>A new vector with the filtered items.</returns>
     public Vector Filter(Func<double, bool> predicate)
     {
-        double[] newValues = new double[values.Length];
+        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
         int j = 0;
         foreach (double value in values)
             if (predicate(value))
@@ -902,7 +902,7 @@ public readonly struct Vector :
     public unsafe Vector Zip(Vector other, Func<double, double, double> zipper)
     {
         int len = Min(Length, other.Length);
-        double[] newValues = new double[len];
+        double[] newValues = GC.AllocateUninitializedArray<double>(len);
         fixed (double* p = values, q = other.values, r = newValues)
             for (int i = 0; i < len; i++)
                 r[i] = zipper(p[i], q[i]);

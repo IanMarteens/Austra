@@ -199,7 +199,7 @@ public readonly struct LU : IFormattable
         Contract.Requires(Size == v.Length);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
-        Vector result = new double[Size];
+        Vector result = GC.AllocateUninitializedArray<double>(Size);
         Solve(v, result);
         return result;
     }

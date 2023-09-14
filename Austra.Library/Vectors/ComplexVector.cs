@@ -611,7 +611,7 @@ public readonly struct ComplexVector :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        double[] result = new double[Length];
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = re, q = im, r = result)
         {
             int i = 0;
@@ -665,7 +665,7 @@ public readonly struct ComplexVector :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        double[] result = new double[Length];
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = re, q = im, r = result)
         {
             int i = 0;
@@ -701,7 +701,8 @@ public readonly struct ComplexVector :
     /// <returns>A new vector with transformed content.</returns>
     public ComplexVector Map(Func<Complex, Complex> mapper)
     {
-        double[] newRe = new double[Length], newIm = new double[Length];
+        double[] newRe = GC.AllocateUninitializedArray<double>(Length);
+        double[] newIm = GC.AllocateUninitializedArray<double>(Length);
         for (int i = 0; i < re.Length; i++)
             (newRe[i], newIm[i]) = mapper(new(re[i], im[i]));
         return new(newRe, newIm);
@@ -714,7 +715,7 @@ public readonly struct ComplexVector :
     /// <returns>A real vector with the transformed content.</returns>
     public Vector MapReal(Func<Complex, double> mapper)
     {
-        double[] newValues = new double[Length];
+        double[] newValues = GC.AllocateUninitializedArray<double>(Length);
         for (int i = 0; i < re.Length; i++)
             newValues[i] = mapper(new(re[i], im[i]));
         return new(newValues);
@@ -749,8 +750,8 @@ public readonly struct ComplexVector :
     /// <returns>A new vector with the filtered items.</returns>
     public ComplexVector Filter(Func<Complex, bool> predicate)
     {
-        double[] newRe = new double[Length];
-        double[] newIm = new double[Length];
+        double[] newRe = GC.AllocateUninitializedArray<double>(Length);
+        double[] newIm = GC.AllocateUninitializedArray<double>(Length);
         int j = 0;
         foreach (Complex value in this)
             if (predicate(value))

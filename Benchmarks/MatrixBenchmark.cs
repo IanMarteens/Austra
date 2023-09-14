@@ -31,4 +31,7 @@ public class MatrixBenchmark : BenchmarkControl
 
     [Benchmark]
     public Vector AustraTransMatrixVector() => cm1.TransposeMultiply(cv1);
+
+    [Benchmark]
+    public Vector AustraMatrixVector() => cm1 * cv1;
 }

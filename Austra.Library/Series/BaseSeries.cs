@@ -473,7 +473,7 @@ public class Series<T> where T : struct, IComparable<T>
     {
         int len = Min(s1.Count, s2.Count);
         T[] newArgs = s1.Count == len ? s1.args : s2.args;
-        double[] newValues = new double[len];
+        double[] newValues = GC.AllocateUninitializedArray<double>(len);
 
         fixed (double* pA = s1.values, pB = s2.values, pC = newValues)
         {
@@ -503,7 +503,7 @@ public class Series<T> where T : struct, IComparable<T>
     {
         int len = Min(s1.Count, s2.Count);
         T[] newArgs = s1.Count == len ? s1.args : s2.args;
-        double[] newValues = new double[len];
+        double[] newValues = GC.AllocateUninitializedArray<double>(len);
 
         fixed (double* pA = s1.values, pB = s2.values, pC = newValues)
         {

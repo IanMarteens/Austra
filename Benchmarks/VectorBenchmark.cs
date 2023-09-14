@@ -2,7 +2,7 @@
 
 public class VectorBenchmark : BenchmarkControl
 {
-    private readonly Vector cv1, cv2, cv3;
+    private readonly Vector cv1, cv2, cv3, cv4, cv5;
     private readonly Complex[] cv = new Complex[1023];
     private readonly ComplexVector cxv;
 
@@ -13,10 +13,18 @@ public class VectorBenchmark : BenchmarkControl
         cv1 = new Vector(size, rnd);
         cv2 = new Vector(size, rnd);
         cv3 = cv1.Clone();
+        cv4 = new Vector(1024, rnd);
+        cv5 = new Vector(1024, rnd);
         for (int i = 0; i < cv.Length; i++)
             cv[i] = new Complex(rnd.NextDouble(), rnd.NextDouble());
         cxv = new(cv);
     }
+
+    [Benchmark]
+    public Vector AustraVectorSum() => cv4 + cv5;
+
+    [Benchmark]
+    public Vector AustraVectorScale() => 2d * cv4;
 
     [Benchmark]
     public double AustraDotProduct() => cv1 * cv2;
@@ -35,4 +43,10 @@ public class VectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public Vector AustraComplexVectorPhases() => cxv.Phases();
+
+    [Benchmark]
+    public ComplexVector AustraComplexVectorMap() => cxv.Map(c => new(c.Imaginary, c.Real));
+
+    [Benchmark]
+    public ComplexVector AustraComplexVectorFilter() => cxv.Filter(c => c.Real > c.Imaginary);
 }
