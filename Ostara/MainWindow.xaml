@@ -227,7 +227,7 @@
                     </Grid>
                     <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" Visibility="{Binding ShowFormulaEditor}" Background="#FF262626"/>
                     <FlowDocumentScrollViewer Grid.Row="2" x:Name="document" HorizontalScrollBarVisibility="Auto" Foreground="Black">
-                        <FlowDocument Background="#FF161616" Foreground="White" PageWidth="2048">
+                        <FlowDocument Background="#FF161616" Foreground="White" PageWidth="1800">
                             <Section x:Name="mainSection" FontFamily="Fira Code,Cascadia Code,Courier New" FontSize="10pt">
                             </Section>
                         </FlowDocument>
