@@ -7,6 +7,6 @@ WriteLine("Benchmarks for AUSTRA");
 //BenchmarkRunner.Run<LuBenchmark>();
 //BenchmarkRunner.Run<CholeskyBenchmark>();
 //BenchmarkRunner.Run<FftBenchmark>();
-BenchmarkRunner.Run<SeriesBenchmark>();
+//BenchmarkRunner.Run<SeriesBenchmark>();
 //BenchmarkRunner.Run<ParserBenchmark>();
-//BenchmarkRunner.Run<SplineBenchmark>();
+BenchmarkRunner.Run<SplineBenchmark>();

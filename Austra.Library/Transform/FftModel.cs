@@ -91,8 +91,8 @@ public sealed class FftRModel : FftModel
         }
         else
         {
-            Amplitudes = Spectrum.Select(c => c.Magnitude).ToArray();
-            Phases = Spectrum.Select(c => c.Phase).ToArray();
+            Amplitudes = Spectrum.Magnitudes();
+            Phases = Spectrum.Phases();
         }
     }
 
@@ -119,8 +119,8 @@ public sealed class FftCModel : FftModel
     /// </summary>
     protected override void Calculate()
     {
-        Amplitudes = Spectrum.Select(c => c.Magnitude).ToArray();
-        Phases = Spectrum.Select(c => c.Phase).ToArray();
+        Amplitudes = Spectrum.Magnitudes();
+        Phases = Spectrum.Phases();
     }
 
     /// <inheritdoc/>

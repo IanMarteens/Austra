@@ -51,7 +51,7 @@ public static class FFT
             return new Complex[] { a[0] + a[1], a[0] - a[1] };
 
         // Choose between odd-size and even-size FFTs
-        Complex[] f = new Complex[n];
+        Complex[] f = GC.AllocateUninitializedArray<Complex>(n);
         if (n % 2 == 0)
         {
             int n2 = n / 2;
@@ -120,7 +120,7 @@ public static class FFT
                     }
                 }
                 for (; i < n; i++)
-                    pfd[i + i] = pa[i];
+                    (pfd[i + i], pfd[i + i + 1]) = (pa[i], 0d);
             }
             Transform(f, n);
         }

@@ -40,8 +40,8 @@ public abstract class Spline<ARG> where ARG : struct
             throw new ArgumentException("At least two segments required.");
         if (x0 >= x1)
             throw new ArgumentException("The first argument must be lesser than the second.");
-        xs = new double[segments + 1];
-        ys = new double[segments + 1];
+        xs = GC.AllocateUninitializedArray<double>(segments + 1);
+        ys = GC.AllocateUninitializedArray<double>(segments + 1);
         double dx = (x1 - x0) / segments;
         for (int i = 0; i < segments; i++)
             ys[i] = f(xs[i] = x0 + dx * i);
