@@ -35,6 +35,7 @@ public sealed partial class RootModel : Entity
     /// <summary>Gets the visibility of the code editor.</summary>
     private Visibility showFormulaEditor = Visibility.Collapsed;
 
+    public static RoutedCommand ParseType = new();
     public static RoutedCommand CloseAll = new();
     public static RoutedCommand About = new();
 
@@ -43,8 +44,8 @@ public sealed partial class RootModel : Entity
     {
         CommonMatrix.TERMINAL_COLUMNS = 160;
         timer.Interval = new TimeSpan(0, 0, 15);
-        timer.Tick += (e, a) => 
-        { 
+        timer.Tick += (e, a) =>
+        {
             ErrorText = "";
             Message = "";
             ShowErrorText = Visibility.Collapsed;
@@ -306,13 +307,38 @@ public sealed partial class RootModel : Entity
         MainSection?.Blocks.Clear();
     }
 
+    public void CheckType(string text)
+    {
+        CleanBeforeParsing();
+        if (string.IsNullOrWhiteSpace(text))
+            return;
+        try
+        {
+            Type result = environment!.Engine.EvalType(text);
+            ShowTimesMessage(true, false);
+            AppendResult(CleanFormula(text),
+                result == typeof(Series<double>) ? "Series<double>" :
+                result == typeof(Series<int>) ? "Series<int>" :
+                result.Name);
+        }
+        catch (AstException e)
+        {
+            Editor.CaretOffset = Math.Min(e.Position, Editor.Text.Length);
+            ErrorText = e.Message;
+            ShowErrorText = Visibility.Visible;
+            timer.Start();
+        }
+        catch (Exception e)
+        {
+            ErrorText = e.Message;
+            ShowErrorText = Visibility.Visible;
+            timer.Start();
+        }
+    }
+
     public void Evaluate(string text)
     {
-        timer.Stop();
-        Message = "";
-        ErrorText = "";
-        ShowErrorText = Visibility.Collapsed;
-        CloseCompletion();
+        CleanBeforeParsing();
         if (string.IsNullOrWhiteSpace(text))
             return;
         try
@@ -424,15 +450,24 @@ public sealed partial class RootModel : Entity
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
-        
-        static string CleanFormula(string s)
-        {
-            var m = SetRegex().Match(s);
-            return (m.Success ? m.Groups["name"].Value : s).
-                Replace("\r\n", " ").
-                Replace(" \t", " ").
-                Replace("\t", " ");
-        }
+    }
+
+    private void CleanBeforeParsing()
+    {
+        timer.Stop();
+        Message = "";
+        ErrorText = "";
+        ShowErrorText = Visibility.Collapsed;
+        CloseCompletion();
+    }
+
+    private static string CleanFormula(string s)
+    {
+        var m = SetRegex().Match(s);
+        return (m.Success ? m.Groups["name"].Value : s).
+            Replace("\r\n", " ").
+            Replace(" \t", " ").
+            Replace("\t", " ");
     }
 
     /// <summary>Shows the compiling and execution time in the status bar.</summary>

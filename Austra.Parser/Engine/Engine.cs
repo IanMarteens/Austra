@@ -169,8 +169,13 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>The type resulting from the evaluation.</returns>
     public Type EvalType(string formula)
     {
+        ExecutionTime = CompileTime = null;
         using AstContext ctx = new(Source, Lexer.Lex(formula).GetEnumerator());
-        return Parser.ParseType(ctx);
+        Stopwatch sw = Stopwatch.StartNew();
+        Type result = Parser.ParseType(ctx);
+        sw.Stop();
+        CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
+        return result;
     }
 
     /// <summary>Validates a definition (no SET clause) and returns its type.</summary>

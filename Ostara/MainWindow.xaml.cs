@@ -110,6 +110,9 @@ public partial class MainWindow : Window
     private void PlayCmdExecuted(object sender, ExecutedRoutedEventArgs e) =>
         Root.Evaluate(avalon.Text);
 
+    private void CheckTypeExecuted(object sender, ExecutedRoutedEventArgs e) =>
+        Root.CheckType(avalon.Text);
+
     private void CanExecuteCloseAll(object sender, CanExecuteRoutedEventArgs e) =>
         e.CanExecute = Root.HasEnvironment;
 

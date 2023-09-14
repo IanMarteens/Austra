@@ -69,11 +69,12 @@
                         CanExecute="CanExecuteCloseAll"/>
         <CommandBinding Command="{x:Static local:RootModel.About}" Executed="ExecuteAbout"/>
         <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCmdExecuted"/>
-        <CommandBinding Command="MediaCommands.Play" Executed="PlayCmdExecuted"
-                  CanExecute="CanExecutePlay"/>
+        <CommandBinding Command="MediaCommands.Play" Executed="PlayCmdExecuted" CanExecute="CanExecutePlay"/>
+        <CommandBinding Command="{x:Static local:RootModel.ParseType}" Executed="CheckTypeExecuted" CanExecute="CanExecutePlay"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="F5" Command="MediaCommands.Play"/>
+        <KeyBinding Key="F5" Modifiers="Control" Command="{x:Static local:RootModel.ParseType}"/>
         <KeyBinding Key="F1" Modifiers="Control" Command="{x:Static local:RootModel.About}"/>
     </Window.InputBindings>
     <Border x:Name="MainWindowBorder" BorderBrush="#FF000010" BorderThickness="8" >
@@ -129,7 +130,7 @@
                             <Image Source="/images/play.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="_Check type" InputGestureText="Ctrl+F5">
+                    <MenuItem Header="_Check type" InputGestureText="Ctrl+F5" Command="{x:Static local:RootModel.ParseType}">
                         <MenuItem.Icon>
                             <Image Source="/images/playt.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
