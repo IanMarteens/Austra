@@ -74,13 +74,13 @@ public partial class MainWindow : Window
                     }
                 }
 
-        static bool IsIdentifier(string s) => s.Length > 0 && 
+        static bool IsIdentifier(string s) => s.Length > 0 &&
             char.IsLetter(s[0]) && s.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
 
     private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
     {
-          if (e.Text == ".")
+        if (e.Text == ".")
             ShowCodeCompletion(RootModel.Instance.GetMembers(GetFragment()));
         else if (e.Text == ":")
             ShowCodeCompletion(RootModel.Instance.GetClassMembers(GetFragment()));
@@ -141,4 +141,14 @@ public partial class MainWindow : Window
 
     private void ExecuteClose(object sender, ExecutedRoutedEventArgs e) =>
         SystemCommands.CloseWindow(this);
+
+    private void ExecHistoryDown(object sender, ExecutedRoutedEventArgs e) =>
+        Root.ExecHistoryDown();
+
+    private void ExecHistoryUp(object sender, ExecutedRoutedEventArgs e) =>
+        Root.ExecHistoryUp();
+
+    private void AvalonPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+    }
 }

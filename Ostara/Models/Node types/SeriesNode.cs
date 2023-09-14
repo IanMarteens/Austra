@@ -1,6 +1,6 @@
 ﻿namespace Ostara;
 
-public sealed class SeriesNode: VarNode<Series>
+public sealed class SeriesNode : VarNode<Series>
 {
     private static readonly string[] freq2str =
     {
@@ -14,7 +14,8 @@ public sealed class SeriesNode: VarNode<Series>
         => acc = value.Stats();
 
     public SeriesNode(ClassNode? parent, string varName, Series value) :
-        this(parent, varName, varName, value) { }
+        this(parent, varName, varName, value)
+    { }
 
     override public void Show()
     {
@@ -44,7 +45,57 @@ public sealed class SeriesNode: VarNode<Series>
             HorizontalAlignment = HorizontalAlignment.Left,
             Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
         };
-        RootModel.Instance.AppendControl(Formula, Model.ToString(), view);
+        var ctrl = new StackPanel()
+        {
+            Orientation = Orientation.Vertical,
+        };
+        var toolBar = new StackPanel()
+        {
+            Orientation = Orientation.Horizontal,
+        };
+        toolBar.Children.Add(new Label()
+        {
+            Content = "Compare series with:",
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        var combo = new ComboBox()
+        {
+            Width = 200,
+            VerticalAlignment = VerticalAlignment.Center,
+            ItemsSource = new string[] { "None", "Moving average", "Moving StdDev" },
+            SelectedIndex = 0,
+        };
+        combo.SelectionChanged += (s, e) =>
+        {
+            if (model.Series.Count > 1)
+                model.Series.RemoveAt(1);
+            Series newSeries;
+            switch (combo.SelectedIndex)
+            {
+                case 1:
+                    newSeries = Model.MovingAvg(30);
+                    break;
+                case 2:
+                    newSeries = Model.MovingStd(30);
+                    break;
+                default:
+                    model.InvalidatePlot(true);
+                    return;
+            }
+            OxyPlot.Series.LineSeries lineSeries = new()
+            {
+                TrackerFormatString = "{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
+            };
+            foreach (Point<Date> p in newSeries.Points)
+                lineSeries.Points.Add(
+                    new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
+            model.Series.Add(lineSeries);
+            model.InvalidatePlot(true);
+        };
+        toolBar.Children.Add(combo);
+        ctrl.Children.Add(toolBar);
+        ctrl.Children.Add(view);
+        RootModel.Instance.AppendControl(Formula, Model.ToString(), ctrl);
     }
 
     public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
@@ -52,7 +103,7 @@ public sealed class SeriesNode: VarNode<Series>
     public override Visibility ImageVisibility => Visibility.Visible;
 
     public override string ImageSource => Stored ? base.ImageSource : "/images/waves.png";
-  
+
     [Category("Stats")]
     public long Count => acc.Count;
 

@@ -71,11 +71,15 @@
         <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCmdExecuted"/>
         <CommandBinding Command="MediaCommands.Play" Executed="PlayCmdExecuted" CanExecute="CanExecutePlay"/>
         <CommandBinding Command="{x:Static local:RootModel.ParseType}" Executed="CheckTypeExecuted" CanExecute="CanExecutePlay"/>
+        <CommandBinding Command="{x:Static local:RootModel.HistoryUp}" Executed="ExecHistoryUp"/>
+        <CommandBinding Command="{x:Static local:RootModel.HistoryDown}" Executed="ExecHistoryDown"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="F5" Command="MediaCommands.Play"/>
         <KeyBinding Key="F5" Modifiers="Control" Command="{x:Static local:RootModel.ParseType}"/>
         <KeyBinding Key="F1" Modifiers="Control" Command="{x:Static local:RootModel.About}"/>
+        <KeyBinding Key="F7" Command="{x:Static local:RootModel.HistoryUp}"/>
+        <KeyBinding Key="F7" Modifiers="Control" Command="{x:Static local:RootModel.HistoryDown}"/>
     </Window.InputBindings>
     <Border x:Name="MainWindowBorder" BorderBrush="#FF000010" BorderThickness="8" >
         <DockPanel>
@@ -219,7 +223,8 @@
                             VerticalScrollBarVisibility="Auto"
                             Grid.Row="0"
                             VerticalAlignment="Stretch"
-                            HorizontalAlignment="Stretch">
+                            HorizontalAlignment="Stretch"
+                            PreviewKeyDown="AvalonPreviewKeyDown">
                         </avalonEdit:TextEditor>
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Background="#FF363636" Visibility="{Binding ShowFormulaEditor}">
                             <Image Height="15" Width="15" Source="/images/error.png" Visibility="{Binding ShowErrorText}" Margin="2,0,2,0" VerticalAlignment="Center"/>

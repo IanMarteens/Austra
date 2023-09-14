@@ -34,10 +34,13 @@ public sealed partial class RootModel : Entity
     private Visibility showErrorText = Visibility.Collapsed;
     /// <summary>Gets the visibility of the code editor.</summary>
     private Visibility showFormulaEditor = Visibility.Collapsed;
+    private int historyIndex = -1;
 
     public static RoutedCommand ParseType = new();
     public static RoutedCommand CloseAll = new();
     public static RoutedCommand About = new();
+    public static RoutedCommand HistoryUp = new();
+    public static RoutedCommand HistoryDown = new();
 
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
@@ -86,6 +89,8 @@ public sealed partial class RootModel : Entity
     }
 
     public bool HasEnvironment => environment != null;
+
+    public ObservableCollection<string> History { get; } = new();
 
     /// <summary>Gets the visibility of the code editor.</summary>
     public Visibility ShowFormulaEditor
@@ -369,71 +374,78 @@ public sealed partial class RootModel : Entity
                     }
                 Message = $"Definitions {string.Join(", ", dList)} removed.";
             }
-            else if (!string.IsNullOrEmpty(ansVar))
+            else
             {
-                if (allVars.TryGetValue(ansVar, out VarNode? node) &&
-                    node is not DefinitionNode)
+                Editor.SelectAll();
+                if (History.Count == 0 || History[^1] != text)
+                    History.Add(text);
+                historyIndex = -1;
+                if (!string.IsNullOrEmpty(ansVar))
                 {
-                    node.Parent!.Nodes.Remove(node);
-                    if (node.Parent.Nodes.Count == 0)
-                        Classes.Remove(node.Parent);
-                    allVars.Remove(node.Name);
-                }
-                if (ansType == null)
-                {
-                    ans = Environment!.Engine.Source[ansVar];
-                    ansType = ans?.GetType();
-                }
-                if (ansType != null)
-                {
-                    string typeName = Describe(ansType);
-                    ClassNode? parent = Classes.FirstOrDefault(c => c.Name == typeName);
-                    if (parent == null)
+                    if (allVars.TryGetValue(ansVar, out VarNode? node) &&
+                        node is not DefinitionNode)
                     {
-                        parent = new ClassNode(typeName);
-                        Classes.Add(parent);
+                        node.Parent!.Nodes.Remove(node);
+                        if (node.Parent.Nodes.Count == 0)
+                            Classes.Remove(node.Parent);
+                        allVars.Remove(node.Name);
                     }
-                    node = CreateVarNode(parent, ansVar, ansType, false);
-                    if (node != null)
+                    if (ansType == null)
                     {
-                        parent.Nodes.Add(node);
-                        parent.IsExpanded = true;
-                        node.IsSelected = true;
+                        ans = Environment!.Engine.Source[ansVar];
+                        ansType = ans?.GetType();
+                    }
+                    if (ansType != null)
+                    {
+                        string typeName = Describe(ansType);
+                        ClassNode? parent = Classes.FirstOrDefault(c => c.Name == typeName);
+                        if (parent == null)
+                        {
+                            parent = new ClassNode(typeName);
+                            Classes.Add(parent);
+                        }
+                        node = CreateVarNode(parent, ansVar, ansType, false);
+                        if (node != null)
+                        {
+                            parent.Nodes.Add(node);
+                            parent.IsExpanded = true;
+                            node.IsSelected = true;
+                        }
                     }
                 }
-            }
-            else if (ans != null)
-            {
-                string form = CleanFormula(text);
-                string typeString = ansType?.Name ?? "";
-                VarNode? node = ans switch
-                {
-                    Series s => new SeriesNode(null, typeString, form, s),
-                    Series<double> s => new PercentileNode(null, typeString, form, s),
-                    Tuple<Series, Series> t1 => new CompareNode(null, "Comparison", form, t1),
-                    FftModel fft => new FftNode(null, typeString, form, fft),
-                    ARSModel m1 => new ARSNode(null, typeString, form, m1),
-                    ARVModel m2 => new ARVNode(null, typeString, form, m2),
-                    LinearSModel slm => new LinearSModelNode(null, typeString, form, slm),
-                    LinearVModel vlm => new LinearVModelNode(null, typeString, form, vlm),
-                    DateSpline dsp => new DateSplineNode(null, typeString, form, dsp),
-                    VectorSpline vsp => new VectorSplineNode(null, typeString, form, vsp),
-                    Accumulator acc => new AccumNode(null, typeString, form, acc),
-                    AMatrix m => new MatrixNode(null, typeString, form, m),
-                    LMatrix m => new MatrixNode(null, typeString, form, m),
-                    RMatrix m => new MatrixNode(null, typeString, form, m),
-                    RVector v => new VectorNode(null, typeString, form, v),
-                    ComplexVector v => new CVectorNode(null, typeString, form, v),
-                    EVD evd => new EvdNode(null, typeString, form, evd),
-                    MvoModel mvo => new MvoNode(null, typeString, form, mvo),
-                    _ => null
-                };
-                if (node != null)
-                    node.Show();
                 else if (ans != null)
                 {
-                    AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : text, ans.ToString());
-                    return;
+                    string form = CleanFormula(text);
+                    string typeString = ansType?.Name ?? "";
+                    VarNode? node = ans switch
+                    {
+                        Series s => new SeriesNode(null, typeString, form, s),
+                        Series<double> s => new PercentileNode(null, typeString, form, s),
+                        Tuple<Series, Series> t1 => new CompareNode(null, "Comparison", form, t1),
+                        FftModel fft => new FftNode(null, typeString, form, fft),
+                        ARSModel m1 => new ARSNode(null, typeString, form, m1),
+                        ARVModel m2 => new ARVNode(null, typeString, form, m2),
+                        LinearSModel slm => new LinearSModelNode(null, typeString, form, slm),
+                        LinearVModel vlm => new LinearVModelNode(null, typeString, form, vlm),
+                        DateSpline dsp => new DateSplineNode(null, typeString, form, dsp),
+                        VectorSpline vsp => new VectorSplineNode(null, typeString, form, vsp),
+                        Accumulator acc => new AccumNode(null, typeString, form, acc),
+                        AMatrix m => new MatrixNode(null, typeString, form, m),
+                        LMatrix m => new MatrixNode(null, typeString, form, m),
+                        RMatrix m => new MatrixNode(null, typeString, form, m),
+                        RVector v => new VectorNode(null, typeString, form, v),
+                        ComplexVector v => new CVectorNode(null, typeString, form, v),
+                        EVD evd => new EvdNode(null, typeString, form, evd),
+                        MvoModel mvo => new MvoNode(null, typeString, form, mvo),
+                        _ => null
+                    };
+                    if (node != null)
+                        node.Show();
+                    else if (ans != null)
+                    {
+                        AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : text, ans.ToString());
+                        return;
+                    }
                 }
             }
         }
@@ -450,6 +462,81 @@ public sealed partial class RootModel : Entity
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
+    }
+
+    private string savedHistory = "";
+
+    public void ExecHistoryUp()
+    {
+        if (History.Count == 0)
+            return;
+        if (historyIndex == -1)
+        {
+            string oldText = Editor.Text;
+            bool modified = oldText != History[^1];
+            if (!string.IsNullOrEmpty(oldText) && modified)
+                savedHistory = Editor.Text;
+            else
+                savedHistory = "";
+            if (!modified)
+            {
+                if (History.Count > 1)
+                {
+                    Editor.Text = History[^2];
+                    historyIndex = History.Count - 2;
+                }
+                else
+                    return;
+            }
+            else
+            {
+                Editor.Text = History[^1];
+                historyIndex = History.Count - 1;
+            }
+        }
+        else if (historyIndex > 0)
+            Editor.Text = History[--historyIndex];
+        else if (savedHistory != "")
+        {
+            historyIndex = -1;
+            Editor.Text = savedHistory;
+        }
+        else
+        {
+            Editor.Text = History[^1];
+            historyIndex = History.Count - 1;
+        }
+        Editor.CaretOffset = Editor.Text.Length;
+    }
+
+    public void ExecHistoryDown()
+    {
+        if (historyIndex == -1)
+        {
+            if (History.Count == 0)
+                return;
+            string oldText = Editor.Text;
+            bool modified = oldText != History[^1];
+            if (!string.IsNullOrEmpty(oldText) && modified)
+                savedHistory = Editor.Text;
+            else
+                savedHistory = "";
+            Editor.Text = History[0];
+            historyIndex = 0;
+        }
+        else if (historyIndex < History.Count - 1)
+            Editor.Text = History[++historyIndex];
+        else if (savedHistory != "")
+        {
+            historyIndex = -1;
+            Editor.Text = savedHistory;
+        }
+        else
+        {
+            Editor.Text = History[0];
+            historyIndex = 0;
+        }
+        Editor.CaretOffset = Editor.Text.Length;
     }
 
     private void CleanBeforeParsing()
