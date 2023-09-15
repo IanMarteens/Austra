@@ -605,27 +605,37 @@ public readonly struct ComplexVector :
     /// <summary>
     /// Gets a vector containing the magnitudes of the complex numbers in this vector.
     /// </summary>
+    /// <param name="n">The number of amplitudes to be returned.</param>
     /// <returns>A new vector with magnitudes.</returns>
-    public unsafe Vector Magnitudes()
+    internal unsafe Vector Magnitudes(int n)
     {
-        Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(Length);
+        double[] result = GC.AllocateUninitializedArray<double>(n);
         fixed (double* p = re, q = im, r = result)
         {
             int i = 0;
             if (Avx.IsSupported)
-                for (int top = Length & Simd.AVX_MASK; i < top; i += 4)
+                for (int top = n & Simd.AVX_MASK; i < top; i += 4)
                 {
                     Vector256<double> v = Avx.LoadVector256(p + i);
                     Vector256<double> w = Avx.LoadVector256(q + i);
                     Avx.Store(r + i, Avx.Sqrt(Avx.Multiply(v, v).MultiplyAdd(w, w)));
                 }
-            for (; i < Length; i++)
+            for (; i < n; i++)
                 r[i] = Sqrt(re[i] * re[i] + im[i] * im[i]);
             return result;
         }
+    }
+
+    /// <summary>
+    /// Gets a vector containing the magnitudes of the complex numbers in this vector.
+    /// </summary>
+    /// <returns>A new vector with magnitudes.</returns>
+    public Vector Magnitudes()
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+
+        return Magnitudes(Length);
     }
 
     /// <summary>Gets maximum absolute magnitude in the vector.</summary>
@@ -659,23 +669,33 @@ public readonly struct ComplexVector :
     /// <summary>
     /// Gets a vector containing the phases of the complex numbers in this vector.
     /// </summary>
+    /// <param name="n">The number of phases to be returned.</param>
     /// <returns>A new vector with phases.</returns>
-    public unsafe Vector Phases()
+    internal unsafe Vector Phases(int n)
     {
-        Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(Length);
+        double[] result = GC.AllocateUninitializedArray<double>(n);
         fixed (double* p = re, q = im, r = result)
         {
             int i = 0;
             if (Avx2.IsSupported)
-                for (int top = Length & Simd.AVX_MASK; i < top; i += 4)
+                for (int top = n & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(r + i, Avx.LoadVector256(q + i).Atan2(Avx.LoadVector256(p + i)));
-            for (; i < Length; i++)
+            for (; i < n; i++)
                 r[i] = Atan2(im[i], re[i]);
         }
         return result;
+    }
+
+    /// <summary>
+    /// Gets a vector containing the phases of the complex numbers in this vector.
+    /// </summary>
+    /// <returns>A new vector with phases.</returns>
+    public Vector Phases()
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+
+        return Phases(Length);
     }
 
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>

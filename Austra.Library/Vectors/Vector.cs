@@ -963,20 +963,42 @@ public readonly struct Vector :
 
     /// <summary>Computes autocorrelation for a range of lags.</summary>
     /// <param name="size">Number of lags to compute.</param>
-    /// <returns>Pairs lags/autocorrelation.</returns>
-    public Series<int> Correlogram(int size)
+    /// <returns>All the autocorrelations in an array.</returns>
+    internal double[] CorrelogramRaw(int size)
     {
         if (size < 1)
             throw new ArgumentOutOfRangeException(nameof(size), "Size must be positive");
         if (size >= Length - 1)
             throw new ArgumentOutOfRangeException(nameof(size), "Size too large");
         double mean = Mean();
-        double[] values = new double[size];
-        Vector v = this.values;
-        for (int i = 0; i < size; i++)
-            values[i] = v.AutoCorrelation(i + 1, mean);
-        return Series.Create("CORR", null, 1, values, SeriesType.Raw);
+        // Avoid cyclic autocorrelation by padding with enough zeros.
+        uint count = BitOperations.RoundUpToPowerOf2((uint)Length) * 2;
+        Complex[] fft = new Complex[count];
+        for (int i = 0; i < values.Length; i++)
+            fft[i] = values[i] - mean;
+        FFT.Transform(fft);
+        for (int i = 0; i < fft.Length; i++)
+        {
+            var (re, im) = fft[i];
+            fft[i] = re * re + im * im;
+        }
+        FFT.Inverse(fft);
+        double dc = fft[0].Real;
+        double[] newValues = new double[size];
+        for (int i = 0; i < newValues.Length; i++)
+            newValues[i] = fft[i].Real / dc;
+        return newValues;
     }
+
+    /// <summary>Computes autocorrelation for a range of lags.</summary>
+    /// <param name="size">Number of lags to compute.</param>
+    /// <returns>Pairs lags/autocorrelation.</returns>
+    public Series<int> Correlogram(int size) =>
+        Series.Create("CORR", null, 1, CorrelogramRaw(size), SeriesType.Raw);
+
+    /// <summary>Computes autocorrelation for all lags.</summary>
+    /// <returns>Pairs lags/autocorrelation.</returns>
+    public Series<int> ACF() => Correlogram(Length - 2);
 
     /// <summary>Multilinear regression based in Ordinary Least Squares.</summary>
     /// <param name="predictors">Predicting series.</param>

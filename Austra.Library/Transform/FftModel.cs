@@ -86,8 +86,8 @@ public sealed class FftRModel : FftModel
     {
         if (cut)
         {
-            Amplitudes = Spectrum.Take(Spectrum.Length / 2).Select(c => c.Magnitude).ToArray();
-            Phases = Spectrum.Take(Spectrum.Length / 2).Select(c => c.Phase).ToArray();
+            Amplitudes = Spectrum.Magnitudes(Spectrum.Length / 2);
+            Phases = Spectrum.Phases(Spectrum.Length / 2);
         }
         else
         {

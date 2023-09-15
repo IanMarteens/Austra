@@ -372,13 +372,13 @@ public sealed class Series : Series<Date>,
     {
         if (alpha <= 0 || alpha >= 1)
             return this;
-        double[] newValues = new double[Count];
+        double[] newValues = GC.AllocateUninitializedArray<double>(Count);
         int c = Count - 1;
         double acc = newValues[c] = values[c];
         double beta = 1 - alpha;
         for (int i = 1; i <= c; i++)
         {
-            acc = alpha * values[c - i] + beta * acc;
+            acc = FusedMultiplyAdd(alpha, values[c - i], beta * acc);
             newValues[c - i] = acc;
         }
         return new(Name + ".EWMA", Ticker, newValues, this);

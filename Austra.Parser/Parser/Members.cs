@@ -56,6 +56,7 @@ internal static partial class Parser
             ("ar(", "Calculates the autoregression coefficients"),
             ("arModel(", "Creates an AR(p) model"),
             ("spline", "Creates a cubic interpolator"),
+            ("acf", "AutoCorrelation Function"),
         },
         [typeof(Series<int>)] = new[]
         {
@@ -198,7 +199,8 @@ internal static partial class Parser
             ("linear(", "Gets the regression coefficients given a list of vectors"),
             ("linearModel(", "Creates a linear model"),
             ("ar(", "Calculates the autoregression coefficients"),
-            ("arModel(", "Creates an AR(p) model")
+            ("arModel(", "Creates an AR(p) model"),
+            ("acf", "AutoCorrelation Function"),
         },
         [typeof(ComplexVector)] = new[]
         {

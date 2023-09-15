@@ -107,11 +107,10 @@ public static class FFT
                 int i = 0;
                 if (Avx.IsSupported)
                 {
-                    var z = Vector256<double>.Zero;
-                    int top = n & 0x7FFF_FFFE;
-                    for (; i < top; i += 4)
+                    Vector256<double> z = Vector256<double>.Zero;
+                    for (int top = n & ~1; i < top; i += 4)
                     {
-                        var source = Avx.LoadVector256(pa + i);
+                        Vector256<double> source = Avx.LoadVector256(pa + i);
                         double* target = pfd + i + i;
                         Avx.Store(target,
                             Avx.Shuffle(Avx.Permute2x128(source, source, 0), z, 12));
@@ -151,7 +150,6 @@ public static class FFT
         // which is reduced to the forward real FHT,
         // which is reduced to the forward real FFT.
         double[] h = new double[n];
-        double[] a = new double[n];
         h[0] = f[0].Real;
         for (int i = 1; i < n / 2; i++)
         {
@@ -168,8 +166,8 @@ public static class FFT
         }
         Complex[] fh = Transform(h, n);
         for (int i = 0; i < n; i++)
-            a[i] = (fh[i].Real - fh[i].Imaginary) / n;
-        return a;
+            h[i] = (fh[i].Real - fh[i].Imaginary) / n;
+        return h;
     }
 
     /// <summary>Inverse real Fast Fourier Transform.</summary>

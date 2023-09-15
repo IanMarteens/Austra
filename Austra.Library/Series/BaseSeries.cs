@@ -417,18 +417,12 @@ public class Series<T> where T : struct, IComparable<T>
     /// <summary>Computes autocorrelation for a range of lags.</summary>
     /// <param name="size">Number of lags to compute.</param>
     /// <returns>Pairs lags/autocorrelation.</returns>
-    public Series<int> Correlogram(int size)
-    {
-        if (size < 1)
-            throw new ArgumentOutOfRangeException(nameof(size), "Size must be positive");
-        if (size >= Count - 1)
-            throw new ArgumentOutOfRangeException(nameof(size), "Size too large");
-        double[] values = new double[size];
-        Vector v = this.values;
-        for (int i = 0; i < size; i++)
-            values[i] = v.AutoCorrelation(i + 1, stats.Mean);
-        return Create("CORR(" + Name + ")", Ticker, 1, values, Type);
-    }
+    public Series<int> Correlogram(int size) =>
+        Create("CORR(" + Name + ")", Ticker, 1, new Vector(values).CorrelogramRaw(size), Type);
+
+    /// <summary>Computes autocorrelation for all lags.</summary>
+    /// <returns>Pairs lags/autocorrelation.</returns>
+    public Series<int> ACF() => Correlogram(Count - 2);
 
     /// <summary>Computes the real discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>

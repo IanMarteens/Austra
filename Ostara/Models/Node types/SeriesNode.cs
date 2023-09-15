@@ -45,11 +45,11 @@ public sealed class SeriesNode : VarNode<Series>
             HorizontalAlignment = HorizontalAlignment.Left,
             Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
         };
-        var ctrl = new StackPanel()
+        StackPanel ctrl = new()
         {
             Orientation = Orientation.Vertical,
         };
-        var toolBar = new StackPanel()
+        StackPanel toolBar = new()
         {
             Orientation = Orientation.Horizontal,
         };
@@ -58,11 +58,11 @@ public sealed class SeriesNode : VarNode<Series>
             Content = "Compare series with:",
             VerticalAlignment = VerticalAlignment.Center,
         });
-        var combo = new ComboBox()
+        ComboBox combo = new()
         {
             Width = 200,
             VerticalAlignment = VerticalAlignment.Center,
-            ItemsSource = new string[] { "None", "Moving average", "Moving StdDev" },
+            ItemsSource = new string[] { "None", "Moving average", "Moving StdDev", "EWMA" },
             SelectedIndex = 0,
         };
         combo.SelectionChanged += (s, e) =>
@@ -78,6 +78,9 @@ public sealed class SeriesNode : VarNode<Series>
                 case 2:
                     newSeries = Model.MovingStd(30);
                     break;
+                case 3:
+                    newSeries = Model.EWMA(0.65); 
+                    break;
                 default:
                     model.InvalidatePlot(true);
                     return;
@@ -90,6 +93,7 @@ public sealed class SeriesNode : VarNode<Series>
                 lineSeries.Points.Add(
                     new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
             model.Series.Add(lineSeries);
+            model.ResetAllAxes();
             model.InvalidatePlot(true);
         };
         toolBar.Children.Add(combo);
@@ -158,6 +162,54 @@ public sealed class PercentileNode : VarNode<Series<double>>
         foreach (Point<double> p in Model.Points)
             lineSeries.Points.Add(new(p.Arg, p.Value));
         model.Series.Add(lineSeries);
+        OxyPlot.Wpf.PlotView view = new()
+        {
+            Model = model,
+            Width = 900,
+            Height = 250,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
+        };
+        RootModel.Instance.AppendControl(Formula, Model.ToString(), view);
+    }
+
+    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
+
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => Stored ? base.ImageSource : "/images/waves.png";
+
+}
+
+public sealed class CorrelogramNode : VarNode<Series<int>>
+{
+    public CorrelogramNode(ClassNode? parent, string varName, string formula, Series<int> value) :
+        base(parent, varName, formula, "Percentiles", value)
+    { }
+
+
+    public CorrelogramNode(ClassNode? parent, string varName, Series<int> value) :
+        this(parent, varName, varName, value)
+    { }
+
+    override public void Show()
+    {
+        OxyPlot.PlotModel model = new();
+        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
+        {
+            Position = OxyPlot.Axes.AxisPosition.Bottom,
+        });
+        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
+        {
+            Position = OxyPlot.Axes.AxisPosition.Left,
+        });
+        OxyPlot.Series.StairStepSeries stepSeries = new()
+        {
+            TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
+        };
+        foreach (Point<int> p in Model.Points)
+            stepSeries.Points.Add(new(p.Arg, p.Value));
+        model.Series.Add(stepSeries);
         OxyPlot.Wpf.PlotView view = new()
         {
             Model = model,

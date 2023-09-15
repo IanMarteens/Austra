@@ -204,6 +204,7 @@ internal static partial class Parser
                 ["fit"] = typeof(Series).Get(nameof(Series.Fit)),
                 ["linearfit"] = typeof(Series).Get(nameof(Series.LinearFit)),
                 ["spline"] = typeof(Series).Get(nameof(Series.Spline)),
+                ["acf"] = typeof(Series).Get(nameof(Series.ACF)),
             },
             [typeof(Series<int>)] = new(StringComparer.OrdinalIgnoreCase)
             {
@@ -311,6 +312,7 @@ internal static partial class Parser
                 ["fft"] = typeof(Vector).Get(nameof(Vector.Fft)),
                 ["first"] = typeof(Vector).Prop(nameof(Vector.First)),
                 ["last"] = typeof(Vector).Prop(nameof(Vector.Last)),
+                ["acf"] = typeof(Vector).Get(nameof(Vector.ACF)),
             },
             [typeof(ComplexVector)] = new(StringComparer.OrdinalIgnoreCase)
             {

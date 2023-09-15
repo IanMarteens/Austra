@@ -201,6 +201,7 @@ public sealed partial class RootModel : Entity
         {
             Series s => new SeriesNode(cNode, name, s) { Stored = stored },
             Series<double> s => new PercentileNode(cNode, name, s),
+            Series<int> s => new CorrelogramNode(cNode, name, s),
             Tuple<Series, Series> t => new CompareNode(cNode, name, t),
             FftModel fft => new FftNode(cNode, name, fft),
             ARSModel m => new ARSNode(cNode, name, m),
@@ -217,8 +218,7 @@ public sealed partial class RootModel : Entity
             ComplexVector cv => new CVectorNode(cNode, name, cv),
             EVD evd => new EvdNode(cNode, name, evd),
             MvoModel m => new MvoNode(cNode, name, m),
-            /*Series<int> s => new CorrNode(cNode, name, s),
-            Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
+            /*Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
             Tuple<CVector, CVector> t => new CompareCVNode(cNode, name, t),*/
             _ => new MiscNode(cNode, name, type, value?.ToString() ?? "")
         };
@@ -421,6 +421,7 @@ public sealed partial class RootModel : Entity
                     {
                         Series s => new SeriesNode(null, typeString, form, s),
                         Series<double> s => new PercentileNode(null, typeString, form, s),
+                        Series<int> s => new CorrelogramNode(null, typeString, form, s),
                         Tuple<Series, Series> t1 => new CompareNode(null, "Comparison", form, t1),
                         FftModel fft => new FftNode(null, typeString, form, fft),
                         ARSModel m1 => new ARSNode(null, typeString, form, m1),
