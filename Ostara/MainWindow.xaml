@@ -51,11 +51,6 @@
             <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource CaptionButtonStyle}">
                 <Setter Property="Content" Value="&#xE106;"/>
             </Style>
-            <Style TargetType="MenuItem">
-                <Setter Property="FontSize" Value="12"/>
-                <Setter Property="Foreground" Value="#FFC8C8C8"/>
-                <Setter Property="Padding" Value="0,0,0,1"/>
-            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -103,6 +98,13 @@
                 </StackPanel>
             </Grid>
             <Menu DockPanel.Dock="Top" Background="#FF202020">
+                <Menu.Resources>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="FontSize" Value="12"/>
+                        <Setter Property="Foreground" Value="#FFC8C8C8"/>
+                        <Setter Property="Padding" Value="0,0,0,1"/>
+                    </Style>
+                </Menu.Resources>
                 <MenuItem Header="_File">
                     <MenuItem Header="_New">
                         <MenuItem.Icon>
@@ -259,6 +261,12 @@
                             PreviewKeyDown="AvalonPreviewKeyDown">
                             <avalonEdit:TextEditor.ContextMenu>
                                 <ContextMenu>
+                                    <ContextMenu.Resources>
+                                        <Style TargetType="MenuItem">
+                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="Padding" Value="0,0,0,1"/>
+                                        </Style>
+                                    </ContextMenu.Resources>
                                     <MenuItem Header="_Undo" Command="Undo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
                                         <MenuItem.Icon>
                                             <Image Source="/images/undo.png" Width="15" Height="Auto"/>
