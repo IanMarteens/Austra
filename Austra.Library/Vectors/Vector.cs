@@ -583,7 +583,7 @@ public readonly struct Vector :
         Contract.Requires(Length == multiplier.Length);
         Contract.Requires(Length == summand.Length);
 
-        double[] result = new double[Length];
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = values, q = multiplier.values, r = summand.values, s = result)
         {
             int len = values.Length;
@@ -610,7 +610,7 @@ public readonly struct Vector :
         Contract.Requires(summand.IsInitialized);
         Contract.Requires(Length == summand.Length);
 
-        double[] result = new double[Length];
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = values, r = summand.values, s = result)
         {
             int len = values.Length;
@@ -640,7 +640,7 @@ public readonly struct Vector :
         Contract.Requires(Length == multiplier.Length);
         Contract.Requires(Length == subtrahend.Length);
 
-        double[] result = new double[Length];
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = values, q = multiplier.values, r = subtrahend.values, s = result)
         {
             int len = values.Length;
@@ -667,7 +667,7 @@ public readonly struct Vector :
         Contract.Requires(subtrahend.IsInitialized);
         Contract.Requires(Length == subtrahend.Length);
 
-        double[] result = new double[Length];
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = values, r = subtrahend.values, s = result)
         {
             int len = values.Length;
@@ -709,7 +709,7 @@ public readonly struct Vector :
                     double w = weights[firstW + i];
                     if (Avx.IsSupported)
                     {
-                        var vec = Vector256.Create(w);
+                        Vector256<double> vec = Vector256.Create(w);
                         for (int top = size & Simd.AVX_MASK; j < top; j += 4)
                             Avx.Store(p + j, Avx.LoadVector256(p + j).MultiplyAdd(pa + j, vec));
                     }
@@ -979,12 +979,12 @@ public readonly struct Vector :
         FFT.Transform(fft);
         for (int i = 0; i < fft.Length; i++)
         {
-            var (re, im) = fft[i];
+            (double re, double im) = fft[i];
             fft[i] = re * re + im * im;
         }
         FFT.Inverse(fft);
         double dc = fft[0].Real;
-        double[] newValues = new double[size];
+        double[] newValues = GC.AllocateUninitializedArray<double>(size);
         for (int i = 0; i < newValues.Length; i++)
             newValues[i] = fft[i].Real / dc;
         return newValues;
