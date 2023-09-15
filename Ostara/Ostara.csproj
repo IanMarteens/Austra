@@ -18,6 +18,9 @@
 		<None Remove="austra.xshd" />
 		<None Remove="Images\closeAll.png" />
 		<None Remove="Images\compare.png" />
+		<None Remove="Images\copy.png" />
+		<None Remove="Images\cut.png" />
+		<None Remove="Images\delete.png" />
 		<None Remove="Images\error.png" />
 		<None Remove="Images\evd.png" />
 		<None Remove="Images\exit.png" />
@@ -29,10 +32,13 @@
 		<None Remove="Images\new.png" />
 		<None Remove="Images\open.png" />
 		<None Remove="Images\options.png" />
+		<None Remove="Images\paste.png" />
 		<None Remove="Images\play.png" />
 		<None Remove="Images\playt.png" />
+		<None Remove="Images\redo.png" />
 		<None Remove="Images\series.png" />
 		<None Remove="Images\store.png" />
+		<None Remove="Images\undo.png" />
 		<None Remove="Images\vector.png" />
 		<None Remove="Images\waves.png" />
 		<None Remove="Images\waves1.png" />
@@ -42,6 +48,11 @@
 		<Content Include="ak.ico">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Images\delete.png" />
+	  <Resource Include="Images\paste.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -85,6 +96,8 @@
 	  <Resource Include="austra.jpg" />
 	  <Resource Include="Images\closeAll.png" />
 	  <Resource Include="Images\compare.png" />
+	  <Resource Include="Images\copy.png" />
+	  <Resource Include="Images\cut.png" />
 	  <Resource Include="Images\error.png" />
 	  <Resource Include="Images\evd.png" />
 	  <Resource Include="Images\exit.png" />
@@ -98,8 +111,10 @@
 	  <Resource Include="Images\options.png" />
 	  <Resource Include="Images\play.png" />
 	  <Resource Include="Images\playt.png" />
+	  <Resource Include="Images\redo.png" />
 	  <Resource Include="Images\series.png" />
 	  <Resource Include="Images\store.png" />
+	  <Resource Include="Images\undo.png" />
 	  <Resource Include="Images\vector.png" />
 	  <Resource Include="Images\waves.png" />
 	  <Resource Include="Images\waves1.png" />

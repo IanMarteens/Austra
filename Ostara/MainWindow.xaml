@@ -87,7 +87,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                     <!--App icon-->
                     <Image Source="/ak.ico" Width="18" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                 </StackPanel>
+                </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="OSTARA, by Intuitive Sight" FontWeight="DemiBold" Foreground="White" Margin="4 3 0 0" />
                 </StackPanel>
@@ -125,7 +125,39 @@
                         <MenuItem.Icon>
                             <Image Source="/images/exit.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
-
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem Header="_Edit">
+                    <MenuItem Header="_Undo" Command="Undo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/undo.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Redo" Command="Redo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/redo.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Cu_t" Command="Cut" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/cut.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Copy" Command="Copy" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/copy.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Paste" Command="Paste" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/paste.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Delete" Command="Delete" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/delete.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Run">
@@ -215,16 +247,51 @@
                         </Grid.RowDefinitions>
                         <avalonEdit:TextEditor
                             x:Name="avalon"
+                            Grid.Row="0"
                             FontFamily="Fira Code,Cascadia Code,Courier New"
                             FontSize="10pt"
                             Padding="8,2"
                             Visibility="{Binding ShowFormulaEditor}"
                             HorizontalScrollBarVisibility="Auto"
                             VerticalScrollBarVisibility="Auto"
-                            Grid.Row="0"
                             VerticalAlignment="Stretch"
                             HorizontalAlignment="Stretch"
                             PreviewKeyDown="AvalonPreviewKeyDown">
+                            <avalonEdit:TextEditor.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="_Undo" Command="Undo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                                        <MenuItem.Icon>
+                                            <Image Source="/images/undo.png" Width="15" Height="Auto"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="_Redo" Command="Redo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                                        <MenuItem.Icon>
+                                            <Image Source="/images/redo.png" Width="15" Height="Auto"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Cu_t" Command="Cut" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                                        <MenuItem.Icon>
+                                            <Image Source="/images/cut.png" Width="15" Height="Auto"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="_Copy" Command="Copy" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                                        <MenuItem.Icon>
+                                            <Image Source="/images/copy.png" Width="15" Height="Auto"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="_Paste" Command="Paste" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                                        <MenuItem.Icon>
+                                            <Image Source="/images/paste.png" Width="15" Height="Auto"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="_Delete" Command="Delete" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                                        <MenuItem.Icon>
+                                            <Image Source="/images/delete.png" Width="15" Height="Auto"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </avalonEdit:TextEditor.ContextMenu>
                         </avalonEdit:TextEditor>
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Background="#FF363636" Visibility="{Binding ShowFormulaEditor}">
                             <Image Height="15" Width="15" Source="/images/error.png" Visibility="{Binding ShowErrorText}" Margin="2,0,2,0" VerticalAlignment="Center"/>
