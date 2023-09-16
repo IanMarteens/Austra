@@ -341,7 +341,7 @@ public readonly struct Vector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                var z = Vector256<double>.Zero;
+                Vector256<double> z = Vector256<double>.Zero;
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i, Avx.Subtract(z, Avx.LoadVector256(p + i)));
             }
@@ -367,7 +367,7 @@ public readonly struct Vector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                var vec = Vector256.Create(d);
+                Vector256<double> vec = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i, Avx.Add(Avx.LoadVector256(p + i), vec));
             }
@@ -400,7 +400,7 @@ public readonly struct Vector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                var vec = Vector256.Create(d);
+                Vector256<double> vec = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i, Avx.Subtract(Avx.LoadVector256(p + i), vec));
             }
@@ -426,7 +426,7 @@ public readonly struct Vector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                var vec = Vector256.Create(d);
+                Vector256<double> vec = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i, Avx.Subtract(vec, Avx.LoadVector256(p + i)));
             }
@@ -447,7 +447,7 @@ public readonly struct Vector :
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        double[] result = new double[Length];
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* pA = values, pB = other.values, pC = result)
         {
             int len = values.Length;
@@ -487,14 +487,13 @@ public readonly struct Vector :
         fixed (double* p = values)
         {
             double sum = 0;
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var acc = Vector256<double>.Zero;
+                Vector256<double> acc = Vector256<double>.Zero;
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                 {
-                    var vec = Avx.LoadVector256(p + i);
+                    Vector256<double> vec = Avx.LoadVector256(p + i);
                     acc = acc.MultiplyAdd(vec, vec);
                 }
                 sum = acc.Sum();
@@ -517,11 +516,10 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
-            int len = v.values.Length;
-            int i = 0;
+            int len = v.values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var vec = Vector256.Create(d);
+                Vector256<double> vec = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i, Avx.Multiply(Avx.LoadVector256(p + i), vec));
             }
@@ -586,13 +584,10 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = values, q = multiplier.values, r = summand.values, s = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
-            {
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(s + i, Avx.LoadVector256(r + i).MultiplyAdd(p + i, q + i));
-            }
             for (; i < len; i++)
                 s[i] = FusedMultiplyAdd(p[i], q[i], r[i]);
         }
@@ -613,11 +608,10 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = values, r = summand.values, s = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var vq = Vector256.Create(multiplier);
+                Vector256<double> vq = Vector256.Create(multiplier);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(s + i, Avx.LoadVector256(r + i).MultiplyAdd(p + i, vq));
             }
@@ -643,8 +637,7 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = values, q = multiplier.values, r = subtrahend.values, s = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(s + i,
@@ -670,11 +663,10 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* p = values, r = subtrahend.values, s = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var vq = Vector256.Create(multiplier);
+                Vector256<double> vq = Vector256.Create(multiplier);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(s + i,
                         Avx.LoadVector256(r + i).MultiplySub(Avx.LoadVector256(p + i), vq));
@@ -798,8 +790,7 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(values.Length);
         fixed (double* p = values, q = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i, Avx.Sqrt(Avx.LoadVector256(p + i)));
@@ -819,11 +810,10 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(values.Length);
         fixed (double* p = values, q = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var mask = Vector256.Create(-0d);
+                Vector256<double> mask = Vector256.Create(-0d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i, Avx.AndNot(mask, Avx.LoadVector256(p + i)));
             }
@@ -923,16 +913,16 @@ public readonly struct Vector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                var avg = Vector256.Create(average);
-                var vex = Vector256<double>.Zero;
-                var vey = Vector256<double>.Zero;
-                var vexx = Vector256<double>.Zero;
-                var vexy = Vector256<double>.Zero;
-                var veyy = Vector256<double>.Zero;
+                Vector256<double> avg = Vector256.Create(average);
+                Vector256<double> vex = Vector256<double>.Zero;
+                Vector256<double> vey = Vector256<double>.Zero;
+                Vector256<double> vexx = Vector256<double>.Zero;
+                Vector256<double> vexy = Vector256<double>.Zero;
+                Vector256<double> veyy = Vector256<double>.Zero;
                 for (int top = count & Simd.AVX_MASK; i < top; i += 4)
                 {
-                    var x = Avx.Subtract(Avx.LoadVector256(p + i), avg);
-                    var y = Avx.Subtract(Avx.LoadVector256(q + i), avg);
+                    Vector256<double> x = Avx.Subtract(Avx.LoadVector256(p + i), avg);
+                    Vector256<double> y = Avx.Subtract(Avx.LoadVector256(q + i), avg);
                     vex = Avx.Add(vex, x);
                     vey = Avx.Add(vey, y);
                     vexx = vexx.MultiplyAdd(x, x);
@@ -1181,7 +1171,7 @@ public readonly struct Vector :
             double* q = p + from;
             if (Avx.IsSupported)
             {
-                var v = Vector256.Create(value);
+                Vector256<double> v = Vector256.Create(value);
                 for (int top = size & Simd.AVX_MASK; i < top; i += 4)
                 {
                     int mask = Avx.MoveMask(Avx.CompareEqual(Avx.LoadVector256(q + i), v));

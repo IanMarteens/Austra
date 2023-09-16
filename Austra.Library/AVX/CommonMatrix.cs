@@ -47,7 +47,7 @@ public static class CommonMatrix
     {
         int rows = values.GetLength(0), cols = values.GetLength(1);
         int r = cols + 1, size = Min(rows, cols);
-        double[] result = new double[size];
+        double[] result = GC.AllocateUninitializedArray<double>(size);
         fixed (double* pA = values, pB = result)
             for (double* p = pA, q = pB; size-- > 0; p += r)
                 *q++ = *p;

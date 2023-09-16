@@ -465,7 +465,7 @@ public sealed class Series : Series<Date>,
             throw new Exception("Cannot mix series with different frequencies");
         int len = Min(Count, other.Count);
         Date[] newArgs = Count == len ? args : other.args;
-        double[] newValues = new double[len];
+        double[] newValues = GC.AllocateUninitializedArray<double>(len);
 
         fixed (double* pA = values, pB = other.values, pC = newValues)
         {
@@ -566,7 +566,7 @@ public sealed class Series : Series<Date>,
             throw new Exception("Cannot mix series with different frequencies");
         int len = Min(Count, other.Count);
         Date[] newArgs = Count == len ? args : other.args;
-        double[] newValues = new double[len];
+        double[] newValues = GC.AllocateUninitializedArray<double>(len);
         fixed (double* pA = values, pB = other.values, pC = newValues)
             for (int i = 0; i < len; i++)
                 pC[i] = zipper(pA[i], pB[i]);

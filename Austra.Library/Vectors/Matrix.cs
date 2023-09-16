@@ -481,7 +481,7 @@ public readonly struct Matrix :
     /// <returns>A copy of the row.</returns>
     public Vector GetRow(int row)
     {
-        double[] v = new double[Cols];
+        double[] v = GC.AllocateUninitializedArray<double>(Cols);
         for (int c = 0; c < v.Length; c++)
             v[c] = values[row, c];
         return v;
@@ -498,7 +498,7 @@ public readonly struct Matrix :
     /// <returns>A copy of the column.</returns>
     public Vector GetColumn(int col)
     {
-        double[] v = new double[Rows];
+        double[] v = GC.AllocateUninitializedArray<double>(Rows);
         for (int r = 0; r < v.Length; r++)
             v[r] = values[r, col];
         return v;
