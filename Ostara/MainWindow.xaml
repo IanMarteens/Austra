@@ -161,6 +161,12 @@
                             <Image Source="/images/delete.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Select _all" Command="SelectAll" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/selectAll.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Run">
                     <MenuItem Header="_Execute" Command="MediaCommands.Play" InputGestureText="F5">
@@ -296,6 +302,12 @@
                                     <MenuItem Header="_Delete" Command="Delete" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
                                         <MenuItem.Icon>
                                             <Image Source="/images/delete.png" Width="15" Height="Auto"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Select _all" Command="SelectAll" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                                        <MenuItem.Icon>
+                                            <Image Source="/images/selectAll.png" Width="15" Height="Auto"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </ContextMenu>
