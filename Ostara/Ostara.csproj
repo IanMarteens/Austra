@@ -24,6 +24,8 @@
 		<None Remove="Images\error.png" />
 		<None Remove="Images\evd.png" />
 		<None Remove="Images\exit.png" />
+		<None Remove="Images\histDown.png" />
+		<None Remove="Images\histUp.png" />
 		<None Remove="Images\info.png" />
 		<None Remove="Images\linear.png" />
 		<None Remove="Images\matrix.png" />
@@ -53,6 +55,8 @@
 
 	<ItemGroup>
 	  <Resource Include="Images\delete.png" />
+	  <Resource Include="Images\histDown.png" />
+	  <Resource Include="Images\histUp.png" />
 	  <Resource Include="Images\paste.png" />
 	</ItemGroup>
 

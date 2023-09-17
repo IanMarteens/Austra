@@ -330,9 +330,18 @@ public readonly struct Matrix :
     public bool IsInitialized => values != null;
 
     /// <summary>Gets the number of rows.</summary>
-    public int Rows => values.GetLength(0);
+    public int Rows
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => values.GetLength(0);
+    }
+
     /// <summary>Gets the number of columns.</summary>
-    public int Cols => values.GetLength(1);
+    public int Cols
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => values.GetLength(1);
+    }
 
     /// <summary>Checks if the matrix is a square one.</summary>
     public bool IsSquare => Rows == Cols;
@@ -643,8 +652,7 @@ public readonly struct Matrix :
         double[,] result = new double[m1.Rows, m1.Cols];
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
         {
-            int len = m1.values.Length;
-            int i = 0;
+            int len = m1.values.Length, i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i,
@@ -672,8 +680,7 @@ public readonly struct Matrix :
         double[,] result = new double[m1.Rows, m1.Cols];
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
         {
-            int len = m1.values.Length;
-            int i = 0;
+            int len = m1.values.Length, i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i,
@@ -696,11 +703,10 @@ public readonly struct Matrix :
         double[,] result = new double[m.Rows, m.Cols];
         fixed (double* pA = m.values, pC = result)
         {
-            int len = m.values.Length;
-            int i = 0;
+            int len = m.values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var z = Vector256<double>.Zero;
+                Vector256<double> z = Vector256<double>.Zero;
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i, Avx.Subtract(z, Avx.LoadVector256(pA + i)));
             }
@@ -723,11 +729,10 @@ public readonly struct Matrix :
         double[,] result = new double[m.Rows, m.Cols];
         fixed (double* pA = m.values, pC = result)
         {
-            int len = m.values.Length;
-            int i = 0;
+            int len = m.values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var v = Vector256.Create(d);
+                Vector256<double> v = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i, Avx.Add(Avx.LoadVector256(pA + i), v));
             }
@@ -757,11 +762,10 @@ public readonly struct Matrix :
         double[,] result = new double[m.Rows, m.Cols];
         fixed (double* pA = m.values, pC = result)
         {
-            int len = m.values.Length;
-            int i = 0;
+            int len = m.values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var v = Vector256.Create(d);
+                Vector256<double> v = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i, Avx.Subtract(Avx.LoadVector256(pA + i), v));
             }
@@ -784,11 +788,10 @@ public readonly struct Matrix :
         double[,] result = new double[m.Rows, m.Cols];
         fixed (double* pA = m.values, pC = result)
         {
-            int len = m.values.Length;
-            int i = 0;
+            int len = m.values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var v = Vector256.Create(d);
+                Vector256<double> v = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i, Avx.Subtract(v, Avx.LoadVector256(pA + i)));
             }
@@ -814,8 +817,7 @@ public readonly struct Matrix :
         double[,] result = new double[Rows, Cols];
         fixed (double* pA = values, pB = m.values, pC = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i,
@@ -839,11 +841,10 @@ public readonly struct Matrix :
         double[,] result = new double[m.Rows, m.Cols];
         fixed (double* pA = m.values, pC = result)
         {
-            int len = m.values.Length;
-            int i = 0;
+            int len = m.values.Length, i = 0;
             if (Avx.IsSupported)
             {
-                var v = Vector256.Create(d);
+                Vector256<double> v = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i, Avx.Multiply(Avx.LoadVector256(pA + i), v));
             }
@@ -978,15 +979,12 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
-        int r = Rows;
-        int n = Cols;
-        int c = m.Rows;
+        int r = Rows, n = Cols, c = m.Rows;
         double[,] result = new double[r, c];
         fixed (double* pA = values, pB = m.values, pC = result)
         {
             int top = n & Simd.AVX_MASK;
-            double* pAi = pA;
-            double* pCi = pC;
+            double* pAi = pA, pCi = pC;
             for (int i = 0; i < r; i++)
             {
                 double* pBj = pB;

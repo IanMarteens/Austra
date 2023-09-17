@@ -30,8 +30,11 @@ public readonly struct Vector :
     /// <summary>Initializes a vector from a scalar.</summary>
     /// <param name="size">Vector length.</param>
     /// <param name="value">Scalar value to be repeated.</param>
-    public Vector(int size, double value) : this(size) =>
+    public Vector(int size, double value)
+    {
+        values = GC.AllocateUninitializedArray<double>(size);
         Array.Fill(values, value);
+    }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
@@ -42,14 +45,19 @@ public readonly struct Vector :
     {
         values = GC.AllocateUninitializedArray<double>(size);
         for (int i = 0; i < values.Length; i++)
-            values[i] = FusedMultiplyAdd(rnd.NextDouble(), width , offset);
+            values[i] = FusedMultiplyAdd(rnd.NextDouble(), width, offset);
     }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector(int size, Random rnd) : this(size, rnd, 0, 1) { }
+    public Vector(int size, Random rnd)
+    {
+        values = GC.AllocateUninitializedArray<double>(size);
+        for (int i = 0; i < values.Length; i++)
+            values[i] = rnd.NextDouble();
+    }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
@@ -1204,7 +1212,7 @@ public readonly struct Vector :
     /// <summary>Gets a textual representation of this vector.</summary>
     /// <returns>Space-separated components.</returns>
     public override string ToString() =>
-        $"ans ∊ ℝ({Length})" + Environment.NewLine + 
+        $"ans ∊ ℝ({Length})" + Environment.NewLine +
         CommonMatrix.ToString(values, v => v.ToString("G6"));
 
     /// <summary>Gets a textual representation of this vector.</summary>

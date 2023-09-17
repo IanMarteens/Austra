@@ -148,9 +148,18 @@ public readonly struct LMatrix :
     public bool IsInitialized => values != null;
 
     /// <summary>Gets the number of rows.</summary>
-    public int Rows => values.GetLength(0);
+    public int Rows
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => values.GetLength(0);
+    }
+
     /// <summary>Gets the number of columns.</summary>
-    public int Cols => values.GetLength(1);
+    public int Cols
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => values.GetLength(1);
+    }
 
     /// <summary>Checks if the matrix is a square one.</summary>
     public bool IsSquare => Rows == Cols;
@@ -606,8 +615,7 @@ public readonly struct LMatrix :
         double[,] result = new double[r, c];
         fixed (double* pA = values, pB = m.values, pC = result)
         {
-            double* pAi = pA;
-            double* pCi = pC;
+            double* pAi = pA, pCi = pC;
             for (int i = 0; i < r; i++)
             {
                 double* pBj = pB;
@@ -656,12 +664,10 @@ public readonly struct LMatrix :
         Contract.Requires(Cols == v.Length);
         Contract.Requires(result.Length == Rows);
 
-        int r = Rows;
-        int c = Cols;
+        int r = Rows, c = Cols;
         fixed (double* pA = values, pX = (double[])v, pB = result)
         {
-            double* pA1 = pA;
-            double* pB1 = pB;
+            double* pA1 = pA, pB1 = pB;
             *pB1++ = *pA1 * *pX;
             pA1 += c;
             if (c >= 8 && Avx.IsSupported)

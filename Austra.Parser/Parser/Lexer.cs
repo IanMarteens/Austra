@@ -54,15 +54,12 @@ internal static class Lexer
     public static IEnumerable<Lexeme> Lex(string text)
     {
         text += '\0'; // Add a sentinel
-        int i = 0;
         StringBuilder sb = new();
-        while (i < text.Length)
+        for (int i = 0; ;)
         {
             // Skip blanks.
             while (char.IsWhiteSpace(text, i))
                 i++;
-            if (i >= text.Length - 1)
-                break;
             if (char.IsLetter(text, i))
             {
                 int first = i;
@@ -92,7 +89,7 @@ internal static class Lexer
                 if (text[i] == '@')
                 {
                     do i++;
-                    while (i < text.Length && char.IsLetterOrDigit(text, i));
+                    while (char.IsLetterOrDigit(text, i));
                     yield return new(Token.Date, first)
                     {
                         AsDate = ParseDateLiteral(text.AsSpan()[first..i], first)
@@ -132,7 +129,7 @@ internal static class Lexer
                     else
                         yield return new(Token.Real, first) { AsReal = AsReal(i) };
                 }
-                else if (i < text.Length && (text[i] is 'E' or 'e'))
+                else if (text[i] is 'E' or 'e')
                 {
                     if (text[++i] is '+' or '-')
                         i++;
@@ -158,27 +155,35 @@ internal static class Lexer
                 else
                     yield return new(Token.Int, first) { AsInt = AsInt(i) };
 
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 bool IsImaginarySuffix() =>
                     text[i] == 'i' && !char.IsLetterOrDigit(text, i + 1);
 
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 bool IsVariableSuffix(out int j)
                 {
                     j = i;
-                    if (i == text.Length || !char.IsLetter(text, i))
+                    if (!char.IsLetter(text, i))
                         return false;
                     do j++;
                     while (char.IsLetterOrDigit(text, j) || text[j] == '_');
                     return IsKeyword(text.AsSpan()[i..j]) == Token.Id;
                 }
 
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 int AsInt(int to) => int.Parse(text.AsSpan()[first..to]);
 
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 double AsReal(int to) =>
                     double.Parse(text.AsSpan()[first..to], CultureInfo.InvariantCulture);
             }
             else
                 switch (text[i])
                 {
+                    case '\0':
+                        // Acknowledge end of expression.
+                        yield return new(Token.Eof, text.Length - 1);
+                        yield break;
                     case ',': yield return new(Token.Comma, i++); break;
                     case ';': yield return new(Token.Semicolon, i++); break;
                     case '(': yield return new(Token.LPar, i++); break;
@@ -267,8 +272,6 @@ internal static class Lexer
                         yield break;
                 }
         }
-        // Acknowledge end of expression.
-        yield return new(Token.Eof, text.Length);
     }
 
     /// <summary>Check AUSTRA keywords.</summary>

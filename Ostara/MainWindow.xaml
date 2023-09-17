@@ -167,6 +167,17 @@
                             <Image Source="/images/selectAll.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="History up" Command="{x:Static local:RootModel.HistoryUp}" InputGestureText="F7">
+                        <MenuItem.Icon>
+                            <Image Source="/images/histUp.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="History down" Command="{x:Static local:RootModel.HistoryDown}" InputGestureText="Ctrl+F7">
+                        <MenuItem.Icon>
+                            <Image Source="/images/histDown.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Run">
                     <MenuItem Header="_Execute" Command="MediaCommands.Play" InputGestureText="F5">
