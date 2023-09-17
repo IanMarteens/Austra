@@ -20,6 +20,7 @@
 		<Using Include="Austra.Parser" />
 		<Using Include="Benchmarks" />
 		<Using Include="BenchmarkDotNet.Attributes" />
+		<Using Include="BenchmarkDotNet.Configs"/>
 		<Using Include="BenchmarkDotNet.Running" />
 		<Using Include="System" />
 		<Using Include="System.Console" Static="true"/>
