@@ -1,24 +1,21 @@
 ﻿namespace Austra.Parser;
 
 /// <summary>Inherited attributes for the parser.</summary>
-internal sealed class AstContext : IDisposable
+internal sealed class AstContext
 {
     /// <summary>Initializes a parsing context.</summary>
     /// <param name="source">Environment variables.</param>
     /// <param name="lex">Lexical analyzer.</param>
-    public AstContext(IDataSource source, IEnumerator<Lexeme> lex)
+    public AstContext(IDataSource source, Lexer lex)
     {
         (Source, Lex) = (source, lex);
-        lex.MoveNext();
+        lex.Move();
     }
-
-    /// <summary>Disposes of the lexical analyzer.</summary>
-    public void Dispose() => Lex?.Dispose();
 
     /// <summary>Gets the outer scope for variables.</summary>
     public IDataSource Source { get; }
     /// <summary>Gets the lexical analyzer.</summary>
-    public IEnumerator<Lexeme> Lex { get; }
+    public Lexer Lex { get; }
 
     /// <summary>Gets the parameter referencing the outer scope.</summary>
     public static ParameterExpression SourceParameter { get; } =
@@ -45,10 +42,10 @@ internal sealed class AstContext : IDisposable
         new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Advances the lexical analyzer one token.</summary>
-    public void MoveNext() => Lex.MoveNext();
+    public void MoveNext() => Lex.Move();
 
     /// <summary>Skips two tokens with a single call.</summary>
-    public void Skip2() { MoveNext(); MoveNext(); }
+    public void Skip2() { Lex.Move(); Lex.Move(); }
 
     /// <summary>
     /// Checks that the current token is of the expected kind and advances the cursor.
@@ -59,9 +56,9 @@ internal sealed class AstContext : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void CheckAndMoveNext(Token kind, string errorMessage)
     {
-        if (Kind != kind)
+        if (Lex.Current.Kind != kind)
             throw new AstException(errorMessage, Lex.Current.Position);
-        MoveNext();
+        Lex.Move();
     }
 
     /// <summary>Controls that only persisted values are used.</summary>
