@@ -41,6 +41,7 @@
 		<None Remove="Images\selectAll.png" />
 		<None Remove="Images\series.png" />
 		<None Remove="Images\store.png" />
+		<None Remove="Images\tag.png" />
 		<None Remove="Images\undo.png" />
 		<None Remove="Images\vector.png" />
 		<None Remove="Images\waves.png" />
@@ -120,6 +121,7 @@
 	  <Resource Include="Images\selectAll.png" />
 	  <Resource Include="Images\series.png" />
 	  <Resource Include="Images\store.png" />
+	  <Resource Include="Images\tag.png" />
 	  <Resource Include="Images\undo.png" />
 	  <Resource Include="Images\vector.png" />
 	  <Resource Include="Images\waves.png" />
