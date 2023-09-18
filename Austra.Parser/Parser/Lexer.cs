@@ -53,7 +53,7 @@ internal sealed class Lexer
     private StringBuilder? sb;
     private int i;
 
-    public Lexer(string text) => this.text = text + '\0';
+    public Lexer(string text) => this.text = text;
 
     public Lexeme Current { get; private set; }
 
@@ -63,8 +63,9 @@ internal sealed class Lexer
     SKIP_BLANKS:
         while (char.IsWhiteSpace(Add(ref c, i)))
             i++;
+        char ch = Add(ref c, i);
         // Check keywords, functors, class names and identifiers.
-        if (char.IsLetter(Add(ref c, i)))
+        if (char.IsLetter(ch))
         {
             int first = i;
             do i++;
@@ -80,25 +81,21 @@ internal sealed class Lexer
             // Skip blanks after the identifier.
             while (char.IsWhiteSpace(Add(ref c, i)))
                 i++;
-            if (Add(ref c, i) == '(')
-            {
-                Current = new(Token.Functor, s.ToString(), first);
-                return;
-            }
-            if (Add(ref c, i) == ':' && Add(ref c, i + 1) == ':')
-            {
-                Current = new(Token.ClassName, s.ToString(), first);
-                return;
-            }
-            Current = new(Token.Id, s.ToString(), first);
+            ch = Add(ref c, i);
+            Current = ch == '('
+                ? new(Token.Functor, s.ToString(), first)
+                : ch == ':' && Add(ref c, i + 1) == ':'
+                ? new(Token.ClassName, s.ToString(), first)
+                : new(Token.Id, s.ToString(), first);
             return;
         }
-        if (char.IsDigit(Add(ref c, i)))
+        if (char.IsDigit(ch))
         {
             int first = i;
             do i++;
             while (char.IsDigit(Add(ref c, i)));
-            if (Add(ref c, i) == '@')
+            ch = Add(ref c, i);
+            if (ch == '@')
             {
                 do i++;
                 while (char.IsLetterOrDigit(Add(ref c, i)));
@@ -106,7 +103,6 @@ internal sealed class Lexer
                 {
                     AsDate = ParseDateLiteral(text.AsSpan()[first..i], first)
                 };
-                return;
 
                 static Date ParseDateLiteral(ReadOnlySpan<char> text, int position)
                 {
@@ -120,7 +116,7 @@ internal sealed class Lexer
                         : throw new AstException("Invalid day of month", position);
                 }
             }
-            if (Add(ref c, i) == '.')
+            else if (ch == '.')
             {
                 do i++;
                 while (char.IsDigit(Add(ref c, i)));
@@ -133,51 +129,40 @@ internal sealed class Lexer
                         i++;
                 }
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                {
                     Current = new(Token.Imag, first) { AsReal = AsReal(text, first, i++) };
-                    return;
-                }
-                if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
+                else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
                 {
                     Current = new(Token.MultVarR, text[i..j], first) { AsReal = AsReal(text, first, i) };
                     i = j;
-                    return;
                 }
-                Current = new(Token.Real, first) { AsReal = AsReal(text, first, i) };
-                return;
+                else
+                    Current = new(Token.Real, first) { AsReal = AsReal(text, first, i) };
             }
-            if (Add(ref c, i) is 'E' or 'e')
+            else if (ch is 'E' or 'e')
             {
                 if (Add(ref c, ++i) is '+' or '-')
                     i++;
                 while (char.IsDigit(Add(ref c, i)))
                     i++;
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                {
                     Current = new(Token.Imag, first) { AsReal = AsReal(text, first, i++) };
-                    return;
-                }
                 if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
                 {
                     Current = new(Token.MultVarR, text[i..j], first) { AsReal = AsReal(text, first, i) };
                     i = j;
-                    return;
                 }
-                Current = new(Token.Real, first) { AsReal = AsReal(text, first, i) };
-                return;
+                else
+                    Current = new(Token.Real, first) { AsReal = AsReal(text, first, i) };
             }
-            if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-            {
+            else if (ch == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
                 Current = new(Token.Imag, first) { AsReal = AsReal(text, first, i++) };
-                return;
-            }
-            if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int k))
+            else if (char.IsLetter(ch) && IsVariableSuffix(text, i, out int k))
             {
                 Current = new(Token.MultVarI, text[i..k], first) { AsInt = AsInt(text, first, i) };
                 i = k;
-                return;
             }
-            Current = new(Token.Int, first) { AsInt = AsInt(text, first, i) };
+            else
+                Current = new(Token.Int, first) { AsInt = AsInt(text, first, i) };
             return;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -197,7 +182,7 @@ internal sealed class Lexer
             static int AsInt(string text, int from, int to) =>
                 int.Parse(text.AsSpan()[from..to]);
         }
-        switch (Add(ref c, i))
+        switch (ch)
         {
             case '\0': Current = new(Token.Eof, text.Length - 1); return;
             case ',': Current = new(Token.Comma, i++); return;
@@ -218,53 +203,43 @@ internal sealed class Lexer
             case '-':
                 if (Add(ref c, ++i) == '-')
                 {
-                    do i++;
-                    while (Add(ref c, i) != '\r' && Add(ref c, i) != '\n' && Add(ref c, i) != '\0');
-                    if (Add(ref c, i) == '\r')
-                        i++;
-                    if (Add(ref c, i) == '\n')
-                        i++;
+                    do ch = Add(ref c, ++i);
+                    while (ch != '\r' && ch != '\n' && ch != '\0');
                     goto SKIP_BLANKS;
                 }
                 Current = new(Token.Minus, i - 1);
                 return;
             case '=':
-                if (Add(ref c, ++i) == '>')
-                    Current = new(Token.Arrow, i++ - 1);
-                else
-                    Current = new(Token.Eq, i - 1);
+                Current = Add(ref c, ++i) == '>' 
+                    ? new(Token.Arrow, i++ - 1)
+                    : new(Token.Eq, i - 1);
                 return;
             case '.':
-                if (Add(ref c, ++i) == '*')
-                    Current = new(Token.PointTimes, i++ - 1);
-                else
-                    Current = new(Token.Dot, i - 1);
+                Current = Add(ref c, ++i) == '*'
+                    ? new(Token.PointTimes, i++ - 1)
+                    : new(Token.Dot, i - 1);
                 return;
             case ':':
-                if (Add(ref c, ++i) == ':')
-                    Current = new(Token.DoubleColon, i++ - 1);
-                else
-                    Current = new(Token.Colon, i - 1);
+                Current = Add(ref c, ++i) == ':'
+                    ? new(Token.DoubleColon, i++ - 1)
+                    : new(Token.Colon, i - 1);
                 return;
             case '!':
-                if (Add(ref c, ++i) == '=')
-                    Current = new(Token.Ne, i++ - 1);
-                else
-                    Current = new(Token.Error, i - 1);
+                Current = Add(ref c, ++i) == '='
+                    ? new(Token.Ne, i++ - 1)
+                    : new(Token.Error, i - 1);
                 return;
             case '<':
-                if (Add(ref c, ++i) == '=')
-                    Current = new(Token.Le, i++ - 1);
-                else if (Add(ref c, i) == '>')
-                    Current = new(Token.Ne, i++ - 1);
-                else
-                    Current = new(Token.Lt, i - 1);
+                Current = Add(ref c, ++i) == '='
+                    ? new(Token.Le, i++ - 1)
+                    : Add(ref c, i) == '>'
+                    ? new(Token.Ne, i++ - 1)
+                    : new(Token.Lt, i - 1);
                 return;
             case '>':
-                if (Add(ref c, ++i) == '=')
-                    Current = new(Token.Ge, i++ - 1);
-                else
-                    Current = new(Token.Gt, i - 1);
+                Current = Add(ref c, ++i) == '='
+                    ? new(Token.Ge, i++ - 1)
+                    : new(Token.Gt, i - 1);
                 return;
             case '"':
                 int start = i;
