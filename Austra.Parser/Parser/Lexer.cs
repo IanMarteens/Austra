@@ -169,8 +169,9 @@ internal sealed class Lexer
             static bool IsVariableSuffix(string text, int i, out int j)
             {
                 j = i;
+                ref char c = ref As<Str>(text).FirstChar;
                 do j++;
-                while (char.IsLetterOrDigit(text, j) || text[j] == '_');
+                while (char.IsLetterOrDigit(Add(ref c, j)) || Add(ref c, j) == '_');
                 return IsKeyword(text.AsSpan()[i..j]) == Token.Id;
             }
 
