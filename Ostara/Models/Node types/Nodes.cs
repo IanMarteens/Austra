@@ -112,6 +112,10 @@ public class MiscNode : VarNode
         RootModel.Instance.AppendResult(Name, Value);
     }
 
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => "/images/tag.png";
+
     [Category("Content")]
     public string Value { get; }
 }
