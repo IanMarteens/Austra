@@ -160,44 +160,26 @@ internal sealed partial class AstContext
             do ch = Add(ref c, ++i);
             while (char.IsLetterOrDigit(ch) || ch == '_');
             // Check for keywords and function identifiers
+            Token tok;
             if (Avx.IsSupported)
-            {
-                Token tok = IsIntelKeyword(ref Add(ref c, first), i - first);
-                if (tok != Token.Id)
-                {
-                    Current = new(tok, first);
-                    return;
-                }
-                // Skip blanks after the identifier.
-                string id = text[first..i];
-                while (char.IsWhiteSpace(Add(ref c, i)))
-                    i++;
-                ch = Add(ref c, i);
-                Current = ch == '('
-                    ? new(Token.Functor, id, first)
-                    : ch == ':' && Add(ref c, i + 1) == ':'
-                    ? new(Token.ClassName, id, first)
-                    : new(Token.Id, id, first);
-            }
+                tok = IsIntelKeyword(ref Add(ref c, first), i - first);
             else
+                tok = IsKeyword(text.AsSpan()[first..i]);
+            if (tok != Token.Id)
             {
-                ReadOnlySpan<char> s = text.AsSpan()[first..i];
-                Token tok = IsKeyword(s);
-                if (tok != Token.Id)
-                {
-                    Current = new(tok, first);
-                    return;
-                }
-                // Skip blanks after the identifier.
-                while (char.IsWhiteSpace(Add(ref c, i)))
-                    i++;
-                ch = Add(ref c, i);
-                Current = ch == '('
-                    ? new(Token.Functor, s.ToString(), first)
-                    : ch == ':' && Add(ref c, i + 1) == ':'
-                    ? new(Token.ClassName, s.ToString(), first)
-                    : new(Token.Id, s.ToString(), first);
+                Current = new(tok, first);
+                return;
             }
+            // Skip blanks after the identifier.
+            string id = text[first..i];
+            while (char.IsWhiteSpace(Add(ref c, i)))
+                i++;
+            ch = Add(ref c, i);
+            Current = ch == '('
+                ? new(Token.Functor, id, first)
+                : ch == ':' && Add(ref c, i + 1) == ':'
+                ? new(Token.ClassName, id, first)
+                : new(Token.Id, id, first);
         }
         else if ((uint)(ch - '0') < 10u)
         {
@@ -218,7 +200,7 @@ internal sealed partial class AstContext
             {
                 do i++;
                 while ((uint)(Add(ref c, i) - '0') < 10u);
-                if (Add(ref c, i) is 'E' or 'e')
+                if ((Add(ref c, i) | 0x20) == 'e')
                 {
                     i++;
                     if (Add(ref c, i) is '+' or '-')
@@ -236,7 +218,7 @@ internal sealed partial class AstContext
                 else
                     Current = new(Token.Real, first) { AsReal = AsReal(text, first, i) };
             }
-            else if (ch is 'E' or 'e')
+            else if ((ch | 0x20) == 'e')
             {
                 if (Add(ref c, ++i) is '+' or '-')
                     i++;
@@ -244,7 +226,7 @@ internal sealed partial class AstContext
                     i++;
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
                     Current = new(Token.Imag, first) { AsReal = AsReal(text, first, i++) };
-                if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
+                else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
                 {
                     Current = new(Token.MultVarR, text[i..j], first) { AsReal = AsReal(text, first, i) };
                     i = j;
@@ -272,10 +254,9 @@ internal sealed partial class AstContext
                 ref char c = ref As<Str>(text).FirstChar;
                 do j++;
                 while (char.IsLetterOrDigit(Add(ref c, j)) || Add(ref c, j) == '_');
-                if (Avx.IsSupported)
-                    return IsIntelKeyword(ref Add(ref c, i), j - i) == Token.Id;
-                else
-                    return IsKeyword(text.AsSpan()[i..j]) == Token.Id;
+                return Avx.IsSupported
+                    ? IsIntelKeyword(ref Add(ref c, i), j - i) == Token.Id
+                    : IsKeyword(text.AsSpan()[i..j]) == Token.Id;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -343,19 +324,37 @@ internal sealed partial class AstContext
                         : new(Token.Gt, i - 1);
                     return;
                 case '"':
-                    int start = i;
-                    int first = ++i;
+                    int start = i, first = i + 1;
+                    do
+                    {
+                        ch = Add(ref c, ++i);
+                        if (ch == '\0')
+                            throw new AstException("Unterminated string literal", start);
+                    }
+                    while (ch != '"');
+                    if (Add(ref c, i + 1) != '"')
+                    {
+                        Current = new(Token.Str, text[first..i++], start);
+                        return;
+                    }
+                    // This is a string literal with embedded quotes.
                     sb ??= new();
                     sb.Length = 0;
+                    sb.Append(text.AsSpan()[first..(i + 1)]);
+                    first = i += 2;
                 MORE_STRING:
-                    while (Add(ref c, i) != '"')
-                        i++;
-                    sb.Append(text.AsSpan()[first..i]);
-                    if (Add(ref c, i + 1) == '"')
+                    do
+                    {
+                        ch = Add(ref c, i++);
+                        if (ch == '\0')
+                            throw new AstException("Unterminated string literal", start);
+                    }
+                    while (ch != '"');
+                    sb.Append(text.AsSpan()[first..(i - 1)]);
+                    if (Add(ref c, i) == '"')
                     {
                         sb.Append('"');
-                        i += 2;
-                        first = i;
+                        first = ++i;
                         goto MORE_STRING;
                     }
                     Current = new(Token.Str, sb.ToString(), start);
@@ -374,19 +373,19 @@ internal sealed partial class AstContext
     /// <returns>Token.Id, if not a keyword; otherwise, the corresponding keyword.</returns>
     private static Token IsIntelKeyword(ref char c, int len)
     {
-        const uint kAnd = 'a' | ((uint)'n' << 16);
-        const uint kDef = 'd' | ((uint)'e' << 16);
-        const ulong kElse = 'e' | ((ulong)'l' << 16) | ((ulong)'s' << 32) | ((ulong)'e' << 48);
-        const uint kIf = 'i' | ((uint)'f' << 16);
-        const uint kIn = 'i' | ((uint)'n' << 16);
-        const ulong kFalse = 'f' | ((ulong)'a' << 16) | ((ulong)'l' << 32) | ((ulong)'s' << 48);
-        const uint kLet = 'l' | ((uint)'e' << 16);
-        const uint kNot = 'n' | ((uint)'o' << 16);
-        const uint kOr = 'o' | ((uint)'r' << 16);
-        const uint kSet = 's' | ((uint)'e' << 16);
-        const ulong kThen = 't' | ((ulong)'h' << 16) | ((ulong)'e' << 32) | ((ulong)'n' << 48);
-        const ulong kTrue = 't' | ((ulong)'r' << 16) | ((ulong)'u' << 32) | ((ulong)'e' << 48);
-        const ulong kUndef = 'u' | ((ulong)'n' << 16) | ((ulong)'d' << 32) | ((ulong)'e' << 48);
+        const uint kAnd = 'a' | ('n' << 16);
+        const uint kDef = 'd' | ('e' << 16);
+        const ulong kElse = 'e' | ('l' << 16) | ((ulong)'s' << 32) | ((ulong)'e' << 48);
+        const uint kIf = 'i' | ('f' << 16);
+        const uint kIn = 'i' | ('n' << 16);
+        const ulong kFalse = 'f' | ('a' << 16) | ((ulong)'l' << 32) | ((ulong)'s' << 48);
+        const uint kLet = 'l' | ('e' << 16);
+        const uint kNot = 'n' | ('o' << 16);
+        const uint kOr = 'o' | ('r' << 16);
+        const uint kSet = 's' | ('e' << 16);
+        const ulong kThen = 't' | ('h' << 16) | ((ulong)'e' << 32) | ((ulong)'n' << 48);
+        const ulong kTrue = 't' | ('r' << 16) | ((ulong)'u' << 32) | ((ulong)'e' << 48);
+        const ulong kUndef = 'u' | ('n' << 16) | ((ulong)'d' << 32) | ((ulong)'e' << 48);
 
         return len switch
         {
@@ -490,9 +489,8 @@ internal sealed partial class AstContext
         if (text.Length >= 5)
         {
             int month = TryGetMonth(text[..3]);
-            if (month > 0)
-                if (text.Length == 5 &&
-                    int.TryParse(text[3..], out int year))
+            if (month > 0 && int.TryParse(text[3..], out int year))
+                if (text.Length == 5 )
                 {
                     date = new(2000 + year, month, 1);
                     Date top = Date.Today.AddYears(20);
@@ -500,8 +498,7 @@ internal sealed partial class AstContext
                         date = date.AddYears(-100);
                     return true;
                 }
-                else if (text.Length == 7 &&
-                    int.TryParse(text[3..], out year))
+                else if (text.Length == 7)
                 {
                     date = new Date(year, month, 1);
                     return true;
