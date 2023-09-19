@@ -264,10 +264,11 @@ public sealed partial class RootModel : Entity
         Scroller?.ScrollToEnd();
     }
 
-    public void AppendResult(string variable, Block block)
+    public void AppendResult(string variable, Block block, UIElement element)
     {
         MainSection?.ContentEnd.InsertTextInRun($"> {variable}");
         MainSection?.Blocks.Add(block);
+        MainSection?.Blocks.Add(new BlockUIContainer(element));
         Scroller?.ScrollToEnd();
     }
 

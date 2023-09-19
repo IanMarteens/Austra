@@ -1,22 +1,310 @@
-﻿using System.Windows.Documents;
+﻿using OxyPlot;
+using OxyPlot.Annotations;
+using System.Windows.Data;
+using System.Windows.Documents;
 
 namespace Ostara;
 
 public sealed class MvoNode : VarNode<MvoModel>
 {
+    private OxyPlot.Series.PieSeries? pieSeries;
+    private PlotModel? fModel;
+    private PlotModel? wModel;
+    private double ret;
+    private double variance;
+    private double stddev;
+    //private double riskFreeReturn;
+
     public MvoNode(ClassNode? parent, string varName, string formula, MvoModel value) :
-    base(parent, varName, formula, "MVO Model", value)
-    { }
+        base(parent, varName, formula, "MVO Model", value)
+    {
+        // Create the frontier.
+        for (int row = 0; row < Model.Length; row++)
+        {
+            Portfolio portfolio = Model[row];
+            Frontier.Add(new(portfolio.StdDev, portfolio.Mean));
+        }
+        // Initialize targets.
+        Portfolio p = Model[^1];
+        (ret, variance, stddev) = (MinRet, MinVar, MinStd) = (p.Mean, p.Variance, p.StdDev);
+        p = Model[0];
+        (MaxRet, MaxVar, MaxStd) = (p.Mean, p.Variance, p.StdDev);
+        // Initialize weights.
+        RVector w = Model[^1].Weights;
+        Weights = new();
+        for (int i = 0; i < w.Length; i++)
+            Weights.Add(new(Model.Labels[i], w[i]));
+    }
 
     public MvoNode(ClassNode? parent, string varName, MvoModel value) :
         this(parent, varName, varName, value)
     { }
 
+    public double MinRet { get; }
+    public double MinVar { get; }
+    public double MinStd { get; }
+    public double MaxRet { get; }
+    public double MaxVar { get; }
+    public double MaxStd { get; }
+
+    public double Ret
+    {
+        get => ret;
+        set
+        {
+            if (value < MinRet || value > MaxRet)
+                return;
+            InterpolatedPortfolio? ip = Optimizer.GetTargetReturnEfficientPortfolio(
+                Model.Portfolios,
+                Model.Covariance, value);
+            if (ip == null)
+                return;
+            SetFields(value, ip.StdDev, ip.Variance);
+            SetWeights(ip.Weights);
+        }
+    }
+
+    public double Variance
+    {
+        get => variance;
+        set
+        {
+            if (value < MinVar || value > MaxVar)
+                return;
+            InterpolatedPortfolio? ip = Optimizer.GetTargetVolatilityEfficientPortfolio(
+                Model.Portfolios,
+                Model.Covariance, (double)value);
+            if (ip == null)
+                return;
+            SetFields(ip.Mean, Math.Sqrt((double)value), (double)value);
+            SetWeights(ip.Weights);
+        }
+    }
+
+    public double StdDev
+    {
+        get => stddev;
+        set
+        {
+            if (value < MinStd || value > MaxStd)
+                return;
+            double varn = value * value;
+            InterpolatedPortfolio? ip = Optimizer.GetTargetVolatilityEfficientPortfolio(
+                Model.Portfolios,
+                Model.Covariance, varn);
+            if (ip == null)
+                return;
+            SetFields(ip.Mean, value, varn);
+            SetWeights(ip.Weights);
+        }
+    }
+
+    private void SetFields(double mean, double std, double varn)
+    {
+        SetField(ref ret, Clip(mean, MinRet, MaxRet), nameof(Ret));
+        SetField(ref variance, Clip(varn, MinVar, MaxVar), nameof(Variance));
+        SetField(ref stddev, Clip(std, MinStd, MaxStd), nameof(StdDev));
+        if (fModel != null)
+        {
+            ((LineAnnotation)fModel.Annotations[0]).X = stddev;
+            fModel.InvalidatePlot(false);
+        }
+
+        static double Clip(double value, double min, double max)
+        {
+            if (value <= min)
+                return min;
+            if (value >= max)
+                return max;
+            return value;
+        }
+    }
+
+    private void SetWeights(RVector weights)
+    {
+        pieSeries?.Slices.Clear();
+        for (int i = 0; i < weights.Length; i++)
+        {
+            var w = Weights[i] = new(Model.Labels[i], weights[i]);
+            pieSeries?.Slices.Add(new(w.Item1, w.Item2));
+        }
+        wModel?.InvalidatePlot(true);
+    }
+
+    public ObservableCollection<Tuple<string, double>> Weights { get; } = new();
+
+    public ObservableCollection<Tuple<double, double>> Frontier { get; } = new();
+
     public override Visibility ImageVisibility => Visibility.Visible;
 
     public override string ImageSource => "/images/mvo.png";
 
-    public override void Show() => RootModel.Instance.AppendResult(Formula, CreateTable());
+    public override void Show()
+    {
+        if (wModel is null)
+        {
+            wModel = new() { Title = "Weights" };
+            pieSeries = new();
+            foreach (Tuple<string, double> w in Weights)
+                pieSeries.Slices.Add(new(w.Item1, w.Item2));
+            wModel.Series.Add(pieSeries);
+        }
+        OxyPlot.Wpf.PlotView wView = new()
+        {
+            Model = wModel,
+            Width = 250,
+            Height = 250,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
+        };
+        if (fModel is null)
+        {
+            fModel = new();
+            fModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
+                Position = OxyPlot.Axes.AxisPosition.Left,
+                Title = "Return",
+                TitleFontWeight = 500d,
+            });
+            fModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
+                Position = OxyPlot.Axes.AxisPosition.Bottom,
+                Title = "σ",
+                TitleFontWeight = 500d,
+            });
+            OxyPlot.Series.LineSeries lineSeries = new()
+            {
+                TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
+            };
+            foreach (Tuple<double, double> p in Frontier)
+                lineSeries.Points.Add(new(p.Item1, p.Item2));
+            fModel.Series.Add(lineSeries);
+            LineAnnotation line = new()
+            {
+                Type = LineAnnotationType.Vertical,
+                Color = OxyColors.RoyalBlue,
+                LineStyle = LineStyle.Solid,
+                StrokeThickness = 1,
+                X = StdDev,
+            };
+            fModel.Annotations.Add(line);
+        }
+        OxyPlot.Wpf.PlotView fView = new()
+        {
+            Model = fModel,
+            Width = 300,
+            Height = 250,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
+        };
+        Slider retSlider = new()
+        {
+            Minimum = MinRet,
+            Maximum = MaxRet,
+            Value = Ret,
+            Orientation = Orientation.Vertical,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
+            VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
+            Margin = new Thickness(4, 0, 4, 1),
+        };
+        retSlider.SetBinding(Slider.ValueProperty, new Binding(nameof(Ret))
+        {
+            Source = this,
+            Mode = BindingMode.TwoWay,
+            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+        });
+        Slider stdSlider = new()
+        {
+            Minimum = MinStd,
+            Maximum = MaxStd,
+            Value = StdDev,
+            Orientation = Orientation.Vertical,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+            VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
+            Margin = new Thickness(4, 0, 4, 1),
+        };
+        stdSlider.SetBinding(Slider.ValueProperty, new Binding(nameof(StdDev))
+        {
+            Source = this,
+            Mode = BindingMode.TwoWay,
+            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+        });
+        Slider varSlider = new()
+        {
+            Minimum = MinVar,
+            Maximum = MaxVar,
+            Value = Variance,
+            Orientation = Orientation.Vertical,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+            VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
+            Margin = new Thickness(4, 0, 4, 1),
+        };
+        varSlider.SetBinding(Slider.ValueProperty, new Binding(nameof(Variance))
+        {
+            Source = this,
+            Mode = BindingMode.TwoWay,
+            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+        });
+        TextBlock retLabel = new()
+        {
+            Text = "Ret",
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White),
+            Padding = new Thickness(4, 0, 4, 0),
+        };
+        TextBlock stdLabel = new()
+        {
+            Text = "σ",
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White),
+            Padding = new Thickness(4, 0, 4, 0),
+        };
+        TextBlock varLabel = new()
+        {
+            Text = "σ²",
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White),
+            Padding = new Thickness(4, 0, 4, 0),
+        };
+        var grid = new Grid()
+        {
+            Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0xFF, 0x20, 0x20, 0x20)),
+            Margin = new Thickness(0, 0, 2, 0),
+        };
+        grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+        Grid.SetColumn(retLabel, 0);
+        Grid.SetRow(retLabel, 0);
+        Grid.SetColumn(retSlider, 0);
+        Grid.SetRow(retSlider, 1);
+        Grid.SetColumn(stdLabel, 1);
+        Grid.SetRow(stdLabel, 0);
+        Grid.SetColumn(stdSlider, 1);
+        Grid.SetRow(stdSlider, 1);
+        Grid.SetColumn(varLabel, 2);
+        Grid.SetRow(stdLabel, 0);
+        Grid.SetColumn(varSlider, 2);
+        Grid.SetRow(varSlider, 1);
+        grid.Children.Add(retLabel);
+        grid.Children.Add(stdLabel);
+        grid.Children.Add(varLabel);
+        grid.Children.Add(retSlider);
+        grid.Children.Add(stdSlider);
+        grid.Children.Add(varSlider);
+        StackPanel panel = new()
+        {
+            Orientation = Orientation.Horizontal,
+        };
+        panel.Children.Add(grid);
+        panel.Children.Add(new Separator() { Width = 2 });
+        panel.Children.Add(fView);
+        panel.Children.Add(new Separator() { Width = 2 });
+        panel.Children.Add(wView);
+        RootModel.Instance.AppendResult(Formula, CreateTable(), panel);
+    }
 
     private Table CreateTable()
     {
@@ -52,7 +340,7 @@ public sealed class MvoNode : VarNode<MvoModel>
 
         static TableCell NewHdr(string header) => new(new Paragraph(new Run(header))
         {
-            FontWeight = FontWeights.DemiBold,
+            FontWeight = System.Windows.FontWeights.DemiBold,
             TextAlignment = TextAlignment.Right
         });
     }
