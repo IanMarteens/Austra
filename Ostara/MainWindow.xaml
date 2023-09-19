@@ -60,21 +60,23 @@
         <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}" Executed="ExecuteMinimize" />
         <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}" Executed="ExecuteRestore" />
         <CommandBinding Command="ApplicationCommands.Open" Executed="ExecuteOpen"/>
-        <CommandBinding Command="{x:Static local:RootModel.CloseAll}" Executed="ExecuteCloseAll"
+        <CommandBinding Command="{x:Static local:OstCommands.CloseAll}" Executed="ExecuteCloseAll"
                         CanExecute="CanExecuteCloseAll"/>
-        <CommandBinding Command="{x:Static local:RootModel.About}" Executed="ExecuteAbout"/>
+        <CommandBinding Command="{x:Static local:OstCommands.About}" Executed="ExecuteAbout"/>
         <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCmdExecuted"/>
         <CommandBinding Command="MediaCommands.Play" Executed="PlayCmdExecuted" CanExecute="CanExecutePlay"/>
-        <CommandBinding Command="{x:Static local:RootModel.ParseType}" Executed="CheckTypeExecuted" CanExecute="CanExecutePlay"/>
-        <CommandBinding Command="{x:Static local:RootModel.HistoryUp}" Executed="ExecHistoryUp"/>
-        <CommandBinding Command="{x:Static local:RootModel.HistoryDown}" Executed="ExecHistoryDown"/>
+        <CommandBinding Command="{x:Static local:OstCommands.ParseType}" Executed="CheckTypeExecuted" CanExecute="CanExecutePlay"/>
+        <CommandBinding Command="{x:Static local:OstCommands.HistoryUp}" Executed="ExecHistoryUp"/>
+        <CommandBinding Command="{x:Static local:OstCommands.HistoryDown}" Executed="ExecHistoryDown"/>
+        <CommandBinding Command="{x:Static local:OstCommands.FocusEditor}" Executed="ExecuteFocusEditor"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="F5" Command="MediaCommands.Play"/>
-        <KeyBinding Key="F5" Modifiers="Control" Command="{x:Static local:RootModel.ParseType}"/>
-        <KeyBinding Key="F1" Modifiers="Control" Command="{x:Static local:RootModel.About}"/>
-        <KeyBinding Key="F7" Command="{x:Static local:RootModel.HistoryUp}"/>
-        <KeyBinding Key="F7" Modifiers="Control" Command="{x:Static local:RootModel.HistoryDown}"/>
+        <KeyBinding Key="F5" Modifiers="Control" Command="{x:Static local:OstCommands.ParseType}"/>
+        <KeyBinding Key="F1" Modifiers="Control" Command="{x:Static local:OstCommands.About}"/>
+        <KeyBinding Key="F7" Command="{x:Static local:OstCommands.HistoryUp}"/>
+        <KeyBinding Key="F7" Modifiers="Control" Command="{x:Static local:OstCommands.HistoryDown}"/>
+        <KeyBinding Key="F10" Modifiers="Control" Command="{x:Static local:OstCommands.FocusEditor}"/>
     </Window.InputBindings>
     <Border x:Name="MainWindowBorder" BorderBrush="#FF000010" BorderThickness="8" >
         <DockPanel>
@@ -89,9 +91,9 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
                     <Button Style="{StaticResource MinimizeButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Minimize"
                             Command="{x:Static SystemCommands.MinimizeWindowCommand}"/>
-                    <Button x:Name="RestoreButton" Visibility="Collapsed" Style="{StaticResource RestoreButtonStyle}" 
+                    <Button x:Name="RestoreButton" Visibility="Visible" Style="{StaticResource RestoreButtonStyle}" 
                             Command="{x:Static SystemCommands.RestoreWindowCommand}" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Restore"/>
-                    <Button x:Name="MaximizeButton" Visibility="Visible" Style="{StaticResource MaximizeButtonStyle}" 
+                    <Button x:Name="MaximizeButton" Visibility="Collapsed" Style="{StaticResource MaximizeButtonStyle}" 
                             Command="{x:Static SystemCommands.MaximizeWindowCommand}" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Maximize" />
                     <Button Style="{StaticResource CloseButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close"
                             Command="{x:Static SystemCommands.CloseWindowCommand}"/>
@@ -117,7 +119,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem Header="Close all" Command="{x:Static local:RootModel.CloseAll}">
+                    <MenuItem Header="Close all" Command="{x:Static local:OstCommands.CloseAll}">
                         <MenuItem.Icon>
                             <Image Source="/images/closeAll.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
@@ -168,12 +170,12 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem Header="History up" Command="{x:Static local:RootModel.HistoryUp}" InputGestureText="F7">
+                    <MenuItem Header="History up" Command="{x:Static local:OstCommands.HistoryUp}" InputGestureText="F7">
                         <MenuItem.Icon>
                             <Image Source="/images/histUp.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="History down" Command="{x:Static local:RootModel.HistoryDown}" InputGestureText="Ctrl+F7">
+                    <MenuItem Header="History down" Command="{x:Static local:OstCommands.HistoryDown}" InputGestureText="Ctrl+F7">
                         <MenuItem.Icon>
                             <Image Source="/images/histDown.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
@@ -185,7 +187,7 @@
                             <Image Source="/images/play.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="_Check type" InputGestureText="Ctrl+F5" Command="{x:Static local:RootModel.ParseType}">
+                    <MenuItem Header="_Check type" InputGestureText="Ctrl+F5" Command="{x:Static local:OstCommands.ParseType}">
                         <MenuItem.Icon>
                             <Image Source="/images/playt.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
@@ -199,7 +201,7 @@
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Help">
-                    <MenuItem Header="_About" Command="{x:Static local:RootModel.About}">
+                    <MenuItem Header="_About" Command="{x:Static local:OstCommands.About}">
                         <MenuItem.Icon>
                             <Image Source="/images/info.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
@@ -213,7 +215,7 @@
                         <TextBlock>Open...</TextBlock>
                     </StackPanel>
                 </Button>
-                <Button Command="{x:Static local:RootModel.CloseAll}" ToolTip="Closes the current session">
+                <Button Command="{x:Static local:OstCommands.CloseAll}" ToolTip="Closes the current session">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/images/closeAll.png" Margin="0,0,4,0" Width="16" Height="Auto"/>
                         <TextBlock>Close all</TextBlock>

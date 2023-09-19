@@ -36,12 +36,6 @@ public sealed partial class RootModel : Entity
     private Visibility showFormulaEditor = Visibility.Collapsed;
     private int historyIndex = -1;
 
-    public static readonly RoutedCommand ParseType = new();
-    public static readonly RoutedCommand CloseAll = new();
-    public static readonly RoutedCommand About = new();
-    public static readonly RoutedCommand HistoryUp = new();
-    public static readonly RoutedCommand HistoryDown = new();
-
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
     {

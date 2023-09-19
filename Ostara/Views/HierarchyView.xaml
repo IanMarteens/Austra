@@ -7,9 +7,21 @@
     xmlns:local="clr-namespace:Ostara"
     mc:Ignorable="d" 
     d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Background="#FF000004">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock
+            Grid.Row="0"
+            Text="Variables"
+            Foreground="#FFB0B0B0"
+            FontSize="17"
+            FontWeight="DemiBold"
+            Margin="12,5,0,1"
+            VerticalAlignment="Stretch"/>
         <TreeView
-            Grid.Column="1"
+            Grid.Row="1"
             ItemsSource="{Binding Classes}"
             Background="#FF161616"
             Margin="0">
@@ -18,7 +30,7 @@
                                           ItemsSource="{Binding Nodes}">
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Stretch" Margin="0,1">
-                        <TextBlock Text="{Binding Name}"  Foreground="White"/>
+                        <TextBlock Text="{Binding Name}" Foreground="#FFD0D0D0"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <DataTemplate DataType="{x:Type local:DefinitionNode}">
@@ -75,7 +87,7 @@
                                 </Style>
                             </Image.Style>
                         </Image>
-                        <TextBlock Text="{Binding Name}" Foreground="White" Margin="2,1"/>
+                        <TextBlock Text="{Binding Name}" Foreground="#FFD0D0D0" Margin="2,1"/>
                     </StackPanel>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type local:VarNode}">
@@ -86,7 +98,7 @@
                                Source="{Binding ImageSource}"
                                Visibility="{Binding ImageVisibility}"
                                VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding Name}" Foreground="White" Margin="5,1,0,1" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Name}" Foreground="#FFD0D0D0" Margin="5,1,0,1" VerticalAlignment="Center"/>
                     </StackPanel>
                 </DataTemplate>
             </TreeView.Resources>

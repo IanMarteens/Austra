@@ -148,6 +148,12 @@ public partial class MainWindow : Window
     private void ExecHistoryUp(object sender, ExecutedRoutedEventArgs e) =>
         Root.ExecHistoryUp();
 
+    private void ExecuteFocusEditor(object sender, ExecutedRoutedEventArgs e)
+    {
+        avalon.Focus();
+        avalon.SelectAll();
+    }
+
     private void AvalonPreviewKeyDown(object sender, KeyEventArgs e)
     {
     }
