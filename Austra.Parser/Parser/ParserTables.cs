@@ -471,7 +471,7 @@ internal static partial class Parser
         new(message, position);
 
     private static AstException Error(string message, AstContext ctx) =>
-        new(message, ctx.Lex.Current.Position);
+        new(message, ctx.Current.Position);
 
     private static AstException Error(string message, in Lexeme lexeme) =>
         new(message, lexeme.Position);

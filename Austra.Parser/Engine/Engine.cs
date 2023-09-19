@@ -145,7 +145,7 @@ public partial class AustraEngine : IAustraEngine
             return new(dList, dList.GetType(), name);
         }
 
-        AstContext ctx = new(Source, new Lexer(formula));
+        AstContext ctx = new(Source, formula);
         Stopwatch sw = Stopwatch.StartNew();
         Func<IDataSource, object> lambda = Parser.Parse(ctx);
         sw.Stop();
@@ -170,7 +170,7 @@ public partial class AustraEngine : IAustraEngine
     public Type EvalType(string formula)
     {
         ExecutionTime = CompileTime = null;
-        AstContext ctx = new(Source, new Lexer(formula));
+        AstContext ctx = new(Source, formula);
         Stopwatch sw = Stopwatch.StartNew();
         Type result = Parser.ParseType(ctx);
         sw.Stop();
@@ -184,7 +184,7 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>The type resulting from the evaluation.</returns>
     public Definition ParseDefinition(string definition, string description)
     {
-        AstContext ctx = new(Source, new Lexer(definition));
+        AstContext ctx = new(Source, definition);
         Definition def = Parser.ParseDefinition(ctx, definition, description);
         foreach (Definition referenced in ctx.References)
             referenced.Children.Add(def);
