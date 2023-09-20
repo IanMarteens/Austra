@@ -121,6 +121,7 @@ public sealed class SeriesViewModel : Entity
                     1 => node.Model.MovingAvg(MovingPoints),
                     2 => node.Model.MovingStd(MovingPoints),
                     3 => node.Model.EWMA(EwmaLambda),
+                    4 => node.Model.MovingRet(),
                     _ => null,
                 };
                 toolBar.Children[2].Visibility = toolBar.Children[3].Visibility =
@@ -143,11 +144,14 @@ public sealed class SeriesViewModel : Entity
             Content = "Reference:",
             VerticalAlignment = VerticalAlignment.Center,
         });
+        List<string> references = new() { "None", "Moving average", "Moving StdDev", "EWMA" };
+        if (node.Model.Type == SeriesType.Raw)
+            references.Add("Moving return");
         ComboBox combo = new()
         {
             Width = 200,
             VerticalAlignment = VerticalAlignment.Center,
-            ItemsSource = new string[] { "None", "Moving average", "Moving StdDev", "EWMA" },
+            ItemsSource = references,
             SelectedIndex = 0,
         };
         combo.SetBinding(ComboBox.SelectedIndexProperty, new Binding(nameof(SelectedSeries))

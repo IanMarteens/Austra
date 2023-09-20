@@ -240,7 +240,7 @@ public sealed class Series : Series<Date>,
                 delta = 12;
         }
         var newArgs = args[high..^(delta - 1)];
-        double[] newValues = new double[newArgs.Length];
+        double[] newValues = GC.AllocateUninitializedArray<double>(newArgs.Length);
         for (int i = 0; i < newValues.Length; i++)
         {
             if (Type == SeriesType.Raw)
