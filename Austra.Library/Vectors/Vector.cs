@@ -992,7 +992,7 @@ public readonly struct Vector :
     /// <param name="size">Number of lags to compute.</param>
     /// <returns>Pairs lags/autocorrelation.</returns>
     public Series<int> Correlogram(int size) =>
-        Series.Create("CORR", null, 1, CorrelogramRaw(size), SeriesType.Raw);
+        Series.Create("CORR", null, CorrelogramRaw(size));
 
     /// <summary>Computes autocorrelation for all lags.</summary>
     /// <returns>Pairs lags/autocorrelation.</returns>

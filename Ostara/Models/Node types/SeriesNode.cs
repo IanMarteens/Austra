@@ -7,11 +7,9 @@ public sealed class SeriesNode : VarNode<Series>
         ", 1D", ", 1W", ", 2W", ", 1M", ", 2M", ", 3M", ", 6M", ", 1Y", ""
     };
 
-    private readonly Accumulator acc;
-
     public SeriesNode(ClassNode? parent, string varName, string formula, Series value) :
         base(parent, varName, formula, "Series/" + value.Type + freq2str[(int)value.Freq], value)
-        => acc = value.Stats();
+    { }
 
     public SeriesNode(ClassNode? parent, string varName, Series value) :
         this(parent, varName, varName, value)
@@ -72,28 +70,28 @@ public sealed class SeriesNode : VarNode<Series>
     public override string ImageSource => Stored ? base.ImageSource : "/images/waves.png";
 
     [Category("Stats")]
-    public long Count => acc.Count;
+    public long Count => Model.Stats().Count;
 
     [Category("Stats")]
-    public double Min => acc.Minimum;
+    public double Min => Model.Stats().Minimum;
 
     [Category("Stats")]
-    public double Max => acc.Maximum;
+    public double Max => Model.Stats().Maximum;
 
     [Category("Stats")]
-    public double Mean => acc.Mean;
+    public double Mean => Model.Stats().Mean;
 
     [Category("Stats")]
-    public double Variance => acc.Variance;
+    public double Variance => Model.Stats().Variance;
 
     [Category("Stats")]
-    public double Volatility => acc.StandardDeviation;
+    public double Volatility => Model.Stats().StandardDeviation;
 
     [Category("Stats")]
-    public double Skewness => acc.Skewness;
+    public double Skewness => Model.Stats().Skewness;
 
     [Category("Stats")]
-    public double Kurtosis => acc.Kurtosis;
+    public double Kurtosis => Model.Stats().Kurtosis;
 }
 
 public sealed class PercentileNode : VarNode<Series<double>>
@@ -108,7 +106,6 @@ public sealed class PercentileNode : VarNode<Series<double>>
     { }
 
     override public void Show() =>
-
         RootModel.Instance.AppendControl(Formula, Model.ToString(),
             CreateOxyModel().CreateSeries(Model).CreateView());
 
@@ -117,7 +114,6 @@ public sealed class PercentileNode : VarNode<Series<double>>
     public override Visibility ImageVisibility => Visibility.Visible;
 
     public override string ImageSource => Stored ? base.ImageSource : "/images/waves.png";
-
 }
 
 public sealed class CorrelogramNode : VarNode<Series<int>>
@@ -131,18 +127,9 @@ public sealed class CorrelogramNode : VarNode<Series<int>>
         this(parent, varName, varName, value)
     { }
 
-    override public void Show()
-    {
-        OxyPlot.PlotModel model = CreateOxyModel();
-        OxyPlot.Series.StairStepSeries stepSeries = new()
-        {
-            TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
-        };
-        foreach (Point<int> p in Model.Points)
-            stepSeries.Points.Add(new(p.Arg, p.Value));
-        model.Series.Add(stepSeries);
-        RootModel.Instance.AppendControl(Formula, Model.ToString(), model.CreateView());
-    }
+    override public void Show() =>
+        RootModel.Instance.AppendControl(Formula, Model.ToString(),
+            CreateOxyModel().CreateStepSeries(Model.GetValues()).CreateView());
 
     public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
 

@@ -1,5 +1,4 @@
 ﻿using OxyPlot;
-using OxyPlot.Annotations;
 using System.Windows.Data;
 using System.Windows.Documents;
 

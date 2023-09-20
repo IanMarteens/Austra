@@ -48,7 +48,8 @@ public sealed class LinearSModelNode : LinearModelNode<LinearSModel, Series>
     { }
 
     public override void Show() => Show(
-        CreateOxyModel(new OxyPlot.Axes.DateTimeAxis(), showLegend: true)
+        CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
+            .CreateLegend()
             .CreateSeries(Model.Original, "Original")
             .CreateSeries(Model.Prediction, "Predicted"));
 }
@@ -64,19 +65,9 @@ public sealed class LinearVModelNode : LinearModelNode<LinearVModel, RVector>
         this(parent, varName, varName, value)
     { }
 
-    public override void Show()
-    {
-        OxyPlot.PlotModel model = CreateOxyModel(showLegend: true);
-        OxyPlot.Series.LineSeries lineSeries1 = new() { Title = "Original" };
-        int idx = 0;
-        foreach (double v in Model.Original)
-            lineSeries1.Points.Add(new(idx++, v));
-        model.Series.Add(lineSeries1);
-        OxyPlot.Series.LineSeries lineSeries2 = new() { Title = "Predicted" };
-        idx = 0;
-        foreach (double v in Model.Prediction)
-            lineSeries2.Points.Add(new(idx++, v));
-        model.Series.Add(lineSeries2);
-        Show(model);
-    }
+    public override void Show() => Show(
+        CreateOxyModel()
+            .CreateLegend()
+            .CreateSeries(Model.Original, "Original")
+            .CreateSeries(Model.Prediction, "Predicted"));
 }

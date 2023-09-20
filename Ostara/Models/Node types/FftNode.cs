@@ -9,16 +9,9 @@ public sealed class FftNode : VarNode<FftModel>
         this(parent, varName, varName, value)
     { }
 
-    public override void Show()
-    {
-        OxyPlot.PlotModel model = CreateOxyModel();
-        OxyPlot.Series.StairStepSeries stepSeries = new();
-        int idx = 0;
-        foreach (double p in Model.Amplitudes)
-            stepSeries.Points.Add(new(idx++, p));
-        model.Series.Add(stepSeries);
-        RootModel.Instance.AppendControl(Formula, Model.ToShortString(), model.CreateView());
-    }
+    public override void Show() =>
+        RootModel.Instance.AppendControl(Formula, Model.ToShortString(),
+            CreateOxyModel().CreateStepSeries(Model.Amplitudes).CreateView());
 
     public override Visibility ImageVisibility => Visibility.Visible;
 

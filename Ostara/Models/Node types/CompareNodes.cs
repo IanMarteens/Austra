@@ -22,7 +22,8 @@ public sealed class CompareNode : VarNode<Tuple<Series, Series>>
     public override void Show() =>
         RootModel.Instance.AppendControl(Name,
             First.ToString() + " vs " + Second.ToString(),
-            CreateOxyModel(new OxyPlot.Axes.DateTimeAxis(), showLegend: true)
+            CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
+                .CreateLegend()
                 .CreateSeries(First, "First")
                 .CreateSeries(Second, "Second")
                 .CreateView());

@@ -71,21 +71,16 @@ public class Series<T> where T : struct, IComparable<T>
     /// <summary>Creates a series with integer arguments given its values.</summary>
     /// <param name="name">The name of the new series.</param>
     /// <param name="ticker">Externally provided name for the series.</param>
-    /// <param name="offset">Offset for the numeric arguments.</param>
     /// <param name="values">Values array.</param>
     /// <param name="type">Type of the series.</param>
     /// <returns>The new series.</returns>
     public static Series<int> Create(string name, string? ticker,
-        int offset, double[] values, SeriesType type)
-    {
-        int[] args = new int[values.Length];
-        for (int i = 0; i < args.Length; i++)
-            args[i] = i + offset;
-        return new(name, ticker, args, values, type);
-    }
+        double[] values, SeriesType type = SeriesType.Raw) =>
+        new(name, ticker, Enumerable.Range(0, values.Length).ToArray(), values, type);
 
     /// <summary>Gets the name of the series.</summary>
     public string Name { get; protected set; }
+
     /// <summary>Gets the ticker of the series.</summary>
     public string? Ticker { get; protected set; }
 
@@ -418,7 +413,7 @@ public class Series<T> where T : struct, IComparable<T>
     /// <param name="size">Number of lags to compute.</param>
     /// <returns>Pairs lags/autocorrelation.</returns>
     public Series<int> Correlogram(int size) =>
-        Create("CORR(" + Name + ")", Ticker, 1, new Vector(values).CorrelogramRaw(size), Type);
+        Create("CORR(" + Name + ")", Ticker, new Vector(values).CorrelogramRaw(size), Type);
 
     /// <summary>Computes autocorrelation for all lags.</summary>
     /// <returns>Pairs lags/autocorrelation.</returns>

@@ -1,7 +1,4 @@
-﻿using OxyPlot;
-using OxyPlot.Annotations;
-
-namespace Ostara;
+﻿namespace Ostara;
 
 /// <summary>Common base class for nodes representing a spline model.</summary>
 /// <typeparam name="T">The spline type.</typeparam>

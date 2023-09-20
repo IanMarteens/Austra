@@ -75,7 +75,7 @@ public abstract class VarNode : NodeBase
     public virtual Visibility ImageVisibility =>
         Stored ? Visibility.Visible : Visibility.Collapsed;
 
-    public virtual string ImageSource => Stored ? "/images/store.png" : "";
+    public virtual string ImageSource => Stored ? "/images/store.png" : "/images/tag.png";
 
     public Visibility IsOrphan =>
         Parent != null ? Visibility.Collapsed : Visibility.Visible;
@@ -95,12 +95,9 @@ public abstract class VarNode<T> : VarNode
     public T Model { get; }
 
     protected OxyPlot.PlotModel CreateOxyModel(
-        OxyPlot.Axes.Axis? xAxis = null, OxyPlot.Axes.Axis? yAxis = null,
-        bool showLegend = false)
+        OxyPlot.Axes.Axis? xAxis = null, OxyPlot.Axes.Axis? yAxis = null)
     {
         OxyPlot.PlotModel model = new();
-        if (showLegend)
-            model.Legends.Add(new OxyPlot.Legends.Legend());
         xAxis ??= new OxyPlot.Axes.LinearAxis();
         xAxis.Position = OxyPlot.Axes.AxisPosition.Bottom;
         if (xAxis is OxyPlot.Axes.DateTimeAxis)
@@ -125,6 +122,12 @@ internal static class OxyExts
             HorizontalAlignment = HorizontalAlignment.Left,
             Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black)
         };
+
+    public static OxyPlot.PlotModel CreateLegend(this OxyPlot.PlotModel model)
+    {
+        model.Legends.Add(new OxyPlot.Legends.Legend());
+        return model;
+    }
 
     public static OxyPlot.PlotModel CreateLine(
         this OxyPlot.PlotModel model, double value)
@@ -157,6 +160,21 @@ internal static class OxyExts
     }
 
     public static OxyPlot.PlotModel CreateSeries(
+        this OxyPlot.PlotModel model, RVector vector, string title = "")
+    {
+        OxyPlot.Series.LineSeries lineSeries = new()
+        {
+            TrackerFormatString = "{0}\n{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
+        };
+        if (title != "")
+            lineSeries.Title = title;
+        for (int i = 0; i < vector.Length; i++)
+            lineSeries.Points.Add(new(i, vector[i]));
+        model.Series.Add(lineSeries);
+        return model;
+    }
+
+    public static OxyPlot.PlotModel CreateSeries(
         this OxyPlot.PlotModel model, Series<double> series)
     {
         OxyPlot.Series.LineSeries lineSeries = new()
@@ -166,6 +184,19 @@ internal static class OxyExts
         foreach (Point<double> p in series.Points)
             lineSeries.Points.Add(new(p.Arg, p.Value));
         model.Series.Add(lineSeries);
+        return model;
+    }
+
+    public static OxyPlot.PlotModel CreateStepSeries(
+        this OxyPlot.PlotModel model, RVector vector)
+    {
+        OxyPlot.Series.StairStepSeries stepSeries = new()
+        {
+            TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
+        };
+        for (int i = 0; i < vector.Length; i++)
+            stepSeries.Points.Add(new(i, vector[i]));
+        model.Series.Add(stepSeries);
         return model;
     }
 
@@ -197,8 +228,6 @@ public class MiscNode : VarNode
     }
 
     public override Visibility ImageVisibility => Visibility.Visible;
-
-    public override string ImageSource => "/images/tag.png";
 
     [Category("Content")]
     public string Value { get; }
