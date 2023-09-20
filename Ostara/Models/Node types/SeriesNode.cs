@@ -19,40 +19,10 @@ public sealed class SeriesNode : VarNode<Series>
 
     override public void Show()
     {
-        OxyPlot.PlotModel model = new();
-        model.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Bottom,
-            StringFormat = "dd/MM/yyyy"
-        });
-        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Left,
-        });
-        OxyPlot.Series.LineSeries lineSeries = new()
-        {
-            TrackerFormatString = "{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
-        };
-        foreach (Point<Date> p in Model.Points)
-            lineSeries.Points.Add(
-                new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
-        model.Series.Add(lineSeries);
-        OxyPlot.Wpf.PlotView view = new()
-        {
-            Model = model,
-            Width = 900,
-            Height = 250,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
-        };
-        StackPanel ctrl = new()
-        {
-            Orientation = Orientation.Vertical,
-        };
-        StackPanel toolBar = new()
-        {
-            Orientation = Orientation.Horizontal,
-        };
+        OxyPlot.PlotModel model = CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
+            .CreateSeries(Model);
+        StackPanel ctrl = new() { Orientation = Orientation.Vertical };
+        StackPanel toolBar = new() { Orientation = Orientation.Horizontal };
         toolBar.Children.Add(new Label()
         {
             Content = "Compare series with:",
@@ -85,20 +55,13 @@ public sealed class SeriesNode : VarNode<Series>
                     model.InvalidatePlot(true);
                     return;
             }
-            OxyPlot.Series.LineSeries lineSeries = new()
-            {
-                TrackerFormatString = "{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
-            };
-            foreach (Point<Date> p in newSeries.Points)
-                lineSeries.Points.Add(
-                    new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
-            model.Series.Add(lineSeries);
+            model.CreateSeries(newSeries);
             model.ResetAllAxes();
             model.InvalidatePlot(true);
         };
         toolBar.Children.Add(combo);
         ctrl.Children.Add(toolBar);
-        ctrl.Children.Add(view);
+        ctrl.Children.Add(model.CreateView());
         RootModel.Instance.AppendControl(Formula, Model.ToString(), ctrl);
     }
 
@@ -144,34 +107,10 @@ public sealed class PercentileNode : VarNode<Series<double>>
         this(parent, varName, varName, value)
     { }
 
-    override public void Show()
-    {
-        OxyPlot.PlotModel model = new();
-        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Bottom,
-        });
-        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Left,
-        });
-        OxyPlot.Series.LineSeries lineSeries = new()
-        {
-            TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
-        };
-        foreach (Point<double> p in Model.Points)
-            lineSeries.Points.Add(new(p.Arg, p.Value));
-        model.Series.Add(lineSeries);
-        OxyPlot.Wpf.PlotView view = new()
-        {
-            Model = model,
-            Width = 900,
-            Height = 250,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
-        };
-        RootModel.Instance.AppendControl(Formula, Model.ToString(), view);
-    }
+    override public void Show() =>
+
+        RootModel.Instance.AppendControl(Formula, Model.ToString(),
+            CreateOxyModel().CreateSeries(Model).CreateView());
 
     public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
 
@@ -194,15 +133,7 @@ public sealed class CorrelogramNode : VarNode<Series<int>>
 
     override public void Show()
     {
-        OxyPlot.PlotModel model = new();
-        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Bottom,
-        });
-        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Left,
-        });
+        OxyPlot.PlotModel model = CreateOxyModel();
         OxyPlot.Series.StairStepSeries stepSeries = new()
         {
             TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
@@ -210,15 +141,7 @@ public sealed class CorrelogramNode : VarNode<Series<int>>
         foreach (Point<int> p in Model.Points)
             stepSeries.Points.Add(new(p.Arg, p.Value));
         model.Series.Add(stepSeries);
-        OxyPlot.Wpf.PlotView view = new()
-        {
-            Model = model,
-            Width = 900,
-            Height = 250,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
-        };
-        RootModel.Instance.AppendControl(Formula, Model.ToString(), view);
+        RootModel.Instance.AppendControl(Formula, Model.ToString(), model.CreateView());
     }
 
     public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;

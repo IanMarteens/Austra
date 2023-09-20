@@ -93,35 +93,9 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
 
     public override void Show()
     {
-        if (OxyModel == null)
-        {
-            OxyModel = new();
-            OxyModel.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
-            {
-                Position = OxyPlot.Axes.AxisPosition.Bottom,
-            });
-            OxyModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
-            {
-                Position = OxyPlot.Axes.AxisPosition.Left,
-            });
-            LineAnnotation line = new()
-            {
-                Type = LineAnnotationType.Vertical,
-                Color = OxyColors.RoyalBlue,
-                LineStyle = LineStyle.Solid,
-                StrokeThickness = 1,
-                X = OxyPlot.Axes.Axis.ToDouble(NewDate)
-            };
-            OxyModel.Annotations.Add(line);
-            OxyPlot.Series.LineSeries lineSeries = new()
-            {
-                TrackerFormatString = "{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
-            };
-            foreach (Point<Date> p in Series.Points)
-                lineSeries.Points.Add(
-                    new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
-            OxyModel.Series.Add(lineSeries);
-        }
+        OxyModel ??= CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
+            .CreateLine(OxyPlot.Axes.Axis.ToDouble(NewDate))
+            .CreateSeries(Series);
         RootModel.Instance.AppendControl(Formula, Series.ToString(), new DSplineView() { DataContext = this });
     }
 
@@ -134,11 +108,7 @@ public sealed class DateSplineNode : SplineNode<DateSpline, Date>
         {
             if (SetField(ref newDate, value))
             {
-                if (OxyModel != null)
-                {
-                    ((LineAnnotation)OxyModel.Annotations[0]).X = OxyPlot.Axes.Axis.ToDouble(newDate);
-                    OxyModel.InvalidatePlot(false);
-                }
+                OxyModel?.UpdateLine(OxyPlot.Axes.Axis.ToDouble(newDate));
                 SelectPoly((double)(Date)newDate);
                 try
                 {
@@ -169,31 +139,8 @@ public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
 
     public override void Show()
     {
-        if (OxyModel == null)
-        {
-            OxyModel = new();
-            OxyModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
-            {
-                Position = OxyPlot.Axes.AxisPosition.Bottom,
-            });
-            OxyModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
-            {
-                Position = OxyPlot.Axes.AxisPosition.Left,
-            });
-            LineAnnotation line = new()
-            {
-                Type = LineAnnotationType.Vertical,
-                Color = OxyColors.RoyalBlue,
-                LineStyle = LineStyle.Solid,
-                StrokeThickness = 1,
-                X = (double)NewArg,
-            };
-            OxyModel.Annotations.Add(line);
-            OxyPlot.Series.LineSeries lineSeries = new();
-            foreach (Point<double> p in Series.Points)
-                lineSeries.Points.Add(new(p.Arg, p.Value));
-            OxyModel.Series.Add(lineSeries);
-        }
+        OxyModel ??= CreateOxyModel().CreateLine((double)NewArg)
+            .CreateSeries(Series);
         RootModel.Instance.AppendControl(Formula, Series.ToString(), new VSplineView() { DataContext = this });
     }
 
@@ -206,11 +153,7 @@ public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
         {
             if (SetField(ref newArg, value))
             {
-                if (OxyModel != null)
-                {
-                    ((LineAnnotation)OxyModel.Annotations[0]).X = (double)newArg;
-                    OxyModel.InvalidatePlot(false);
-                }
+                OxyModel?.UpdateLine((double)newArg);
                 SelectPoly((double)newArg);
                 try
                 {

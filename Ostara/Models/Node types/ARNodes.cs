@@ -16,18 +16,10 @@ public abstract class ARNode<M, T> : VarNode<M> where M : ARModelBase<T>
 
     protected void Show(OxyPlot.PlotModel oxyModel)
     {
-        OxyPlot.Wpf.PlotView view = new()
-        {
-            Model = oxyModel,
-            Width = 900,
-            Height = 250,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
-        };
         string text = Model.ToString();
         if (text.EndsWith("\r\n"))
             text = text[..^2];
-        RootModel.Instance.AppendControl(Formula, text, view);
+        RootModel.Instance.AppendControl(Formula, text, oxyModel.CreateView());
     }
 
     public override Visibility ImageVisibility => Visibility.Visible;
@@ -59,38 +51,10 @@ public sealed class ARSNode : ARNode<ARSModel, Series>
         this(parent, varName, varName, value)
     { }
 
-    public override void Show()
-    {
-        OxyPlot.PlotModel model = new();
-        model.Legends.Add(new OxyPlot.Legends.Legend());
-        model.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Bottom,
-        });
-        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Left,
-        });
-        OxyPlot.Series.LineSeries lineSeries1 = new()
-        {
-            Title = "Original",
-            TrackerFormatString = "{0}\n{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
-        };
-        foreach (Point<Date> p in Model.Original.Points)
-            lineSeries1.Points.Add(
-                new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
-        model.Series.Add(lineSeries1);
-        OxyPlot.Series.LineSeries lineSeries2 = new()
-        {
-            Title = "Predicted",
-            TrackerFormatString = "{0}\n{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
-        };
-        foreach (Point<Date> p in Model.Prediction.Points)
-            lineSeries2.Points.Add(
-                new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
-        model.Series.Add(lineSeries2);
-        Show(model);
-    }
+    public override void Show() => Show(
+        CreateOxyModel(new OxyPlot.Axes.DateTimeAxis(), showLegend: true)
+            .CreateSeries(Model.Original, "Original")
+            .CreateSeries(Model.Prediction, "Predicted"));
 }
 
 /// <summary>An autoregressive model for a samples in a vector.</summary>
@@ -107,27 +71,16 @@ public sealed class ARVNode : ARNode<ARVModel, RVector>
 
     public override void Show()
     {
-        OxyPlot.PlotModel model = new();
-        model.Legends.Add(new OxyPlot.Legends.Legend());
-        model.Axes.Add(new OxyPlot.Axes.DateTimeAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Bottom,
-        });
-        model.Axes.Add(new OxyPlot.Axes.LinearAxis()
-        {
-            Position = OxyPlot.Axes.AxisPosition.Left,
-        });
+        OxyPlot.PlotModel model = CreateOxyModel(showLegend: true);
         OxyPlot.Series.LineSeries lineSeries1 = new() { Title = "Original" };
         int idx = 0;
         foreach (double v in Model.Original)
-            lineSeries1.Points.Add(
-                new(idx++, v));
+            lineSeries1.Points.Add(new(idx++, v));
         model.Series.Add(lineSeries1);
         OxyPlot.Series.LineSeries lineSeries2 = new() { Title = "Predicted" };
         idx = 0;
         foreach (double v in Model.Prediction)
-            lineSeries2.Points.Add(
-                new(idx++, v));
+            lineSeries2.Points.Add(new(idx++, v));
         model.Series.Add(lineSeries2);
         Show(model);
     }

@@ -19,11 +19,10 @@ public sealed class MvoNode : VarNode<MvoModel>
         base(parent, varName, formula, "MVO Model", value)
     {
         // Create the frontier.
-        for (int row = 0; row < Model.Length; row++)
-        {
-            Portfolio portfolio = Model[row];
-            Frontier.Add(new(portfolio.StdDev, portfolio.Mean));
-        }
+        Frontier = new("Frontier", null,
+            Model.Portfolios.Select(p => p.StdDev).ToArray(),
+            Model.Portfolios.Select(p => p.Mean).ToArray(),
+            SeriesType.Raw);
         // Initialize targets.
         Portfolio p = Model[^1];
         (ret, variance, stddev) = (MinRet, MinVar, MinStd) = (p.Mean, p.Variance, p.StdDev);
@@ -104,11 +103,7 @@ public sealed class MvoNode : VarNode<MvoModel>
         SetField(ref ret, Clip(mean, MinRet, MaxRet), nameof(Ret));
         SetField(ref variance, Clip(varn, MinVar, MaxVar), nameof(Variance));
         SetField(ref stddev, Clip(std, MinStd, MaxStd), nameof(StdDev));
-        if (fModel != null)
-        {
-            ((LineAnnotation)fModel.Annotations[0]).X = stddev;
-            fModel.InvalidatePlot(false);
-        }
+        fModel?.UpdateLine(stddev);
 
         static double Clip(double value, double min, double max)
         {
@@ -133,7 +128,7 @@ public sealed class MvoNode : VarNode<MvoModel>
 
     public ObservableCollection<Tuple<string, double>> Weights { get; } = new();
 
-    public ObservableCollection<Tuple<double, double>> Frontier { get; } = new();
+    public Series<double> Frontier { get; }
 
     public override Visibility ImageVisibility => Visibility.Visible;
 
@@ -149,54 +144,19 @@ public sealed class MvoNode : VarNode<MvoModel>
                 pieSeries.Slices.Add(new(w.Item1, w.Item2));
             wModel.Series.Add(pieSeries);
         }
-        OxyPlot.Wpf.PlotView wView = new()
-        {
-            Model = wModel,
-            Width = 250,
-            Height = 250,
-            HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
-        };
-        if (fModel is null)
-        {
-            fModel = new();
-            fModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+        fModel ??= CreateOxyModel(
+            new OxyPlot.Axes.LinearAxis()
             {
-                Position = OxyPlot.Axes.AxisPosition.Left,
-                Title = "Return",
-                TitleFontWeight = 500d,
-            });
-            fModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
-            {
-                Position = OxyPlot.Axes.AxisPosition.Bottom,
                 Title = "σ",
                 TitleFontWeight = 500d,
-            });
-            OxyPlot.Series.LineSeries lineSeries = new()
+            },
+            new OxyPlot.Axes.LinearAxis()
             {
-                TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
-            };
-            foreach (Tuple<double, double> p in Frontier)
-                lineSeries.Points.Add(new(p.Item1, p.Item2));
-            fModel.Series.Add(lineSeries);
-            LineAnnotation line = new()
-            {
-                Type = LineAnnotationType.Vertical,
-                Color = OxyColors.RoyalBlue,
-                LineStyle = LineStyle.Solid,
-                StrokeThickness = 1,
-                X = StdDev,
-            };
-            fModel.Annotations.Add(line);
-        }
-        OxyPlot.Wpf.PlotView fView = new()
-        {
-            Model = fModel,
-            Width = 300,
-            Height = 250,
-            HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black),
-        };
+                Title = "Return",
+                TitleFontWeight = 500d,
+            })
+            .CreateLine(StdDev)
+            .CreateSeries(Frontier);
         Slider retSlider = new()
         {
             Minimum = MinRet,
@@ -300,9 +260,9 @@ public sealed class MvoNode : VarNode<MvoModel>
         };
         panel.Children.Add(grid);
         panel.Children.Add(new Separator() { Width = 2 });
-        panel.Children.Add(fView);
+        panel.Children.Add(fModel.CreateView(300));
         panel.Children.Add(new Separator() { Width = 2 });
-        panel.Children.Add(wView);
+        panel.Children.Add(wModel.CreateView(250));
         RootModel.Instance.AppendResult(Formula, CreateTable(), panel);
     }
 

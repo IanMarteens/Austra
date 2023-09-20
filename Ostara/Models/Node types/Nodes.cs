@@ -86,13 +86,97 @@ public abstract class VarNode : NodeBase
 }
 
 /// <summary>Represents a session variable with a stored value.</summary>
-public abstract class VarNode<T>: VarNode
+public abstract class VarNode<T> : VarNode
 {
     protected VarNode(ClassNode? parent, string name, string formula, string type, T model) :
         base(parent, name, formula, type) => Model = model;
 
     /// <summary>Gets the value associated to the linked variable.</summary>
     public T Model { get; }
+
+    protected OxyPlot.PlotModel CreateOxyModel(
+        OxyPlot.Axes.Axis? xAxis = null, OxyPlot.Axes.Axis? yAxis = null,
+        bool showLegend = false)
+    {
+        OxyPlot.PlotModel model = new();
+        if (showLegend)
+            model.Legends.Add(new OxyPlot.Legends.Legend());
+        xAxis ??= new OxyPlot.Axes.LinearAxis();
+        xAxis.Position = OxyPlot.Axes.AxisPosition.Bottom;
+        if (xAxis is OxyPlot.Axes.DateTimeAxis)
+            xAxis.StringFormat = "dd/MM/yyyy";
+        model.Axes.Add(xAxis);
+        yAxis ??= new OxyPlot.Axes.LinearAxis();
+        yAxis.Position = OxyPlot.Axes.AxisPosition.Left;
+        model.Axes.Add(yAxis);
+        return model;
+    }
+}
+
+/// <summary>Extension methods for OxyPlot models.</summary>
+internal static class OxyExts
+{
+    public static OxyPlot.Wpf.PlotView CreateView(
+        this OxyPlot.PlotModel model, int width = 900, int height = 250) => new()
+        {
+            Model = model,
+            Width = width,
+            Height = height,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black)
+        };
+
+    public static OxyPlot.PlotModel CreateLine(
+        this OxyPlot.PlotModel model, double value)
+    {
+        model.Annotations.Add(new OxyPlot.Annotations.LineAnnotation()
+        {
+            Type = OxyPlot.Annotations.LineAnnotationType.Vertical,
+            Color = OxyPlot.OxyColors.RoyalBlue,
+            LineStyle = OxyPlot.LineStyle.Solid,
+            StrokeThickness = 1,
+            X = value,
+        });
+        return model;
+    }
+
+    public static OxyPlot.PlotModel CreateSeries(
+        this OxyPlot.PlotModel model, Series series, string title = "")
+    {
+        OxyPlot.Series.LineSeries lineSeries = new()
+        {
+            TrackerFormatString = "{0}\n{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
+        };
+        if (title != "")
+            lineSeries.Title = title;
+        foreach (Point<Date> p in series.Points)
+            lineSeries.Points.Add(
+                new(OxyPlot.Axes.Axis.ToDouble((DateTime)p.Arg), p.Value));
+        model.Series.Add(lineSeries);
+        return model;
+    }
+
+    public static OxyPlot.PlotModel CreateSeries(
+        this OxyPlot.PlotModel model, Series<double> series)
+    {
+        OxyPlot.Series.LineSeries lineSeries = new()
+        {
+            TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
+        };
+        foreach (Point<double> p in series.Points)
+            lineSeries.Points.Add(new(p.Arg, p.Value));
+        model.Series.Add(lineSeries);
+        return model;
+    }
+
+    public static void UpdateLine(this OxyPlot.PlotModel model, double value)
+    {
+        if (model.Annotations.Count > 0)
+        {
+            ((OxyPlot.Annotations.LineAnnotation)model.Annotations[0]).X = value;
+            model.InvalidatePlot(false);
+        }
+    }
 }
 
 /// <summary>A catch-all variable node, for variables that are not of a specific type.</summary>
