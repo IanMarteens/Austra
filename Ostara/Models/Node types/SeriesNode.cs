@@ -54,6 +54,7 @@ public sealed class SeriesNode : VarNode<Series>
 
 public sealed class SeriesViewModel : Entity
 {
+    private readonly SeriesNode node;
     private readonly OxyPlot.PlotModel model;
     private readonly StackPanel toolBar;
     private int selectedSeries = 0;
@@ -62,28 +63,26 @@ public sealed class SeriesViewModel : Entity
 
     public SeriesViewModel(SeriesNode node)
     {
-        Node = node;
+        this.node = node;
         model = VarNode.CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
             .CreateLegend()
             .CreateSeries(node.Model, "Original");
         toolBar = new() { Orientation = Orientation.Horizontal };
     }
 
-    public SeriesNode Node { get; }
-
     public int MovingPoints
     {
         get => movingPoints;
         set
         {
-            if (value > 0 && value < Node.Count - 2
+            if (value > 0 && value < node.Count - 2
                 && SetField(ref movingPoints, value) && SelectedSeries is 1 or 2)
             {
                 if (model.Series.Count > 0)
                     model.Series.RemoveAt(1);
                 model.CreateSeries(SelectedSeries == 1
-                    ? Node.Model.MovingAvg(MovingPoints)
-                    : Node.Model.MovingStd(MovingPoints),
+                    ? node.Model.MovingAvg(MovingPoints)
+                    : node.Model.MovingStd(MovingPoints),
                     "Reference");
                 model.ResetAllAxes();
                 model.InvalidatePlot(true);
@@ -101,7 +100,7 @@ public sealed class SeriesViewModel : Entity
             {
                 if (model.Series.Count > 0)
                     model.Series.RemoveAt(1);
-                model.CreateSeries(Node.Model.EWMA(EwmaLambda), "Reference");
+                model.CreateSeries(node.Model.EWMA(EwmaLambda), "Reference");
                 model.ResetAllAxes();
                 model.InvalidatePlot(true);
             }
@@ -119,9 +118,9 @@ public sealed class SeriesViewModel : Entity
                     model.Series.RemoveAt(1);
                 Series? newSeries = selectedSeries switch
                 {
-                    1 => Node.Model.MovingAvg(MovingPoints),
-                    2 => Node.Model.MovingStd(MovingPoints),
-                    3 => Node.Model.EWMA(EwmaLambda),
+                    1 => node.Model.MovingAvg(MovingPoints),
+                    2 => node.Model.MovingStd(MovingPoints),
+                    3 => node.Model.EWMA(EwmaLambda),
                     _ => null,
                 };
                 toolBar.Children[2].Visibility = toolBar.Children[3].Visibility =
@@ -151,7 +150,7 @@ public sealed class SeriesViewModel : Entity
             ItemsSource = new string[] { "None", "Moving average", "Moving StdDev", "EWMA" },
             SelectedIndex = 0,
         };
-        combo.SetBinding(ComboBox.SelectedIndexProperty, new Binding("SelectedSeries")
+        combo.SetBinding(ComboBox.SelectedIndexProperty, new Binding(nameof(SelectedSeries))
         {
             Source = this,
             Mode = BindingMode.TwoWay,
@@ -249,5 +248,4 @@ public sealed class CorrelogramNode : VarNode<Series<int>>
     public override Visibility ImageVisibility => Visibility.Visible;
 
     public override string ImageSource => Stored ? base.ImageSource : "/images/waves.png";
-
 }

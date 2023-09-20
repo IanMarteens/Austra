@@ -114,7 +114,7 @@ public abstract class VarNode<T> : VarNode
 internal static class OxyExts
 {
     public static OxyPlot.Wpf.PlotView CreateView(
-        this OxyPlot.PlotModel model, int width = 900, int height = 250) => new()
+        this OxyPlot.PlotModel model, int width = 900, int height = 250) => new MyPlotView()
         {
             Model = model,
             Width = width,
@@ -122,6 +122,19 @@ internal static class OxyExts
             HorizontalAlignment = HorizontalAlignment.Left,
             Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black)
         };
+
+    public sealed class MyPlotView : OxyPlot.Wpf.PlotView
+    {
+        protected override void OnMouseDoubleClick(MouseButtonEventArgs e)
+        {
+            base.OnMouseDoubleClick(e);
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                Model?.ResetAllAxes();
+                Model?.InvalidatePlot(false);
+            }
+        }
+    }
 
     public static OxyPlot.PlotModel CreateLegend(this OxyPlot.PlotModel model)
     {
@@ -188,12 +201,15 @@ internal static class OxyExts
     }
 
     public static OxyPlot.PlotModel CreateStepSeries(
-        this OxyPlot.PlotModel model, RVector vector)
+        this OxyPlot.PlotModel model, RVector vector, string? title = null, bool hidden = false)
     {
         OxyPlot.Series.StairStepSeries stepSeries = new()
         {
             TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
+            IsVisible = !hidden,
         };
+        if (!string.IsNullOrEmpty(title))
+            stepSeries.Title = title;
         for (int i = 0; i < vector.Length; i++)
             stepSeries.Points.Add(new(i, vector[i]));
         model.Series.Add(stepSeries);
