@@ -29,7 +29,7 @@ internal static partial class Parser
         ctx.CheckAndMoveNext(Token.Def, "DEF expected");
         if (ctx.Kind != Token.Id)
             throw Error("Definition name expected", ctx);
-        string defName = ctx.Current.Text;
+        string defName = ctx.Id;
         if (ctx.Source.GetDefinition(defName) != null ||
             ctx.Source[defName] != null)
             throw Error($"{defName} already in use", ctx);
@@ -39,7 +39,7 @@ internal static partial class Parser
             ctx.MoveNext();
             if (ctx.Kind != Token.Str)
                 throw Error("Definition description expected", ctx);
-            description = ctx.Current.Text;
+            description = ctx.Id;
             ctx.MoveNext();
         }
         ctx.CheckAndMoveNext(Token.Eq, "= expected");
@@ -64,7 +64,7 @@ internal static partial class Parser
             if (ctx.Kind != Token.Id)
                 throw Error("Left side variable expected", ctx);
             Lexeme name = ctx.Current;
-            ctx.LeftValue = name.Text;
+            ctx.LeftValue = ctx.Id;
             ctx.MoveNext();
             if (ctx.Kind == Token.Eof)
             {
@@ -73,8 +73,8 @@ internal static partial class Parser
             }
             ctx.CheckAndMoveNext(Token.Eq, "= expected");
             // Always allow deleting a session variable.
-            if (ctx.Source.GetDefinition(name.Text) != null)
-                throw Error($"{name.Text} already in use", name);
+            if (ctx.Source.GetDefinition(ctx.LeftValue) != null)
+                throw Error($"{ctx.LeftValue} already in use", name);
         }
         return ParseFormula(ctx, forceCast);
     }
@@ -90,7 +90,7 @@ internal static partial class Parser
                 ctx.MoveNext();
                 if (ctx.Kind != Token.Id)
                     throw Error("Identifier expected", ctx);
-                string localId = ctx.Current.Text;
+                string localId = ctx.Id;
                 ctx.MoveNext();
                 ctx.CheckAndMoveNext(Token.Eq, "= expected");
                 Expression init = ParseConditional(ctx);
@@ -301,7 +301,7 @@ internal static partial class Parser
                 }
                 catch
                 {
-                    throw Error($"Operator {opLex.Text} not supported for these types", opLex);
+                    throw Error($"Operator not supported for these types", opLex);
                 }
             }
         }
@@ -362,7 +362,7 @@ internal static partial class Parser
                 }
                 catch
                 {
-                    throw Error($"Operator {opLex.Text} not supported for these types", opLex);
+                    throw Error($"Operator not supported for these types", opLex);
                 }
             }
         }
@@ -432,31 +432,31 @@ internal static partial class Parser
         {
             case Token.Int:
                 {
-                    int value = ctx.Current.AsInt;
+                    int value = ctx.AsInt;
                     ctx.MoveNext();
                     return Expression.Constant(value);
                 }
             case Token.Real:
                 {
-                    double value = ctx.Current.AsReal;
+                    double value = ctx.AsReal;
                     ctx.MoveNext();
                     return Expression.Constant(value);
                 }
             case Token.Imag:
                 {
-                    double value = ctx.Current.AsReal;
+                    double value = ctx.AsReal;
                     ctx.MoveNext();
                     return Expression.Constant(new Complex(0, value));
                 }
             case Token.Str:
                 {
-                    var text = ctx.Current.Text;
+                    var text = ctx.Id;
                     ctx.MoveNext();
                     return Expression.Constant(text);
                 }
             case Token.Date:
                 {
-                    Date value = ctx.Current.AsDate;
+                    Date value = ctx.AsDate;
                     ctx.MoveNext();
                     e = Expression.Constant(value);
                     break;
@@ -477,7 +477,7 @@ internal static partial class Parser
                 break;
             case Token.MultVarR:
                 {
-                    Expression e1 = Expression.Constant(ctx.Current.AsReal);
+                    Expression e1 = Expression.Constant(ctx.AsReal);
                     int pos = ctx.Current.Position;
                     e = ParseVariable(ctx);
                     if (e.Type == typeof(int))
@@ -491,7 +491,7 @@ internal static partial class Parser
                 break;
             case Token.MultVarI:
                 {
-                    Expression e1 = Expression.Constant(ctx.Current.AsInt);
+                    Expression e1 = Expression.Constant(ctx.AsInt);
                     int pos = ctx.Current.Position;
                     e = ParseVariable(ctx);
                     if (e.Type == typeof(double))
@@ -1021,7 +1021,7 @@ internal static partial class Parser
 
     private static Expression ParseMethod(AstContext ctx, Expression e)
     {
-        string meth = ctx.Current.Text;
+        string meth = ctx.Id;
         if (!methods.TryGetValue(e.Type, out Dictionary<string, MethodInfo> dict) ||
             !dict.TryGetValue(meth, out MethodInfo mInfo))
             throw Error($"Invalid method: {meth}", ctx);
@@ -1113,7 +1113,7 @@ internal static partial class Parser
             {
                 if (ctx.Kind != Token.Id)
                     throw Error("Lambda parameter name expected", ctx);
-                ctx.LambdaParameter = Expression.Parameter(t1, ctx.Current.Text);
+                ctx.LambdaParameter = Expression.Parameter(t1, ctx.Id);
                 ctx.MoveNext();
             }
             else
@@ -1121,12 +1121,12 @@ internal static partial class Parser
                 ctx.CheckAndMoveNext(Token.LPar, "Lambda parameters expected");
                 if (ctx.Kind != Token.Id)
                     throw Error("First lambda parameter name expected", ctx);
-                ctx.LambdaParameter = Expression.Parameter(t1, ctx.Current.Text);
+                ctx.LambdaParameter = Expression.Parameter(t1, ctx.Id);
                 ctx.MoveNext();
                 ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
                 if (ctx.Kind != Token.Id)
                     throw Error("Second lambda parameter name expected", ctx);
-                ctx.LambdaParameter2 = Expression.Parameter(t2, ctx.Current.Text);
+                ctx.LambdaParameter2 = Expression.Parameter(t2, ctx.Id);
                 ctx.MoveNext();
                 ctx.CheckAndMoveNext(Token.RPar, ") expected in lambda header");
             }
@@ -1155,7 +1155,7 @@ internal static partial class Parser
 
     private static Expression ParseProperty(AstContext ctx, Expression e)
     {
-        string prop = ctx.Current.Text;
+        string prop = ctx.Id;
         if (allProps.TryGetValue(e.Type, out var dict) &&
             dict.TryGetValue(prop, out MethodInfo mInfo))
         {
@@ -1412,21 +1412,22 @@ internal static partial class Parser
     private static Expression ParseVariable(AstContext ctx)
     {
         Lexeme lex = ctx.Current;
+        string id = ctx.Id;
         ctx.MoveNext();
         // Check lambda parameters when present.
         if (ctx.LambdaParameter != null)
         {
-            if (lex.Is(ctx.LambdaParameter.Name))
+            if (string.Equals(id, ctx.LambdaParameter.Name, StringComparison.OrdinalIgnoreCase))
                 return ctx.LambdaParameter;
             if (ctx.LambdaParameter2 != null &&
-                lex.Is(ctx.LambdaParameter2.Name))
+                string.Equals(id, ctx.LambdaParameter2.Name, StringComparison.OrdinalIgnoreCase))
                 return ctx.LambdaParameter2;
         }
         // Check the local scope.
-        if (ctx.Locals.TryGetValue(lex.Text, out ParameterExpression local))
+        if (ctx.Locals.TryGetValue(id, out ParameterExpression local))
             return local;
         // Check macro definitions.
-        Definition def = ctx.Source.GetDefinition(lex.Text);
+        Definition def = ctx.Source.GetDefinition(id);
         if (def != null)
         {
             if (ctx.ParsingDefinition)
@@ -1435,8 +1436,8 @@ internal static partial class Parser
         }
         // Check the global scope.
         object val = ctx.ParsingDefinition
-            ? ctx.Source.GetPersistedValue(lex.Text)
-            : ctx.Source[lex.Text];
+            ? ctx.Source.GetPersistedValue(id)
+            : ctx.Source[id];
         if (val != null)
             return val switch
             {
@@ -1444,9 +1445,9 @@ internal static partial class Parser
                 int iv => Expression.Constant(iv),
                 bool bv => Expression.Constant(bv),
                 string sv => Expression.Constant(sv),
-                _ => AstContext.GetFromDataSource(lex.Text, val.GetType())
+                _ => AstContext.GetFromDataSource(id, val.GetType())
             };
-        switch (lex.Text.ToLower())
+        switch (id.ToLower())
         {
             case "e": return Expression.Constant(Math.E);
             case "i": return Expression.Constant(Complex.ImaginaryOne);
@@ -1456,11 +1457,11 @@ internal static partial class Parser
             case "random": return Expression.Call(typeof(F).GetMethod(nameof(F.Random)));
             case "nrandom": return Expression.Call(typeof(F).GetMethod(nameof(F.NRandom)));
         }
-        if (AstContext.TryParseMonthYear(lex.Text, out Date d))
+        if (AstContext.TryParseMonthYear(id, out Date d))
             return Expression.Constant(d);
         // Check if we tried to reference a SET variable in a DEF.
-        if (ctx.ParsingDefinition && ctx.Source[lex.Text] != null)
+        if (ctx.ParsingDefinition && ctx.Source[id] != null)
             throw Error("SET variables cannot be used in persistent definitions", lex);
-        throw Error($"Unknown variable: {lex.Text}", lex);
+        throw Error($"Unknown variable: {id}", lex);
     }
 }

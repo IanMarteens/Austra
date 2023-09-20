@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.CompilerServices.Unsafe;
 
 namespace Austra.Parser;
@@ -19,46 +20,14 @@ public class AstException : ApplicationException
 
 /// <summary>Represents a lexical token.</summary>
 /// <param name="Kind">Token kind.</param>
-/// <param name="Text">Token text.</param>
 /// <param name="Position">Token position inside the expression.</param>
 internal readonly record struct Lexeme(
     Token Kind,
-    string Text,
     int Position)
 {
-    private readonly LexValue val;
-
-    /// <summary>Creates a symbolic lexeme with no text information.</summary>
-    /// <param name="kind">Token kind.</param>
-    /// <param name="position">Position inside the expression.</param>
-    public Lexeme(Token kind, int position) : this(kind, "", position) { }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out Token kind, out int position) =>
         (kind, position) = (Kind, Position);
-
-    /// <summary>Value of the lexeme as a real number.</summary>
-    public double AsReal { get => val.AsReal; init => val.AsReal = value; }
-    /// <summary>Value of the lexeme as an integer.</summary>
-    public int AsInt { get => val.AsInt; init => val.AsInt = value; }
-    /// <summary>Value of the lexeme as a date literal.</summary>
-    public Date AsDate { get => val.AsDate; init => val.AsDate = value; }
-
-    /// <summary>Checks if the lexeme is a given token.</summary>
-    /// <param name="text">Text to check.</param>
-    /// <returns><see langword="true"/> when there's a match.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Is(string text) =>
-        text.Equals(Text, StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>C# union to save space in the lexeme.</summary>
-    [StructLayout(LayoutKind.Explicit)]
-    private struct LexValue
-    {
-        [FieldOffset(0)] public double AsReal;
-        [FieldOffset(0)] public int AsInt;
-        [FieldOffset(0)] public Date AsDate;
-    }
 }
 
 /// <summary>Provides lexical analysis and inherited attributes for the parser.</summary>
@@ -66,6 +35,8 @@ internal sealed partial class AstContext
 {
     /// <summary>The text being scanned.</summary>
     private readonly string text;
+    /// <summary>Compressed value of the current lexeme.</summary>
+    private LexValue val;
     /// <summary>Used by the scanner to build string literals.</summary>
     private StringBuilder? sb;
     /// <summary>Current position in the text.</summary>
@@ -76,7 +47,7 @@ internal sealed partial class AstContext
     /// <param name="text">Text of the formula.</param>
     public AstContext(IDataSource source, string text)
     {
-        (Source, this.text) = (source, text);
+        (Source, this.text, Id) = (source, text, "");
         MoveNext();
     }
 
@@ -85,6 +56,23 @@ internal sealed partial class AstContext
 
     /// <summary>The current lexeme. Updated by the <see cref="MoveNext"/> method.</summary>
     public Lexeme Current { get; private set; }
+
+    /// <summary>String associated with the current lexeme.</summary>
+    public string Id { get; private set; }
+
+    /// <summary>Value of the lexeme as a real number.</summary>
+    public double AsReal { get => val.AsReal; private set => val.AsReal = value; }
+    /// <summary>Value of the lexeme as an integer.</summary>
+    public int AsInt { get => val.AsInt; private set => val.AsInt = value; }
+    /// <summary>Value of the lexeme as a date literal.</summary>
+    public Date AsDate { get => val.AsDate; private set => val.AsDate = value; }
+
+    /// <summary>Checks if the lexeme is a given token.</summary>
+    /// <param name="text">Text to check.</param>
+    /// <returns><see langword="true"/> when there's a match.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Is(string text) =>
+        text.Equals(Id, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Gets the parameter referencing the outer scope.</summary>
     public static ParameterExpression SourceParameter { get; } =
@@ -104,7 +92,7 @@ internal sealed partial class AstContext
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public (string lowerText, int position) GetTextAndPos() =>
-        (Current.Text.ToLower(), Current.Position);
+        (Id.ToLower(), Current.Position);
 
     /// <summary>Transient local variable definitions.</summary>
     public Dictionary<string, ParameterExpression> Locals { get; } =
@@ -175,11 +163,11 @@ internal sealed partial class AstContext
             while (char.IsWhiteSpace(Add(ref c, i)))
                 i++;
             ch = Add(ref c, i);
-            Current = ch == '('
-                ? new(Token.Functor, id, first)
+            (Current, Id) = (ch == '('
+                ? new(Token.Functor, first)
                 : ch == ':' && Add(ref c, i + 1) == ':'
-                ? new(Token.ClassName, id, first)
-                : new(Token.Id, id, first);
+                ? new(Token.ClassName, first)
+                : new(Token.Id, first), id);
         }
         else if ((uint)(ch - '0') < 10u)
         {
@@ -191,10 +179,8 @@ internal sealed partial class AstContext
             {
                 do i++;
                 while (char.IsLetterOrDigit(Add(ref c, i)));
-                Current = new(Token.Date, first)
-                {
-                    AsDate = ParseDateLiteral(text.AsSpan()[first..i], first)
-                };
+                Current = new(Token.Date, first);
+                AsDate = ParseDateLiteral(text.AsSpan()[first..i], first);
             }
             else if (ch == '.')
             {
@@ -209,14 +195,12 @@ internal sealed partial class AstContext
                         i++;
                 }
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    Current = new(Token.Imag, first) { AsReal = AsReal(text, first, i++) };
+                    (Current, AsReal) = (new(Token.Imag, first), ToReal(text, first, i++));
                 else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                {
-                    Current = new(Token.MultVarR, text[i..j], first) { AsReal = AsReal(text, first, i) };
-                    i = j;
-                }
+                    (Current, Id, AsReal, i)
+                        = (new(Token.MultVarR, first), text[i..j], ToReal(text, first, i), j);
                 else
-                    Current = new(Token.Real, first) { AsReal = AsReal(text, first, i) };
+                    (Current, AsReal) = (new(Token.Real, first), ToReal(text, first, i));
             }
             else if ((ch | 0x20) == 'e')
             {
@@ -225,27 +209,20 @@ internal sealed partial class AstContext
                 while ((uint)(Add(ref c, i) - '0') < 10u)
                     i++;
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    Current = new(Token.Imag, first) { AsReal = AsReal(text, first, i++) };
+                    (Current, AsReal) = (new(Token.Imag, first), ToReal(text, first, i++));
                 else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                {
-                    Current = new(Token.MultVarR, text[i..j], first) { AsReal = AsReal(text, first, i) };
-                    i = j;
-                }
+                    (Current, Id, AsReal, i)
+                        = (new(Token.MultVarR, first), text[i..j], ToReal(text, first, i), j);
                 else
-                    Current = new(Token.Real, first) { AsReal = AsReal(text, first, i) };
+                    (Current, AsReal) = (new(Token.Real, first), ToReal(text, first, i));
             }
             else if (ch == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                Current = new(Token.Imag, first) { AsReal = AsReal(text, first, i++) };
+                (Current, AsReal) = (new(Token.Imag, first), ToReal(text, first, i++));
             else if (char.IsLetter(ch) && IsVariableSuffix(text, i, out int k))
-            {
-                Current = new(Token.MultVarI, text[i..k], first)
-                {
-                    AsInt = int.Parse(text.AsSpan()[first..i])
-                };
-                i = k;
-            }
+                (Current, Id, AsInt, i) = (new(Token.MultVarI, first),
+                    text[i..k], int.Parse(text.AsSpan()[first..i]), k);
             else
-                Current = new(Token.Int, first) { AsInt = int.Parse(text.AsSpan()[first..i]) };
+                (Current, AsInt) = (new(Token.Int, first), int.Parse(text.AsSpan()[first..i]));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool IsVariableSuffix(string text, int i, out int j)
@@ -260,7 +237,7 @@ internal sealed partial class AstContext
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            static double AsReal(string text, int from, int to) =>
+            static double ToReal(string text, int from, int to) =>
                 double.Parse(text.AsSpan()[from..to], CultureInfo.InvariantCulture);
         }
         else
@@ -334,7 +311,7 @@ internal sealed partial class AstContext
                     while (ch != '"');
                     if (Add(ref c, i + 1) != '"')
                     {
-                        Current = new(Token.Str, text[first..i++], start);
+                        (Current, Id)  = (new(Token.Str, start), text[first..i++]);
                         return;
                     }
                     // This is a string literal with embedded quotes.
@@ -357,7 +334,7 @@ internal sealed partial class AstContext
                         first = ++i;
                         goto MORE_STRING;
                     }
-                    Current = new(Token.Str, sb.ToString(), start);
+                    (Current, Id) = (new(Token.Str, start), sb.ToString());
                     i++;
                     return;
                 default:
@@ -518,6 +495,15 @@ internal sealed partial class AstContext
         var (y, m, _) = date;
         return day <= Date.DaysInMonth(y, m) ? date + day - 1
             : throw new AstException("Invalid day of month", position);
+    }
+
+    /// <summary>C# union to save space in the lexeme.</summary>
+    [StructLayout(LayoutKind.Explicit)]
+    private struct LexValue
+    {
+        [FieldOffset(0)] public double AsReal;
+        [FieldOffset(0)] public int AsInt;
+        [FieldOffset(0)] public Date AsDate;
     }
 
     /// <summary>Internal stub for accessing string internals.</summary>
