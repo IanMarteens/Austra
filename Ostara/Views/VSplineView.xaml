@@ -11,7 +11,7 @@
     Height="250" Width="1050"
     Visibility="Visible"
     HorizontalAlignment="Left"
-    d:DataContext="{d:DesignInstance Type={x:Type local:VectorSplineNode}}"
+    d:DataContext="{d:DesignInstance Type={x:Type local:VectorSplineViewModel}}"
     d:DesignHeight="250" d:DesignWidth="1050">
     <UserControl.Resources>
         <local:FormulaConverter x:Key="Formula"/>

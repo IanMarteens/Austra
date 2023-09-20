@@ -83,18 +83,8 @@ public abstract class VarNode : NodeBase
     protected virtual string GetExcelText() => "";
 
     public virtual string Hint => $"{Name}: {TypeName}";
-}
 
-/// <summary>Represents a session variable with a stored value.</summary>
-public abstract class VarNode<T> : VarNode
-{
-    protected VarNode(ClassNode? parent, string name, string formula, string type, T model) :
-        base(parent, name, formula, type) => Model = model;
-
-    /// <summary>Gets the value associated to the linked variable.</summary>
-    public T Model { get; }
-
-    protected OxyPlot.PlotModel CreateOxyModel(
+    public static OxyPlot.PlotModel CreateOxyModel(
         OxyPlot.Axes.Axis? xAxis = null, OxyPlot.Axes.Axis? yAxis = null)
     {
         OxyPlot.PlotModel model = new();
@@ -108,6 +98,16 @@ public abstract class VarNode<T> : VarNode
         model.Axes.Add(yAxis);
         return model;
     }
+}
+
+/// <summary>Represents a session variable with a stored value.</summary>
+public abstract class VarNode<T> : VarNode
+{
+    protected VarNode(ClassNode? parent, string name, string formula, string type, T model) :
+        base(parent, name, formula, type) => Model = model;
+
+    /// <summary>Gets the value associated to the linked variable.</summary>
+    public T Model { get; }
 }
 
 /// <summary>Extension methods for OxyPlot models.</summary>

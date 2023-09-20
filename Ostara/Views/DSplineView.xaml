@@ -11,7 +11,7 @@
     Height="250" Width="1050"
     Visibility="Visible"
     HorizontalAlignment="Left"
-    d:DataContext="{d:DesignInstance Type={x:Type local:DateSplineNode}}"
+    d:DataContext="{d:DesignInstance Type={x:Type local:DateSplineViewModel}}"
     d:DesignHeight="250" d:DesignWidth="1050">
     <UserControl.Resources>
         <Style x:Key="DatePickerStyle1" TargetType="{x:Type DatePicker}">

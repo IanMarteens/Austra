@@ -181,9 +181,14 @@ public sealed partial class RootModel : Entity
         type == typeof(Series)
         ? "Series"
         : type == typeof(AMatrix) || type == typeof(LMatrix) || type == typeof(RMatrix)
-        ? "Matrix"
+        ? "Matrices"
         : type == typeof(RVector) || type == typeof(ComplexVector)
-        ? "Vector"
+        ? "Vectors"
+        : type == typeof(ARSModel) || type == typeof(ARVModel)
+            || type == typeof(LinearSModel) || type == typeof(LinearVModel)
+            || type == typeof(DateSpline) || type == typeof(VectorSpline)
+            || type == typeof(MvoModel)
+        ? "Models"
         : "Other";
 
     private VarNode? CreateVarNode(ClassNode cNode, string name, Type type, bool stored)
