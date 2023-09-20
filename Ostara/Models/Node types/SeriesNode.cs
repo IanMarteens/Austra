@@ -1,4 +1,6 @@
-﻿namespace Ostara;
+﻿using System.Windows.Data;
+
+namespace Ostara;
 
 public sealed class SeriesNode : VarNode<Series>
 {
@@ -15,53 +17,9 @@ public sealed class SeriesNode : VarNode<Series>
         this(parent, varName, varName, value)
     { }
 
-    override public void Show()
-    {
-        OxyPlot.PlotModel model = CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
-            .CreateSeries(Model);
-        StackPanel ctrl = new() { Orientation = Orientation.Vertical };
-        StackPanel toolBar = new() { Orientation = Orientation.Horizontal };
-        toolBar.Children.Add(new Label()
-        {
-            Content = "Compare series with:",
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-        ComboBox combo = new()
-        {
-            Width = 200,
-            VerticalAlignment = VerticalAlignment.Center,
-            ItemsSource = new string[] { "None", "Moving average", "Moving StdDev", "EWMA" },
-            SelectedIndex = 0,
-        };
-        combo.SelectionChanged += (s, e) =>
-        {
-            if (model.Series.Count > 1)
-                model.Series.RemoveAt(1);
-            Series newSeries;
-            switch (combo.SelectedIndex)
-            {
-                case 1:
-                    newSeries = Model.MovingAvg(30);
-                    break;
-                case 2:
-                    newSeries = Model.MovingStd(30);
-                    break;
-                case 3:
-                    newSeries = Model.EWMA(0.65); 
-                    break;
-                default:
-                    model.InvalidatePlot(true);
-                    return;
-            }
-            model.CreateSeries(newSeries);
-            model.ResetAllAxes();
-            model.InvalidatePlot(true);
-        };
-        toolBar.Children.Add(combo);
-        ctrl.Children.Add(toolBar);
-        ctrl.Children.Add(model.CreateView());
-        RootModel.Instance.AppendControl(Formula, Model.ToString(), ctrl);
-    }
+    override public void Show() =>
+        RootModel.Instance.AppendControl(Formula, Model.ToString(),
+            new SeriesViewModel(this).CreateControl());
 
     public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats.Hint;
 
@@ -92,6 +50,161 @@ public sealed class SeriesNode : VarNode<Series>
 
     [Category("Stats")]
     public double Kurtosis => Model.Stats.Kurtosis;
+}
+
+public sealed class SeriesViewModel : Entity
+{
+    private readonly OxyPlot.PlotModel model;
+    private readonly StackPanel toolBar;
+    private int selectedSeries = 0;
+    private int movingPoints = 30;
+    private double ewmaLambda = 0.65;
+
+    public SeriesViewModel(SeriesNode node)
+    {
+        Node = node;
+        model = VarNode.CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
+            .CreateLegend()
+            .CreateSeries(node.Model, "Original");
+        toolBar = new() { Orientation = Orientation.Horizontal };
+    }
+
+    public SeriesNode Node { get; }
+
+    public int MovingPoints
+    {
+        get => movingPoints;
+        set
+        {
+            if (value > 0 && value < Node.Count - 2
+                && SetField(ref movingPoints, value) && SelectedSeries is 1 or 2)
+            {
+                if (model.Series.Count > 0)
+                    model.Series.RemoveAt(1);
+                model.CreateSeries(SelectedSeries == 1
+                    ? Node.Model.MovingAvg(MovingPoints)
+                    : Node.Model.MovingStd(MovingPoints),
+                    "Reference");
+                model.ResetAllAxes();
+                model.InvalidatePlot(true);
+            }
+        }
+    }
+
+    public double EwmaLambda
+    {
+        get => ewmaLambda;
+        set
+        {
+            if (value >= 0 && value <= 1
+                && SetField(ref ewmaLambda, value) && SelectedSeries is 3)
+            {
+                if (model.Series.Count > 0)
+                    model.Series.RemoveAt(1);
+                model.CreateSeries(Node.Model.EWMA(EwmaLambda), "Reference");
+                model.ResetAllAxes();
+                model.InvalidatePlot(true);
+            }
+        }
+    }
+
+    public int SelectedSeries
+    {
+        get => selectedSeries;
+        set
+        {
+            if (SetField(ref selectedSeries, value))
+            {
+                if (model.Series.Count > 1)
+                    model.Series.RemoveAt(1);
+                Series? newSeries = selectedSeries switch
+                {
+                    1 => Node.Model.MovingAvg(MovingPoints),
+                    2 => Node.Model.MovingStd(MovingPoints),
+                    3 => Node.Model.EWMA(EwmaLambda),
+                    _ => null,
+                };
+                toolBar.Children[2].Visibility = toolBar.Children[3].Visibility =
+                    selectedSeries is 1 or 2 ? Visibility.Visible : Visibility.Collapsed;
+                toolBar.Children[4].Visibility = toolBar.Children[5].Visibility =
+                    selectedSeries is 3 ? Visibility.Visible : Visibility.Collapsed;
+                if (newSeries != null)
+                    model.CreateSeries(newSeries, "Reference");
+                model.ResetAllAxes();
+                model.InvalidatePlot(true);
+            }
+        }
+    }
+
+    public UIElement CreateControl()
+    {
+        StackPanel ctrl = new() { Orientation = Orientation.Vertical };
+        toolBar.Children.Add(new Label()
+        {
+            Content = "Reference:",
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        ComboBox combo = new()
+        {
+            Width = 200,
+            VerticalAlignment = VerticalAlignment.Center,
+            ItemsSource = new string[] { "None", "Moving average", "Moving StdDev", "EWMA" },
+            SelectedIndex = 0,
+        };
+        combo.SetBinding(ComboBox.SelectedIndexProperty, new Binding("SelectedSeries")
+        {
+            Source = this,
+            Mode = BindingMode.TwoWay,
+            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+        });
+        toolBar.Children.Add(combo);
+        toolBar.Children.Add(new Label()
+        {
+            Content = "Moving points:",
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Collapsed,
+        });
+        TextBox textBox = new()
+        {
+            Width = 50,
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Collapsed,
+            Text = MovingPoints.ToString(),
+            TextAlignment = TextAlignment.Right,
+        };
+        textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(MovingPoints))
+        {
+            Source = this,
+            Mode = BindingMode.TwoWay,
+            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+        });
+        toolBar.Children.Add(textBox);
+        toolBar.Children.Add(new Label()
+        {
+            Content = "λ:",
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Collapsed,
+        });
+        textBox = new()
+        {
+            Width = 50,
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Collapsed,
+            Text = MovingPoints.ToString(),
+            TextAlignment = TextAlignment.Right,
+        };
+        textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(EwmaLambda))
+        {
+            Source = this,
+            Mode = BindingMode.TwoWay,
+            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+            Converter = new DecConverter(),
+        });
+        toolBar.Children.Add(textBox);
+        ctrl.Children.Add(toolBar);
+        ctrl.Children.Add(model.CreateView());
+        return ctrl;
+    }
 }
 
 public sealed class PercentileNode : VarNode<Series<double>>

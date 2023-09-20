@@ -7,14 +7,12 @@ namespace Ostara;
 public sealed class MvoNode : VarNode<MvoModel>
 {
     public MvoNode(ClassNode? parent, string varName, string formula, MvoModel value) :
-        base(parent, varName, formula, "MVO Model", value)
-    {
+        base(parent, varName, formula, "MVO Model", value) =>
         // Create the frontier.
         Frontier = new("Frontier", null,
             Model.Portfolios.Select(p => p.StdDev).ToArray(),
             Model.Portfolios.Select(p => p.Mean).ToArray(),
             SeriesType.Raw);
-    }
 
     public MvoNode(ClassNode? parent, string varName, MvoModel value) :
         this(parent, varName, varName, value)
@@ -73,6 +71,7 @@ public sealed class MvoNode : VarNode<MvoModel>
 
 public sealed class MvoViewModel : Entity
 {
+    private readonly MvoNode node;
     private readonly PlotModel fModel;
     private readonly PlotModel wModel;
     private readonly OxyPlot.Series.PieSeries pieSeries;
@@ -84,7 +83,7 @@ public sealed class MvoViewModel : Entity
 
     public MvoViewModel(MvoNode node)
     {
-        Node = node;
+        this.node = node;
         // Initialize targets.
         Portfolio p = node.Model[^1];
         (ret, variance, stddev) = (MinRet, MinVar, MinStd) = (p.Mean, p.Variance, p.StdDev);
@@ -98,8 +97,8 @@ public sealed class MvoViewModel : Entity
         // Create the OxyPlot model for the pie chart.
         wModel = new() { Title = "Weights" };
         pieSeries = new();
-        foreach (Tuple<string, double> t in weights)
-            pieSeries.Slices.Add(new(t.Item1, t.Item2));
+        foreach (var (w1, w2) in weights)
+            pieSeries.Slices.Add(new(w1, w2));
         wModel.Series.Add(pieSeries);
         // The efficient frontier model.
         fModel = VarNode.CreateOxyModel(
@@ -117,8 +116,6 @@ public sealed class MvoViewModel : Entity
             .CreateSeries(node.Frontier);
     }
 
-    public MvoNode Node { get; }
-
     public double MinRet { get; }
     public double MinVar { get; }
     public double MinStd { get; }
@@ -134,12 +131,10 @@ public sealed class MvoViewModel : Entity
             if (value < MinRet || value > MaxRet)
                 return;
             InterpolatedPortfolio? ip = Optimizer.GetTargetReturnEfficientPortfolio(
-                Node.Model.Portfolios,
-                Node.Model.Covariance, value);
-            if (ip == null)
-                return;
-            SetFields(value, ip.StdDev, ip.Variance);
-            SetWeights(ip.Weights);
+                node.Model.Portfolios,
+                node.Model.Covariance, value);
+            if (ip != null)
+                SetFields(value, ip.StdDev, ip.Variance, ip.Weights);
         }
     }
 
@@ -151,12 +146,10 @@ public sealed class MvoViewModel : Entity
             if (value < MinVar || value > MaxVar)
                 return;
             InterpolatedPortfolio? ip = Optimizer.GetTargetVolatilityEfficientPortfolio(
-                Node.Model.Portfolios,
-                Node.Model.Covariance, (double)value);
-            if (ip == null)
-                return;
-            SetFields(ip.Mean, Math.Sqrt((double)value), (double)value);
-            SetWeights(ip.Weights);
+                node.Model.Portfolios,
+                node.Model.Covariance, value);
+            if (ip != null)
+                SetFields(ip.Mean, Math.Sqrt(value), value, ip.Weights);
         }
     }
 
@@ -169,41 +162,29 @@ public sealed class MvoViewModel : Entity
                 return;
             double varn = value * value;
             InterpolatedPortfolio? ip = Optimizer.GetTargetVolatilityEfficientPortfolio(
-                Node.Model.Portfolios,
-                Node.Model.Covariance, varn);
-            if (ip == null)
-                return;
-            SetFields(ip.Mean, value, varn);
-            SetWeights(ip.Weights);
+                node.Model.Portfolios,
+                node.Model.Covariance, varn);
+            if (ip != null)
+                SetFields(ip.Mean, value, varn, ip.Weights);
         }
     }
 
-    private void SetFields(double mean, double std, double varn)
+    private void SetFields(double mean, double std, double varn, RVector weights)
     {
         SetField(ref ret, Clip(mean, MinRet, MaxRet), nameof(Ret));
         SetField(ref variance, Clip(varn, MinVar, MaxVar), nameof(Variance));
         SetField(ref stddev, Clip(std, MinStd, MaxStd), nameof(StdDev));
-        fModel?.UpdateLine(stddev);
-
-        static double Clip(double value, double min, double max)
-        {
-            if (value <= min)
-                return min;
-            if (value >= max)
-                return max;
-            return value;
-        }
-    }
-
-    private void SetWeights(RVector weights)
-    {
-        pieSeries?.Slices.Clear();
+        fModel.UpdateLine(stddev);
+        pieSeries.Slices.Clear();
         for (int i = 0; i < weights.Length; i++)
         {
-            var w = this.weights[i] = new(Node.Model.Labels[i], weights[i]);
-            pieSeries?.Slices.Add(new(w.Item1, w.Item2));
+            var (w1, w2) = this.weights[i] = new(node.Model.Labels[i], weights[i]);
+            pieSeries.Slices.Add(new(w1, w2));
         }
-        wModel?.InvalidatePlot(true);
+        wModel.InvalidatePlot(true);
+
+        static double Clip(double value, double min, double max) =>
+            value <= min ? min : value >= max ? max : value;
     }
 
     public UIElement CreateControl()

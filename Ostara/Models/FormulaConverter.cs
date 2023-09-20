@@ -26,3 +26,21 @@ public class FormulaConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
         ((decimal)value).ToString(CultureInfo.InvariantCulture);
 }
+
+public class DecConverter : IValueConverter
+{
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        string v = (string)value;
+        if (string.IsNullOrWhiteSpace(v))
+            return 0d;
+        if (v.EndsWith('.'))
+            v += '0';
+        if (v.Contains(',') && !v.Contains('.'))
+            v = v.Replace(',', '.');
+        return double.Parse(v, CultureInfo.InvariantCulture);
+    }
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        ((double)value).ToString("F2", CultureInfo.InvariantCulture);
+}
