@@ -63,35 +63,35 @@ public sealed class SeriesNode : VarNode<Series>
         RootModel.Instance.AppendControl(Formula, Model.ToString(), ctrl);
     }
 
-    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
+    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats.Hint;
 
     public override Visibility ImageVisibility => Visibility.Visible;
 
     public override string ImageSource => Stored ? base.ImageSource : "/images/waves.png";
 
     [Category("Stats")]
-    public long Count => Model.Stats().Count;
+    public long Count => Model.Stats.Count;
 
     [Category("Stats")]
-    public double Min => Model.Stats().Minimum;
+    public double Min => Model.Stats.Minimum;
 
     [Category("Stats")]
-    public double Max => Model.Stats().Maximum;
+    public double Max => Model.Stats.Maximum;
 
     [Category("Stats")]
-    public double Mean => Model.Stats().Mean;
+    public double Mean => Model.Stats.Mean;
 
     [Category("Stats")]
-    public double Variance => Model.Stats().Variance;
+    public double Variance => Model.Stats.Variance;
 
     [Category("Stats")]
-    public double Volatility => Model.Stats().StandardDeviation;
+    public double Volatility => Model.Stats.StandardDeviation;
 
     [Category("Stats")]
-    public double Skewness => Model.Stats().Skewness;
+    public double Skewness => Model.Stats.Skewness;
 
     [Category("Stats")]
-    public double Kurtosis => Model.Stats().Kurtosis;
+    public double Kurtosis => Model.Stats.Kurtosis;
 }
 
 public sealed class PercentileNode : VarNode<Series<double>>
@@ -109,7 +109,7 @@ public sealed class PercentileNode : VarNode<Series<double>>
         RootModel.Instance.AppendControl(Formula, Model.ToString(),
             CreateOxyModel().CreateSeries(Model).CreateView());
 
-    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
+    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats.Hint;
 
     public override Visibility ImageVisibility => Visibility.Visible;
 
@@ -131,7 +131,7 @@ public sealed class CorrelogramNode : VarNode<Series<int>>
         RootModel.Instance.AppendControl(Formula, Model.ToString(),
             CreateOxyModel().CreateStepSeries(Model.GetValues()).CreateView());
 
-    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats().Hint;
+    public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats.Hint;
 
     public override Visibility ImageVisibility => Visibility.Visible;
 

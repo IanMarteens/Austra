@@ -186,7 +186,7 @@ internal static partial class Parser
                 ["skewp"] = typeof(Series).Get(nameof(Series.PopulationSkewness)),
                 ["kurt"] = typeof(Series).Get(nameof(Series.Kurtosis)),
                 ["kurtp"] = typeof(Series).Get(nameof(Series.PopulationKurtosis)),
-                ["stats"] = typeof(Series).Get(nameof(Series.Stats)),
+                ["stats"] = typeof(Series).Prop(nameof(Series.Stats)),
                 ["first"] = typeof(Series).Get(nameof(Series.First)),
                 ["last"] = typeof(Series).Get(nameof(Series.Last)),
                 ["rets"] = typeof(Series).Get(nameof(Series.AsReturns)),
@@ -208,7 +208,7 @@ internal static partial class Parser
             },
             [typeof(Series<int>)] = new(StringComparer.OrdinalIgnoreCase)
             {
-                ["stats"] = typeof(Series<int>).Get(nameof(Series<int>.Stats)),
+                ["stats"] = typeof(Series<int>).Prop(nameof(Series<int>.Stats)),
                 ["first"] = typeof(Series<int>).Get(nameof(Series<int>.First)),
                 ["last"] = typeof(Series<int>).Get(nameof(Series<int>.Last)),
                 ["values"] = typeof(Series<int>).Get(nameof(Series<int>.GetValues)),
@@ -216,7 +216,7 @@ internal static partial class Parser
             },
             [typeof(Series<double>)] = new(StringComparer.OrdinalIgnoreCase)
             {
-                ["stats"] = typeof(Series<double>).Get(nameof(Series<double>.Stats)),
+                ["stats"] = typeof(Series<double>).Prop(nameof(Series<double>.Stats)),
                 ["first"] = typeof(Series<double>).Get(nameof(Series<double>.First)),
                 ["last"] = typeof(Series<double>).Get(nameof(Series<double>.Last)),
                 ["values"] = typeof(Series<double>).Get(nameof(Series<double>.GetValues)),

@@ -51,8 +51,6 @@ public readonly struct Point<T> where T : struct, IComparable<T>
 /// <summary>Represents a named series.</summary>
 public class Series<T> where T : struct, IComparable<T>
 {
-    /// <summary>Stores statistics on the series.</summary>
-    private readonly Accumulator stats;
     /// <summary>Stores the arguments for the series.</summary>
     protected internal readonly T[] args;
     /// <summary>Stores the values for the series.</summary>
@@ -65,7 +63,7 @@ public class Series<T> where T : struct, IComparable<T>
     /// <param name="values">Values.</param>
     /// <param name="type">Type of the series.</param>
     public Series(string name, string? ticker, T[] args, double[] values, SeriesType type) =>
-        (Name, Ticker, this.args, this.values, Type, stats)
+        (Name, Ticker, this.args, this.values, Type, Stats)
             = (name, ticker, args, values, type, new(values));
 
     /// <summary>Creates a series with integer arguments given its values.</summary>
@@ -159,40 +157,41 @@ public class Series<T> where T : struct, IComparable<T>
 
     /// <summary>Gets statistics on the series.</summary>
     /// <returns>The current calculated statistics.</returns>
-    public Accumulator Stats() => stats;
+    [JsonIgnore]
+    public Accumulator Stats { get; }
 
     /// <summary>Returns the minimum value from the series.</summary>
-    public double Minimum() => stats.Minimum;
+    public double Minimum() => Stats.Minimum;
 
     /// <summary>Returns the maximum value from the series.</summary>
-    public double Maximum() => stats.Maximum;
+    public double Maximum() => Stats.Maximum;
 
     /// <summary>Gets the mean value from the series.</summary>
-    public double Mean() => stats.Mean;
+    public double Mean() => Stats.Mean;
 
     /// <summary>Gets the unbiased variance.</summary>
-    public double Variance() => stats.Variance;
+    public double Variance() => Stats.Variance;
 
     /// <summary>Gets the variance from the full population.</summary>
-    public double PopulationVariance() => stats.PopulationVariance;
+    public double PopulationVariance() => Stats.PopulationVariance;
 
     /// <summary>Gets the unbiased standard deviation.</summary>
-    public double StandardDeviation() => stats.StandardDeviation;
+    public double StandardDeviation() => Stats.StandardDeviation;
 
     /// <summary>Gets the standard deviation from the full population.</summary>
-    public double PopulationStandardDeviation() => stats.PopulationStandardDeviation;
+    public double PopulationStandardDeviation() => Stats.PopulationStandardDeviation;
 
     /// <summary>Gets the unbiased population skewness.</summary>
-    public double Skewness() => stats.Skewness;
+    public double Skewness() => Stats.Skewness;
 
     /// <summary>Get the skewness from the full population.</summary>
-    public double PopulationSkewness() => stats.PopulationSkewness;
+    public double PopulationSkewness() => Stats.PopulationSkewness;
 
     /// <summary>Gets the unbiased population kurtosis.</summary>
-    public double Kurtosis() => stats.Kurtosis;
+    public double Kurtosis() => Stats.Kurtosis;
 
     /// <summary>Gets the kurtosis from the full population.</summary>
-    public double PopulationKurtosis() => stats.PopulationKurtosis;
+    public double PopulationKurtosis() => Stats.PopulationKurtosis;
 
     /// <summary>Gets the first point in the series.</summary>
     public Point<T> First() => this[0];
@@ -407,7 +406,7 @@ public class Series<T> where T : struct, IComparable<T>
         ? 1
         : Count - lag <= 1
         ? throw new ArgumentOutOfRangeException(nameof(lag), "Lag too large")
-        : new Vector(values).AutoCorrelation(lag, stats.Mean);
+        : new Vector(values).AutoCorrelation(lag, Stats.Mean);
 
     /// <summary>Computes autocorrelation for a range of lags.</summary>
     /// <param name="size">Number of lags to compute.</param>
