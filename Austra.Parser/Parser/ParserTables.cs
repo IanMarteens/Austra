@@ -415,6 +415,10 @@ internal static partial class Parser
         Expression.NewArrayInit(type, args);
 
     private static MethodCallExpression Call(this Type type,
+        Expression? instance, string method, Expression arg) =>
+        Expression.Call(instance, type.GetMethod(method, new[] { arg.Type })!, arg);
+
+    private static MethodCallExpression Call(this Type type,
         string method, Expression a1, Expression a2) =>
         Expression.Call(type.GetMethod(method, new[] { a1.Type, a2.Type })!, a1, a2);
 

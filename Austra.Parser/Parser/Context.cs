@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
-using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.CompilerServices.Unsafe;
 
 namespace Austra.Parser;
@@ -42,6 +41,9 @@ internal sealed partial class AstContext
 
     /// <summary>Gets the outer scope for variables.</summary>
     public IDataSource Source { get; }
+
+    /// <summary>Gets the text being scanned.</summary>
+    public string Text => text;
 
     /// <summary>Gets the type of the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
@@ -244,7 +246,7 @@ internal sealed partial class AstContext
                     if (Add(ref c, ++i) == '-')
                     {
                         do ch = Add(ref c, ++i);
-                        while (ch != '\r' && ch != '\n' && ch != '\0');
+                        while (ch is not '\r' and not '\n' and not '\0');
                         goto SKIP_BLANKS;
                     }
                     (Kind, Start) = (Token.Minus, i - 1);
@@ -491,8 +493,10 @@ internal sealed partial class AstContext
     private sealed class Str
     {
 #pragma warning disable CS0649
+        /// <summary>The length of the string.</summary>
         public int Length;
 #pragma warning restore CS0649
+        /// <summary>The first character in the string.</summary>
         public char FirstChar;
     }
 }

@@ -170,9 +170,8 @@ public partial class AustraEngine : IAustraEngine
     public Type EvalType(string formula)
     {
         ExecutionTime = CompileTime = null;
-        AstContext ctx = new(Source, formula);
         Stopwatch sw = Stopwatch.StartNew();
-        Type result = Parser.ParseType(ctx);
+        Type result = Parser.ParseType(new(Source, formula));
         sw.Stop();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         return result;
@@ -184,10 +183,7 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>The type resulting from the evaluation.</returns>
     public Definition ParseDefinition(string definition, string description)
     {
-        AstContext ctx = new(Source, definition);
-        Definition def = Parser.ParseDefinition(ctx, definition, description);
-        foreach (Definition referenced in ctx.References)
-            referenced.Children.Add(def);
+        Definition def = Parser.ParseDefinition(new(Source, definition), description);
         Source.AddDefinition(def);
         return def;
     }

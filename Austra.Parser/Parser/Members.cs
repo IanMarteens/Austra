@@ -369,8 +369,7 @@ internal static partial class Parser
 
         static IList<(string member, string description)> ExtractType(IDataSource source, string text)
         {
-            AstContext ctx = new(source, text);
-            Type type = ParseType(ctx);
+            Type type = ParseType(new(source, text));
             return members.TryGetValue(type, out (string name, string description)[]? list)
                 ? list : Array.Empty<(string, string)>();
         }

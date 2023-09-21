@@ -1,6 +1,4 @@
-﻿#nullable disable
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>Syntactic analysis for AUSTRA.</summary>
 internal static partial class Parser
@@ -15,16 +13,37 @@ internal static partial class Parser
     /// <summary>Parses a block expression without compiling it.</summary>
     /// <param name="ctx">Compiling context.</param>
     /// <returns>The type of the block expression.</returns>
-    public static Type ParseType(AstContext ctx) =>
-        ParseStatement(ctx, false).Type;
+    public static Type ParseType(AstContext ctx)
+    {
+        // Check first for a definition header and skip it.
+        if (ctx.Kind == Token.Def)
+        {
+            ctx.MoveNext();
+            ctx.CheckAndMoveNext(Token.Id, "Definition name expected");
+            if (ctx.Kind == Token.Colon)
+            {
+                ctx.MoveNext();
+                ctx.CheckAndMoveNext(Token.Str, "Definition description expected");
+            }
+            ctx.CheckAndMoveNext(Token.Eq, "= expected");
+        }
+        // Check now for a set header and skip it.
+        else if (ctx.Kind == Token.Set)
+        {
+            ctx.MoveNext();
+            ctx.CheckAndMoveNext(Token.Id, "Left side variable expected");
+            if (ctx.Kind == Token.Eof)
+                return typeof(void);
+            ctx.CheckAndMoveNext(Token.Eq, "= expected");
+        }
+        return ParseFormula(ctx, false).Type;
+    }
 
     /// <summary>Parses a definition and adds it to the source.</summary>
     /// <param name="ctx">Compiling context.</param>
-    /// <param name="text">The text to be parsed.</param>
     /// <param name="description">A description for the definition.</param>
     /// <returns>A new definition, on success.</returns>
-    public static Definition ParseDefinition(AstContext ctx,
-        string text, string description)
+    public static Definition ParseDefinition(AstContext ctx, string description)
     {
         ctx.CheckAndMoveNext(Token.Def, "DEF expected");
         if (ctx.Kind != Token.Id)
@@ -47,9 +66,11 @@ internal static partial class Parser
         ctx.ParsingDefinition = true;
         Expression e = ParseFormula(ctx, false);
         if (e.Type == typeof(Series))
-            e = Expression.Call(e, typeof(Series).Get(nameof(Series.SetName)),
-                Expression.Constant(defName));
-        return new(defName, text[first..], description, e);
+            e = typeof(Series).Call(e, nameof(Series.SetName), Expression.Constant(defName));
+        Definition def = new(defName, ctx.Text[first..], description, e);
+        foreach (Definition referenced in ctx.References)
+            referenced.Children.Add(def);
+        return def;
     }
 
     /// <summary>Compiles a block expression.</summary>
@@ -142,7 +163,7 @@ internal static partial class Parser
     /// <param name="ctx">Compiling context.</param>
     private static Expression ParseDisjunction(AstContext ctx)
     {
-        Expression e1 = null;
+        Expression? e1 = null;
         int orLex = ctx.Start;
         for (; ; )
         {
@@ -265,7 +286,7 @@ internal static partial class Parser
             {
                 if (e2.Type != typeof(string))
                     e2 = Expression.Call(e2,
-                        e2.Type.GetMethod(nameof(ToString), Array.Empty<Type>()));
+                        e2.Type.GetMethod(nameof(ToString), Array.Empty<Type>())!);
                 e1 = typeof(string).Call(nameof(string.Concat), e1, e2);
             }
             else
@@ -281,15 +302,15 @@ internal static partial class Parser
                         e1 = be1.Right.Type == typeof(double)
                             ? Expression.Call(be1.Left,
                                 typeof(Vector).GetMethod(nameof(Vector.MultiplyAdd),
-                                new[] { typeof(double), typeof(Vector) }), be1.Right, e2)
+                                new[] { typeof(double), typeof(Vector) })!, be1.Right, e2)
                             : be1.Left.Type == typeof(double)
                             ? Expression.Call(be1.Right,
                                 typeof(Vector).GetMethod(nameof(Vector.MultiplyAdd),
-                                new[] { typeof(double), typeof(Vector) }), be1.Left, e2)
+                                new[] { typeof(double), typeof(Vector) })!, be1.Left, e2)
                             : be1.Left.Type == typeof(Matrix)
                             ? Expression.Call(be1.Left,
                                 typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
-                                new[] { typeof(Vector), typeof(Vector) }), be1.Right, e2)
+                                new[] { typeof(Vector), typeof(Vector) })!, be1.Right, e2)
                             : Expression.Add(e1, e2);
                     else
                         e1 = e1 is ConstantExpression c1 && c1.Value is double d1 &&
@@ -321,13 +342,11 @@ internal static partial class Parser
                     ? throw Error("First operand must be a matrix", opPos)
                     : e2.Type != typeof(Vector) && e2.Type != typeof(Matrix)
                     ? throw Error("Second operand must be a vector or a matrix", opPos)
-                    : Expression.Call(e1, typeof(Matrix).GetMethod(
-                        nameof(Matrix.Solve), new[] { e2.Type }), e2); 
+                    : typeof(Matrix).Call(e1, nameof(Matrix.Solve), e2);
             else if (opLex == Token.PointTimes)
                 e1 = e1.Type == e2.Type && e1.Type.IsAssignableTo(
                         typeof(IPointwiseMultiply<>).MakeGenericType(e1.Type))
-                    ? Expression.Call(
-                        e1, e2.Type.Get(nameof(Vector.PointwiseMultiply)), e2)
+                    ? e1.Type.Call(e1, nameof(Vector.PointwiseMultiply), e2)
                     : throw Error("Invalid operator", opPos);
             else
             {
@@ -339,12 +358,10 @@ internal static partial class Parser
                     e1 = opLex == Token.Times && e1.Type == typeof(Matrix)
                         ? (e2.Type == typeof(Vector) && e1 is MethodCallExpression
                         { Method.Name: nameof(Matrix.Transpose) } mca
-                            ? Expression.Call(mca.Object,
-                                typeof(Matrix).Get(nameof(Matrix.TransposeMultiply)), e2)
+                            ? typeof(Matrix).Call(mca.Object, nameof(Matrix.TransposeMultiply), e2)
                             : e2.Type == typeof(Matrix) && e2 is MethodCallExpression
                             { Method.Name: nameof(Matrix.Transpose) } mcb
-                            ? Expression.Call(e1,
-                                typeof(Matrix).Get(nameof(Matrix.MultiplyTranspose)), mcb.Object)
+                            ? typeof(Matrix).Call(e1, nameof(Matrix.MultiplyTranspose), mcb.Object!)
                             : Expression.Multiply(e1, e2))
                         : e1 is ConstantExpression c1 && c1.Value is double d1 &&
                             e2 is ConstantExpression c2 && c2.Value is double d2
@@ -557,7 +574,7 @@ internal static partial class Parser
                         : e.Type == typeof(Matrix) || e.Type == typeof(LMatrix)
                         ? Expression.Call(e, e.Type.Get(nameof(Matrix.Transpose)))
                         : e.Type == typeof(Complex)
-                        ? Expression.Call(null, e.Type.Get(nameof(Complex.Conjugate)), e)
+                        ? e.Type.Call(null, nameof(Complex.Conjugate), e)
                         : throw Error("Can only transpose a matrix or conjugate a complex vector", ctx);
                     ctx.MoveNext();
                     break;
@@ -597,7 +614,7 @@ internal static partial class Parser
         if (e1.Type != typeof(int))
             throw Error("Index must be an integer", ctx);
         ctx.CheckAndMoveNext(Token.RBrace, "} expected in indexer");
-        return Expression.Call(e, e.Type.Get(nameof(Vector.SafeThis)), e1);
+        return e.Type.Call(e, nameof(Vector.SafeThis), e1);
     }
 
     private static Expression ParseSplineIndexer(AstContext ctx, Expression e, Type expected)
@@ -634,7 +651,7 @@ internal static partial class Parser
 
     private static Expression ParseMatrixIndexer(AstContext ctx, Expression e)
     {
-        Expression e1 = null, e2 = null;
+        Expression? e1 = null, e2 = null;
         bool fromEnd11 = false, fromEnd21 = false, isRange = false;
         if (ctx.Kind == Token.Comma)
             ctx.MoveNext();
@@ -678,7 +695,7 @@ internal static partial class Parser
                     e2 = Expression.New(indexCtor, e2, Expression.Constant(fromEnd21));
                 e2 = Expression.New(rangeCtor, e2, e22);
                 if (!isRange && fromEnd11)
-                    e1 = Expression.New(indexCtor, e1, trueExpr);
+                    e1 = Expression.New(indexCtor, e1!, trueExpr);
                 isRange = true;
             }
             else if (isRange && fromEnd21)
@@ -701,17 +718,15 @@ internal static partial class Parser
             e1 != null && e2 != null
             ? Expression.Property(e, "Item", e1, e2)
             : e2 != null
-            ? Expression.Call(e, typeof(Matrix).GetMethod(nameof(Matrix.GetColumn),
-                new[] { e2.Type }), e2)
+            ? typeof(Matrix).Call(e, nameof(Matrix.GetColumn), e2)
             : e1 != null
-            ? Expression.Call(e, typeof(Matrix).GetMethod(nameof(Matrix.GetRow),
-                new[] { e1.Type }), e1)
+            ? typeof(Matrix).Call(e, nameof(Matrix.GetRow), e1)
             : e;
     }
 
     private static Expression ParseSeriesIndexer(AstContext ctx, Expression e)
     {
-        Expression e1 = null, e2 = null;
+        Expression? e1 = null, e2 = null;
         bool fromEnd1 = false, fromEnd2 = false;
         int pos = ctx.Start;
         if (ctx.Kind != Token.Colon)
@@ -761,17 +776,17 @@ internal static partial class Parser
                 ? Expression.New(indexCtor, e2, Expression.Constant(fromEnd2))
                 : Expression.Constant(Index.End);
             return Expression.Property(e,
-                typeof(Series).GetProperty("Item", new[] { typeof(Range) }),
+                typeof(Series).GetProperty("Item", new[] { typeof(Range) })!,
                 Expression.New(rangeCtor, e1, e2));
         }
-        e1 ??= e2.Type == typeof(Date)
+        e1 ??= e2!.Type == typeof(Date)
             ? Expression.Constant(Date.Zero)
             : Expression.Constant(0);
         e2 ??= e1.Type == typeof(Date)
             ? Expression.Constant(new Date(3000, 1, 1))
             : Expression.Constant(int.MaxValue);
         return Expression.Call(e,
-            typeof(Series).GetMethod(nameof(Series.Slice), new[] { e1.Type, e2.Type }),
+            typeof(Series).GetMethod(nameof(Series.Slice), new[] { e1.Type, e2.Type })!,
             e1, e2);
     }
 
@@ -947,12 +962,12 @@ internal static partial class Parser
             "lrandom" => CheckMatrixSize(a)
                 ? //Expression.Convert(Expression.Convert(
                     typeof(LMatrix).New(a.AddRandom())//,
-                    //typeof(double[,])), typeof(Matrix))
+                                                      //typeof(double[,])), typeof(Matrix))
                 : throw Error("Matrix size expected", ctx),
             "lnrandom" or "nlrandom" => CheckMatrixSize(a)
                 ? //Expression.Convert(Expression.Convert(
                     typeof(LMatrix).New(a.AddNormalRandom())//,
-                    //typeof(double[,])), typeof(Matrix))
+                                                            //typeof(double[,])), typeof(Matrix))
                 : throw Error("Matrix size expected", ctx),
             "zero" or "zeros" => CheckMatrixSize(a)
                 ? typeof(Matrix).New(a)
@@ -1022,8 +1037,8 @@ internal static partial class Parser
     private static Expression ParseMethod(AstContext ctx, Expression e)
     {
         string meth = ctx.Id;
-        if (!methods.TryGetValue(e.Type, out Dictionary<string, MethodInfo> dict) ||
-            !dict.TryGetValue(meth, out MethodInfo mInfo))
+        if (!methods.TryGetValue(e.Type, out Dictionary<string, MethodInfo>? dict) ||
+            !dict.TryGetValue(meth, out MethodInfo? mInfo))
             throw Error($"Invalid method: {meth}", ctx);
         ParameterInfo[] paramInfo = mInfo.GetParameters();
         Type firstParam = paramInfo[0].ParameterType;
@@ -1104,8 +1119,8 @@ internal static partial class Parser
         return e;
     }
 
-    private static Expression ParseLambda(AstContext ctx, Type t1, Type t2, Type retType,
-        bool isLast = true)
+    private static Expression ParseLambda(AstContext ctx, Type t1, Type? t2, Type retType,
+    bool isLast = true)
     {
         try
         {
@@ -1156,8 +1171,8 @@ internal static partial class Parser
     private static Expression ParseProperty(AstContext ctx, Expression e)
     {
         string prop = ctx.Id;
-        if (allProps.TryGetValue(e.Type, out Dictionary<string, MethodInfo> dict) &&
-            dict.TryGetValue(prop, out MethodInfo mInfo))
+        if (allProps.TryGetValue(e.Type, out Dictionary<string, MethodInfo>? dict) &&
+            dict.TryGetValue(prop, out MethodInfo? mInfo))
         {
             ctx.MoveNext();
             return Expression.Call(e, mInfo);
@@ -1206,7 +1221,7 @@ internal static partial class Parser
                     : a.Count == 2 && a[1].Type != typeof(int)
                     ? throw Error("Second argument must be integer", ctx)
                     : a.Count == 1
-                    ? Expression.Call(typeof(Math).GetMethod("Round", doubleArg), ToDouble(a[0]))
+                    ? Expression.Call(typeof(Math).GetMethod("Round", doubleArg)!, ToDouble(a[0]))
                     : typeof(Math).Call(nameof(Math.Round), ToDouble(a[0]), a[1]);
             case "iff":
                 {
@@ -1268,7 +1283,7 @@ internal static partial class Parser
                 {
                     MethodInfo info = typeof(Polynomials).GetMethod(
                         nameof(Polynomials.PolySolve),
-                        new[] { typeof(Vector) });
+                        new[] { typeof(Vector) })!;
                     return a.Count > 0 && a.All(IsArithmetic)
                         ? Expression.Call(info, typeof(Vector).New(
                             typeof(double).Make(a.Select(ToDouble).ToArray())))
@@ -1279,14 +1294,14 @@ internal static partial class Parser
         }
         if (a.Count == 1 && a[0].Type == typeof(Complex))
         {
-            MethodInfo info = typeof(Complex).GetMethod(function,
+            MethodInfo? info = typeof(Complex).GetMethod(function,
                 BindingFlags.Public | BindingFlags.Static | BindingFlags.IgnoreCase,
                 new[] { typeof(Complex) });
             return info is null
                 ? throw Error("Invalid function name", pos)
                 : Expression.Call(info, a[0]);
         }
-        return !functions.TryGetValue(function, out MethodInfo mInfo)
+        return !functions.TryGetValue(function, out MethodInfo? mInfo)
             ? throw Error("Invalid function name", pos)
             : a.Count != 1 || !IsArithmetic(a[0])
             ? throw Error("Argument must be numeric", ctx)
@@ -1423,10 +1438,10 @@ internal static partial class Parser
                 return ctx.LambdaParameter2;
         }
         // Check the local scope.
-        if (ctx.Locals.TryGetValue(id, out ParameterExpression local))
+        if (ctx.Locals.TryGetValue(id, out ParameterExpression? local))
             return local;
         // Check macro definitions.
-        Definition def = ctx.Source.GetDefinition(id);
+        Definition? def = ctx.Source.GetDefinition(id);
         if (def != null)
         {
             if (ctx.ParsingDefinition)
@@ -1434,7 +1449,7 @@ internal static partial class Parser
             return def.Expression;
         }
         // Check the global scope.
-        object val = ctx.ParsingDefinition
+        object? val = ctx.ParsingDefinition
             ? ctx.Source.GetPersistedValue(id)
             : ctx.Source[id];
         if (val != null)
@@ -1453,8 +1468,8 @@ internal static partial class Parser
             case "pi": return Expression.Constant(Math.PI);
             case "today": return Expression.Constant(Date.Today);
             case "pearl": return Expression.Call(typeof(F).Get(nameof(F.Austra)));
-            case "random": return Expression.Call(typeof(F).GetMethod(nameof(F.Random)));
-            case "nrandom": return Expression.Call(typeof(F).GetMethod(nameof(F.NRandom)));
+            case "random": return Expression.Call(typeof(F).GetMethod(nameof(F.Random))!);
+            case "nrandom": return Expression.Call(typeof(F).GetMethod(nameof(F.NRandom))!);
         }
         if (AstContext.TryParseMonthYear(id, out Date d))
             return Expression.Constant(d);
