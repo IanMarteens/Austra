@@ -38,7 +38,9 @@ So, the rules for mixing two series in an operation are:
 
 The `Polynomials` static class provides methods for polynomial evaluation and root finding. The `Solver` class implements a simple variant of the Newton-Raphson method for root finding.
 
-There's also a `PolyEval` for evaluating polynomials using the Horner's method, and a `PolySolve` for analytically finding roots whenever possible.
+There's also a `PolyEval` for evaluating polynomials using the Horner's method, and a `PolySolve` for analytically finding roots whenever possible, and using eigenvalues of the Frobenius matrix in the general case. There's even a `PolyDerivative` for computing the derivative of a polynomial.
+
+Natural cubic splines has also been implemented, both for series and for functions, using a grid. You can even calculate the derivative of a spline at any point in the supported range.
 
 ## Fast Fourier Transform
 Austra implements a pretty decent FFT algorithm, compared to most popular managed implementations. It uses the Cooley-Tukey algorithm, and it's optimized for small sizes. Small primes are handled either with Bluestein's or Rader's algorithm, depending on the size.
