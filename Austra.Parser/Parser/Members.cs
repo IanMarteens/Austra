@@ -371,7 +371,8 @@ internal static partial class Parser
         {
             AstContext ctx = new(source, text);
             Type type = ParseType(ctx);
-            return members.TryGetValue(type, out var list) ? list : Array.Empty<(string, string)>();
+            return members.TryGetValue(type, out (string name, string description)[]? list)
+                ? list : Array.Empty<(string, string)>();
         }
     }
 
@@ -381,9 +382,10 @@ internal static partial class Parser
     public static IList<(string member, string description)> GetClassMembers(
         string text)
     {
-        if (classMembers.TryGetValue(ExtractClassName(text), out var list))
-            return list;
-        return Array.Empty<(string, string)>(); ;
+        return classMembers.TryGetValue(ExtractClassName(text),
+            out (string name, string description)[]? list)
+            ? list
+            : (IList<(string member, string description)>)Array.Empty<(string, string)>();
 
         static string ExtractClassName(string text)
         {

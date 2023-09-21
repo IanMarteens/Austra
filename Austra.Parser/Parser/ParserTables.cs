@@ -471,10 +471,7 @@ internal static partial class Parser
         new(message, position);
 
     private static AstException Error(string message, AstContext ctx) =>
-        new(message, ctx.Current.Position);
-
-    private static AstException Error(string message, in Lexeme lexeme) =>
-        new(message, lexeme.Position);
+        new(message, ctx.Start);
 
     /// <summary>Gets a regex that matches a set statement</summary>
     [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase, "es-ES")]

@@ -18,18 +18,6 @@ public class AstException : ApplicationException
         : base(message) => Position = position;
 }
 
-/// <summary>Represents a lexical token.</summary>
-/// <param name="Kind">Token kind.</param>
-/// <param name="Position">Token position inside the expression.</param>
-internal readonly record struct Lexeme(
-    Token Kind,
-    int Position)
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Deconstruct(out Token kind, out int position) =>
-        (kind, position) = (Kind, Position);
-}
-
 /// <summary>Provides lexical analysis and inherited attributes for the parser.</summary>
 internal sealed partial class AstContext
 {
@@ -40,6 +28,7 @@ internal sealed partial class AstContext
     /// <summary>Used by the scanner to build string literals.</summary>
     private StringBuilder? sb;
     /// <summary>Current position in the text.</summary>
+    /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
     private int i;
 
     /// <summary>Initializes a parsing context.</summary>
@@ -54,25 +43,24 @@ internal sealed partial class AstContext
     /// <summary>Gets the outer scope for variables.</summary>
     public IDataSource Source { get; }
 
-    /// <summary>The current lexeme. Updated by the <see cref="MoveNext"/> method.</summary>
-    public Lexeme Current { get; private set; }
+    /// <summary>Gets the type of the current lexeme.</summary>
+    /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
+    public Token Kind { get; private set; }
 
-    /// <summary>String associated with the current lexeme.</summary>
+    /// <summary>Gets the start position of the current lexeme.</summary>
+    /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
+    public int Start { get; private set; }
+
+    /// <summary>Gets the string associated with the current lexeme.</summary>
+    /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
     public string Id { get; private set; }
 
-    /// <summary>Value of the lexeme as a real number.</summary>
+    /// <summary>Value of the current lexeme as a real number.</summary>
     public double AsReal { get => val.AsReal; private set => val.AsReal = value; }
     /// <summary>Value of the lexeme as an integer.</summary>
     public int AsInt { get => val.AsInt; private set => val.AsInt = value; }
     /// <summary>Value of the lexeme as a date literal.</summary>
     public Date AsDate { get => val.AsDate; private set => val.AsDate = value; }
-
-    /// <summary>Checks if the lexeme is a given token.</summary>
-    /// <param name="text">Text to check.</param>
-    /// <returns><see langword="true"/> when there's a match.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Is(string text) =>
-        text.Equals(Id, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Gets the parameter referencing the outer scope.</summary>
     public static ParameterExpression SourceParameter { get; } =
@@ -83,16 +71,9 @@ internal sealed partial class AstContext
     /// <summary>Place holder for the second lambda parameter, if any.</summary>
     public ParameterExpression? LambdaParameter2 { get; set; }
 
-    /// <summary>Gets the type of the active token.</summary>
-    public Token Kind
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Current.Kind;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public (string lowerText, int position) GetTextAndPos() =>
-        (Id.ToLower(), Current.Position);
+        (Id.ToLower(), Start);
 
     /// <summary>Transient local variable definitions.</summary>
     public Dictionary<string, ParameterExpression> Locals { get; } =
@@ -110,8 +91,8 @@ internal sealed partial class AstContext
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void CheckAndMoveNext(Token kind, string errorMessage)
     {
-        if (Current.Kind != kind)
-            throw new AstException(errorMessage, Current.Position);
+        if (Kind != kind)
+            throw new AstException(errorMessage, Start);
         MoveNext();
     }
 
@@ -155,7 +136,7 @@ internal sealed partial class AstContext
                 tok = IsKeyword(text.AsSpan()[first..i]);
             if (tok != Token.Id)
             {
-                Current = new(tok, first);
+                (Kind, Start) = (tok, first);
                 return;
             }
             // Skip blanks after the identifier.
@@ -163,11 +144,11 @@ internal sealed partial class AstContext
             while (char.IsWhiteSpace(Add(ref c, i)))
                 i++;
             ch = Add(ref c, i);
-            (Current, Id) = (ch == '('
-                ? new(Token.Functor, first)
-                : ch == ':' && Add(ref c, i + 1) == ':'
-                ? new(Token.ClassName, first)
-                : new(Token.Id, first), id);
+            (Id, Start) = (id, first);
+            Kind = 
+                ch == '(' ? Token.Functor
+                : ch == ':' && Add(ref c, i + 1) == ':' ? Token.ClassName
+                : Token.Id;
         }
         else if ((uint)(ch - '0') < 10u)
         {
@@ -179,7 +160,7 @@ internal sealed partial class AstContext
             {
                 do i++;
                 while (char.IsLetterOrDigit(Add(ref c, i)));
-                Current = new(Token.Date, first);
+                (Kind, Start) = (Token.Date, first);
                 AsDate = ParseDateLiteral(text.AsSpan()[first..i], first);
             }
             else if (ch == '.')
@@ -195,12 +176,12 @@ internal sealed partial class AstContext
                         i++;
                 }
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    (Current, AsReal) = (new(Token.Imag, first), ToReal(text, first, i++));
+                    (Kind, Start, AsReal) = (Token.Imag, first, ToReal(text, first, i++));
                 else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                    (Current, Id, AsReal, i)
-                        = (new(Token.MultVarR, first), text[i..j], ToReal(text, first, i), j);
+                    (Kind, Start, Id, AsReal, i)
+                        = (Token.MultVarR, first, text[i..j], ToReal(text, first, i), j);
                 else
-                    (Current, AsReal) = (new(Token.Real, first), ToReal(text, first, i));
+                    (Kind, Start, AsReal) = (Token.Real, first, ToReal(text, first, i));
             }
             else if ((ch | 0x20) == 'e')
             {
@@ -209,20 +190,20 @@ internal sealed partial class AstContext
                 while ((uint)(Add(ref c, i) - '0') < 10u)
                     i++;
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    (Current, AsReal) = (new(Token.Imag, first), ToReal(text, first, i++));
+                    (Kind, Start, AsReal) = (Token.Imag, first, ToReal(text, first, i++));
                 else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                    (Current, Id, AsReal, i)
-                        = (new(Token.MultVarR, first), text[i..j], ToReal(text, first, i), j);
+                    (Kind, Start, Id, AsReal, i)
+                        = (Token.MultVarR, first, text[i..j], ToReal(text, first, i), j);
                 else
-                    (Current, AsReal) = (new(Token.Real, first), ToReal(text, first, i));
+                    (Kind, Start, AsReal) = (Token.Real, first, ToReal(text, first, i));
             }
             else if (ch == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                (Current, AsReal) = (new(Token.Imag, first), ToReal(text, first, i++));
+                (Kind, Start, AsReal) = (Token.Imag, first, ToReal(text, first, i++));
             else if (char.IsLetter(ch) && IsVariableSuffix(text, i, out int k))
-                (Current, Id, AsInt, i) = (new(Token.MultVarI, first),
+                (Kind, Start, Id, AsInt, i) = (Token.MultVarI, first,
                     text[i..k], int.Parse(text.AsSpan()[first..i]), k);
             else
-                (Current, AsInt) = (new(Token.Int, first), int.Parse(text.AsSpan()[first..i]));
+                (Kind, Start, AsInt) = (Token.Int, first, int.Parse(text.AsSpan()[first..i]));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool IsVariableSuffix(string text, int i, out int j)
@@ -243,22 +224,22 @@ internal sealed partial class AstContext
         else
             switch (ch)
             {
-                case '\0': Current = new(Token.Eof, text.Length - 1); return;
-                case ',': Current = new(Token.Comma, i++); return;
-                case ';': Current = new(Token.Semicolon, i++); return;
-                case '(': Current = new(Token.LPar, i++); return;
-                case ')': Current = new(Token.RPar, i++); return;
-                case '[': Current = new(Token.LBra, i++); return;
-                case ']': Current = new(Token.RBra, i++); return;
-                case '{': Current = new(Token.LBrace, i++); return;
-                case '}': Current = new(Token.RBrace, i++); return;
-                case '+': Current = new(Token.Plus, i++); return;
-                case '*': Current = new(Token.Times, i++); return;
-                case '/': Current = new(Token.Div, i++); return;
-                case '%': Current = new(Token.Mod, i++); return;
-                case '^': Current = new(Token.Caret, i++); return;
-                case '\'': Current = new(Token.Transpose, i++); return;
-                case '\\': Current = new(Token.Backslash, i++); return;
+                case '\0': (Kind, Start) = (Token.Eof, text.Length - 1); return;
+                case ',': (Kind, Start) = (Token.Comma, i++); return;
+                case ';': (Kind, Start) = (Token.Semicolon, i++); return;
+                case '(': (Kind, Start) = (Token.LPar, i++); return;
+                case ')': (Kind, Start) = (Token.RPar, i++); return;
+                case '[': (Kind, Start) = (Token.LBra, i++); return;
+                case ']': (Kind, Start) = (Token.RBra, i++); return;
+                case '{': (Kind, Start) = (Token.LBrace, i++); return;
+                case '}': (Kind, Start) = (Token.RBrace, i++); return;
+                case '+': (Kind, Start) = (Token.Plus, i++); return;
+                case '*': (Kind, Start) = (Token.Times, i++); return;
+                case '/': (Kind, Start) = (Token.Div, i++); return;
+                case '%': (Kind, Start) = (Token.Mod, i++); return;
+                case '^': (Kind, Start) = (Token.Caret, i++); return;
+                case '\'': (Kind, Start) = (Token.Transpose, i++); return;
+                case '\\': (Kind, Start) = (Token.Backslash, i++); return;
                 case '-':
                     if (Add(ref c, ++i) == '-')
                     {
@@ -266,39 +247,39 @@ internal sealed partial class AstContext
                         while (ch != '\r' && ch != '\n' && ch != '\0');
                         goto SKIP_BLANKS;
                     }
-                    Current = new(Token.Minus, i - 1);
+                    (Kind, Start) = (Token.Minus, i - 1);
                     return;
                 case '=':
-                    Current = Add(ref c, ++i) == '>'
-                        ? new(Token.Arrow, i++ - 1)
-                        : new(Token.Eq, i - 1);
+                    (Kind, Start) = Add(ref c, ++i) == '>'
+                        ? (Token.Arrow, i++ - 1)
+                        : (Token.Eq, i - 1);
                     return;
                 case '.':
-                    Current = Add(ref c, ++i) == '*'
-                        ? new(Token.PointTimes, i++ - 1)
-                        : new(Token.Dot, i - 1);
+                    (Kind, Start) = Add(ref c, ++i) == '*'
+                        ? (Token.PointTimes, i++ - 1)
+                        : (Token.Dot, i - 1);
                     return;
                 case ':':
-                    Current = Add(ref c, ++i) == ':'
-                        ? new(Token.DoubleColon, i++ - 1)
-                        : new(Token.Colon, i - 1);
+                    (Kind, Start) = Add(ref c, ++i) == ':'
+                        ? (Token.DoubleColon, i++ - 1)
+                        : (Token.Colon, i - 1);
                     return;
                 case '!':
-                    Current = Add(ref c, ++i) == '='
-                        ? new(Token.Ne, i++ - 1)
-                        : new(Token.Error, i - 1);
+                    (Kind, Start) = Add(ref c, ++i) == '='
+                        ? (Token.Ne, i++ - 1)
+                        : (Token.Error, i - 1);
                     return;
                 case '<':
-                    Current = Add(ref c, ++i) == '='
-                        ? new(Token.Le, i++ - 1)
+                    (Kind, Start) = Add(ref c, ++i) == '='
+                        ? (Token.Le, i++ - 1)
                         : Add(ref c, i) == '>'
-                        ? new(Token.Ne, i++ - 1)
-                        : new(Token.Lt, i - 1);
+                        ? (Token.Ne, i++ - 1)
+                        : (Token.Lt, i - 1);
                     return;
                 case '>':
-                    Current = Add(ref c, ++i) == '='
-                        ? new(Token.Ge, i++ - 1)
-                        : new(Token.Gt, i - 1);
+                    (Kind, Start) = Add(ref c, ++i) == '='
+                        ? (Token.Ge, i++ - 1)
+                        : (Token.Gt, i - 1);
                     return;
                 case '"':
                     int start = i, first = i + 1;
@@ -311,7 +292,7 @@ internal sealed partial class AstContext
                     while (ch != '"');
                     if (Add(ref c, i + 1) != '"')
                     {
-                        (Current, Id)  = (new(Token.Str, start), text[first..i++]);
+                        (Kind, Start, Id)  = (Token.Str, start, text[first..i++]);
                         return;
                     }
                     // This is a string literal with embedded quotes.
@@ -334,11 +315,11 @@ internal sealed partial class AstContext
                         first = ++i;
                         goto MORE_STRING;
                     }
-                    (Current, Id) = (new(Token.Str, start), sb.ToString());
+                    (Kind, Start, Id) = (Token.Str, start, sb.ToString());
                     i++;
                     return;
                 default:
-                    Current = new(Token.Error, i);
+                    (Kind, Start) = (Token.Error, i);
                     i = text.Length - 1;
                     return;
             }
@@ -492,7 +473,7 @@ internal sealed partial class AstContext
             throw new AstException("Invalid day of month", position);
         if (!TryParseMonthYear(text[(i + 1)..], out Date date))
             throw new AstException("Invalid month or year", position + i + 1);
-        var (y, m, _) = date;
+        (int y, int m, int _) = date;
         return day <= Date.DaysInMonth(y, m) ? date + day - 1
             : throw new AstException("Invalid day of month", position);
     }

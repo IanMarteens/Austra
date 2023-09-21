@@ -90,7 +90,7 @@ public class DataSource : IDataSource
     /// <param name="name">A case insensitive identifier.</param>
     /// <returns>The value, when exists, or null, otherwise.</returns>
     public Series? GetPersistedValue(string name) =>
-        variables.TryGetValue(name, out var result) ? result : null;
+        variables.TryGetValue(name, out Series? result) ? result : null;
 
     /// <summary>Retrieves a global variable given its name.</summary>
     /// <param name="name">A case insensitive identifier.</param>
@@ -119,7 +119,7 @@ public class DataSource : IDataSource
     public Definition? GetDefinition(string name)
     {
         lock (defLock)
-            return definitions.TryGetValue(name, out var def) ? def : null;
+            return definitions.TryGetValue(name, out Definition? def) ? def : null;
     }
 
     /// <summary>Adds a parameterless macro definition to the source.</summary>
@@ -141,7 +141,7 @@ public class DataSource : IDataSource
         lock (defLock)
         {
             Stack<Definition> defs = new();
-            if (definitions.TryGetValue(name, out var def))
+            if (definitions.TryGetValue(name, out Definition? def))
                 Delete(defs, def);
             List<string> result = new(defs.Count);
             while (defs.Count > 0)
