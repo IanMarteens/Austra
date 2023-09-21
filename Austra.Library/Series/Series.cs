@@ -227,7 +227,7 @@ public sealed class Series : Series<Date>,
     {
         if (Type == SeriesType.Mixed || Type == SeriesType.MixedRets)
             throw new Exception("Invalid series type");
-        var (low, high) = GetSliceRange(args[0].AddMonths(-1), args[0]);
+        (int low, int high) = GetSliceRange(args[0].AddMonths(-1), args[0]);
         int delta = low - high;
         if (delta < 2)
         {
@@ -239,7 +239,7 @@ public sealed class Series : Series<Date>,
             if (delta >= 11 && delta <= 13)
                 delta = 12;
         }
-        var newArgs = args[high..^(delta - 1)];
+        Date[] newArgs = args[high..(Count - delta + 1)];
         double[] newValues = GC.AllocateUninitializedArray<double>(newArgs.Length);
         for (int i = 0; i < newValues.Length; i++)
         {
