@@ -253,34 +253,34 @@ internal sealed partial class AstContext
                 case '=':
                     (Kind, Start) = Add(ref c, i) == '>'
                         ? (Token.Arrow, i++ - 1)
-                        : (Token.Eq, i - 1);
+                        : (Token.Eq, Start);
                     return;
                 case '.':
                     (Kind, Start) = Add(ref c, i) == '*'
                         ? (Token.PointTimes, i++ - 1)
-                        : (Token.Dot, i - 1);
+                        : (Token.Dot, Start);
                     return;
                 case ':':
                     (Kind, Start) = Add(ref c, i) == ':'
                         ? (Token.DoubleColon, i++ - 1)
-                        : (Token.Colon, i - 1);
+                        : (Token.Colon, Start);
                     return;
                 case '!':
                     (Kind, Start) = Add(ref c, i) == '='
                         ? (Token.Ne, i++ - 1)
-                        : (Token.Error, i - 1);
+                        : (Token.Error, Start);
                     return;
                 case '<':
                     (Kind, Start) = Add(ref c, i) == '='
                         ? (Token.Le, i++ - 1)
                         : Add(ref c, i) == '>'
                         ? (Token.Ne, i++ - 1)
-                        : (Token.Lt, i - 1);
+                        : (Token.Lt, Start);
                     return;
                 case '>':
                     (Kind, Start) = Add(ref c, i) == '='
                         ? (Token.Ge, i++ - 1)
-                        : (Token.Gt, i - 1);
+                        : (Token.Gt, Start);
                     return;
                 case '"':
                     int first = i--;
