@@ -123,38 +123,37 @@ internal sealed partial class AstContext
     SKIP_BLANKS:
         while (char.IsWhiteSpace(Add(ref c, i)))
             i++;
+        Start = i;
         char ch = Add(ref c, i);
         // Check keywords, functors, class names and identifiers.
         if (char.IsLetter(ch))
         {
-            int first = i;
             do ch = Add(ref c, ++i);
             while (char.IsLetterOrDigit(ch) || ch == '_');
             // Check for keywords and function identifiers
             Token tok;
             if (Avx.IsSupported)
-                tok = IsIntelKeyword(ref Add(ref c, first), i - first);
+                tok = IsIntelKeyword(ref Add(ref c, Start), i - Start);
             else
-                tok = IsKeyword(text.AsSpan()[first..i]);
+                tok = IsKeyword(text.AsSpan()[Start..i]);
             if (tok != Token.Id)
             {
-                (Kind, Start) = (tok, first);
+                Kind = tok;
                 return;
             }
             // Skip blanks after the identifier.
-            string id = text[first..i];
+            string id = text[Start..i];
             while (char.IsWhiteSpace(Add(ref c, i)))
                 i++;
             ch = Add(ref c, i);
-            (Id, Start) = (id, first);
-            Kind = 
+            Id = id;
+            Kind =
                 ch == '(' ? Token.Functor
                 : ch == ':' && Add(ref c, i + 1) == ':' ? Token.ClassName
                 : Token.Id;
         }
         else if ((uint)(ch - '0') < 10u)
         {
-            int first = i;
             do i++;
             while ((uint)(Add(ref c, i) - '0') < 10u);
             ch = Add(ref c, i);
@@ -162,8 +161,8 @@ internal sealed partial class AstContext
             {
                 do i++;
                 while (char.IsLetterOrDigit(Add(ref c, i)));
-                (Kind, Start) = (Token.Date, first);
-                AsDate = ParseDateLiteral(text.AsSpan()[first..i], first);
+                Kind = Token.Date;
+                AsDate = ParseDateLiteral(text.AsSpan()[Start..i], Start);
             }
             else if (ch == '.')
             {
@@ -178,12 +177,11 @@ internal sealed partial class AstContext
                         i++;
                 }
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    (Kind, Start, AsReal) = (Token.Imag, first, ToReal(text, first, i++));
+                    (Kind, AsReal) = (Token.Imag, ToReal(text, Start, i++));
                 else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                    (Kind, Start, Id, AsReal, i)
-                        = (Token.MultVarR, first, text[i..j], ToReal(text, first, i), j);
+                    (Kind, Id, AsReal, i) = (Token.MultVarR, text[i..j], ToReal(text, Start, i), j);
                 else
-                    (Kind, Start, AsReal) = (Token.Real, first, ToReal(text, first, i));
+                    (Kind, AsReal) = (Token.Real, ToReal(text, Start, i));
             }
             else if ((ch | 0x20) == 'e')
             {
@@ -192,20 +190,19 @@ internal sealed partial class AstContext
                 while ((uint)(Add(ref c, i) - '0') < 10u)
                     i++;
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    (Kind, Start, AsReal) = (Token.Imag, first, ToReal(text, first, i++));
+                    (Kind, AsReal) = (Token.Imag, ToReal(text, Start, i++));
                 else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                    (Kind, Start, Id, AsReal, i)
-                        = (Token.MultVarR, first, text[i..j], ToReal(text, first, i), j);
+                    (Kind, Id, AsReal, i) = (Token.MultVarR, text[i..j], ToReal(text, Start, i), j);
                 else
-                    (Kind, Start, AsReal) = (Token.Real, first, ToReal(text, first, i));
+                    (Kind, AsReal) = (Token.Real, ToReal(text, Start, i));
             }
             else if (ch == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                (Kind, Start, AsReal) = (Token.Imag, first, ToReal(text, first, i++));
+                (Kind, AsReal) = (Token.Imag, ToReal(text, Start, i++));
             else if (char.IsLetter(ch) && IsVariableSuffix(text, i, out int k))
-                (Kind, Start, Id, AsInt, i) = (Token.MultVarI, first,
-                    text[i..k], int.Parse(text.AsSpan()[first..i]), k);
+                (Kind, Id, AsInt, i)
+                    = (Token.MultVarI, text[i..k], int.Parse(text.AsSpan()[Start..i]), k);
             else
-                (Kind, Start, AsInt) = (Token.Int, first, int.Parse(text.AsSpan()[first..i]));
+                (Kind, AsInt) = (Token.Int, int.Parse(text.AsSpan()[Start..i]));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool IsVariableSuffix(string text, int i, out int j)
@@ -224,77 +221,79 @@ internal sealed partial class AstContext
                 double.Parse(text.AsSpan()[from..to], CultureInfo.InvariantCulture);
         }
         else
+        {
+            i++;
             switch (ch)
             {
                 case '\0': (Kind, Start) = (Token.Eof, text.Length - 1); return;
-                case ',': (Kind, Start) = (Token.Comma, i++); return;
-                case ';': (Kind, Start) = (Token.Semicolon, i++); return;
-                case '(': (Kind, Start) = (Token.LPar, i++); return;
-                case ')': (Kind, Start) = (Token.RPar, i++); return;
-                case '[': (Kind, Start) = (Token.LBra, i++); return;
-                case ']': (Kind, Start) = (Token.RBra, i++); return;
-                case '{': (Kind, Start) = (Token.LBrace, i++); return;
-                case '}': (Kind, Start) = (Token.RBrace, i++); return;
-                case '+': (Kind, Start) = (Token.Plus, i++); return;
-                case '*': (Kind, Start) = (Token.Times, i++); return;
-                case '/': (Kind, Start) = (Token.Div, i++); return;
-                case '%': (Kind, Start) = (Token.Mod, i++); return;
-                case '^': (Kind, Start) = (Token.Caret, i++); return;
-                case '\'': (Kind, Start) = (Token.Transpose, i++); return;
-                case '\\': (Kind, Start) = (Token.Backslash, i++); return;
+                case ',': Kind = Token.Comma; return;
+                case ';': Kind = Token.Semicolon; return;
+                case '(': Kind = Token.LPar; return;
+                case ')': Kind = Token.RPar; return;
+                case '[': Kind = Token.LBra; return;
+                case ']': Kind = Token.RBra; return;
+                case '{': Kind = Token.LBrace; return;
+                case '}': Kind = Token.RBrace; return;
+                case '+': Kind = Token.Plus; return;
+                case '*': Kind = Token.Times; return;
+                case '/': Kind = Token.Div; return;
+                case '%': Kind = Token.Mod; return;
+                case '^': Kind = Token.Caret; return;
+                case '\'': Kind = Token.Transpose; return;
+                case '\\': Kind = Token.Backslash; return;
                 case '-':
-                    if (Add(ref c, ++i) == '-')
+                    if (Add(ref c, i) == '-')
                     {
                         do ch = Add(ref c, ++i);
                         while (ch is not '\r' and not '\n' and not '\0');
                         goto SKIP_BLANKS;
                     }
-                    (Kind, Start) = (Token.Minus, i - 1);
+                    Kind = Token.Minus;
                     return;
                 case '=':
-                    (Kind, Start) = Add(ref c, ++i) == '>'
+                    (Kind, Start) = Add(ref c, i) == '>'
                         ? (Token.Arrow, i++ - 1)
                         : (Token.Eq, i - 1);
                     return;
                 case '.':
-                    (Kind, Start) = Add(ref c, ++i) == '*'
+                    (Kind, Start) = Add(ref c, i) == '*'
                         ? (Token.PointTimes, i++ - 1)
                         : (Token.Dot, i - 1);
                     return;
                 case ':':
-                    (Kind, Start) = Add(ref c, ++i) == ':'
+                    (Kind, Start) = Add(ref c, i) == ':'
                         ? (Token.DoubleColon, i++ - 1)
                         : (Token.Colon, i - 1);
                     return;
                 case '!':
-                    (Kind, Start) = Add(ref c, ++i) == '='
+                    (Kind, Start) = Add(ref c, i) == '='
                         ? (Token.Ne, i++ - 1)
                         : (Token.Error, i - 1);
                     return;
                 case '<':
-                    (Kind, Start) = Add(ref c, ++i) == '='
+                    (Kind, Start) = Add(ref c, i) == '='
                         ? (Token.Le, i++ - 1)
                         : Add(ref c, i) == '>'
                         ? (Token.Ne, i++ - 1)
                         : (Token.Lt, i - 1);
                     return;
                 case '>':
-                    (Kind, Start) = Add(ref c, ++i) == '='
+                    (Kind, Start) = Add(ref c, i) == '='
                         ? (Token.Ge, i++ - 1)
                         : (Token.Gt, i - 1);
                     return;
                 case '"':
-                    int start = i, first = i + 1;
+                    int first = i--;
                     do
                     {
                         ch = Add(ref c, ++i);
                         if (ch == '\0')
-                            throw new AstException("Unterminated string literal", start);
+                            throw new AstException("Unterminated string literal", Start);
                     }
                     while (ch != '"');
                     if (Add(ref c, i + 1) != '"')
                     {
-                        (Kind, Start, Id)  = (Token.Str, start, text[first..i++]);
+                        (Kind, Id) = (Token.Str, text[first..i++]);
                         return;
                     }
                     // This is a string literal with embedded quotes.
@@ -307,7 +306,7 @@ internal sealed partial class AstContext
                     {
                         ch = Add(ref c, i++);
                         if (ch == '\0')
-                            throw new AstException("Unterminated string literal", start);
+                            throw new AstException("Unterminated string literal", Start);
                     }
                     while (ch != '"');
                     sb.Append(text.AsSpan()[first..(i - 1)]);
@@ -317,14 +316,14 @@ internal sealed partial class AstContext
                         first = ++i;
                         goto MORE_STRING;
                     }
-                    (Kind, Start, Id) = (Token.Str, start, sb.ToString());
-                    i++;
+                    (Kind, Id) = (Token.Str, sb.ToString());
                     return;
                 default:
-                    (Kind, Start) = (Token.Error, i);
+                    Kind = Token.Error;
                     i = text.Length - 1;
                     return;
             }
+        }
     }
 
     /// <summary>Check AUSTRA keywords.</summary>
