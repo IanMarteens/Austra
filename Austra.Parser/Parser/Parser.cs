@@ -164,8 +164,7 @@ internal static partial class Parser
     private static Expression ParseDisjunction(AstContext ctx)
     {
         Expression? e1 = null;
-        int orLex = ctx.Start;
-        for (; ; )
+        for (int orLex = ctx.Start; ; ctx.MoveNext())
         {
             Expression e2 = ParseLogicalFactor(ctx);
             while (ctx.Kind == Token.And)
@@ -185,7 +184,6 @@ internal static partial class Parser
             if (ctx.Kind != Token.Or)
                 break;
             orLex = ctx.Start;
-            ctx.MoveNext();
         }
         return e1;
     }
@@ -960,14 +958,10 @@ internal static partial class Parser
                 ? typeof(Matrix).New(a.AddNormalRandom())
                 : throw Error("Matrix size expected", ctx),
             "lrandom" => CheckMatrixSize(a)
-                ? //Expression.Convert(Expression.Convert(
-                    typeof(LMatrix).New(a.AddRandom())//,
-                                                      //typeof(double[,])), typeof(Matrix))
+                ? typeof(LMatrix).New(a.AddRandom())
                 : throw Error("Matrix size expected", ctx),
             "lnrandom" or "nlrandom" => CheckMatrixSize(a)
-                ? //Expression.Convert(Expression.Convert(
-                    typeof(LMatrix).New(a.AddNormalRandom())//,
-                                                            //typeof(double[,])), typeof(Matrix))
+                ? typeof(LMatrix).New(a.AddNormalRandom())
                 : throw Error("Matrix size expected", ctx),
             "zero" or "zeros" => CheckMatrixSize(a)
                 ? typeof(Matrix).New(a)
@@ -1337,8 +1331,7 @@ internal static partial class Parser
 
     private static (List<Expression>, List<int>) CollectArguments(AstContext ctx)
     {
-        List<Expression> arguments = new();
-        List<int> positions = new();
+        (List<Expression> arguments, List<int> positions) = (new(), new());
         for (; ; ctx.MoveNext())
         {
             arguments.Add(ParseConditional(ctx));
