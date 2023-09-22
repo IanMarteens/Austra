@@ -741,7 +741,7 @@ public readonly struct ComplexVector :
         return new(newValues);
     }
 
-    /// <summary>Checks whether the predicate is satified by all items.</summary>
+    /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
     public bool All(Func<Complex, bool> predicate)
@@ -752,7 +752,7 @@ public readonly struct ComplexVector :
         return true;
     }
 
-    /// <summary>Checks whether the predicate is satified by at least one item.</summary>
+    /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
     public bool Any(Func<Complex, bool> predicate)

@@ -845,7 +845,7 @@ public readonly struct Vector :
         return newValues;
     }
 
-    /// <summary>Checks whether the predicate is satified by all items.</summary>
+    /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
     public bool All(Func<double, bool> predicate)
@@ -856,7 +856,7 @@ public readonly struct Vector :
         return true;
     }
 
-    /// <summary>Checks whether the predicate is satified by at least one item.</summary>
+    /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
     public bool Any(Func<double, bool> predicate)
