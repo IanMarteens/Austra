@@ -1454,11 +1454,13 @@ internal static partial class Parser
                 string sv => Expression.Constant(sv),
                 _ => AstContext.GetFromDataSource(id, val.GetType())
             };
-        switch (id.ToLower())
+        switch (id.ToLowerInvariant())
         {
             case "e": return Expression.Constant(Math.E);
             case "i": return Expression.Constant(Complex.ImaginaryOne);
+            case "π":
             case "pi": return Expression.Constant(Math.PI);
+            case "τ": return Expression.Constant(Math.Tau);
             case "today": return Expression.Constant(Date.Today);
             case "pearl": return Expression.Call(typeof(F).Get(nameof(F.Austra)));
             case "random": return Expression.Call(typeof(F).GetMethod(nameof(F.Random))!);

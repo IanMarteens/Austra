@@ -5,7 +5,27 @@ namespace Ostara;
 /// <summary>Interaction logic for MainWindow.xaml</summary>
 public partial class MainWindow : Window
 {
+    private static readonly Dictionary<Key, char> tmg = new()
+    {
+        [Key.A] = 'α',
+        [Key.B] = 'β',
+        [Key.C] = 'ψ',
+        [Key.D] = 'δ',
+        [Key.E] = 'ε',
+        [Key.F] = 'φ',
+        [Key.G] = 'γ',
+        [Key.L] = 'λ',
+        [Key.M] = 'μ',
+        [Key.N] = 'ν',
+        [Key.O] = 'ω',
+        [Key.P] = 'π',
+        [Key.R] = 'ρ',
+        [Key.S] = 'σ',
+        [Key.T] = 'τ',
+    };
+
     private CompletionWindow? completionWindow;
+    private bool gMode;
 
     public MainWindow()
     {
@@ -15,6 +35,7 @@ public partial class MainWindow : Window
         avalon.SyntaxHighlighting = ResLoader.LoadHighlightingDefinition("austra.xshd");
         avalon.TextArea.TextEntered += TextArea_TextEntered;
         avalon.TextArea.TextEntering += TextArea_TextEntering;
+        avalon.PreviewKeyDown += AvalonPreviewKeyDown;
         mainSection.ContentEnd.InsertTextInRun("Welcome to Ostara!\nv" + RootModel.Version + "\n\n");
     }
 
@@ -156,5 +177,20 @@ public partial class MainWindow : Window
 
     private void AvalonPreviewKeyDown(object sender, KeyEventArgs e)
     {
+        if (e.Key == Key.G && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            gMode = !gMode;
+            e.Handled = true;
+        }
+        else if (gMode)
+        {
+            if (tmg.TryGetValue(e.Key, out char ch))
+            {
+                avalon.SelectedText = "";
+                avalon.Document.Insert(avalon.CaretOffset, ch.ToString());
+            }
+            gMode = false;
+            e.Handled = true;
+        }
     }
 }
