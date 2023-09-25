@@ -388,7 +388,7 @@ internal static partial class Parser
 
         static string ExtractClassName(string text)
         {
-            int i = text.Length - 1;
+            int i = text.EndsWith("::") ? text.Length - 2 : text.Length - 1;
             if (i < 0 || text[i--] != ':')
                 return "";
             while (i >= 0 && char.IsWhiteSpace(text, i))
