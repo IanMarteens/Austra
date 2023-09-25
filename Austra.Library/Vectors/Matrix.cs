@@ -957,8 +957,9 @@ public readonly struct Matrix :
         static void Blocking128(int m, int n, int p, double* a, double* b, double* c)
         {
             const int BLK_SIZE = 128;
+            int pbl = p * BLK_SIZE;
             for (int ii = 0; ii < m; ii += BLK_SIZE)
-                for (int kk = 0; kk < n; kk += BLK_SIZE)
+                for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
                     for (int jj = 0; jj < p; jj += BLK_SIZE)
                     {
                         double* pa = a + n * ii;
@@ -968,7 +969,7 @@ public readonly struct Matrix :
                         int top = ((topj - jj) & ~15) + jj;
                         for (int i = ii; i < topi; i++)
                         {
-                            double* pb = b + p * kk;
+                            double* pb = b + pkk;
                             int topk = Min(n, kk + BLK_SIZE);
                             for (int k = kk; k < topk; k++)
                             {
@@ -999,8 +1000,9 @@ public readonly struct Matrix :
         static void Blocking256(int m, int n, int p, double* a, double* b, double* c)
         {
             const int BLK_SIZE = 256;
+            int pbl = p * BLK_SIZE;
             for (int ii = 0; ii < m; ii += BLK_SIZE)
-                for (int kk = 0; kk < n; kk += BLK_SIZE)
+                for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
                     for (int jj = 0; jj < p; jj += BLK_SIZE)
                     {
                         double* pa = a + n * ii;
@@ -1010,7 +1012,7 @@ public readonly struct Matrix :
                         int top = ((topj - jj) & ~15) + jj;
                         for (int i = ii; i < topi; i++)
                         {
-                            double* pb = b + p * kk;
+                            double* pb = b + pkk;
                             int topk = Min(n, kk + BLK_SIZE);
                             for (int k = kk; k < topk; k++)
                             {
