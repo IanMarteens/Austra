@@ -311,7 +311,7 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Gets a regex for the UNDEFINE clause.</summary>
     /// <returns>A compiler-generated regular expression.</returns>
-    [GeneratedRegex("^\\s*undef\\s*(?'name'[\\w]+)\\s*$", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("^\\s*undef\\s*(?'name'[\\w]+)\\s*", RegexOptions.IgnoreCase)]
     private static partial Regex UndefineRegex();
 
     /// <summary>Serializes the datasource into a byte array.</summary>
