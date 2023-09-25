@@ -1424,10 +1424,10 @@ internal static partial class Parser
         // Check lambda parameters when present.
         if (ctx.LambdaParameter != null)
         {
-            if (string.Equals(id, ctx.LambdaParameter.Name, StringComparison.OrdinalIgnoreCase))
+            if (id.Equals(ctx.LambdaParameter.Name, StringComparison.OrdinalIgnoreCase))
                 return ctx.LambdaParameter;
             if (ctx.LambdaParameter2 != null &&
-                string.Equals(id, ctx.LambdaParameter2.Name, StringComparison.OrdinalIgnoreCase))
+                id.Equals(ctx.LambdaParameter2.Name, StringComparison.OrdinalIgnoreCase))
                 return ctx.LambdaParameter2;
         }
         // Check the local scope.
@@ -1454,13 +1454,15 @@ internal static partial class Parser
                 string sv => Expression.Constant(sv),
                 _ => AstContext.GetFromDataSource(id, val.GetType())
             };
-        switch (id.ToLowerInvariant())
+        if (id == "π")
+            return Expression.Constant(Math.PI);
+        if (id == "τ")
+            return Expression.Constant(Math.Tau);
+        switch (id.ToLower())
         {
             case "e": return Expression.Constant(Math.E);
             case "i": return Expression.Constant(Complex.ImaginaryOne);
-            case "π":
             case "pi": return Expression.Constant(Math.PI);
-            case "τ": return Expression.Constant(Math.Tau);
             case "today": return Expression.Constant(Date.Today);
             case "pearl": return Expression.Call(typeof(F).Get(nameof(F.Austra)));
             case "random": return Expression.Call(typeof(F).GetMethod(nameof(F.Random))!);

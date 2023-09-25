@@ -5,7 +5,7 @@ namespace Ostara;
 /// <summary>Interaction logic for MainWindow.xaml</summary>
 public partial class MainWindow : Window
 {
-    private static readonly Dictionary<Key, char> tmg = new()
+    private static readonly Dictionary<Key, char> tmgLo = new()
     {
         [Key.A] = 'α',
         [Key.B] = 'β',
@@ -14,6 +14,8 @@ public partial class MainWindow : Window
         [Key.E] = 'ε',
         [Key.F] = 'φ',
         [Key.G] = 'γ',
+        [Key.H] = 'η',
+        [Key.J] = 'ξ',
         [Key.L] = 'λ',
         [Key.M] = 'μ',
         [Key.N] = 'ν',
@@ -22,6 +24,20 @@ public partial class MainWindow : Window
         [Key.R] = 'ρ',
         [Key.S] = 'σ',
         [Key.T] = 'τ',
+        [Key.U] = 'Θ',
+        [Key.Z] = 'ζ',
+    };
+    private static readonly Dictionary<Key, char> tmgUp = new()
+    {
+        [Key.D] = 'Δ',
+        [Key.E] = 'ε',
+        [Key.G] = 'Γ',
+        [Key.J] = 'Ξ',
+        [Key.L] = 'Λ',
+        [Key.O] = 'Ω',
+        [Key.P] = 'Π',
+        [Key.S] = 'Σ',
+        [Key.U] = 'θ',
     };
 
     private CompletionWindow? completionWindow;
@@ -182,15 +198,16 @@ public partial class MainWindow : Window
             gMode = !gMode;
             e.Handled = true;
         }
-        else if (gMode)
+        else if (gMode && e.Key != Key.LeftShift & e.Key != Key.RightShift)
         {
-            if (tmg.TryGetValue(e.Key, out char ch))
+            if (Keyboard.Modifiers == ModifierKeys.None && tmgLo.TryGetValue(e.Key, out char ch)
+                || Keyboard.Modifiers == ModifierKeys.Shift && tmgUp.TryGetValue(e.Key, out ch))
             {
                 avalon.SelectedText = "";
                 avalon.Document.Insert(avalon.CaretOffset, ch.ToString());
+                e.Handled = true;
             }
             gMode = false;
-            e.Handled = true;
         }
     }
 }
