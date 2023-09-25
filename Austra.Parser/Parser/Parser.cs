@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using System.Transactions;
+
+namespace Austra.Parser;
 
 /// <summary>Syntactic analysis for AUSTRA.</summary>
 internal static partial class Parser
@@ -36,7 +38,9 @@ internal static partial class Parser
                 return typeof(void);
             ctx.CheckAndMoveNext(Token.Eq, "= expected");
         }
-        return ParseFormula(ctx, false).Type;
+        Expression e = ParseFormula(ctx, false);
+        Debug.WriteLine(e.ToString());
+        return e.Type;
     }
 
     /// <summary>Parses a definition and adds it to the source.</summary>
@@ -294,22 +298,61 @@ internal static partial class Parser
                     (e1, e2) = (ToDouble(e1), ToDouble(e2));
                 try
                 {
-                    if (opLex == Token.Plus &&
-                        e1.Type == typeof(Vector) && e2.Type == typeof(Vector) &&
-                        e1 is BinaryExpression { NodeType: ExpressionType.Multiply } be1)
-                        e1 = be1.Right.Type == typeof(double)
-                            ? Expression.Call(be1.Left,
-                                typeof(Vector).GetMethod(nameof(Vector.MultiplyAdd),
-                                new[] { typeof(double), typeof(Vector) })!, be1.Right, e2)
-                            : be1.Left.Type == typeof(double)
-                            ? Expression.Call(be1.Right,
-                                typeof(Vector).GetMethod(nameof(Vector.MultiplyAdd),
-                                new[] { typeof(double), typeof(Vector) })!, be1.Left, e2)
-                            : be1.Left.Type == typeof(Matrix)
-                            ? Expression.Call(be1.Left,
-                                typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
-                                new[] { typeof(Vector), typeof(Vector) })!, be1.Right, e2)
-                            : Expression.Add(e1, e2);
+                    if (e1.Type == typeof(Vector) && e2.Type == typeof(Vector))
+                    {
+                        string method = opLex == Token.Plus
+                            ? nameof(Vector.MultiplyAdd)
+                            : nameof(Vector.MultiplySubtract);
+                        if (e1 is BinaryExpression { NodeType: ExpressionType.Multiply } be1)
+                        {
+                            if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } be2
+                                && be1.Left.Type == typeof(double)
+                                && be2.Left.Type == typeof(double))
+                                e1 = Expression.Call(
+                                        typeof(Vector).GetMethod(nameof(Vector.Combine),
+                                        new[] { typeof(double), typeof(double),
+                                                typeof(Vector), typeof(Vector)})!,
+                                    be1.Left,
+                                    opLex == Token.Plus ? be2.Left : Expression.Negate(be2.Left),
+                                    be1.Right, be2.Right);
+                            else
+                                e1 = be1.Right.Type == typeof(double)
+                                    ? Expression.Call(be1.Left,
+                                        typeof(Vector).GetMethod(method,
+                                        new[] { typeof(double), typeof(Vector) })!, be1.Right, e2)
+                                    : be1.Left.Type == typeof(double)
+                                    ? Expression.Call(be1.Right,
+                                        typeof(Vector).GetMethod(method,
+                                        new[] { typeof(double), typeof(Vector) })!, be1.Left, e2)
+                                    : be1.Left.Type == typeof(Matrix)
+                                    ? Expression.Call(be1.Left,
+                                        typeof(Matrix).GetMethod(method,
+                                        new[] { typeof(Vector), typeof(Vector) })!, be1.Right, e2)
+                                    : opLex == Token.Plus
+                                    ? Expression.Add(e1, e2)
+                                    : Expression.Subtract(e1, e2);
+                        }
+                        else if (opLex == Token.Plus &&
+                            e2 is BinaryExpression { NodeType: ExpressionType.Multiply } be2)
+                        {
+                            e1 = be2.Right.Type == typeof(double)
+                                ? Expression.Call(be2.Left,
+                                    typeof(Vector).GetMethod(method,
+                                    new[] { typeof(double), typeof(Vector) })!, be2.Right, e1)
+                                : be2.Left.Type == typeof(double)
+                                ? Expression.Call(be2.Right,
+                                    typeof(Vector).GetMethod(method,
+                                    new[] { typeof(double), typeof(Vector) })!, be2.Left, e1)
+                                : be2.Left.Type == typeof(Matrix)
+                                ? Expression.Call(be2.Left,
+                                    typeof(Matrix).GetMethod(method,
+                                    new[] { typeof(Vector), typeof(Vector) })!, be2.Right, e1)
+                                : Expression.Add(e1, e2);
+                        }
+                        else
+                            e1 = opLex == Token.Plus
+                                ? Expression.Add(e1, e2) : Expression.Subtract(e1, e2);
+                    }
                     else
                         e1 = e1 is ConstantExpression c1 && c1.Value is double d1 &&
                                 e2 is ConstantExpression c2 && c2.Value is double d2

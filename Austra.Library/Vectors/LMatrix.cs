@@ -758,6 +758,14 @@ public readonly struct LMatrix :
     public Vector MultiplyAdd(Vector multiplicand, Vector add, double[] result) =>
         add.Add(Multiply(multiplicand, result), result);
 
+    /// <summary>Transforms a vector and subtracts an offset.</summary>
+    /// <param name="multiplicand">Vector to transform.</param>
+    /// <param name="sub">Vector to subtract.</param>
+    /// <param name="result">Preallocated buffer for the result.</param>
+    /// <returns>this * multiplicand + add.</returns>
+    public Vector MultiplySubtract(Vector multiplicand, Vector sub, double[] result) =>
+        new Vector(Multiply(multiplicand, result)).Sub(sub, result);
+
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => CommonMatrix.DiagonalProduct(values);

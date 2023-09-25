@@ -49,4 +49,10 @@ public class VectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public ComplexVector AustraComplexVectorFilter() => cxv.Filter(c => c.Real > c.Imaginary);
+
+    [Benchmark]
+    public Vector AustraRawLineal() => 2 * cv4 + 3 * cv5;
+
+    [Benchmark]
+    public Vector AustraCombineLineal() => Vector.Combine(2, 3, cv4, cv5);
 }

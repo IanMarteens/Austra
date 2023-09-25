@@ -1121,6 +1121,22 @@ public readonly struct Matrix :
     public Vector MultiplyAdd(Vector multiplicand, Vector add) =>
         MultiplyAdd(multiplicand, add, new double[add.Length]);
 
+    /// <summary>Transforms a vector and subtracts an offset.</summary>
+    /// <param name="multiplicand">Vector to transform.</param>
+    /// <param name="sub">Vector to subtract.</param>
+    /// <param name="result">Preallocated buffer for the result.</param>
+    /// <returns>this * multiplicand + add.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Vector MultiplySubtract(Vector multiplicand, Vector sub, double[] result) =>
+        new Vector(Multiply(multiplicand, result)).Sub(sub, result);
+
+    /// <summary>Transforms a vector and subtracts an offset.</summary>
+    /// <param name="multiplicand">Vector to transform.</param>
+    /// <param name="sub">Vector to subtract.</param>
+    /// <returns>this * multiplicand + add.</returns>
+    public Vector MultiplySubtract(Vector multiplicand, Vector sub) =>
+        MultiplySubtract(multiplicand, sub, new double[sub.Length]);
+
     /// <summary>Computes the Cholesky decomposition of this matrix.</summary>
     /// <returns>A Cholesky decomposition.</returns>
     public Cholesky Cholesky() =>

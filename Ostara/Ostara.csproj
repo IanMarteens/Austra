@@ -129,6 +129,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="austra.chm">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
 		<Page Update="Themes\Button.xaml">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Page>

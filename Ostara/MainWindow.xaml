@@ -11,6 +11,7 @@
     Background="Black"
     WindowState="Maximized"
     Title="OSTARA" Height="500" Width="950"
+    local:Help.Filename="austra.chm"
     FocusManager.FocusedElement="{Binding ElementName=avalon}">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="34" />

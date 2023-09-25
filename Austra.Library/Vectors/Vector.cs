@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Drawing;
+
+namespace Austra.Library;
 
 /// <summary>Represents a dense vector of arbitrary size.</summary>
 public readonly struct Vector :
@@ -295,8 +297,7 @@ public readonly struct Vector :
 
         fixed (double* pA = values, pB = v.values, pC = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i,
@@ -311,19 +312,25 @@ public readonly struct Vector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component subtraction.</returns>
-    public static unsafe Vector operator -(Vector v1, Vector v2)
-    {
-        Contract.Requires(v1.IsInitialized);
-        Contract.Requires(v2.IsInitialized);
-        if (v1.Length != v2.Length)
-            throw new VectorLengthException();
-        Contract.Ensures(Contract.Result<Vector>().Length == v1.Length);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe Vector operator -(Vector v1, Vector v2) =>
+        v1.Sub(v2, GC.AllocateUninitializedArray<double>(v1.Length));
 
-        double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
-        fixed (double* pA = v1.values, pB = v2.values, pC = result)
+    /// <summary>subtracts a vector from this vector.</summary>
+    /// <param name="v">Second vector operand.</param>
+    /// <param name="result">Preallocated buffer for the result.</param>
+    /// <returns>The component by component subtraction.</returns>
+    public unsafe double[] Sub(Vector v, double[] result)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        if (Length != v.Length)
+            throw new VectorLengthException();
+        Contract.Requires(result.Length == Length);
+
+        fixed (double* pA = values, pB = v.values, pC = result)
         {
-            int len = v1.values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i,
@@ -345,8 +352,7 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
-            int len = v.values.Length;
-            int i = 0;
+            int len = v.values.Length, i = 0;
             if (Avx.IsSupported)
             {
                 Vector256<double> z = Vector256<double>.Zero;
@@ -371,8 +377,7 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
-            int len = v.values.Length;
-            int i = 0;
+            int len = v.values.Length, i = 0;
             if (Avx.IsSupported)
             {
                 Vector256<double> vec = Vector256.Create(d);
@@ -404,8 +409,7 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
-            int len = v.values.Length;
-            int i = 0;
+            int len = v.values.Length, i = 0;
             if (Avx.IsSupported)
             {
                 Vector256<double> vec = Vector256.Create(d);
@@ -430,8 +434,7 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         fixed (double* p = v.values, q = result)
         {
-            int len = v.values.Length;
-            int i = 0;
+            int len = v.values.Length, i = 0;
             if (Avx.IsSupported)
             {
                 Vector256<double> vec = Vector256.Create(d);
@@ -458,8 +461,7 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         fixed (double* pA = values, pB = other.values, pC = result)
         {
-            int len = values.Length;
-            int i = 0;
+            int len = values.Length, i = 0;
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(pC + i,
@@ -564,15 +566,12 @@ public readonly struct Vector :
         int rows = v1.Length, cols = v2.Length;
         double[,] result = new double[rows, cols];
         fixed (double* pA = result, pV1 = v1.values, pV2 = v2.values)
-        {
-            int idx = 0;
-            for (int i = 0; i < rows; i++)
+            for (int i = 0, idx = 0; i < rows; i++)
             {
                 double d = pV1[i];
                 for (int j = 0; j < cols; j++)
                     pA[idx++] = pV2[j] * d;
             }
-        }
         return result;
     }
 
@@ -717,6 +716,28 @@ public readonly struct Vector :
                         p[j] += pa[j] * w;
                 }
             }
+        }
+        return values;
+    }
+
+    /// <summary>Low-level method to linearly combine two vectors with weights.</summary>
+    public static unsafe Vector Combine(double w1, double w2, Vector v1, Vector v2)
+    {
+        if (v1.Length != v2.Length)
+            throw new VectorLengthException();
+        double[] values = GC.AllocateUninitializedArray<double>(v1.Length);
+        fixed (double* p = values, pa = v1.values, pb = v2.values)
+        {
+            int j = 0, size = values.Length;
+            if (Avx.IsSupported)
+            {
+                Vector256<double> vw1 = Vector256.Create(w1), vw2 = Vector256.Create(w2);
+                for (int top = size & Simd.AVX_MASK; j < top; j += 4)
+                    Avx.Store(p + j,
+                        Avx.Multiply(Avx.LoadVector256(pa + j), vw1).MultiplyAdd(pb + j, vw2));
+            }
+            for (; j < size; j++)
+                p[j] = FusedMultiplyAdd(pb[j], w2, pa[j] * w1);
         }
         return values;
     }
