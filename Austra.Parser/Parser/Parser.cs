@@ -384,10 +384,12 @@ internal static partial class Parser
                     : e2.Type != typeof(Vector) && e2.Type != typeof(Matrix)
                     ? throw Error("Second operand must be a vector or a matrix", opPos)
                     : typeof(Matrix).Call(e1, nameof(Matrix.Solve), e2);
-            else if (opLex == Token.PointTimes)
+            else if (opLex == Token.PointTimes || opLex == Token.PointDiv)
                 e1 = e1.Type == e2.Type && e1.Type.IsAssignableTo(
                         typeof(IPointwiseMultiply<>).MakeGenericType(e1.Type))
-                    ? e1.Type.Call(e1, nameof(Vector.PointwiseMultiply), e2)
+                    ? e1.Type.Call(e1,  opLex == Token.PointTimes
+                        ? nameof(Vector.PointwiseMultiply) : nameof(Vector.PointwiseDivide),
+                        e2)
                     : throw Error("Invalid operator", opPos);
             else
             {

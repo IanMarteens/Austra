@@ -458,7 +458,7 @@ public sealed class Series : Series<Date>,
     /// <summary>Creates a new series by multiplying values from the operands.</summary>
     /// <remarks>This method corresponds to the .* operator in AUSTRA.</remarks>
     /// <param name="other">Second operand.</param>
-    /// <returns>A new series.</returns>
+    /// <returns>A new series with the pointwise product.</returns>
     public unsafe Series PointwiseMultiply(Series other)
     {
         if (Freq != other.Freq)
@@ -480,6 +480,34 @@ public sealed class Series : Series<Date>,
         }
         return new(
             Name + ".*" + other.Name, Ticker,
+            newArgs, newValues, Combine(Type, other.Type), other.Freq);
+    }
+
+    /// <summary>Creates a new series by dividing values from the operands.</summary>
+    /// <remarks>This method corresponds to the ./ operator in AUSTRA.</remarks>
+    /// <param name="other">Second operand.</param>
+    /// <returns>A new series with the pointwise quotient.</returns>
+    public unsafe Series PointwiseDivide(Series other)
+    {
+        if (Freq != other.Freq)
+            throw new Exception("Cannot mix series with different frequencies");
+        int len = Min(Count, other.Count);
+        Date[] newArgs = Count == len ? args : other.args;
+        double[] newValues = GC.AllocateUninitializedArray<double>(len);
+
+        fixed (double* pA = values, pB = other.values, pC = newValues)
+        {
+            int i = 0;
+            if (Avx.IsSupported)
+                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
+                    Avx.Store(
+                        pC + i,
+                        Avx.Divide(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
+            for (; i < len; i++)
+                pC[i] = pA[i] / pB[i];
+        }
+        return new(
+            Name + "./" + other.Name, Ticker,
             newArgs, newValues, Combine(Type, other.Type), other.Freq);
     }
 

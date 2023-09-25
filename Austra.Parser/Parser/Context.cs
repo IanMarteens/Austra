@@ -258,6 +258,8 @@ internal sealed partial class AstContext
                 case '.':
                     (Kind, Start) = Add(ref c, i) == '*'
                         ? (Token.PointTimes, i++ - 1)
+                        : Add(ref c, i) == '/'
+                        ? (Token.PointDiv, i++ - 1)
                         : (Token.Dot, Start);
                     return;
                 case ':':

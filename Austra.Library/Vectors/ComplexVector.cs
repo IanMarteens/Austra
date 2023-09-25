@@ -421,6 +421,41 @@ public readonly struct ComplexVector :
         return new(r, m);
     }
 
+    /// <summary>Pointwise division.</summary>
+    /// <param name="other">Second vector operand.</param>
+    /// <returns>The component by component quotient.</returns>
+    public unsafe ComplexVector PointwiseDivide(ComplexVector other)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(other.IsInitialized);
+        if (Length != other.Length)
+            throw new VectorLengthException();
+        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+
+        int len = Length;
+        double[] r = new double[len], m = new double[len];
+        fixed (double* pr = re, pi = im, qr = other.re, qi = other.im, vr = r, vm = m)
+        {
+            int i = 0;
+            if (Avx.IsSupported)
+                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
+                {
+                    var vpr = Avx.LoadVector256(pr + i);
+                    var vpi = Avx.LoadVector256(pi + i);
+                    var vqr = Avx.LoadVector256(qr + i);
+                    var vqi = Avx.LoadVector256(qi + i);
+                    var quotient = Avx.Multiply(vqr, vqr).MultiplyAdd(vqi, vqi);
+                    Avx.Store(vr + i,
+                        Avx.Divide(Avx.Multiply(vpr, vqr).MultiplyAdd(vpi, vqi), quotient));
+                    Avx.Store(vm + i,
+                        Avx.Divide(Avx.Multiply(vpr, vqi).MultiplyAddNeg(vpi, vqr), quotient));
+                }
+            for (; i < len; i++)
+                (r[i], m[i]) = new Complex(pr[i], pi[i]) / new Complex(qr[i], qi[i]);
+        }
+        return new(r, m);
+    }
+
     /// <summary>Dot product of two vectors.</summary>
     /// <remarks>The values from the second vector are conjugated.</remarks>
     /// <param name="v1">First vector operand.</param>

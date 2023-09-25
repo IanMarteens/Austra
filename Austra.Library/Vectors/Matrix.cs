@@ -8,6 +8,11 @@ public interface IPointwiseMultiply<T>
     /// <param name="other">The second operand.</param>
     /// <returns>A new data structure with all the multiplication results.</returns>
     T PointwiseMultiply(T other);
+
+    /// <summary>Item by item division of two data structures.</summary>
+    /// <param name="other">The second operand.</param>
+    /// <returns>A new data structure with all the quotient results.</returns>
+    T PointwiseDivide(T other);
 }
 
 /// <summary>Represents a dense rectangular matrix.</summary>
@@ -824,6 +829,33 @@ public readonly struct Matrix :
                         Avx.Multiply(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
             for (; i < len; i++)
                 pC[i] = pA[i] * pB[i];
+        }
+        return result;
+    }
+
+    /// <summary>Cell by cell division with a second matrix.</summary>
+    /// <param name="m">Second operand.</param>
+    /// <returns>The pointwise quotient.</returns>
+    public unsafe Matrix PointwiseDivide(Matrix m)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(m.IsInitialized);
+        if (Rows != m.Rows ||
+            Cols != m.Cols)
+            throw new MatrixSizeException();
+        Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
+        Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
+
+        double[,] result = new double[Rows, Cols];
+        fixed (double* pA = values, pB = m.values, pC = result)
+        {
+            int len = values.Length, i = 0;
+            if (Avx.IsSupported)
+                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
+                    Avx.Store(pC + i,
+                        Avx.Divide(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
+            for (; i < len; i++)
+                pC[i] = pA[i] / pB[i];
         }
         return result;
     }

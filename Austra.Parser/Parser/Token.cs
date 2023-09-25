@@ -77,6 +77,8 @@ public enum Token
     Times,
     /// <summary>The pointwise multiplication.</summary>
     PointTimes,
+    /// <summary>The pointwise division.</summary>
+    PointDiv,
     /// <summary>The backslash \ is the matrix solver operator.</summary>
     Backslash,
     /// <summary>The division <c>/</c> operator.</summary>

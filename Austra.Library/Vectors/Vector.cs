@@ -472,6 +472,31 @@ public readonly struct Vector :
         return result;
     }
 
+    /// <summary>Pointwise division.</summary>
+    /// <param name="other">Second vector operand.</param>
+    /// <returns>The component by component quotient.</returns>
+    public unsafe Vector PointwiseDivide(Vector other)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(other.IsInitialized);
+        if (Length != other.Length)
+            throw new VectorLengthException();
+        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
+        fixed (double* pA = values, pB = other.values, pC = result)
+        {
+            int len = values.Length, i = 0;
+            if (Avx.IsSupported)
+                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
+                    Avx.Store(pC + i,
+                        Avx.Divide(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
+            for (; i < len; i++)
+                pC[i] = pA[i] / pB[i];
+        }
+        return result;
+    }
+
     /// <summary>Dot product of two vectors.</summary>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
