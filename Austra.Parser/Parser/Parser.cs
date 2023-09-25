@@ -10,7 +10,7 @@ internal static partial class Parser
     /// <returns>A lambda method, when successful.</returns>
     public static Func<IDataSource, object> Parse(AstContext ctx) =>
         Expression.Lambda<Func<IDataSource, object>>(
-            ParseStatement(ctx, true), AstContext.SourceParameter).Compile();
+            ParseStatement(ctx), AstContext.SourceParameter).Compile();
 
     /// <summary>Parses a block expression without compiling it.</summary>
     /// <param name="ctx">Compiling context.</param>
@@ -79,9 +79,8 @@ internal static partial class Parser
 
     /// <summary>Compiles a block expression.</summary>
     /// <param name="ctx">Compiling context.</param>
-    /// <param name="forceCast">Whether to force a cast to object.</param>
     /// <returns>A block expression.</returns>
-    private static Expression ParseStatement(AstContext ctx, bool forceCast)
+    private static Expression ParseStatement(AstContext ctx)
     {
         if (ctx.Kind == Token.Set)
         {
@@ -101,9 +100,13 @@ internal static partial class Parser
             if (ctx.Source.GetDefinition(ctx.LeftValue) != null)
                 throw Error($"{ctx.LeftValue} already in use", namePos);
         }
-        return ParseFormula(ctx, forceCast);
+        return ParseFormula(ctx, true);
     }
 
+    /// <summary>Compiles a block expression.</summary>
+    /// <param name="ctx">Compiling context.</param>
+    /// <param name="forceCast">Whether to force a cast to object.</param>
+    /// <returns>A block expression.</returns>
     private static Expression ParseFormula(AstContext ctx, bool forceCast)
     {
         List<ParameterExpression> locals = new();
