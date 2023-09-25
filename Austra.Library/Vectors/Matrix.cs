@@ -900,13 +900,36 @@ public readonly struct Matrix :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix operator /(Matrix m, double d) => m * (1.0 / d);
 
-    private static unsafe Matrix Multiply(Matrix m1, Matrix m2)
+    /// <summary>Multiplies two compatible matries.</summary>
+    /// <param name="m1">First matrix operand.</param>
+    /// <param name="m2">Second matrix operand.</param>
+    /// <returns>The algebraic multiplication of the two operands.</returns>
+    public static unsafe Matrix operator *(Matrix m1, Matrix m2)
     {
+        Contract.Requires(m1.IsInitialized);
+        Contract.Requires(m2.IsInitialized);
+        if (m1.Cols != m2.Rows)
+            throw new MatrixSizeException();
+        Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
+        Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
+
+        const long MINSIZE = 64L * 64L * 64L * 64L;
+        const long MAXSIZE = 1024L * 1024L * 1024L * 1024L;
+        long size = (long)m1.values.Length * m2.values.Length;
         int m = m1.Rows;
         int n = m1.Cols;
         int p = m2.Cols;
         double[,] result = new double[m, p];
         fixed (double* a = m1.values, b = m2.values, c = result)
+            if (size < MINSIZE)
+                NonBlocking(m, n, p, a, b, c);
+            else if (size < MAXSIZE)
+                Blocking128(m, n, p, a, b, c);
+            else
+                Blocking256(m, n, p, a, b, c);
+        return result;
+
+        static void NonBlocking(int m, int n, int p, double* a, double* b, double* c)
         {
             double* pa = a;
             double* pc = c;
@@ -930,30 +953,10 @@ public readonly struct Matrix :
                 pc += p;
             }
         }
-        return result;
-    }
 
-    /// <summary>Multiplies two compatible matries.</summary>
-    /// <param name="m1">First matrix operand.</param>
-    /// <param name="m2">Second matrix operand.</param>
-    /// <returns>The algebraic multiplication of the two operands.</returns>
-    public static unsafe Matrix operator *(Matrix m1, Matrix m2)
-    {
-        Contract.Requires(m1.IsInitialized);
-        Contract.Requires(m2.IsInitialized);
-        if (m1.Cols != m2.Rows)
-            throw new MatrixSizeException();
-        Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
-        Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
-
-        if (m1.values.Length < 1024 || m2.values.Length < 1024)
-            return Multiply(m1, m2);
-        const int BLK_SIZE = 128;
-        int m = m1.Rows;
-        int n = m1.Cols;
-        int p = m2.Cols;
-        double[,] result = new double[m, p];
-        fixed (double* a = m1.values, b = m2.values, c = result)
+        static void Blocking128(int m, int n, int p, double* a, double* b, double* c)
+        {
+            const int BLK_SIZE = 128;
             for (int ii = 0; ii < m; ii += BLK_SIZE)
                 for (int kk = 0; kk < n; kk += BLK_SIZE)
                     for (int jj = 0; jj < p; jj += BLK_SIZE)
@@ -991,7 +994,49 @@ public readonly struct Matrix :
                             pc += p;
                         }
                     }
-        return new(result);
+        }
+
+        static void Blocking256(int m, int n, int p, double* a, double* b, double* c)
+        {
+            const int BLK_SIZE = 256;
+            for (int ii = 0; ii < m; ii += BLK_SIZE)
+                for (int kk = 0; kk < n; kk += BLK_SIZE)
+                    for (int jj = 0; jj < p; jj += BLK_SIZE)
+                    {
+                        double* pa = a + n * ii;
+                        double* pc = c + p * ii;
+                        int topi = Min(m, ii + BLK_SIZE);
+                        int topj = Min(p, jj + BLK_SIZE);
+                        int top = ((topj - jj) & ~15) + jj;
+                        for (int i = ii; i < topi; i++)
+                        {
+                            double* pb = b + p * kk;
+                            int topk = Min(n, kk + BLK_SIZE);
+                            for (int k = kk; k < topk; k++)
+                            {
+                                double d = pa[k];
+                                int j = jj;
+                                if (Avx.IsSupported)
+                                    for (var vd = Vector256.Create(d); j < top; j += 16)
+                                    {
+                                        Avx.Store(pc + j, Avx.LoadVector256(pc + j)
+                                            .MultiplyAdd(pb + j, vd));
+                                        Avx.Store(pc + j + 4, Avx.LoadVector256(pc + j + 4)
+                                            .MultiplyAdd(pb + j + 4, vd));
+                                        Avx.Store(pc + j + 8, Avx.LoadVector256(pc + j + 8)
+                                            .MultiplyAdd(pb + j + 8, vd));
+                                        Avx.Store(pc + j + 12, Avx.LoadVector256(pc + j + 12)
+                                            .MultiplyAdd(pb + j + 12, vd));
+                                    }
+                                for (; j < topj; j++)
+                                    pc[j] = FusedMultiplyAdd(d, pb[j], pc[j]);
+                                pb += p;
+                            }
+                            pa += n;
+                            pc += p;
+                        }
+                    }
+        }
     }
 
     /// <summary>Multiplies this matrix by itself.</summary>

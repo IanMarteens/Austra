@@ -20,23 +20,23 @@ internal static partial class Parser
         // Check first for a definition header and skip it.
         if (ctx.Kind == Token.Def)
         {
-            ctx.MoveNext();
-            ctx.CheckAndMoveNext(Token.Id, "Definition name expected");
+            ctx.Move();
+            ctx.CheckAndMove(Token.Id, "Definition name expected");
             if (ctx.Kind == Token.Colon)
             {
-                ctx.MoveNext();
-                ctx.CheckAndMoveNext(Token.Str, "Definition description expected");
+                ctx.Move();
+                ctx.CheckAndMove(Token.Str, "Definition description expected");
             }
-            ctx.CheckAndMoveNext(Token.Eq, "= expected");
+            ctx.CheckAndMove(Token.Eq, "= expected");
         }
         // Check now for a set header and skip it.
         else if (ctx.Kind == Token.Set)
         {
-            ctx.MoveNext();
-            ctx.CheckAndMoveNext(Token.Id, "Left side variable expected");
+            ctx.Move();
+            ctx.CheckAndMove(Token.Id, "Left side variable expected");
             if (ctx.Kind == Token.Eof)
                 return typeof(void);
-            ctx.CheckAndMoveNext(Token.Eq, "= expected");
+            ctx.CheckAndMove(Token.Eq, "= expected");
         }
         Expression e = ParseFormula(ctx, false);
         Debug.WriteLine(e.ToString());
@@ -49,23 +49,23 @@ internal static partial class Parser
     /// <returns>A new definition, on success.</returns>
     public static Definition ParseDefinition(AstContext ctx, string description)
     {
-        ctx.CheckAndMoveNext(Token.Def, "DEF expected");
+        ctx.CheckAndMove(Token.Def, "DEF expected");
         if (ctx.Kind != Token.Id)
             throw Error("Definition name expected", ctx);
         string defName = ctx.Id;
         if (ctx.Source.GetDefinition(defName) != null ||
             ctx.Source[defName] != null)
             throw Error($"{defName} already in use", ctx);
-        ctx.MoveNext();
+        ctx.Move();
         if (ctx.Kind == Token.Colon)
         {
-            ctx.MoveNext();
+            ctx.Move();
             if (ctx.Kind != Token.Str)
                 throw Error("Definition description expected", ctx);
             description = ctx.Id;
-            ctx.MoveNext();
+            ctx.Move();
         }
-        ctx.CheckAndMoveNext(Token.Eq, "= expected");
+        ctx.CheckAndMove(Token.Eq, "= expected");
         int first = ctx.Start;
         ctx.ParsingDefinition = true;
         Expression e = ParseFormula(ctx, false);
@@ -85,18 +85,18 @@ internal static partial class Parser
     {
         if (ctx.Kind == Token.Set)
         {
-            ctx.MoveNext();
+            ctx.Move();
             if (ctx.Kind != Token.Id)
                 throw Error("Left side variable expected", ctx);
             int namePos = ctx.Start;
             ctx.LeftValue = ctx.Id;
-            ctx.MoveNext();
+            ctx.Move();
             if (ctx.Kind == Token.Eof)
             {
                 ctx.Source[ctx.LeftValue] = null;
                 return Expression.Constant(null);
             }
-            ctx.CheckAndMoveNext(Token.Eq, "= expected");
+            ctx.CheckAndMove(Token.Eq, "= expected");
             // Always allow deleting a session variable.
             if (ctx.Source.GetDefinition(ctx.LeftValue) != null)
                 throw Error($"{ctx.LeftValue} already in use", namePos);
@@ -112,12 +112,12 @@ internal static partial class Parser
         {
             do
             {
-                ctx.MoveNext();
+                ctx.Move();
                 if (ctx.Kind != Token.Id)
                     throw Error("Identifier expected", ctx);
                 string localId = ctx.Id;
-                ctx.MoveNext();
-                ctx.CheckAndMoveNext(Token.Eq, "= expected");
+                ctx.Move();
+                ctx.CheckAndMove(Token.Eq, "= expected");
                 Expression init = ParseConditional(ctx);
                 ParameterExpression le = Expression.Variable(init.Type, localId);
                 locals.Add(le);
@@ -125,7 +125,7 @@ internal static partial class Parser
                 ctx.Locals[localId] = le;
             }
             while (ctx.Kind == Token.Comma);
-            ctx.CheckAndMoveNext(Token.In, "IN expected");
+            ctx.CheckAndMove(Token.In, "IN expected");
         }
         Expression rvalue = ParseConditional(ctx);
         if (forceCast)
@@ -147,13 +147,13 @@ internal static partial class Parser
     {
         if (ctx.Kind != Token.If)
             return ParseDisjunction(ctx);
-        ctx.MoveNext();
+        ctx.Move();
         Expression c = ParseDisjunction(ctx);
         if (c.Type != typeof(bool))
             throw Error("Condition must be boolean", ctx);
-        ctx.CheckAndMoveNext(Token.Then, "THEN expected");
+        ctx.CheckAndMove(Token.Then, "THEN expected");
         Expression e1 = ParseConditional(ctx);
-        ctx.CheckAndMoveNext(Token.Else, "ELSE expected");
+        ctx.CheckAndMove(Token.Else, "ELSE expected");
         Expression e2 = ParseConditional(ctx);
         return DifferentTypes(ref e1, ref e2)
             ? throw Error("Conditional operands are not compatible", ctx)
@@ -168,13 +168,13 @@ internal static partial class Parser
     private static Expression ParseDisjunction(AstContext ctx)
     {
         Expression? e1 = null;
-        for (int orLex = ctx.Start; ; ctx.MoveNext())
+        for (int orLex = ctx.Start; ; ctx.Move())
         {
             Expression e2 = ParseLogicalFactor(ctx);
             while (ctx.Kind == Token.And)
             {
                 int andLex = ctx.Start;
-                ctx.MoveNext();
+                ctx.Move();
                 Expression e3 = ParseLogicalFactor(ctx);
                 e2 = e2.Type != typeof(bool) || e3.Type != typeof(bool)
                     ? throw Error("AND operands must be boolean", andLex)
@@ -199,7 +199,7 @@ internal static partial class Parser
         if (ctx.Kind == Token.Not)
         {
             int notLex = ctx.Start;
-            ctx.MoveNext();
+            ctx.Move();
             Expression e = ParseLogicalFactor(ctx);
             return e.Type != typeof(bool)
                 ? throw Error("NOT operand must be boolean", notLex)
@@ -212,7 +212,7 @@ internal static partial class Parser
             case Token.Eq:
             case Token.Ne:
                 {
-                    ctx.MoveNext();
+                    ctx.Move();
                     Expression e2 = ParseAdditive(ctx);
                     return DifferentTypes(ref e1, ref e2)
                         ? throw Error("Equality operands are not compatible", pos)
@@ -225,7 +225,7 @@ internal static partial class Parser
             case Token.Le:
             case Token.Ge:
                 {
-                    ctx.MoveNext();
+                    ctx.Move();
                     Expression e2 = ParseAdditive(ctx);
                     if (e1.Type != e2.Type)
                     {
@@ -243,7 +243,7 @@ internal static partial class Parser
                                 (opKind == Token.Gt || opKind == Token.Ge) &&
                                 (op2 == Token.Gt || op2 == Token.Ge))
                             {
-                                ctx.MoveNext();
+                                ctx.Move();
                                 Expression e3 = ParseAdditive(ctx);
                                 if (!IsArithmetic(e3))
                                     throw Error("Upper bound must be numeric", ctx);
@@ -282,7 +282,7 @@ internal static partial class Parser
         while (ctx.Kind == Token.Plus || ctx.Kind == Token.Minus)
         {
             (Token opLex, int opPos) = (ctx.Kind, ctx.Start);
-            ctx.MoveNext();
+            ctx.Move();
             Expression e2 = ParseMultiplicative(ctx);
             if (opLex == Token.Plus && e1.Type == typeof(string))
             {
@@ -376,7 +376,7 @@ internal static partial class Parser
         while (ctx.Kind >= Token.Times && ctx.Kind <= Token.Mod)
         {
             (Token opLex, int opPos) = (ctx.Kind, ctx.Start);
-            ctx.MoveNext();
+            ctx.Move();
             Expression e2 = ParseUnary(ctx);
             if (opLex == Token.Backslash)
                 e1 = e1.Type != typeof(Matrix)
@@ -400,11 +400,13 @@ internal static partial class Parser
                     // Try to optimize matrix transpose multiplying a vector.
                     e1 = opLex == Token.Times && e1.Type == typeof(Matrix)
                         ? (e2.Type == typeof(Vector) && e1 is MethodCallExpression
-                        { Method.Name: nameof(Matrix.Transpose) } mca
+                                { Method.Name: nameof(Matrix.Transpose) } mca
                             ? typeof(Matrix).Call(mca.Object, nameof(Matrix.TransposeMultiply), e2)
                             : e2.Type == typeof(Matrix) && e2 is MethodCallExpression
-                            { Method.Name: nameof(Matrix.Transpose) } mcb
+                                { Method.Name: nameof(Matrix.Transpose) } mcb
                             ? typeof(Matrix).Call(e1, nameof(Matrix.MultiplyTranspose), mcb.Object!)
+                            : e1 == e2
+                            ? Expression.Call(e1, typeof(Matrix).Get(nameof(Matrix.Square)))
                             : Expression.Multiply(e1, e2))
                         : e1 is ConstantExpression c1 && c1.Value is double d1 &&
                             e2 is ConstantExpression c2 && c2.Value is double d2
@@ -415,7 +417,9 @@ internal static partial class Parser
                             _ => d1 % d2
                         })
                         : opLex == Token.Times
-                        ? Expression.Multiply(e1, e2)
+                        ? (e1 == e2 && e1.Type == typeof(Vector) 
+                            ? Expression.Call(e1, typeof(Vector).Get(nameof(Vector.Squared)))
+                            : Expression.Multiply(e1, e2))
                         : opLex == Token.Div
                         ? Expression.Divide(e1, e2)
                         : Expression.Modulo(e1, e2);
@@ -434,7 +438,7 @@ internal static partial class Parser
         if (ctx.Kind == Token.Minus || ctx.Kind == Token.Plus)
         {
             (Token opKind, int opPos) = (ctx.Kind, ctx.Start);
-            ctx.MoveNext();
+            ctx.Move();
             Expression e1 = ParseUnary(ctx);
             return e1.Type != typeof(Complex) && !IsArithmetic(e1)
                 && !IsVectorMatrix(e1) && e1.Type != typeof(Series)
@@ -448,7 +452,7 @@ internal static partial class Parser
     private static Expression ParsePower(AstContext ctx, Expression e)
     {
         int pos = ctx.Start;
-        ctx.MoveNext();
+        ctx.Move();
         Expression e1 = ParseFactor(ctx);
         if (AreArithmeticTypes(e, e1))
             return OptimizePowerOf() ? e : Expression.Power(ToDouble(e), ToDouble(e1));
@@ -493,44 +497,44 @@ internal static partial class Parser
             case Token.Int:
                 {
                     int value = ctx.AsInt;
-                    ctx.MoveNext();
+                    ctx.Move();
                     return Expression.Constant(value);
                 }
             case Token.Real:
                 {
                     double value = ctx.AsReal;
-                    ctx.MoveNext();
+                    ctx.Move();
                     return Expression.Constant(value);
                 }
             case Token.Imag:
                 {
                     double value = ctx.AsReal;
-                    ctx.MoveNext();
+                    ctx.Move();
                     return Expression.Constant(new Complex(0, value));
                 }
             case Token.Str:
                 {
                     string text = ctx.Id;
-                    ctx.MoveNext();
+                    ctx.Move();
                     return Expression.Constant(text);
                 }
             case Token.Date:
                 {
                     Date value = ctx.AsDate;
-                    ctx.MoveNext();
+                    ctx.Move();
                     e = Expression.Constant(value);
                     break;
                 }
             case Token.False:
-                ctx.MoveNext();
+                ctx.Move();
                 return falseExpr;
             case Token.True:
-                ctx.MoveNext();
+                ctx.Move();
                 return trueExpr;
             case Token.LPar:
-                ctx.MoveNext();
+                ctx.Move();
                 e = ParseConditional(ctx);
-                ctx.CheckAndMoveNext(Token.RPar, "Right parenthesis expected");
+                ctx.CheckAndMove(Token.RPar, "Right parenthesis expected");
                 break;
             case Token.Id:
                 e = ParseVariable(ctx);
@@ -562,7 +566,7 @@ internal static partial class Parser
                         throw Error("Variable must be numeric", pos);
                     if (ctx.Kind == Token.Dot)
                     {
-                        ctx.MoveNext();
+                        ctx.Move();
                         e = ParseProperty(ctx, e);
                     }
                     if (ctx.Kind == Token.Caret)
@@ -603,7 +607,7 @@ internal static partial class Parser
             {
                 case Token.Dot:
                     // Parse a method or property from an object.
-                    ctx.MoveNext();
+                    ctx.Move();
                     e = ctx.Kind switch
                     {
                         Token.Functor => ParseMethod(ctx, e),
@@ -619,10 +623,10 @@ internal static partial class Parser
                         : e.Type == typeof(Complex)
                         ? e.Type.Call(null, nameof(Complex.Conjugate), e)
                         : throw Error("Can only transpose a matrix or conjugate a complex vector", ctx);
-                    ctx.MoveNext();
+                    ctx.Move();
                     break;
                 case Token.LBra:
-                    ctx.MoveNext();
+                    ctx.Move();
                     e = e.Type == typeof(Vector) || e.Type == typeof(Series<int>)
                             || e.Type == typeof(ComplexVector)
                             || e.Type.IsAssignableTo(typeof(FftModel))
@@ -652,18 +656,18 @@ internal static partial class Parser
 
     private static Expression ParseSafeIndexer(AstContext ctx, Expression e)
     {
-        ctx.MoveNext();
+        ctx.Move();
         Expression e1 = ParseLightConditional(ctx);
         if (e1.Type != typeof(int))
             throw Error("Index must be an integer", ctx);
-        ctx.CheckAndMoveNext(Token.RBrace, "} expected in indexer");
+        ctx.CheckAndMove(Token.RBrace, "} expected in indexer");
         return e.Type.Call(e, nameof(Vector.SafeThis), e1);
     }
 
     private static Expression ParseSplineIndexer(AstContext ctx, Expression e, Type expected)
     {
         Expression e1 = ParseLightConditional(ctx);
-        ctx.CheckAndMoveNext(Token.RBra, "] expected in indexer");
+        ctx.CheckAndMove(Token.RBra, "] expected in indexer");
         return e1.Type != expected && (expected != typeof(double) || !IsArithmetic(e1))
             ? throw Error("Invalid index type", ctx)
             : Expression.Property(e, "Item", ToDouble(e1));
@@ -677,16 +681,16 @@ internal static partial class Parser
             : ParseIndex(ctx, ref fromEnd1);
         if (allowSlice && ctx.Kind == Token.Colon)
         {
-            ctx.MoveNext();
+            ctx.Move();
             Expression e2 = ctx.Kind == Token.RBra
                 ? Expression.Constant(Index.End)
                 : Expression.New(indexCtor,
                     ParseIndex(ctx, ref fromEnd2), Expression.Constant(fromEnd2));
-            ctx.CheckAndMoveNext(Token.RBra, "] expected in indexer");
+            ctx.CheckAndMove(Token.RBra, "] expected in indexer");
             return Expression.Property(e, "Item", Expression.New(rangeCtor,
                 Expression.New(indexCtor, e1, Expression.Constant(fromEnd1)), e2));
         }
-        ctx.CheckAndMoveNext(Token.RBra, "] expected in indexer");
+        ctx.CheckAndMove(Token.RBra, "] expected in indexer");
         if (fromEnd1)
             e1 = Expression.New(indexCtor, e1, Expression.Constant(fromEnd1));
         return Expression.Property(e, "Item", e1);
@@ -697,7 +701,7 @@ internal static partial class Parser
         Expression? e1 = null, e2 = null;
         bool fromEnd11 = false, fromEnd21 = false, isRange = false;
         if (ctx.Kind == Token.Comma)
-            ctx.MoveNext();
+            ctx.Move();
         else
         {
             e1 = ctx.Kind == Token.Colon
@@ -705,7 +709,7 @@ internal static partial class Parser
                 : ParseIndex(ctx, ref fromEnd11);
             if (ctx.Kind == Token.Colon)
             {
-                ctx.MoveNext();
+                ctx.Move();
                 bool fromEnd12 = false;
                 Expression e12 = ctx.Kind == Token.Comma
                     ? Expression.Constant(Index.End)
@@ -717,10 +721,10 @@ internal static partial class Parser
                 isRange = true;
             }
             if (ctx.Kind != Token.RBra)
-                ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+                ctx.CheckAndMove(Token.Comma, "Comma expected");
         }
         if (ctx.Kind == Token.RBra)
-            ctx.MoveNext();
+            ctx.Move();
         else
         {
             e2 = ctx.Kind == Token.Colon
@@ -728,7 +732,7 @@ internal static partial class Parser
                 : ParseIndex(ctx, ref fromEnd21);
             if (ctx.Kind == Token.Colon)
             {
-                ctx.MoveNext();
+                ctx.Move();
                 bool fromEnd22 = false;
                 Expression e22 = ctx.Kind == Token.RBra
                     ? Expression.Constant(Index.End)
@@ -743,7 +747,7 @@ internal static partial class Parser
             }
             else if (isRange && fromEnd21)
                 e2 = Expression.New(indexCtor, e2, trueExpr);
-            ctx.CheckAndMoveNext(Token.RBra, "] expected");
+            ctx.CheckAndMove(Token.RBra, "] expected");
         }
         if (isRange)
         {
@@ -779,7 +783,7 @@ internal static partial class Parser
             {
                 if (ctx.Kind == Token.RBra)
                 {
-                    ctx.MoveNext();
+                    ctx.Move();
                     return Expression.Property(e, "Item", fromEnd1
                         ? Expression.New(indexCtor, e1, trueExpr)
                         : e1);
@@ -792,7 +796,7 @@ internal static partial class Parser
             if (ctx.Kind != Token.Colon)
                 throw Error(": expected in slice", ctx);
         }
-        ctx.MoveNext();
+        ctx.Move();
         if (ctx.Kind != Token.RBra)
         {
             if (ctx.Kind == Token.Caret)
@@ -805,7 +809,7 @@ internal static partial class Parser
             if (ctx.Kind != Token.RBra)
                 throw Error("] expected in slice", ctx);
         }
-        ctx.MoveNext();
+        ctx.Move();
         if (e1 == null && e2 == null)
             return e;
         if (e1 != null && e2 != null && e1.Type != e2.Type)
@@ -860,15 +864,15 @@ internal static partial class Parser
             Expression e1 = ParseLightConditional(ctx);
             if (!IsArithmetic(e1))
                 throw Error("Lower bound must be double", ctx);
-            ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+            ctx.CheckAndMove(Token.Comma, "Comma expected");
             Expression e2 = ParseLightConditional(ctx);
             if (!IsArithmetic(e2))
                 throw Error("Upper bound must be double", ctx);
-            ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+            ctx.CheckAndMove(Token.Comma, "Comma expected");
             Expression e3 = ParseLightConditional(ctx);
             if (e3.Type != typeof(int))
                 throw Error("The number of segments must be an integer", ctx);
-            ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+            ctx.CheckAndMove(Token.Comma, "Comma expected");
             return typeof(VectorSpline).New(ToDouble(e1), ToDouble(e2), e3,
                 ParseLambda(ctx, typeof(double), null, typeof(double)));
 
@@ -1035,11 +1039,11 @@ internal static partial class Parser
         Expression e1 = ParseLightConditional(ctx);
         if (e1.Type != typeof(int))
             throw Error($"Rows must be integer", ctx);
-        ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+        ctx.CheckAndMove(Token.Comma, "Comma expected");
         Expression e2 = ParseLightConditional(ctx);
         if (e2.Type != typeof(int))
             throw Error($"Columns must be integer", ctx);
-        ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+        ctx.CheckAndMove(Token.Comma, "Comma expected");
         return typeof(Matrix).New(e1, e2,
             ParseLambda(ctx, typeof(int), typeof(int), typeof(double)));
     }
@@ -1054,11 +1058,11 @@ internal static partial class Parser
             List<Expression> args = new() { e1 };
             while (ctx.Kind == Token.Comma)
             {
-                ctx.MoveNext();
+                ctx.Move();
                 args.Add(ParseLightConditional(ctx));
             }
             // Check and skip right parenthesis.
-            ctx.CheckAndMoveNext(Token.RPar, "Right parenthesis expected after function call");
+            ctx.CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
             return args.Count == 1 || args.Skip(1).Any(e => e.Type != typeof(Vector))
                 ? throw Error("NEW expects a list of vectors", ctx)
                 : typeof(Vector).Call(nameof(Vector.Combine),
@@ -1066,7 +1070,7 @@ internal static partial class Parser
         }
         if (e1.Type != typeof(int))
             throw Error($"Vector size must be integer", ctx);
-        ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+        ctx.CheckAndMove(Token.Comma, "Comma expected");
         Type retType = type == typeof(Vector) ? typeof(double) : typeof(Complex);
         return ctx.Kind == Token.Id
             ? type.New(e1, ParseLambda(ctx, typeof(int), null, retType))
@@ -1094,7 +1098,7 @@ internal static partial class Parser
                     e1 = Expression.Convert(ToDouble(e1), typeof(Complex));
                 else
                     throw Error($"{firstParam.Name} expected", ctx);
-            ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+            ctx.CheckAndMove(Token.Comma, "Comma expected");
             Type[] genTypes = paramInfo[1].ParameterType.GenericTypeArguments;
             Expression λ = ParseLambda(ctx, genTypes[0], genTypes[1], genTypes[^1]);
             return Expression.Call(e, mInfo, e1, λ);
@@ -1112,7 +1116,7 @@ internal static partial class Parser
             ctx.Skip2();
             bool fromEnd = false;
             Expression e1 = ParseIndex(ctx, ref fromEnd);
-            ctx.CheckAndMoveNext(Token.RPar, "Right parenthesis expected after function call");
+            ctx.CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
             return Expression.Call(e, mInfo,
                 Expression.New(indexCtor, e1, Expression.Constant(fromEnd)));
         }
@@ -1150,7 +1154,7 @@ internal static partial class Parser
         if (ctx.Kind == Token.Caret)
         {
             fromEnd = true;
-            ctx.MoveNext();
+            ctx.Move();
         }
         Expression e = ParseLightConditional(ctx);
         if (check && e.Type != typeof(int))
@@ -1168,23 +1172,23 @@ internal static partial class Parser
                 if (ctx.Kind != Token.Id)
                     throw Error("Lambda parameter name expected", ctx);
                 ctx.LambdaParameter = Expression.Parameter(t1, ctx.Id);
-                ctx.MoveNext();
+                ctx.Move();
             }
             else
             {
-                ctx.CheckAndMoveNext(Token.LPar, "Lambda parameters expected");
+                ctx.CheckAndMove(Token.LPar, "Lambda parameters expected");
                 if (ctx.Kind != Token.Id)
                     throw Error("First lambda parameter name expected", ctx);
                 ctx.LambdaParameter = Expression.Parameter(t1, ctx.Id);
-                ctx.MoveNext();
-                ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+                ctx.Move();
+                ctx.CheckAndMove(Token.Comma, "Comma expected");
                 if (ctx.Kind != Token.Id)
                     throw Error("Second lambda parameter name expected", ctx);
                 ctx.LambdaParameter2 = Expression.Parameter(t2, ctx.Id);
-                ctx.MoveNext();
-                ctx.CheckAndMoveNext(Token.RPar, ") expected in lambda header");
+                ctx.Move();
+                ctx.CheckAndMove(Token.RPar, ") expected in lambda header");
             }
-            ctx.CheckAndMoveNext(Token.Arrow, "=> expected");
+            ctx.CheckAndMove(Token.Arrow, "=> expected");
             Expression body = ParseConditional(ctx);
             if (body.Type != retType)
                 body = retType == typeof(Complex) && IsArithmetic(body)
@@ -1193,9 +1197,9 @@ internal static partial class Parser
                     ? ToDouble(body)
                     : throw Error($"Expected return type is {retType.Name}", ctx);
             if (isLast)
-                ctx.CheckAndMoveNext(Token.RPar, "Right parenthesis expected after function call");
+                ctx.CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
             else
-                ctx.CheckAndMoveNext(Token.Comma, "Comma expected");
+                ctx.CheckAndMove(Token.Comma, "Comma expected");
             return ctx.LambdaParameter2 != null
                 ? Expression.Lambda(body, ctx.LambdaParameter, ctx.LambdaParameter2)
                 : Expression.Lambda(body, ctx.LambdaParameter);
@@ -1213,7 +1217,7 @@ internal static partial class Parser
         if (allProps.TryGetValue(e.Type, out Dictionary<string, MethodInfo>? dict) &&
             dict.TryGetValue(prop, out MethodInfo? mInfo))
         {
-            ctx.MoveNext();
+            ctx.Move();
             return Expression.Call(e, mInfo);
         }
         throw Error($"Invalid property: {prop}", ctx);
@@ -1377,7 +1381,7 @@ internal static partial class Parser
     private static (List<Expression>, List<int>) CollectArguments(AstContext ctx)
     {
         (List<Expression> arguments, List<int> positions) = (new(), new());
-        for (; ; ctx.MoveNext())
+        for (; ; ctx.Move())
         {
             arguments.Add(ParseConditional(ctx));
             positions.Add(ctx.Start);
@@ -1385,13 +1389,13 @@ internal static partial class Parser
                 break;
         }
         // Check and skip right parenthesis.
-        ctx.CheckAndMoveNext(Token.RPar, "Right parenthesis expected after function call");
+        ctx.CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
         return (arguments, positions);
     }
 
     private static Expression ParseVectorLiteral(AstContext ctx)
     {
-        ctx.MoveNext();
+        ctx.Move();
         List<Expression> items = new();
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
         for (; ; )
@@ -1423,13 +1427,13 @@ internal static partial class Parser
                     throw Error("Inconsistent matrix size", ctx);
                 else
                     lastPeriod = items.Count;
-                ctx.MoveNext();
+                ctx.Move();
             }
             else if (ctx.Kind == Token.Comma)
-                ctx.MoveNext();
+                ctx.Move();
             else if (ctx.Kind == Token.RBra)
             {
-                ctx.MoveNext();
+                ctx.Move();
                 break;
             }
         }
@@ -1465,7 +1469,7 @@ internal static partial class Parser
     private static Expression ParseVariable(AstContext ctx)
     {
         (int pos, string id) = (ctx.Start, ctx.Id);
-        ctx.MoveNext();
+        ctx.Move();
         // Check lambda parameters when present.
         if (ctx.LambdaParameter != null)
         {
@@ -1497,7 +1501,7 @@ internal static partial class Parser
                 int iv => Expression.Constant(iv),
                 bool bv => Expression.Constant(bv),
                 string sv => Expression.Constant(sv),
-                _ => AstContext.GetFromDataSource(id, val.GetType())
+                _ => ctx.GetFromDataSource(id, val.GetType())
             };
         if (id == "π")
             return Expression.Constant(Math.PI);

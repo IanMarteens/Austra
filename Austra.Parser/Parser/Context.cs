@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.IO;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using static System.Runtime.CompilerServices.Unsafe;
 
@@ -20,6 +21,8 @@ public class AstException : ApplicationException
 /// <summary>Provides lexical analysis and inherited attributes for the parser.</summary>
 internal sealed partial class AstContext
 {
+    /// <summary>Memoized expressions.</summary>
+    private readonly Dictionary<string, Expression> memos = new();
     /// <summary>The text being scanned.</summary>
     private readonly string text;
     /// <summary>Compressed value of the current lexeme.</summary>
@@ -27,7 +30,7 @@ internal sealed partial class AstContext
     /// <summary>Used by the scanner to build string literals.</summary>
     private StringBuilder? sb;
     /// <summary>Current position in the text.</summary>
-    /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
+    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     private int i;
 
     /// <summary>Initializes a parsing context.</summary>
@@ -36,7 +39,7 @@ internal sealed partial class AstContext
     public AstContext(IDataSource source, string text)
     {
         (Source, this.text, Id) = (source, text, "");
-        MoveNext();
+        Move();
     }
 
     /// <summary>Gets the outer scope for variables.</summary>
@@ -46,15 +49,15 @@ internal sealed partial class AstContext
     public string Text => text;
 
     /// <summary>Gets the type of the current lexeme.</summary>
-    /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
+    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     public Token Kind { get; private set; }
 
     /// <summary>Gets the start position of the current lexeme.</summary>
-    /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
+    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     public int Start { get; private set; }
 
     /// <summary>Gets the string associated with the current lexeme.</summary>
-    /// <remarks>Updated by the <see cref="MoveNext"/> method.</remarks>
+    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     public string Id { get; private set; }
 
     /// <summary>Value of the current lexeme as a real number.</summary>
@@ -82,7 +85,7 @@ internal sealed partial class AstContext
         new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Skips two tokens with a single call.</summary>
-    public void Skip2() { MoveNext(); MoveNext(); }
+    public void Skip2() { Move(); Move(); }
 
     /// <summary>
     /// Checks that the current token is of the expected kind and advances the cursor.
@@ -91,11 +94,11 @@ internal sealed partial class AstContext
     /// <param name="errorMessage">Error message to use in the exception.</param>
     /// <exception cref="AstException">Thrown when the token doesn't match.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void CheckAndMoveNext(Token kind, string errorMessage)
+    public void CheckAndMove(Token kind, string errorMessage)
     {
         if (Kind != kind)
             throw new AstException(errorMessage, Start);
-        MoveNext();
+        Move();
     }
 
     /// <summary>Controls that only persisted values are used.</summary>
@@ -108,16 +111,18 @@ internal sealed partial class AstContext
     public HashSet<Definition> References { get; } = new();
 
     /// <summary>
-    /// Creates an expression that retrieves a series from the data source.
+    /// Creates an expression that retrieves a value variable from the data source.
     /// </summary>
     /// <param name="id">Series name.</param>
     /// <param name="type">Result type.</param>
-    public static Expression GetFromDataSource(string id, Type type) =>
-        Expression.Convert(
+    public Expression GetFromDataSource(string id, Type type) =>
+        memos.TryGetValue(id, out Expression? memo)
+        ? memo
+        : memos[id] = Expression.Convert(
             Expression.Property(SourceParameter, "Item", Expression.Constant(id)), type);
 
     /// <summary>Advances the lexical analyzer one token.</summary>
-    public void MoveNext()
+    public void Move()
     {
         ref char c = ref As<Str>(text).FirstChar;
     SKIP_BLANKS:
@@ -131,26 +136,22 @@ internal sealed partial class AstContext
             do ch = Add(ref c, ++i);
             while (char.IsLetterOrDigit(ch) || ch == '_');
             // Check for keywords and function identifiers
-            Token tok;
-            if (Avx.IsSupported)
-                tok = IsIntelKeyword(ref Add(ref c, Start), i - Start);
-            else
-                tok = IsKeyword(text.AsSpan()[Start..i]);
+            Token tok = Avx.IsSupported
+                ? IsIntelKeyword(ref Add(ref c, Start), i - Start)
+                : IsKeyword(text.AsSpan()[Start..i]);
             if (tok != Token.Id)
-            {
                 Kind = tok;
-                return;
+            else
+            {
+                // Skip blanks after the identifier.
+                Id = text[Start..i];
+                while (char.IsWhiteSpace(Add(ref c, i)))
+                    i++;
+                ch = Add(ref c, i);
+                Kind = ch == '(' ? Token.Functor
+                    : ch == ':' && Add(ref c, i + 1) == ':' ? Token.ClassName
+                    : Token.Id;
             }
-            // Skip blanks after the identifier.
-            string id = text[Start..i];
-            while (char.IsWhiteSpace(Add(ref c, i)))
-                i++;
-            ch = Add(ref c, i);
-            Id = id;
-            Kind =
-                ch == '(' ? Token.Functor
-                : ch == ':' && Add(ref c, i + 1) == ':' ? Token.ClassName
-                : Token.Id;
         }
         else if ((uint)(ch - '0') < 10u)
         {
@@ -451,7 +452,7 @@ internal sealed partial class AstContext
         {
             int month = TryGetMonth(text[..3]);
             if (month > 0 && int.TryParse(text[3..], out int year))
-                if (text.Length == 5 )
+                if (text.Length == 5)
                 {
                     date = new(2000 + year, month, 1);
                     Date top = Date.Today.AddYears(20);
