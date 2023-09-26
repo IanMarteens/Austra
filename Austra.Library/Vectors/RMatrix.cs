@@ -101,7 +101,7 @@ public readonly struct RMatrix :
 
     /// <summary>Has the matrix been properly initialized?</summary>
     /// <remarks>
-    /// Since Matrix is a struct, its default constructor doesn't
+    /// Since <see cref="RMatrix"/> is a struct, its default constructor doesn't
     /// initializes the underlying bidimensional array.
     /// </remarks>
     public bool IsInitialized => values != null;
@@ -148,11 +148,9 @@ public readonly struct RMatrix :
         int c = Cols, r = Rows;
         double[,] result = new double[c, r];
         fixed (double* pA = values, pB = result)
-        {
             for (int row = 0; row < r; row++)
                 for (int col = row; col < c; col++)
                     pB[col * r + row] = pA[row * c + col];
-        }
         return result;
     }
 
@@ -169,30 +167,22 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<RMatrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<RMatrix>().Cols == m1.Cols);
 
-        int r = m1.Rows;
-        int c = m1.Cols;
+        int r = m1.Rows, c = m1.Cols;
         double[,] result = new double[r, c];
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
-        {
-            int offset = 0;
-            for (int row = 0; row < r; row++)
+            for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
-                {
-                    int lastBlockIndex = (c - row) & Simd.AVX_MASK + row;
-                    for (; col < lastBlockIndex; col += 4, k += 4)
+                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
                         Avx.Store(pC + k,
                             Avx.Add(Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
-                }
                 for (; col < c; col++)
                 {
                     pC[k] = pA[k] + pB[k];
                     k++;
                 }
-                offset += c;
             }
-        }
         return result;
     }
 
@@ -212,27 +202,19 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<RMatrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<RMatrix>().Cols == m1.Cols);
 
-        int r = m1.Rows;
-        int c = m1.Cols;
+        int r = m1.Rows, c = m1.Cols;
         double[,] result = new double[r, c];
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
-        {
-            int offset = 0;
-            for (int row = 0; row < r; row++)
+            for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
-                {
-                    int lastBlockIndex = (c - row) & Simd.AVX_MASK + row;
-                    for (; col < lastBlockIndex; col += 4, k += 4)
+                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
                         Avx.Store(pC + k,
                             Avx.Subtract(Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
-                }
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] - pB[k];
-                offset += c;
             }
-        }
         return result;
     }
 
@@ -248,9 +230,7 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
 
-        int m = m1.Rows;
-        int n = m1.Cols;
-        int p = m2.Cols;
+        int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[,] result = new double[m, p];
         fixed (double* pA = (double[,])m1, pB = m2.values, pC = result)
         {
@@ -265,9 +245,8 @@ public readonly struct RMatrix :
                     int j = k;
                     if (Avx.IsSupported)
                     {
-                        var vd = Vector256.Create(d);
-                        int top = (p - k) & Simd.AVX_MASK + k;
-                        for (; j < top; j += 4)
+                        Vector256<double> vd = Vector256.Create(d);
+                        for (int top = (p - k) & Simd.AVX_MASK + k; j < top; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
                     }
@@ -292,26 +271,20 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
-        int r = m.Rows;
-        int c = m.Cols;
+        int r = m.Rows, c = m.Cols;
         double[,] result = new double[r, c];
         fixed (double* pA = m.values, pC = result)
         {
-            int offset = 0;
             Vector256<double> vec = Vector256.Create(d);
-            for (int row = 0; row < r; row++)
+            for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
-                {
-                    int top = (c - row) & Simd.AVX_MASK + row;
-                    for (; col < top; col += 4, k += 4)
+                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
                         Avx.Store(pC + k, Avx.Multiply(Avx.LoadVector256(pA + k), vec));
-                }
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] * d;
                     k++;
-                offset += c;
             }
         }
         return result;
@@ -342,24 +315,21 @@ public readonly struct RMatrix :
         Contract.Requires(m.Cols == v.Length);
         Contract.Ensures(Contract.Result<Vector>().Length == m.Rows);
 
-        int r = m.Rows;
-        int c = m.Cols;
+        int r = m.Rows, c = m.Cols;
         double[] b = new double[r];
         fixed (double* pA = m.values, pX = (double[])v, pB = b)
         {
-            double* pA1 = pA;
-            double* pB1 = pB;
+            double* pA1 = pA, pB1 = pB;
             if (c >= 12 && Avx.IsSupported)
                 for (int i = 0; i < r; i++)
                 {
                     Vector256<double> vec = Vector256<double>.Zero;
-                    int top = (c - i) & Simd.AVX_MASK + i;
                     int j = i;
-                    for (; j < top; j += 4)
+                    for (int top = (c - i) & Simd.AVX_MASK + i; j < top; j += 4)
                         vec = vec.MultiplyAdd(pA1 + j, pX + j);
                     double d = vec.Sum();
                     for (; j < c; j++)
-                        d += pA1[j] * pX[j];
+                        d = FusedMultiplyAdd(pA1[j], pX[j], d);
                     *pB1 = d;
                     pA1 += c;
                     pB1++;
@@ -368,13 +338,12 @@ public readonly struct RMatrix :
                 for (int i = 0; i < r; i++)
                 {
                     double d = 0;
-                    int top = (c - i) & Simd.AVX_MASK + i;
                     int j = i;
-                    for (; j < top; j += 4)
+                    for (int top = (c - i) & Simd.AVX_MASK + i; j < top; j += 4)
                         d += (pA1[j] * pX[j]) + (pA1[j + 1] * pX[j + 1]) +
                             (pA1[j + 2] * pX[j + 2]) + (pA1[j + 3] * pX[j + 3]);
                     for (; j < c; j++)
-                        d += pA1[j] * pX[j];
+                        d = FusedMultiplyAdd(pA1[j], pX[j], d);
                     *pB1 = d;
                     pA1 += c;
                     pB1++;

@@ -8,7 +8,11 @@
 public readonly struct LMatrix :
     IFormattable,
     IAdditionOperators<LMatrix, LMatrix, LMatrix>,
+    IAdditionOperators<LMatrix, RMatrix, Matrix>,
+    IAdditionOperators<LMatrix, double, LMatrix>,
     ISubtractionOperators<LMatrix, LMatrix, LMatrix>,
+    ISubtractionOperators<LMatrix, RMatrix, Matrix>,
+    ISubtractionOperators<LMatrix, double, LMatrix>,
     IMultiplyOperators<LMatrix, Matrix, Matrix>,
     IMultiplyOperators<LMatrix, Vector, Vector>,
     IMultiplyOperators<LMatrix, double, LMatrix>,
@@ -50,11 +54,8 @@ public readonly struct LMatrix :
     {
         values = new double[rows, cols];
         for (int r = 0; r < rows; r++)
-        {
-            int top = Min(cols, r + 1);
-            for (int c = 0; c < top; c++)
+            for (int c = 0, top = Min(cols, r + 1); c < top; c++)
                 values[r, c] = FusedMultiplyAdd(random.NextDouble(), width, offset);
-        }
     }
 
     /// <summary>
@@ -63,16 +64,12 @@ public readonly struct LMatrix :
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="random">A random number generator.</param>
-    public LMatrix(
-        int rows, int cols, Random random)
+    public LMatrix(int rows, int cols, Random random)
     {
         values = new double[rows, cols];
         for (int r = 0; r < rows; r++)
-        {
-            int top = Min(cols, r + 1);
-            for (int c = 0; c < top; c++)
+            for (int c = 0, top = Min(cols, r + 1); c < top; c++)
                 values[r, c] = random.NextDouble();
-        }
     }
 
     /// <summary>
@@ -80,8 +77,7 @@ public readonly struct LMatrix :
     /// </summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <param name="random">A random number generator.</param>
-    public LMatrix(int size, Random random) :
-        this(size, size, random)
+    public LMatrix(int size, Random random) : this(size, size, random)
     { }
 
     /// <summary>
@@ -94,11 +90,8 @@ public readonly struct LMatrix :
     {
         values = new double[rows, cols];
         for (int r = 0; r < rows; r++)
-        {
-            int top = Min(cols, r + 1);
-            for (int c = 0; c < top; c++)
+            for (int c = 0, top = Min(cols, r + 1); c < top; c++)
                 values[r, c] = random.NextDouble();
-        }
     }
 
     /// <summary>Creates a squared matrix with a standard normal distribution.</summary>
@@ -142,7 +135,7 @@ public readonly struct LMatrix :
 
     /// <summary>Has the matrix been properly initialized?</summary>
     /// <remarks>
-    /// Since Matrix is a struct, its default constructor doesn't
+    /// Since <see cref="LMatrix"/> is a struct, its default constructor doesn't
     /// initializes the underlying bidimensional array.
     /// </remarks>
     public bool IsInitialized => values != null;
@@ -202,7 +195,7 @@ public readonly struct LMatrix :
         {
             if (Avx.IsSupported && r == c && (r & 0b11) == 0)
             {
-                // Columns and rows are multiple of four.
+                // Columns and rows are equal and multiples of four.
                 int r2 = r + r, c2 = c + c;
                 for (int row = 0; row < r; row += 4)
                 {
@@ -232,11 +225,8 @@ public readonly struct LMatrix :
             }
             else
                 for (int row = 0; row < r; row++)
-                {
-                    int top = Min(row + 1, c);
-                    for (int col = 0; col < top; col++)
+                    for (int col = 0, top = Min(row + 1, c); col < top; col++)
                         pB[col * r + row] = pA[row * c + col];
-                }
         }
         return result;
     }
@@ -254,20 +244,17 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m1.Cols);
 
-        int r = m1.Rows;
-        int c = m1.Cols;
+        int r = m1.Rows, c = m1.Cols;
         double[,] result = new double[r, c];
         if (c < r)
             r = c;
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
         {
-            *pC = *pA + *pB;
-            int offset = 0;
-            for (int row = 1; row < r; row++)
+            *pC = *pA + *pB;    // First row is special.
+            for (int row = 1, offset = c; row < r; row++, offset += c)
             {
-                offset += c;
                 int col = 0, k = offset;
-                if (Avx.IsSupported)                  
+                if (Avx.IsSupported)
                     for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4, k += 4)
                         Avx.Store(pC + k, Avx.Add(
                             Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
@@ -276,14 +263,13 @@ public readonly struct LMatrix :
             }
             if (m1.Rows > c)
             {
-                int idx = c * c;
-                int len = m1.values.Length;
+                int i = c * c, len = m1.values.Length;
                 if (Avx.IsSupported)
-                    for (int top = len & Simd.AVX_MASK; idx < top; idx += 4)
-                        Avx.Store(pC + idx, Avx.Add(
-                            Avx.LoadVector256(pA + idx), Avx.LoadVector256(pB + idx)));
-                for (; idx < len; idx++)
-                    pC[idx] = pA[idx] + pB[idx];
+                    for (int top = ((len - i) & Simd.AVX_MASK) + i; i < top; i += 4)
+                        Avx.Store(pC + i, Avx.Add(
+                            Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
+                for (; i < len; i++)
+                    pC[i] = pA[i] + pB[i];
             }
         }
         return result;
@@ -292,9 +278,53 @@ public readonly struct LMatrix :
     /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
     public static unsafe Matrix operator +(LMatrix m1, RMatrix m2) => new Matrix(m1.values) + m2;
 
+    /// <summary>Adds a scalar value to a lower triangular matrix.</summary>
+    /// <remarks>The value is just added to the lower triangular part.</remarks>
+    /// <param name="m">First summand.</param>
+    /// <param name="d">A scalar summand.</param>
+    /// <returns>The sum of the matrix and the scalar.</returns>
+    public static unsafe LMatrix operator +(LMatrix m, double d)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
+        Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
+
+        int r = m.Rows, c = m.Cols;
+        double[,] result = new double[r, c];
+        if (c < r)
+            r = c;
+        fixed (double* pA = m.values, pC = result)
+        {
+            *pC = *pA + d;    // First row is special.
+            Vector256<double> vec = Vector256.Create(d);
+            for (int row = 1, offset = c; row < r; row++, offset += c)
+            {
+                int col = 0, k = offset;
+                if (Avx.IsSupported)
+                    for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4, k += 4)
+                        Avx.Store(pC + k, Avx.Add(Avx.LoadVector256(pA + k), vec));
+                for (; col <= row; col++, k++)
+                    pC[k] = pA[k] + d;
+            }
+            if (m.Rows > c)
+            {
+                int i = c * c, len = m.values.Length;
+                if (Avx.IsSupported)
+                    for (int top = ((len - i) & Simd.AVX_MASK) + i; i < top; i += 4)
+                        Avx.Store(pC + i, Avx.Add(Avx.LoadVector256(pA + i), vec));
+                for (; i < len; i++)
+                    pC[i] = pA[i] + d;
+            }
+        }
+        return result;
+    }
+
+    /// <summary>Adds a scalar value to a lower triangular matrix.</summary>
+    public static unsafe LMatrix operator +(double d, LMatrix m) => m + d;
+
     /// <summary>Subtracts two lower matrices with the same size.</summary>
-    /// <param name="m1">First matrix operand.</param>
-    /// <param name="m2">Second matrix operand.</param>
+    /// <param name="m1">Matrix minuend.</param>
+    /// <param name="m2">Matrix subtrahend.</param>
     /// <returns>The subtraction of the two operands.</returns>
     public static unsafe LMatrix operator -(LMatrix m1, LMatrix m2)
     {
@@ -305,18 +335,15 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m1.Cols);
 
-        int r = m1.Rows;
-        int c = m1.Cols;
+        int r = m1.Rows, c = m1.Cols;
         double[,] result = new double[r, c];
         if (c < r)
             r = c;
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
         {
-            *pC = *pA - *pB;
-            int offset = 0;
-            for (int row = 1; row < r; row++)
+            *pC = *pA - *pB;    // First row is special.
+            for (int row = 1, offset = c; row < r; row++, offset += c)
             {
-                offset += c;
                 int col = 0;
                 if (Avx.IsSupported)
                     for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4)
@@ -333,14 +360,57 @@ public readonly struct LMatrix :
             }
             if (m1.Rows > c)
             {
-                int idx = c * c;
-                int len = m1.values.Length;
+                int i = c * c, len = m1.values.Length;
                 if (Avx.IsSupported)
-                    for (int top = len & Simd.AVX_MASK; idx < top; idx += 4)
-                        Avx.Store(pC + idx, Avx.Subtract(
-                            Avx.LoadVector256(pA + idx), Avx.LoadVector256(pB + idx)));
-                for (; idx < len; idx++)
-                    pC[idx] = pA[idx] - pB[idx];
+                    for (int top = ((len - i) & Simd.AVX_MASK) + i; i < top; i += 4)
+                        Avx.Store(pC + i, Avx.Subtract(
+                            Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
+                for (; i < len; i++)
+                    pC[i] = pA[i] - pB[i];
+            }
+        }
+        return result;
+    }
+
+    /// <summary>Subtracts an upper triangular matrix from a lower triangular one.</summary>
+    public static unsafe Matrix operator -(LMatrix m1, RMatrix m2) => new Matrix(m1.values) - m2;
+
+    /// <summary>Subtracts a scalar value from a lower triangular matrix.</summary>
+    /// <remarks>The value is just subtracted to the lower triangular part.</remarks>
+    /// <param name="m">Matrix minuend.</param>
+    /// <param name="d">A scalar subtrahend.</param>
+    /// <returns>The sum of the matrix and the scalar.</returns>
+    public static unsafe LMatrix operator -(LMatrix m, double d)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
+        Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
+
+        int r = m.Rows, c = m.Cols;
+        double[,] result = new double[r, c];
+        if (c < r)
+            r = c;
+        fixed (double* pA = m.values, pC = result)
+        {
+            *pC = *pA - d;    // First row is special.
+            Vector256<double> vec = Vector256.Create(d);
+            for (int row = 1, offset = c; row < r; row++, offset += c)
+            {
+                int col = 0, k = offset;
+                if (Avx.IsSupported)
+                    for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4, k += 4)
+                        Avx.Store(pC + k, Avx.Subtract(Avx.LoadVector256(pA + k), vec));
+                for (; col <= row; col++, k++)
+                    pC[k] = pA[k] - d;
+            }
+            if (m.Rows > c)
+            {
+                int i = c * c, len = m.values.Length;
+                if (Avx.IsSupported)
+                    for (int top = ((len - i) & Simd.AVX_MASK) + i; i < top; i += 4)
+                        Avx.Store(pC + i, Avx.Subtract(Avx.LoadVector256(pA + i), vec));
+                for (; i < len; i++)
+                    pC[i] = pA[i] - d;
             }
         }
         return result;
@@ -355,18 +425,15 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
-        int r = m.Rows;
-        int c = m.Cols;
+        int r = m.Rows, c = m.Cols;
         double[,] result = new double[r, c];
         if (c < r)
             r = c;
         fixed (double* pA = m.values, pC = result)
         {
-            *pC = -*pA;
-            int offset = 0;
-            for (int row = 1; row < r; row++)
+            *pC = -*pA;    // First row is special.
+            for (int row = 1, offset = c; row < r; row++, offset += c)
             {
-                offset += c;
                 int col = 0;
                 if (Avx.IsSupported)
                 {
@@ -385,16 +452,15 @@ public readonly struct LMatrix :
             }
             if (m.Rows > c)
             {
-                int idx = c * c;
-                int len = m.values.Length;
+                int i = c * c, len = m.values.Length;
                 if (Avx.IsSupported)
                 {
                     Vector256<double> z = Vector256<double>.Zero;
-                    for (int top = len & Simd.AVX_MASK; idx < top; idx += 4)
-                        Avx.Store(pC + idx, Avx.Subtract(z, Avx.LoadVector256(pA + idx)));
+                    for (int top = ((len - i) & Simd.AVX_MASK) + i; i < top; i += 4)
+                        Avx.Store(pC + i, Avx.Subtract(z, Avx.LoadVector256(pA + i)));
                 }
-                for (; idx < len; idx++)
-                    pC[idx] = -pA[idx];
+                for (; i < len; i++)
+                    pC[i] = -pA[i];
             }
         }
         return result;
@@ -410,21 +476,18 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
-        int r = m.Rows;
-        int c = m.Cols;
+        int r = m.Rows, c = m.Cols;
         double[,] result = new double[r, c];
         if (c < r)
             r = c;
         fixed (double* pA = m.values, pC = result)
         {
-            *pC = *pA * d;
-            int offset = 0;
+            *pC = *pA * d;    // First row is special.
             Vector256<double> vec = Vector256.Create(d);
-            for (int row = 1; row < r; row++)
+            for (int row = 1, offset = c; row < r; row++, offset += c)
             {
-                offset += c;
                 int col = 0, k = offset;
-                if (Avx.IsSupported) 
+                if (Avx.IsSupported)
                     for (int top = (row + 1) & Simd.AVX_MASK; col < top; col += 4, k += 4)
                         Avx.Store(pC + k, Avx.Multiply(Avx.LoadVector256(pA + k), vec));
                 for (; col <= row; col++, k++)
@@ -432,13 +495,12 @@ public readonly struct LMatrix :
             }
             if (m.Rows > c)
             {
-                int idx = c * c;
-                int len = m.values.Length;
+                int i = c * c, len = m.values.Length;
                 if (Avx.IsSupported)
-                    for (int top = len & Simd.AVX_MASK; idx < top; idx += 4)
-                        Avx.Store(pC + idx, Avx.Multiply( Avx.LoadVector256(pA + idx), vec));
-                for (; idx < len; idx++)
-                    pC[idx] = pA[idx] * d;
+                    for (int top = ((len - i) & Simd.AVX_MASK) + i; i < top; i += 4)
+                        Avx.Store(pC + i, Avx.Multiply(Avx.LoadVector256(pA + i), vec));
+                for (; i < len; i++)
+                    pC[i] = pA[i] * d;
             }
         }
         return result;
@@ -470,20 +532,16 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
 
-        int m = m1.Rows;
-        int n = m1.Cols;
-        int p = m2.Cols;
+        int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[,] result = new double[m, p];
         int lastBlockIndex = p & Simd.AVX_MASK;
         fixed (double* pA = m1.values, pB = (double[,])m2, pC = result)
         {
-            double* pAi = pA;
-            double* pCi = pC;
+            double* pAi = pA, pCi = pC;
             for (int i = 0; i < m; i++)
             {
                 double* pBk = pB;
-                int top = Min(i + 1, n);
-                for (int k = 0; k < top; k++)
+                for (int k = 0, top = Min(i + 1, n); k < top; k++)
                 {
                     double d = pAi[k];
                     int j = 0;
@@ -517,14 +575,11 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
 
-        int m = m1.Rows;
-        int n = m1.Cols;
-        int p = m2.Cols;
+        int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[,] result = new double[m, p];
         fixed (double* pA = (double[,])m1, pB = m2.values, pC = result)
         {
-            double* pAi = pA;
-            double* pCi = pC;
+            double* pAi = pA, pCi = pC;
             for (int i = 0; i < m; i++)
             {
                 double* pBk = pB;
@@ -533,11 +588,10 @@ public readonly struct LMatrix :
                 {
                     pBk += p;
                     double d = pAi[k];
-                    int top = Min(k + 1, n);
-                    int j = 0;
+                    int j = 0, top = Min(k + 1, n);
                     if (Avx.IsSupported)
                     {
-                        var vd = Vector256.Create(d);
+                        Vector256<double> vd = Vector256.Create(d);
                         for (int last = top & Simd.AVX_MASK; j < last; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
@@ -573,8 +627,7 @@ public readonly struct LMatrix :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<double>() >= 0);
 
-        int r = Rows;
-        int c = Cols;
+        int r = Rows, c = Cols;
         double min = Abs(values[0, 0]);
         if (c < r)
             r = c;
@@ -609,9 +662,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
-        int r = Rows;
-        int n = Cols;
-        int c = m.Rows;
+        int r = Rows, n = Cols, c = m.Rows;
         double[,] result = new double[r, c];
         fixed (double* pA = values, pB = m.values, pC = result)
         {
@@ -623,9 +674,8 @@ public readonly struct LMatrix :
                 pBj += c;
                 for (int j = 1; j < c; j++)
                 {
-                    int size = Min(i, j) + 1;
+                    int k = 0, size = Min(i, j) + 1;
                     double acc = 0;
-                    int k = 0;
                     if (Avx.IsSupported)
                     {
                         Vector256<double> sum = Vector256<double>.Zero;
@@ -668,7 +718,7 @@ public readonly struct LMatrix :
         fixed (double* pA = values, pX = (double[])v, pB = result)
         {
             double* pA1 = pA, pB1 = pB;
-            *pB1++ = *pA1 * *pX;
+            *pB1++ = *pA1 * *pX;    // First row is special.
             pA1 += c;
             if (c >= 8 && Avx.IsSupported)
                 for (int i = 1; i < r; i++)
@@ -679,7 +729,7 @@ public readonly struct LMatrix :
                         vec = vec.MultiplyAdd(pA1 + j, pX + j);
                     double d = vec.Sum();
                     for (; j < top; j++)
-                        d += pA1[j] * pX[j];
+                        d = FusedMultiplyAdd(pA1[j], pX[j], d);
                     *pB1++ = d;
                     pA1 += c;
                 }
@@ -692,7 +742,7 @@ public readonly struct LMatrix :
                         d += (pA1[j] * pX[j]) + (pA1[j + 1] * pX[j + 1]) +
                             (pA1[j + 2] * pX[j + 2]) + (pA1[j + 3] * pX[j + 3]);
                     for (; j < top; j++)
-                        d += pA1[j] * pX[j];
+                        d = FusedMultiplyAdd(pA1[j], pX[j], d);
                     *pB1++ = d;
                     pA1 += c;
                 }
@@ -729,7 +779,7 @@ public readonly struct LMatrix :
         int size = input.Length;
         fixed (double* pA = values, pV = (double[])input, pR = (double[])output)
         {
-            *pR = *pV / *pA;
+            *pR = *pV / *pA;    // First row is special.
             double* pai = pA;
             for (int i = 1; i < size; i++)
             {
@@ -738,7 +788,7 @@ public readonly struct LMatrix :
                 int j = 0;
                 if (Avx.IsSupported)
                 {
-                    var acc = Vector256<double>.Zero;
+                    Vector256<double> acc = Vector256<double>.Zero;
                     for (int top = i & Simd.AVX_MASK; j < top; j += 4)
                         acc = acc.MultiplyAdd(pai + j, pR + j);
                     sum -= acc.Sum();
