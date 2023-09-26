@@ -177,11 +177,8 @@ public readonly struct RMatrix :
                     for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
                         Avx.Store(pC + k,
                             Avx.Add(Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
-                for (; col < c; col++)
-                {
+                for (; col < c; col++, k++)
                     pC[k] = pA[k] + pB[k];
-                    k++;
-                }
             }
         return result;
     }
@@ -284,7 +281,6 @@ public readonly struct RMatrix :
                         Avx.Store(pC + k, Avx.Multiply(Avx.LoadVector256(pA + k), vec));
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] * d;
-                    k++;
             }
         }
         return result;
