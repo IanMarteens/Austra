@@ -6,11 +6,18 @@
 /// </remarks>
 public readonly struct RMatrix :
     IFormattable,
+    IEquatable<RMatrix>,
+    IEqualityOperators<RMatrix, RMatrix, bool>,
+    IEqualityOperators<RMatrix, LMatrix, bool>,
+    IEqualityOperators<RMatrix, Matrix, bool>,
     IAdditionOperators<RMatrix, RMatrix, RMatrix>,
+    IAdditionOperators<RMatrix, double, RMatrix>,
     ISubtractionOperators<RMatrix, RMatrix, RMatrix>,
+    ISubtractionOperators<RMatrix, double, RMatrix>,
     IMultiplyOperators<RMatrix, Vector, Vector>,
     IMultiplyOperators<RMatrix, double, RMatrix>,
-    IDivisionOperators<RMatrix, double, RMatrix>
+    IDivisionOperators<RMatrix, double, RMatrix>,
+    IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>
     private readonly double[,] values;
@@ -99,6 +106,11 @@ public readonly struct RMatrix :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator double[,](RMatrix m) => m.values;
 
+    /// <summary>
+    /// Explicit conversion from a triangular matrix to a rectangular one.
+    /// </summary>
+    public static explicit operator Matrix(RMatrix m) => new(m.values);
+
     /// <summary>Has the matrix been properly initialized?</summary>
     /// <remarks>
     /// Since <see cref="RMatrix"/> is a struct, its default constructor doesn't
@@ -183,6 +195,68 @@ public readonly struct RMatrix :
         return result;
     }
 
+    /// <summary>Adds a scalar value to an upper triangular matrix.</summary>
+    /// <remarks>The value is just added to the upper triangular part.</remarks>
+    /// <param name="m">The matrix summand.</param>
+    /// <param name="d">The scalar summand.</param>
+    /// <returns>The sum of the matrix by the scalar.</returns>
+    public static unsafe RMatrix operator +(RMatrix m, double d)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
+        Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
+
+        int r = m.Rows, c = m.Cols;
+        double[,] result = new double[r, c];
+        fixed (double* pA = m.values, pC = result)
+        {
+            Vector256<double> vec = Vector256.Create(d);
+            for (int row = 0, offset = 0; row < r; row++, offset += c)
+            {
+                int col = row, k = offset + col;
+                if (Avx.IsSupported)
+                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
+                        Avx.Store(pC + k, Avx.Add(Avx.LoadVector256(pA + k), vec));
+                for (; col < c; col++, k++)
+                    pC[k] = pA[k] + d;
+            }
+        }
+        return result;
+    }
+
+    /// <summary>Adds a scalar value to an upper triangular matrix.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RMatrix operator +(double d, RMatrix m) => m + d;
+
+    /// <summary>Subtracts a scalar value from an upper triangular matrix.</summary>
+    /// <remarks>The value is just subtracted from the upper triangular part.</remarks>
+    /// <param name="m">The matrix minuend.</param>
+    /// <param name="d">The scalar subtrahend.</param>
+    /// <returns>The substraction of the scalar from the matrix.</returns>
+    public static unsafe RMatrix operator -(RMatrix m, double d)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
+        Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
+
+        int r = m.Rows, c = m.Cols;
+        double[,] result = new double[r, c];
+        fixed (double* pA = m.values, pC = result)
+        {
+            Vector256<double> vec = Vector256.Create(d);
+            for (int row = 0, offset = 0; row < r; row++, offset += c)
+            {
+                int col = row, k = offset + col;
+                if (Avx.IsSupported)
+                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
+                        Avx.Store(pC + k, Avx.Subtract(Avx.LoadVector256(pA + k), vec));
+                for (; col < c; col++, k++)
+                    pC[k] = pA[k] - d;
+            }
+        }
+        return result;
+    }
+
     /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
     public static unsafe Matrix operator +(RMatrix m1, LMatrix m2) => new Matrix(m1.values) + m2;
 
@@ -231,8 +305,7 @@ public readonly struct RMatrix :
         double[,] result = new double[m, p];
         fixed (double* pA = (double[,])m1, pB = m2.values, pC = result)
         {
-            double* pAi = pA;
-            double* pCi = pC;
+            double* pAi = pA, pCi = pC;
             for (int i = 0; i < m; i++)
             {
                 double* pBk = pB;
@@ -351,6 +424,35 @@ public readonly struct RMatrix :
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => CommonMatrix.DiagonalProduct(values);
+
+    /// <inheritdoc/>
+    public bool Equals(RMatrix other) => (Matrix)this == other;
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) =>
+        obj is RMatrix matrix && Equals(matrix);
+
+    /// <inheritdoc/>
+    public override int GetHashCode() =>
+        ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
+
+    /// <summary>Checks two matrices for equality.</summary>
+    public static bool operator ==(RMatrix left, RMatrix right) => (Matrix)left == right;
+
+    /// <summary>Checks two matrices for equality.</summary>
+    public static bool operator ==(RMatrix left, LMatrix right) => (Matrix)left == right;
+
+    /// <summary>Checks two matrices for equality.</summary>
+    public static bool operator ==(RMatrix left, Matrix right) => right == left;
+
+    /// <summary>Checks two matrices for inequality.</summary>
+    public static bool operator !=(RMatrix left, RMatrix right) => !(left == right);
+
+    /// <summary>Checks two matrices for inequality.</summary>
+    public static bool operator !=(RMatrix left, LMatrix right) => !(left == right);
+
+    /// <summary>Checks two matrices for inequality.</summary>
+    public static bool operator !=(RMatrix left, Matrix right) => !(left == right);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>

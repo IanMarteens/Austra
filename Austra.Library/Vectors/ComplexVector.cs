@@ -16,7 +16,7 @@ public readonly struct ComplexVector :
     IMultiplyOperators<ComplexVector, Complex, ComplexVector>,
     IMultiplyOperators<ComplexVector, double, ComplexVector>,
     IUnaryNegationOperators<ComplexVector, ComplexVector>,
-    IPointwiseMultiply<ComplexVector>
+    IPointwiseOperators<ComplexVector>
 {
     /// <summary>Stores the real components of the vector.</summary>
     private readonly double[] re;

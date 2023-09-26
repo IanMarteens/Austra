@@ -1,6 +1,4 @@
-﻿using System.Transactions;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>Syntactic analysis for AUSTRA.</summary>
 internal static partial class Parser
@@ -217,7 +215,7 @@ internal static partial class Parser
                 {
                     ctx.Move();
                     Expression e2 = ParseAdditive(ctx);
-                    return DifferentTypes(ref e1, ref e2)
+                    return DifferentTypes(ref e1, ref e2) && !(IsMatrix(e1) && IsMatrix(e2))
                         ? throw Error("Equality operands are not compatible", pos)
                         : opKind == Token.Eq ? Expression.Equal(e1, e2)
                         : Expression.NotEqual(e1, e2);
@@ -389,7 +387,7 @@ internal static partial class Parser
                     : typeof(Matrix).Call(e1, nameof(Matrix.Solve), e2);
             else if (opLex == Token.PointTimes || opLex == Token.PointDiv)
                 e1 = e1.Type == e2.Type && e1.Type.IsAssignableTo(
-                        typeof(IPointwiseMultiply<>).MakeGenericType(e1.Type))
+                        typeof(IPointwiseOperators<>).MakeGenericType(e1.Type))
                     ? e1.Type.Call(e1,  opLex == Token.PointTimes
                         ? nameof(Vector.PointwiseMultiply) : nameof(Vector.PointwiseDivide),
                         e2)
@@ -622,6 +620,7 @@ internal static partial class Parser
                     e = e.Type == typeof(ComplexVector)
                         ? Expression.Call(e, e.Type.Get(nameof(ComplexVector.Conjugate)))
                         : e.Type == typeof(Matrix) || e.Type == typeof(LMatrix)
+                            || e.Type == typeof(RMatrix)
                         ? Expression.Call(e, e.Type.Get(nameof(Matrix.Transpose)))
                         : e.Type == typeof(Complex)
                         ? e.Type.Call(null, nameof(Complex.Conjugate), e)
@@ -634,7 +633,8 @@ internal static partial class Parser
                             || e.Type == typeof(ComplexVector)
                             || e.Type.IsAssignableTo(typeof(FftModel))
                         ? ParseIndexer(ctx, e, true)
-                        : e.Type == typeof(Matrix)
+                        : e.Type == typeof(Matrix) || e.Type == typeof(LMatrix)
+                            || e.Type == typeof(RMatrix)
                         ? ParseMatrixIndexer(ctx, e)
                         : e.Type == typeof(Series)
                         ? ParseSeriesIndexer(ctx, e)
@@ -701,6 +701,8 @@ internal static partial class Parser
 
     private static Expression ParseMatrixIndexer(AstContext ctx, Expression e)
     {
+        if (e.Type != typeof(Matrix))
+            e = Expression.Convert(e, typeof(Matrix));
         Expression? e1 = null, e2 = null;
         bool fromEnd11 = false, fromEnd21 = false, isRange = false;
         if (ctx.Kind == Token.Comma)

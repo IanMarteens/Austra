@@ -1,8 +1,13 @@
 ﻿namespace Austra.Library;
 
+/// <summary>Common interface for all matrix types.</summary>
+public interface IMatrix
+{
+}
+
 /// <summary>Defines a type with a pointwise multiplication operation.</summary>
 /// <typeparam name="T"></typeparam>
-public interface IPointwiseMultiply<T>
+public interface IPointwiseOperators<T>
 {
     /// <summary>Item by item multiplication of two data structures.</summary>
     /// <param name="other">The second operand.</param>
@@ -21,6 +26,8 @@ public readonly struct Matrix :
     IFormattable,
     IEquatable<Matrix>,
     IEqualityOperators<Matrix, Matrix, bool>,
+    IEqualityOperators<Matrix, LMatrix, bool>,
+    IEqualityOperators<Matrix, RMatrix, bool>,
     IAdditionOperators<Matrix, Matrix, Matrix>,
     IAdditionOperators<Matrix, LMatrix, Matrix>,
     IAdditionOperators<Matrix, double, Matrix>,
@@ -32,7 +39,8 @@ public readonly struct Matrix :
     IMultiplyOperators<Matrix, double, Matrix>,
     IDivisionOperators<Matrix, double, Matrix>,
     IUnaryNegationOperators<Matrix, Matrix>,
-    IPointwiseMultiply<Matrix>
+    IPointwiseOperators<Matrix>,
+    IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>
     private readonly double[,] values;
@@ -1408,8 +1416,20 @@ public readonly struct Matrix :
     /// <summary>Checks two matrices for equality.</summary>
     public static bool operator ==(Matrix left, Matrix right) => left.Equals(right);
 
+    /// <summary>Checks two matrices for equality.</summary>
+    public static bool operator ==(Matrix left, LMatrix right) => left.Equals((Matrix)right);
+
+    /// <summary>Checks two matrices for equality.</summary>
+    public static bool operator ==(Matrix left, RMatrix right) => left.Equals((Matrix)right);
+
     /// <summary>Checks two matrices for inequality.</summary>
     public static bool operator !=(Matrix left, Matrix right) => !(left == right);
+
+    /// <summary>Checks two matrices for inequality.</summary>
+    public static bool operator !=(Matrix left, LMatrix right) => !(left == right);
+
+    /// <summary>Checks two matrices for inequality.</summary>
+    public static bool operator !=(Matrix left, RMatrix right) => !(left == right);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>

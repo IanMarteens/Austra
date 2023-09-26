@@ -7,6 +7,10 @@
 [JsonConverter(typeof(LMatrixJsonConverter))]
 public readonly struct LMatrix :
     IFormattable,
+    IEquatable<LMatrix>,
+    IEqualityOperators<LMatrix, LMatrix, bool>,
+    IEqualityOperators<LMatrix, RMatrix, bool>,
+    IEqualityOperators<LMatrix, Matrix, bool>,
     IAdditionOperators<LMatrix, LMatrix, LMatrix>,
     IAdditionOperators<LMatrix, RMatrix, Matrix>,
     IAdditionOperators<LMatrix, double, LMatrix>,
@@ -17,7 +21,8 @@ public readonly struct LMatrix :
     IMultiplyOperators<LMatrix, Vector, Vector>,
     IMultiplyOperators<LMatrix, double, LMatrix>,
     IDivisionOperators<LMatrix, double, LMatrix>,
-    IUnaryNegationOperators<LMatrix, LMatrix>
+    IUnaryNegationOperators<LMatrix, LMatrix>,
+    IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>
     private readonly double[,] values;
@@ -132,6 +137,11 @@ public readonly struct LMatrix :
     /// <param name="m">The original matrix.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator double[,](LMatrix m) => m.values;
+
+    /// <summary>
+    /// Explicit conversion from a triangular matrix to a rectangular one.
+    /// </summary>
+    public static explicit operator Matrix(LMatrix m) => new(m.values);
 
     /// <summary>Has the matrix been properly initialized?</summary>
     /// <remarks>
@@ -280,8 +290,8 @@ public readonly struct LMatrix :
 
     /// <summary>Adds a scalar value to a lower triangular matrix.</summary>
     /// <remarks>The value is just added to the lower triangular part.</remarks>
-    /// <param name="m">First summand.</param>
-    /// <param name="d">A scalar summand.</param>
+    /// <param name="m">The matrix summand.</param>
+    /// <param name="d">The scalar summand.</param>
     /// <returns>The sum of the matrix and the scalar.</returns>
     public static unsafe LMatrix operator +(LMatrix m, double d)
     {
@@ -819,6 +829,35 @@ public readonly struct LMatrix :
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => CommonMatrix.DiagonalProduct(values);
+
+    /// <inheritdoc/>
+    public bool Equals(LMatrix other) => (Matrix)this == other;
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) =>
+        obj is LMatrix matrix && Equals(matrix);
+
+    /// <inheritdoc/>
+    public override int GetHashCode() =>
+        ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
+
+    /// <summary>Checks two matrices for equality.</summary>
+    public static bool operator ==(LMatrix left, LMatrix right) => (Matrix)left == right;
+
+    /// <summary>Checks two matrices for equality.</summary>
+    public static bool operator ==(LMatrix left, RMatrix right) => (Matrix)left == right;
+
+    /// <summary>Checks two matrices for equality.</summary>
+    public static bool operator ==(LMatrix left, Matrix right) => (Matrix)left == right;
+
+    /// <summary>Checks two matrices for inequality.</summary>
+    public static bool operator !=(LMatrix left, LMatrix right) => (Matrix)left != right;
+
+    /// <summary>Checks two matrices for inequality.</summary>
+    public static bool operator !=(LMatrix left, RMatrix right) => !(left == right);
+
+    /// <summary>Checks two matrices for inequality.</summary>
+    public static bool operator !=(LMatrix left, Matrix right) => (Matrix)left != right;
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>

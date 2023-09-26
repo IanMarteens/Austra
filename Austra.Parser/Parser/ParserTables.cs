@@ -434,6 +434,10 @@ internal static partial class Parser
         e1.Type == typeof(Vector)
         || e1.Type == typeof(Matrix) || e1.Type == typeof(LMatrix);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsMatrix(Expression e1) =>
+        e1.Type.IsAssignableTo(typeof(IMatrix));
+
     private static Expression ToDouble(Expression e) =>
         e.Type != typeof(int)
         ? e

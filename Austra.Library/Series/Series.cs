@@ -32,7 +32,7 @@ public sealed class Series : Series<Date>,
     IMultiplyOperators<Series, double, Series>,
     IDivisionOperators<Series, double, Series>,
     IUnaryNegationOperators<Series, Series>,
-    IPointwiseMultiply<Series>
+    IPointwiseOperators<Series>
 {
     /// <summary>Creates a named time series.</summary>
     /// <param name="name">The name of the series.</param>
