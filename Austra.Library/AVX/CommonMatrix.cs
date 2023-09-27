@@ -442,7 +442,7 @@ public static class CommonMatrix
                 array[i, colIndex] = column.Item2[i];
             colIndex++;
         }
-        int saveCol = colIndex++;
+        int saveCol = colEllipsis ? colIndex++ : colIndex;
         foreach ((int, string[]) column in columnsRight)
         {
             for (int i = 0; i < column.Item2.Length; i++)
