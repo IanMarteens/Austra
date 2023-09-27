@@ -119,13 +119,13 @@
                             <Image Source="/images/open.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <Separator/>
+                    <Separator Background="#FF707070" Height="1"/>
                     <MenuItem Header="Close all" Command="{x:Static local:OstCommands.CloseAll}">
                         <MenuItem.Icon>
                             <Image Source="/images/closeAll.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <Separator/>
+                    <Separator Background="#FF707070" Height="1"/>
                     <MenuItem Header="E_xit" Command="ApplicationCommands.Close">
                         <MenuItem.Icon>
                             <Image Source="/images/exit.png" Width="15" Height="Auto"/>
@@ -143,7 +143,7 @@
                             <Image Source="/images/redo.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <Separator/>
+                    <Separator Background="#FF707070" Height="1"/>
                     <MenuItem Header="Cu_t" Command="Cut" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
                         <MenuItem.Icon>
                             <Image Source="/images/cut.png" Width="15" Height="Auto"/>
@@ -164,13 +164,13 @@
                             <Image Source="/images/delete.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <Separator/>
+                    <Separator Background="#FF707070" Height="1"/>
                     <MenuItem Header="Select _all" Command="SelectAll" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
                         <MenuItem.Icon>
                             <Image Source="/images/selectAll.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <Separator/>
+                    <Separator Background="#FF707070" Height="1"/>
                     <MenuItem Header="History up" Command="{x:Static local:OstCommands.HistoryUp}" InputGestureText="F7">
                         <MenuItem.Icon>
                             <Image Source="/images/histUp.png" Width="15" Height="Auto"/>
@@ -202,6 +202,12 @@
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Help">
+                    <MenuItem Header="_Help" Command="Help" CommandTarget="{Binding ElementName=avalon}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/help.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator Background="#FF707070" Height="1"/>
                     <MenuItem Header="_About" Command="{x:Static local:OstCommands.About}">
                         <MenuItem.Icon>
                             <Image Source="/images/info.png" Width="15" Height="Auto"/>
