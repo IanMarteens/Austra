@@ -169,7 +169,7 @@ public readonly struct Cholesky : IFormattable
                 int k = 0;
                 if (Avx.IsSupported)
                 {
-                    var acc = Vector256<double>.Zero;
+                    Vector256<double> acc = Vector256<double>.Zero;
                     for (int top = i & Simd.AVX_MASK; k < top; k += 4)
                         acc = acc.MultiplyAdd(pAi + k, pB + k);
                     sum -= acc.Sum();
@@ -185,8 +185,8 @@ public readonly struct Cholesky : IFormattable
                 int k = i + 1;
                 if (Avx2.IsSupported)
                 {
-                    var acc = Vector256<double>.Zero;
-                    var vx = Vector128.Create(0, size, 2 * size, 3 * size);
+                    Vector256<double> acc = Vector256<double>.Zero;
+                    Vector128<int> vx = Vector128.Create(0, size, 2 * size, 3 * size);
                     for (; k < size - 4; k += 4, p += 4 * size)
                         acc = acc.MultiplyAdd(pB + k, Avx2.GatherVector256(p, vx, 8));
                     sum -= acc.Sum();

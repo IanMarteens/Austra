@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
+﻿using System.Runtime.Intrinsics.X86;
 using static System.Runtime.CompilerServices.Unsafe;
 
 namespace Austra.Parser;
@@ -42,10 +41,23 @@ internal sealed partial class Parser
 
     /// <summary>Memoized expressions.</summary>
     private readonly Dictionary<string, Expression> memos = new();
-    /// <summary>Compressed value of the current lexeme.</summary>
-    private LexValue val;
     /// <summary>Used by the scanner to build string literals.</summary>
     private StringBuilder? sb;
+    /// <summary>Gets the type of the current lexeme.</summary>
+    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
+    private Token kind;
+    /// <summary>Gets the start position of the current lexeme.</summary>
+    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
+    private int start;
+    /// <summary>Gets the string associated with the current lexeme.</summary>
+    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
+    private string id;
+    /// <summary>Value of the current lexeme as a real number.</summary>
+    private double asReal;
+    /// <summary>Value of the lexeme as an integer.</summary>
+    private int asInt;
+    /// <summary>Value of the lexeme as a date literal.</summary>
+    private Date asDate;
     /// <summary>Current position in the text.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     private int i;
@@ -55,42 +67,12 @@ internal sealed partial class Parser
     /// <param name="text">Text of the formula.</param>
     public Parser(IDataSource source, string text)
     {
-        (this.source, this.text, Id) = (source, text, "");
+        (this.source, this.text, id) = (source, text, "");
         Move();
     }
 
-    /// <summary>Gets the type of the current lexeme.</summary>
-    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    private Token Kind { get; set; }
-
-    /// <summary>Gets the start position of the current lexeme.</summary>
-    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    private int Start { get; set; }
-
-    /// <summary>Gets the string associated with the current lexeme.</summary>
-    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    private string Id { get; set; }
-
-    /// <summary>Value of the current lexeme as a real number.</summary>
-    private double AsReal { get => val.AsReal; set => val.AsReal = value; }
-    /// <summary>Value of the lexeme as an integer.</summary>
-    private int AsInt { get => val.AsInt; set => val.AsInt = value; }
-    /// <summary>Value of the lexeme as a date literal.</summary>
-    private Date AsDate { get => val.AsDate; set => val.AsDate = value; }
-
     /// <summary>Name of the left side value, if any.</summary>
     public string LeftValue { get; set; } = "";
-
-    /// <summary>
-    /// Creates an expression that retrieves a value variable from the data source.
-    /// </summary>
-    /// <param name="id">Series name.</param>
-    /// <param name="type">Result type.</param>
-    private Expression GetFromDataSource(string id, Type type) =>
-        memos.TryGetValue(id, out Expression? memo)
-        ? memo
-        : memos[id] = Expression.Convert(
-            Expression.Property(sourceParameter, "Item", Expression.Constant(id)), type);
 
     /// <summary>Skips two tokens with a single call.</summary>
     private void Skip2() { Move(); Move(); }
@@ -104,8 +86,8 @@ internal sealed partial class Parser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void CheckAndMove(Token kind, string errorMessage)
     {
-        if (Kind != kind)
-            throw new AstException(errorMessage, Start);
+        if (this.kind != kind)
+            throw new AstException(errorMessage, start);
         Move();
     }
 
@@ -116,7 +98,7 @@ internal sealed partial class Parser
     SKIP_BLANKS:
         while (char.IsWhiteSpace(Add(ref c, i)))
             i++;
-        Start = i;
+        start = i;
         char ch = Add(ref c, i);
         // Check keywords, functors, class names and identifiers.
         if (char.IsLetter(ch))
@@ -125,18 +107,18 @@ internal sealed partial class Parser
             while (char.IsLetterOrDigit(ch) || ch == '_');
             // Check for keywords and function identifiers
             Token tok = Avx.IsSupported
-                ? IsIntelKeyword(ref Add(ref c, Start), i - Start)
-                : IsKeyword(text.AsSpan()[Start..i]);
+                ? IsIntelKeyword(ref Add(ref c, start), i - start)
+                : IsKeyword(text.AsSpan()[start..i]);
             if (tok != Token.Id)
-                Kind = tok;
+                kind = tok;
             else
             {
                 // Skip blanks after the identifier.
-                Id = text[Start..i];
+                id = text[start..i];
                 while (char.IsWhiteSpace(Add(ref c, i)))
                     i++;
                 ch = Add(ref c, i);
-                Kind = ch == '(' ? Token.Functor
+                kind = ch == '(' ? Token.Functor
                     : ch == ':' && Add(ref c, i + 1) == ':' ? Token.ClassName
                     : Token.Id;
             }
@@ -150,8 +132,8 @@ internal sealed partial class Parser
             {
                 do i++;
                 while (char.IsLetterOrDigit(Add(ref c, i)));
-                Kind = Token.Date;
-                AsDate = ParseDateLiteral(text.AsSpan()[Start..i], Start);
+                kind = Token.Date;
+                asDate = ParseDateLiteral(text.AsSpan()[start..i], start);
             }
             else if (ch == '.')
             {
@@ -166,11 +148,11 @@ internal sealed partial class Parser
                         i++;
                 }
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    (Kind, AsReal) = (Token.Imag, ToReal(text, Start, i++));
+                    (kind, asReal) = (Token.Imag, ToReal(text, start, i++));
                 else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                    (Kind, Id, AsReal, i) = (Token.MultVarR, text[i..j], ToReal(text, Start, i), j);
+                    (kind, id, asReal, i) = (Token.MultVarR, text[i..j], ToReal(text, start, i), j);
                 else
-                    (Kind, AsReal) = (Token.Real, ToReal(text, Start, i));
+                    (kind, asReal) = (Token.Real, ToReal(text, start, i));
             }
             else if ((ch | 0x20) == 'e')
             {
@@ -179,19 +161,19 @@ internal sealed partial class Parser
                 while ((uint)(Add(ref c, i) - '0') < 10u)
                     i++;
                 if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    (Kind, AsReal) = (Token.Imag, ToReal(text, Start, i++));
+                    (kind, asReal) = (Token.Imag, ToReal(text, start, i++));
                 else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                    (Kind, Id, AsReal, i) = (Token.MultVarR, text[i..j], ToReal(text, Start, i), j);
+                    (kind, id, asReal, i) = (Token.MultVarR, text[i..j], ToReal(text, start, i), j);
                 else
-                    (Kind, AsReal) = (Token.Real, ToReal(text, Start, i));
+                    (kind, asReal) = (Token.Real, ToReal(text, start, i));
             }
             else if (ch == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                (Kind, AsReal) = (Token.Imag, ToReal(text, Start, i++));
+                (kind, asReal) = (Token.Imag, ToReal(text, start, i++));
             else if (char.IsLetter(ch) && IsVariableSuffix(text, i, out int k))
-                (Kind, Id, AsInt, i)
-                    = (Token.MultVarI, text[i..k], int.Parse(text.AsSpan()[Start..i]), k);
+                (kind, id, asInt, i)
+                    = (Token.MultVarI, text[i..k], int.Parse(text.AsSpan()[start..i]), k);
             else
-                (Kind, AsInt) = (Token.Int, int.Parse(text.AsSpan()[Start..i]));
+                (kind, asInt) = (Token.Int, int.Parse(text.AsSpan()[start..i]));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool IsVariableSuffix(string text, int i, out int j)
@@ -214,22 +196,22 @@ internal sealed partial class Parser
             i++;
             switch (ch)
             {
-                case '\0': (Kind, Start) = (Token.Eof, text.Length - 1); return;
-                case ',': Kind = Token.Comma; return;
-                case ';': Kind = Token.Semicolon; return;
-                case '(': Kind = Token.LPar; return;
-                case ')': Kind = Token.RPar; return;
-                case '[': Kind = Token.LBra; return;
-                case ']': Kind = Token.RBra; return;
-                case '{': Kind = Token.LBrace; return;
-                case '}': Kind = Token.RBrace; return;
-                case '+': Kind = Token.Plus; return;
-                case '*': Kind = Token.Times; return;
-                case '/': Kind = Token.Div; return;
-                case '%': Kind = Token.Mod; return;
-                case '^': Kind = Token.Caret; return;
-                case '\'': Kind = Token.Transpose; return;
-                case '\\': Kind = Token.Backslash; return;
+                case '\0': (kind, start) = (Token.Eof, text.Length - 1); return;
+                case ',': kind = Token.Comma; return;
+                case ';': kind = Token.Semicolon; return;
+                case '(': kind = Token.LPar; return;
+                case ')': kind = Token.RPar; return;
+                case '[': kind = Token.LBra; return;
+                case ']': kind = Token.RBra; return;
+                case '{': kind = Token.LBrace; return;
+                case '}': kind = Token.RBrace; return;
+                case '+': kind = Token.Plus; return;
+                case '*': kind = Token.Times; return;
+                case '/': kind = Token.Div; return;
+                case '%': kind = Token.Mod; return;
+                case '^': kind = Token.Caret; return;
+                case '\'': kind = Token.Transpose; return;
+                case '\\': kind = Token.Backslash; return;
                 case '-':
                     if (Add(ref c, i) == '-')
                     {
@@ -237,41 +219,41 @@ internal sealed partial class Parser
                         while (ch is not '\r' and not '\n' and not '\0');
                         goto SKIP_BLANKS;
                     }
-                    Kind = Token.Minus;
+                    kind = Token.Minus;
                     return;
                 case '=':
-                    (Kind, Start) = Add(ref c, i) == '>'
+                    (kind, start) = Add(ref c, i) == '>'
                         ? (Token.Arrow, i++ - 1)
-                        : (Token.Eq, Start);
+                        : (Token.Eq, start);
                     return;
                 case '.':
-                    (Kind, Start) = Add(ref c, i) == '*'
+                    (kind, start) = Add(ref c, i) == '*'
                         ? (Token.PointTimes, i++ - 1)
                         : Add(ref c, i) == '/'
                         ? (Token.PointDiv, i++ - 1)
-                        : (Token.Dot, Start);
+                        : (Token.Dot, start);
                     return;
                 case ':':
-                    (Kind, Start) = Add(ref c, i) == ':'
+                    (kind, start) = Add(ref c, i) == ':'
                         ? (Token.DoubleColon, i++ - 1)
-                        : (Token.Colon, Start);
+                        : (Token.Colon, start);
                     return;
                 case '!':
-                    (Kind, Start) = Add(ref c, i) == '='
+                    (kind, start) = Add(ref c, i) == '='
                         ? (Token.Ne, i++ - 1)
-                        : (Token.Error, Start);
+                        : (Token.Error, start);
                     return;
                 case '<':
-                    (Kind, Start) = Add(ref c, i) == '='
+                    (kind, start) = Add(ref c, i) == '='
                         ? (Token.Le, i++ - 1)
                         : Add(ref c, i) == '>'
                         ? (Token.Ne, i++ - 1)
-                        : (Token.Lt, Start);
+                        : (Token.Lt, start);
                     return;
                 case '>':
-                    (Kind, Start) = Add(ref c, i) == '='
+                    (kind, start) = Add(ref c, i) == '='
                         ? (Token.Ge, i++ - 1)
-                        : (Token.Gt, Start);
+                        : (Token.Gt, start);
                     return;
                 case '"':
                     int first = i--;
@@ -279,12 +261,12 @@ internal sealed partial class Parser
                     {
                         ch = Add(ref c, ++i);
                         if (ch == '\0')
-                            throw new AstException("Unterminated string literal", Start);
+                            throw new AstException("Unterminated string literal", start);
                     }
                     while (ch != '"');
                     if (Add(ref c, i + 1) != '"')
                     {
-                        (Kind, Id) = (Token.Str, text[first..i++]);
+                        (kind, id) = (Token.Str, text[first..i++]);
                         return;
                     }
                     // This is a string literal with embedded quotes.
@@ -297,7 +279,7 @@ internal sealed partial class Parser
                     {
                         ch = Add(ref c, i++);
                         if (ch == '\0')
-                            throw new AstException("Unterminated string literal", Start);
+                            throw new AstException("Unterminated string literal", start);
                     }
                     while (ch != '"');
                     sb.Append(text.AsSpan()[first..(i - 1)]);
@@ -307,10 +289,10 @@ internal sealed partial class Parser
                         first = ++i;
                         goto MORE_STRING;
                     }
-                    (Kind, Id) = (Token.Str, sb.ToString());
+                    (kind, id) = (Token.Str, sb.ToString());
                     return;
                 default:
-                    Kind = Token.Error;
+                    kind = Token.Error;
                     i = text.Length - 1;
                     return;
             }
@@ -514,20 +496,7 @@ internal sealed partial class Parser
         new(message, position);
 
     private AstException Error(string message) =>
-        new(message, Start);
-
-    /// <summary>Gets a regex that matches a set statement</summary>
-    [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase, "es-ES")]
-    private static partial Regex LetHeaderRegex();
-    
-    /// <summary>C# union to save space in the lexeme.</summary>
-    [StructLayout(LayoutKind.Explicit)]
-    private struct LexValue
-    {
-        [FieldOffset(0)] public double AsReal;
-        [FieldOffset(0)] public int AsInt;
-        [FieldOffset(0)] public Date AsDate;
-    }
+        new(message, start);
 
     /// <summary>Internal stub for accessing string internals.</summary>
     private sealed class Str
@@ -539,4 +508,46 @@ internal sealed partial class Parser
         /// <summary>The first character in the string.</summary>
         public char FirstChar;
     }
+}
+
+/// <summary>Contains extension methods acting on <see cref="Type"/> instances.</summary>
+internal static class ParserExtensions
+{
+    /// <summary>Avoids repeating the bang operator (!) in the code.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static MethodInfo Get(this Type type, string method) =>
+         type.GetMethod(method)!;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static MethodInfo Prop(this Type type, string property) =>
+         type.GetProperty(property)!.GetGetMethod()!;
+
+    public static NewExpression New(this Type type, params Expression[] args) =>
+        Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
+
+    public static NewExpression New(this Type type, List<Expression> args) =>
+        Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
+
+    public static NewArrayExpression Make(this Type type, IEnumerable<Expression> args) =>
+        Expression.NewArrayInit(type, args);
+
+    public static MethodCallExpression Call(this Type type,
+        Expression? instance, string method, Expression arg) =>
+        Expression.Call(instance, type.GetMethod(method, new[] { arg.Type })!, arg);
+
+    public static MethodCallExpression Call(this Type type,
+        string method, Expression a1, Expression a2) =>
+        Expression.Call(type.GetMethod(method, new[] { a1.Type, a2.Type })!, a1, a2);
+
+    public static List<Expression> AddExp(this List<Expression> args, Expression exp)
+    {
+        args.Add(exp);
+        return args;
+    }
+
+    public static List<Expression> AddRandom(this List<Expression> args) =>
+        args.AddExp(Expression.New(typeof(Random).GetConstructor(Array.Empty<Type>())!));
+
+    public static List<Expression> AddNormalRandom(this List<Expression> args) =>
+        args.AddExp(Expression.New(typeof(NormalRandom).GetConstructor(Array.Empty<Type>())!));
 }

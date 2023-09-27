@@ -18,11 +18,8 @@ internal static class Tolerance
     /// <returns>True if value is no greater than 10 * 2^(-52); false otherwise.</returns>
     public static bool AlmostZero(this Complex a)
     {
-        double norm = (a.Real * a.Real) + (a.Imaginary * a.Imaginary);
-        if (double.IsInfinity(norm) || double.IsNaN(norm))
-        {
-            return false;
-        }
-        return Abs(norm) < DefaultDoubleAccuracy;
+        double norm = a.Real * a.Real + a.Imaginary * a.Imaginary;
+        return !double.IsInfinity(norm) && !double.IsNaN(norm)
+            && Abs(norm) < DefaultDoubleAccuracy;
     }
 }

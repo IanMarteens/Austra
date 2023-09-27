@@ -223,7 +223,7 @@ public readonly struct ComplexVector :
 
     /// <summary>Has the vector been properly initialized?</summary>
     /// <remarks>
-    /// Since Vector is a struct, its default constructor doesn't
+    /// Since <see cref="ComplexVector"/> is a struct, its default constructor doesn't
     /// initializes the underlying component arrays.
     /// </remarks>
     public bool IsInitialized => re != null && im != null;
@@ -600,6 +600,7 @@ public readonly struct ComplexVector :
     /// <param name="v">Vector to be divided.</param>
     /// <param name="c">A complex scalar divisor.</param>
     /// <returns>The division of the vector by the scalar.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComplexVector operator /(ComplexVector v, Complex c) =>
         v * Complex.Reciprocal(c);
 
@@ -607,6 +608,7 @@ public readonly struct ComplexVector :
     /// <param name="v">Vector to be divided.</param>
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The division of the vector by the scalar.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComplexVector operator /(ComplexVector v, double d) =>
         v * (1.0 / d);
 
@@ -665,6 +667,7 @@ public readonly struct ComplexVector :
     /// Gets a vector containing the magnitudes of the complex numbers in this vector.
     /// </summary>
     /// <returns>A new vector with magnitudes.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector Magnitudes()
     {
         Contract.Requires(IsInitialized);
@@ -725,6 +728,7 @@ public readonly struct ComplexVector :
     /// Gets a vector containing the phases of the complex numbers in this vector.
     /// </summary>
     /// <returns>A new vector with phases.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector Phases()
     {
         Contract.Requires(IsInitialized);
@@ -893,8 +897,10 @@ public readonly struct ComplexVector :
             ((IStructuralEquatable)im).GetHashCode(EqualityComparer<double>.Default));
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(ComplexVector left, ComplexVector right) => left.Equals(right);
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(ComplexVector left, ComplexVector right) => !(left == right);
 }

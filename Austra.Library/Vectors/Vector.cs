@@ -767,6 +767,7 @@ public readonly struct Vector :
 
     /// <summary>Gets statistics on the vector values.</summary>
     /// <returns>The vector's statistics.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Accumulator Stats() => new(values);
 
     /// <summary>Computes the maximum difference between cells.</summary>
@@ -1001,6 +1002,7 @@ public readonly struct Vector :
     /// <summary>Computes the autocorrelation for a fixed lag.</summary>
     /// <param name="lag">Lag number in samples.</param>
     /// <returns>The autocorrelation factor.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double AutoCorrelation(int lag) => AutoCorrelation(lag, Mean());
 
     /// <summary>Computes autocorrelation for a range of lags.</summary>
@@ -1040,6 +1042,7 @@ public readonly struct Vector :
 
     /// <summary>Computes autocorrelation for all lags.</summary>
     /// <returns>Pairs lags/autocorrelation.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Series<int> ACF() => Correlogram(Length - 2);
 
     /// <summary>Multilinear regression based in Ordinary Least Squares.</summary>
@@ -1308,13 +1311,13 @@ public readonly struct Vector :
     /// <summary>Compares two vectors for equality. </summary>
     /// <param name="left">First vector operand.</param>
     /// <param name="right">Second vector operand.</param>
-    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Vector left, Vector right) => left.Equals(right);
 
     /// <summary>Compares two vectors for inequality. </summary>
     /// <param name="left">First vector operand.</param>
     /// <param name="right">Second vector operand.</param>
-    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Vector left, Vector right) => !left.Equals(right);
 
     internal (double total, double residuals, double r2) GetSumSquares(Vector other)
