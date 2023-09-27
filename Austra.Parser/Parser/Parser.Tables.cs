@@ -730,9 +730,16 @@ internal sealed partial class Parser
             },
         };
 
-    /// <summary>Gets a regex that matches a set statement</summary>
+    /// <summary>Gets a regex that matches a set statement.</summary>
     [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase, "es-ES")]
     private static partial Regex LetHeaderRegex();
+
+    /// <summary>Gets a regex that matches a lambda header.</summary>
+    [GeneratedRegex(@"^(\w+|\(\s*\w+\s*\,\s*\w+\s*\))\s*\=\>", RegexOptions.None, "es-ES")]
+    private static partial Regex IsLambdaHeader();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsLambda() => IsLambdaHeader().IsMatch(text.AsSpan()[start..]);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="source">A data source.</param>

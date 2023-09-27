@@ -383,7 +383,7 @@ internal sealed partial class Parser
             else if (opLex == Token.PointTimes || opLex == Token.PointDiv)
                 e1 = e1.Type == e2.Type && e1.Type.IsAssignableTo(
                         typeof(IPointwiseOperators<>).MakeGenericType(e1.Type))
-                    ? e1.Type.Call(e1,  opLex == Token.PointTimes
+                    ? e1.Type.Call(e1, opLex == Token.PointTimes
                         ? nameof(Vector.PointwiseMultiply) : nameof(Vector.PointwiseDivide),
                         e2)
                     : throw Error("Invalid operator", opPos);
@@ -396,10 +396,10 @@ internal sealed partial class Parser
                     // Try to optimize matrix transpose multiplying a vector.
                     e1 = opLex == Token.Times && e1.Type == typeof(Matrix)
                         ? (e2.Type == typeof(Vector) && e1 is MethodCallExpression
-                                { Method.Name: nameof(Matrix.Transpose) } mca
+                        { Method.Name: nameof(Matrix.Transpose) } mca
                             ? typeof(Matrix).Call(mca.Object, nameof(Matrix.TransposeMultiply), e2)
                             : e2.Type == typeof(Matrix) && e2 is MethodCallExpression
-                                { Method.Name: nameof(Matrix.Transpose) } mcb
+                            { Method.Name: nameof(Matrix.Transpose) } mcb
                             ? typeof(Matrix).Call(e1, nameof(Matrix.MultiplyTranspose), mcb.Object!)
                             : e1 == e2
                             ? Expression.Call(e1, typeof(Matrix).Get(nameof(Matrix.Square)))
@@ -413,7 +413,7 @@ internal sealed partial class Parser
                             _ => d1 % d2
                         })
                         : opLex == Token.Times
-                        ? (e1 == e2 && e1.Type == typeof(Vector) 
+                        ? (e1 == e2 && e1.Type == typeof(Vector)
                             ? Expression.Call(e1, typeof(Vector).Get(nameof(Vector.Squared)))
                             : Expression.Multiply(e1, e2))
                         : opLex == Token.Div
@@ -445,7 +445,7 @@ internal sealed partial class Parser
         return kind == Token.Caret ? ParsePower(e) : e;
     }
 
-    private  Expression ParsePower(Expression e)
+    private Expression ParsePower(Expression e)
     {
         int pos = start;
         Move();
@@ -586,7 +586,7 @@ internal sealed partial class Parser
                         : className switch
                         {
                             "matrix" => ParseMatrixMethod(),
-                            "vector" => ParseVectorMethod(  ),
+                            "vector" => ParseVectorMethod(),
                             "complexvector" => ParseComplexVectorMethod(),
                             "series" => ParseSeriesMethod(),
                             "model" => ParseModelMethod(),
@@ -1039,6 +1039,9 @@ internal sealed partial class Parser
         if (e1.Type != typeof(int))
             throw Error($"Rows must be integer");
         CheckAndMove(Token.Comma, "Comma expected");
+        if (IsLambda())
+            return typeof(Matrix).New(e1,
+                ParseLambda(typeof(int), typeof(int), typeof(double)));
         Expression e2 = ParseLightConditional();
         if (e2.Type != typeof(int))
             throw Error($"Columns must be integer");
@@ -1503,7 +1506,7 @@ internal sealed partial class Parser
                     : memos[ident] = Expression.Convert(
                         Expression.Property(sourceParameter, "Item",
                         Expression.Constant(ident)), val.GetType())
-             };
+            };
         if (ident == "π")
             return Expression.Constant(Math.PI);
         if (ident == "τ")

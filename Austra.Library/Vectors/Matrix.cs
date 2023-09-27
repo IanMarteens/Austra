@@ -70,6 +70,12 @@ public readonly struct Matrix :
         }
     }
 
+    /// <summary>Creates a square matrix using a formula to fill its cells.</summary>
+    /// <param name="size">Number of rows and columns.</param>
+    /// <param name="f">A function defining cell content.</param>
+    public Matrix(int size, Func<int, int, double> f) : this(size, size, f)
+    { }
+
     /// <summary>Creates a matrix given its rows.</summary>
     /// <param name="rows">The array of rows.</param>
     public unsafe Matrix(params Vector[] rows)
