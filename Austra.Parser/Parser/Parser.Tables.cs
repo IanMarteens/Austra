@@ -731,11 +731,11 @@ internal sealed partial class Parser
         };
 
     /// <summary>Gets a regex that matches a set statement.</summary>
-    [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase, "es-ES")]
+    [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase)]
     private static partial Regex LetHeaderRegex();
 
     /// <summary>Gets a regex that matches a lambda header.</summary>
-    [GeneratedRegex(@"^(\w+|\(\s*\w+\s*\,\s*\w+\s*\))\s*\=\>", RegexOptions.None, "es-ES")]
+    [GeneratedRegex(@"^(\w+|\(\s*\w+\s*\,\s*\w+\s*\))\s*\=\>")]
     private static partial Regex IsLambdaHeader();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
