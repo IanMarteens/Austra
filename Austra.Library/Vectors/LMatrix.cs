@@ -286,7 +286,8 @@ public readonly struct LMatrix :
     }
 
     /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
-    public static unsafe Matrix operator +(LMatrix m1, RMatrix m2) => new Matrix(m1.values) + m2;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Matrix operator +(LMatrix m1, RMatrix m2) => new Matrix(m1.values) + m2;
 
     /// <summary>Adds a scalar value to a lower triangular matrix.</summary>
     /// <remarks>The value is just added to the lower triangular part.</remarks>
@@ -330,7 +331,8 @@ public readonly struct LMatrix :
     }
 
     /// <summary>Adds a scalar value to a lower triangular matrix.</summary>
-    public static unsafe LMatrix operator +(double d, LMatrix m) => m + d;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static LMatrix operator +(double d, LMatrix m) => m + d;
 
     /// <summary>Subtracts two lower matrices with the same size.</summary>
     /// <param name="m1">Matrix minuend.</param>
@@ -383,7 +385,8 @@ public readonly struct LMatrix :
     }
 
     /// <summary>Subtracts an upper triangular matrix from a lower triangular one.</summary>
-    public static unsafe Matrix operator -(LMatrix m1, RMatrix m2) => new Matrix(m1.values) - m2;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Matrix operator -(LMatrix m1, RMatrix m2) => new Matrix(m1.values) - m2;
 
     /// <summary>Subtracts a scalar value from a lower triangular matrix.</summary>
     /// <remarks>The value is just subtracted to the lower triangular part.</remarks>
@@ -764,7 +767,7 @@ public readonly struct LMatrix :
     /// <param name="v">The right side of the equation.</param>
     /// <returns>The solving vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe Vector Solve(Vector v)
+    public Vector Solve(Vector v)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(IsSquare);
@@ -842,21 +845,27 @@ public readonly struct LMatrix :
         ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
 
     /// <summary>Checks two matrices for equality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, LMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, RMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, Matrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for inequality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, LMatrix right) => (Matrix)left != right;
 
     /// <summary>Checks two matrices for inequality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, RMatrix right) => !(left == right);
 
     /// <summary>Checks two matrices for inequality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, Matrix right) => (Matrix)left != right;
 
     /// <summary>Gets a textual representation of this matrix.</summary>

@@ -1,7 +1,7 @@
 ﻿namespace Austra.Parser;
 
-/// <summary>Syntactic analysis for AUSTRA.</summary>
-internal static partial class Parser
+/// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
+internal sealed partial class Parser
 {
     private static readonly Dictionary<Type, (string name, string description)[]> members = new()
     {
@@ -369,7 +369,7 @@ internal static partial class Parser
 
         static IList<(string member, string description)> ExtractType(IDataSource source, string text)
         {
-            Type type = ParseType(new(source, text));
+            Type type = new Parser(source, text).ParseType();
             return members.TryGetValue(type, out (string name, string description)[]? list)
                 ? list : Array.Empty<(string, string)>();
         }

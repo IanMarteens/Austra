@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using static System.Runtime.CompilerServices.Unsafe;
 
@@ -18,13 +17,31 @@ public class AstException : ApplicationException
         : base(message) => Position = position;
 }
 
-/// <summary>Provides lexical analysis and inherited attributes for the parser.</summary>
-internal sealed partial class AstContext
+/// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
+internal sealed partial class Parser
 {
-    /// <summary>Memoized expressions.</summary>
-    private readonly Dictionary<string, Expression> memos = new();
+    /// <summary>Gets the parameter referencing the outer scope.</summary>
+    private static readonly ParameterExpression sourceParameter =
+        Expression.Parameter(typeof(IDataSource), "datasource");
+
+    /// <summary>Gets the outer scope for variables.</summary>
+    private readonly IDataSource source;
     /// <summary>The text being scanned.</summary>
     private readonly string text;
+    /// <summary>Referenced definitions.</summary>
+    private readonly HashSet<Definition> references = new();
+    /// <summary>Transient local variable definitions.</summary>
+    private readonly Dictionary<string, ParameterExpression> locals =
+        new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Controls that only persisted values are used.</summary>
+    private bool isParsingDefinition;
+    /// <summary>Place holder for the first lambda parameter, if any.</summary>
+    private ParameterExpression? lambdaParameter;
+    /// <summary>Place holder for the second lambda parameter, if any.</summary>
+    private ParameterExpression? lambdaParameter2;
+
+    /// <summary>Memoized expressions.</summary>
+    private readonly Dictionary<string, Expression> memos = new();
     /// <summary>Compressed value of the current lexeme.</summary>
     private LexValue val;
     /// <summary>Used by the scanner to build string literals.</summary>
@@ -36,56 +53,47 @@ internal sealed partial class AstContext
     /// <summary>Initializes a parsing context.</summary>
     /// <param name="source">Environment variables.</param>
     /// <param name="text">Text of the formula.</param>
-    public AstContext(IDataSource source, string text)
+    public Parser(IDataSource source, string text)
     {
-        (Source, this.text, Id) = (source, text, "");
+        (this.source, this.text, Id) = (source, text, "");
         Move();
     }
 
-    /// <summary>Gets the outer scope for variables.</summary>
-    public IDataSource Source { get; }
-
-    /// <summary>Gets the text being scanned.</summary>
-    public string Text => text;
-
     /// <summary>Gets the type of the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    public Token Kind { get; private set; }
+    private Token Kind { get; set; }
 
     /// <summary>Gets the start position of the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    public int Start { get; private set; }
+    private int Start { get; set; }
 
     /// <summary>Gets the string associated with the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    public string Id { get; private set; }
+    private string Id { get; set; }
 
     /// <summary>Value of the current lexeme as a real number.</summary>
-    public double AsReal { get => val.AsReal; private set => val.AsReal = value; }
+    private double AsReal { get => val.AsReal; set => val.AsReal = value; }
     /// <summary>Value of the lexeme as an integer.</summary>
-    public int AsInt { get => val.AsInt; private set => val.AsInt = value; }
+    private int AsInt { get => val.AsInt; set => val.AsInt = value; }
     /// <summary>Value of the lexeme as a date literal.</summary>
-    public Date AsDate { get => val.AsDate; private set => val.AsDate = value; }
+    private Date AsDate { get => val.AsDate; set => val.AsDate = value; }
 
-    /// <summary>Gets the parameter referencing the outer scope.</summary>
-    public static ParameterExpression SourceParameter { get; } =
-        Expression.Parameter(typeof(IDataSource), "datasource");
+    /// <summary>Name of the left side value, if any.</summary>
+    public string LeftValue { get; set; } = "";
 
-    /// <summary>Place holder for the first lambda parameter, if any.</summary>
-    public ParameterExpression? LambdaParameter { get; set; }
-    /// <summary>Place holder for the second lambda parameter, if any.</summary>
-    public ParameterExpression? LambdaParameter2 { get; set; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public (string lowerText, int position) GetTextAndPos() =>
-        (Id.ToLower(), Start);
-
-    /// <summary>Transient local variable definitions.</summary>
-    public Dictionary<string, ParameterExpression> Locals { get; } =
-        new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>
+    /// Creates an expression that retrieves a value variable from the data source.
+    /// </summary>
+    /// <param name="id">Series name.</param>
+    /// <param name="type">Result type.</param>
+    private Expression GetFromDataSource(string id, Type type) =>
+        memos.TryGetValue(id, out Expression? memo)
+        ? memo
+        : memos[id] = Expression.Convert(
+            Expression.Property(sourceParameter, "Item", Expression.Constant(id)), type);
 
     /// <summary>Skips two tokens with a single call.</summary>
-    public void Skip2() { Move(); Move(); }
+    private void Skip2() { Move(); Move(); }
 
     /// <summary>
     /// Checks that the current token is of the expected kind and advances the cursor.
@@ -94,35 +102,15 @@ internal sealed partial class AstContext
     /// <param name="errorMessage">Error message to use in the exception.</param>
     /// <exception cref="AstException">Thrown when the token doesn't match.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void CheckAndMove(Token kind, string errorMessage)
+    private void CheckAndMove(Token kind, string errorMessage)
     {
         if (Kind != kind)
             throw new AstException(errorMessage, Start);
         Move();
     }
 
-    /// <summary>Controls that only persisted values are used.</summary>
-    public bool ParsingDefinition { get; set; }
-
-    /// <summary>Name of the left side value, if any.</summary>
-    public string LeftValue { get; set; } = "";
-
-    /// <summary>Referenced definitions.</summary>
-    public HashSet<Definition> References { get; } = new();
-
-    /// <summary>
-    /// Creates an expression that retrieves a value variable from the data source.
-    /// </summary>
-    /// <param name="id">Series name.</param>
-    /// <param name="type">Result type.</param>
-    public Expression GetFromDataSource(string id, Type type) =>
-        memos.TryGetValue(id, out Expression? memo)
-        ? memo
-        : memos[id] = Expression.Convert(
-            Expression.Property(SourceParameter, "Item", Expression.Constant(id)), type);
-
     /// <summary>Advances the lexical analyzer one token.</summary>
-    public void Move()
+    private void Move()
     {
         ref char c = ref As<Str>(text).FirstChar;
     SKIP_BLANKS:
@@ -446,7 +434,7 @@ internal sealed partial class AstContext
     /// <param name="text">Text span to analyze.</param>
     /// <param name="date">When succeeds, returns the first date of the month.</param>
     /// <returns><see langword="true"/> if succeeds.</returns>
-    public static bool TryParseMonthYear(ReadOnlySpan<char> text, out Date date)
+    private static bool TryParseMonthYear(ReadOnlySpan<char> text, out Date date)
     {
         if (text.Length >= 5)
         {
@@ -482,6 +470,56 @@ internal sealed partial class AstContext
             : throw new AstException("Invalid day of month", position);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsArithmetic(Expression e1) =>
+        e1.Type == typeof(int) || e1.Type == typeof(double);
+
+    private static bool AreArithmeticTypes(Expression e1, Expression e2) =>
+        IsArithmetic(e1) && IsArithmetic(e2);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsVectorOrMatrix(Expression e1) =>
+        e1.Type == typeof(Vector) || IsMatrix(e1);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsMatrix(Expression e1) =>
+        e1.Type.IsAssignableTo(typeof(IMatrix));
+
+    private static Expression ToDouble(Expression e) =>
+        e.Type != typeof(int)
+        ? e
+        : e is ConstantExpression constExpr
+        ? Expression.Constant((double)(int)constExpr.Value!, typeof(double))
+        : Expression.Convert(e, typeof(double));
+
+    private static bool DifferentTypes(ref Expression e1, ref Expression e2)
+    {
+        if (e1.Type != e2.Type)
+        {
+            if (e1.Type == typeof(Complex) && IsArithmetic(e2))
+                e2 = Expression.Convert(e2, typeof(Complex));
+            else if (e2.Type == typeof(Complex) && IsArithmetic(e1))
+                e1 = Expression.Convert(e1, typeof(Complex));
+            else
+            {
+                if (!AreArithmeticTypes(e1, e2))
+                    return true;
+                (e1, e2) = (ToDouble(e1), ToDouble(e2));
+            }
+        }
+        return false;
+    }
+
+    private static AstException Error(string message, int position) =>
+        new(message, position);
+
+    private AstException Error(string message) =>
+        new(message, Start);
+
+    /// <summary>Gets a regex that matches a set statement</summary>
+    [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase, "es-ES")]
+    private static partial Regex LetHeaderRegex();
+    
     /// <summary>C# union to save space in the lexeme.</summary>
     [StructLayout(LayoutKind.Explicit)]
     private struct LexValue

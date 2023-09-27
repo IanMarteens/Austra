@@ -169,7 +169,7 @@ public readonly struct Matrix :
     /// <summary>Creates a squared matrix filled with a standard normal distribution.</summary>
     /// <param name="size">Number of rows.</param>
     /// <param name="random">A random standard normal generator.</param>
-    public unsafe Matrix(int size, NormalRandom random) :
+    public Matrix(int size, NormalRandom random) :
         this(size, size, random)
     { }
 
@@ -423,8 +423,8 @@ public readonly struct Matrix :
     {
         get
         {
-            var (rOff, rLen) = rowRange.GetOffsetAndLength(Rows);
-            var (cOff, cLen) = columnRange.GetOffsetAndLength(Cols);
+            (int rOff, int rLen) = rowRange.GetOffsetAndLength(Rows);
+            (int cOff, int cLen) = columnRange.GetOffsetAndLength(Cols);
             if (cLen == Cols)
             {
                 if (rLen == Rows)
@@ -760,7 +760,7 @@ public readonly struct Matrix :
     /// <param name="m">The matrix.</param>
     /// <returns>The pointwise addition of the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe Matrix operator +(double d, Matrix m) => m + d;
+    public static Matrix operator +(double d, Matrix m) => m + d;
 
     /// <summary>Subtracts a scalar from a matrix.</summary>
     /// <param name="m">The matrix.</param>
@@ -1051,6 +1051,7 @@ public readonly struct Matrix :
 
     /// <summary>Multiplies this matrix by itself.</summary>
     /// <returns>The square of the matrix.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Matrix Square() => this * this;
 
     /// <summary>Multiplies this matrix by the transposed argument.</summary>
@@ -1103,7 +1104,7 @@ public readonly struct Matrix :
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe Vector operator *(Matrix m, Vector v) =>
+    public static Vector operator *(Matrix m, Vector v) =>
         m.Multiply(v, GC.AllocateUninitializedArray<double>(m.Rows));
 
     /// <summary>Transform a vector using the transposed matrix.</summary>

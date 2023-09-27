@@ -17,6 +17,7 @@ public readonly struct RMatrix :
     IMultiplyOperators<RMatrix, Vector, Vector>,
     IMultiplyOperators<RMatrix, double, RMatrix>,
     IDivisionOperators<RMatrix, double, RMatrix>,
+    IUnaryNegationOperators<RMatrix, RMatrix>,
     IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>
@@ -258,7 +259,8 @@ public readonly struct RMatrix :
     }
 
     /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
-    public static unsafe Matrix operator +(RMatrix m1, LMatrix m2) => new Matrix(m1.values) + m2;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Matrix operator +(RMatrix m1, LMatrix m2) => new Matrix(m1.values) + m2;
 
     /// <summary>Subtracts two upper matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
@@ -286,6 +288,33 @@ public readonly struct RMatrix :
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] - pB[k];
             }
+        return result;
+    }
+
+    /// <summary>Negates an upper right matrix.</summary>
+    /// <param name="m">The matrix operand.</param>
+    /// <returns>Cell-by-cell negation.</returns>
+    public static unsafe RMatrix operator -(RMatrix m)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Ensures(Contract.Result<RMatrix>().Rows == m.Rows);
+        Contract.Ensures(Contract.Result<RMatrix>().Cols == m.Cols);
+
+        int r = m.Rows, c = m.Cols;
+        double[,] result = new double[r, c];
+        fixed (double* pA = m.values, pC = result)
+        {
+            Vector256<double> z = Vector256<double>.Zero;
+            for (int row = 0, offset = 0; row < r; row++, offset += c)
+            {
+                int col = row, k = offset + col;
+                if (Avx.IsSupported)
+                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
+                        Avx.Store(pC + k, Avx.Subtract(z, Avx.LoadVector256(pA + k)));
+                for (; col < c; col++, k++)
+                    pC[k] = -pA[k];
+            }
+        }
         return result;
     }
 
@@ -437,21 +466,27 @@ public readonly struct RMatrix :
         ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
 
     /// <summary>Checks two matrices for equality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(RMatrix left, RMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(RMatrix left, LMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(RMatrix left, Matrix right) => right == left;
 
     /// <summary>Checks two matrices for inequality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(RMatrix left, RMatrix right) => !(left == right);
 
     /// <summary>Checks two matrices for inequality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(RMatrix left, LMatrix right) => !(left == right);
 
     /// <summary>Checks two matrices for inequality.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(RMatrix left, Matrix right) => !(left == right);
 
     /// <summary>Gets a textual representation of this matrix.</summary>

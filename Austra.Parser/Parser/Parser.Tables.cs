@@ -1,7 +1,7 @@
 ﻿namespace Austra.Parser;
 
-/// <summary>Syntactic analysis for AUSTRA.</summary>
-internal static partial class Parser
+/// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
+internal sealed partial class Parser
 {
     /// <summary>Most common argument list in functions.</summary>
     private static readonly Type[] doubleArg = new[] { typeof(double) };
@@ -395,93 +395,45 @@ internal static partial class Parser
                 ["isleap"] = typeof(Date).Get(nameof(Date.IsLeap)),
             },
         };
+}
 
+internal static class ParserExtensions
+{
     /// <summary>Avoids repeating the bang operator (!) in the code.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static MethodInfo Get(this Type type, string method) =>
+    public static MethodInfo Get(this Type type, string method) =>
          type.GetMethod(method)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static MethodInfo Prop(this Type type, string property) =>
+    public static MethodInfo Prop(this Type type, string property) =>
          type.GetProperty(property)!.GetGetMethod()!;
 
-    private static NewExpression New(this Type type, params Expression[] args) =>
+    public static NewExpression New(this Type type, params Expression[] args) =>
         Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
 
-    private static NewExpression New(this Type type, List<Expression> args) =>
+    public static NewExpression New(this Type type, List<Expression> args) =>
         Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
 
-    private static NewArrayExpression Make(this Type type, IEnumerable<Expression> args) =>
+    public static NewArrayExpression Make(this Type type, IEnumerable<Expression> args) =>
         Expression.NewArrayInit(type, args);
 
-    private static MethodCallExpression Call(this Type type,
+    public static MethodCallExpression Call(this Type type,
         Expression? instance, string method, Expression arg) =>
         Expression.Call(instance, type.GetMethod(method, new[] { arg.Type })!, arg);
 
-    private static MethodCallExpression Call(this Type type,
+    public static MethodCallExpression Call(this Type type,
         string method, Expression a1, Expression a2) =>
         Expression.Call(type.GetMethod(method, new[] { a1.Type, a2.Type })!, a1, a2);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsArithmetic(Expression e1) =>
-    e1.Type == typeof(int) || e1.Type == typeof(double);
-
-    private static bool AreArithmeticTypes(Expression e1, Expression e2) =>
-        IsArithmetic(e1) && IsArithmetic(e2);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsVectorMatrix(Expression e1) =>
-        e1.Type == typeof(Vector)
-        || e1.Type == typeof(Matrix) || e1.Type == typeof(LMatrix);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsMatrix(Expression e1) =>
-        e1.Type.IsAssignableTo(typeof(IMatrix));
-
-    private static Expression ToDouble(Expression e) =>
-        e.Type != typeof(int)
-        ? e
-        : e is ConstantExpression constExpr
-        ? Expression.Constant((double)(int)constExpr.Value!, typeof(double))
-        : Expression.Convert(e, typeof(double));
-
-    private static bool DifferentTypes(ref Expression e1, ref Expression e2)
-    {
-        if (e1.Type != e2.Type)
-        {
-            if (e1.Type == typeof(Complex) && IsArithmetic(e2))
-                e2 = Expression.Convert(e2, typeof(Complex));
-            else if (e2.Type == typeof(Complex) && IsArithmetic(e1))
-                e1 = Expression.Convert(e1, typeof(Complex));
-            else
-            {
-                if (!AreArithmeticTypes(e1, e2))
-                    return true;
-                (e1, e2) = (ToDouble(e1), ToDouble(e2));
-            }
-        }
-        return false;
-    }
-
-    private static List<Expression> AddExp(this List<Expression> args, Expression exp)
+    public static List<Expression> AddExp(this List<Expression> args, Expression exp)
     {
         args.Add(exp);
         return args;
     }
 
-    private static List<Expression> AddRandom(this List<Expression> args) =>
+    public static List<Expression> AddRandom(this List<Expression> args) =>
         args.AddExp(Expression.New(typeof(Random).GetConstructor(Array.Empty<Type>())!));
 
-    private static List<Expression> AddNormalRandom(this List<Expression> args) =>
+    public static List<Expression> AddNormalRandom(this List<Expression> args) =>
         args.AddExp(Expression.New(typeof(NormalRandom).GetConstructor(Array.Empty<Type>())!));
-
-    private static AstException Error(string message, int position) =>
-        new(message, position);
-
-    private static AstException Error(string message, AstContext ctx) =>
-        new(message, ctx.Start);
-
-    /// <summary>Gets a regex that matches a set statement</summary>
-    [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase, "es-ES")]
-    private static partial Regex LetHeaderRegex();
 }

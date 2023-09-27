@@ -137,8 +137,8 @@ public readonly struct ComplexVector :
             {
                 for (int top = values.Length & ~7; i < top; i += 4)
                 {
-                    var v1 = Avx.LoadVector256((double*)(r + i));
-                    var v2 = Avx.LoadVector256((double*)(r + i + 2));
+                    Vector256<double> v1 = Avx.LoadVector256((double*)(r + i));
+                    Vector256<double> v2 = Avx.LoadVector256((double*)(r + i + 2));
                     Avx.Store(p + i, Avx2.Permute4x64(Avx.UnpackLow(v1, v2), 0b11011000));
                     Avx.Store(q + i, Avx2.Permute4x64(Avx.UnpackHigh(v1, v2), 0b11011000));
                 }
@@ -174,8 +174,8 @@ public readonly struct ComplexVector :
             {
                 for (int top = v.Length & ~3; i < top; i += 4)
                 {
-                    var vr = Avx.LoadVector256(p + i);
-                    var vi = Avx.LoadVector256(q + i);
+                    Vector256<double> vr = Avx.LoadVector256(p + i);
+                    Vector256<double> vi = Avx.LoadVector256(q + i);
                     Avx.Store((double*)(r + i), Avx2.Permute4x64(Avx.Permute2x128(
                         vr, vi, 0b0010_0000), 0b11_01_10_00));
                     Avx.Store((double*)(r + i + 2), Avx2.Permute4x64(Avx.Permute2x128(
@@ -405,10 +405,10 @@ public readonly struct ComplexVector :
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                 {
-                    var vpr = Avx.LoadVector256(pr + i);
-                    var vpi = Avx.LoadVector256(pi + i);
-                    var vqr = Avx.LoadVector256(qr + i);
-                    var vqi = Avx.LoadVector256(qi + i);
+                    Vector256<double> vpr = Avx.LoadVector256(pr + i);
+                    Vector256<double> vpi = Avx.LoadVector256(pi + i);
+                    Vector256<double> vqr = Avx.LoadVector256(qr + i);
+                    Vector256<double> vqi = Avx.LoadVector256(qi + i);
                     Avx.Store(vr + i, Avx.Multiply(vpr, vqr).MultiplyAddNeg(vpi, vqi));
                     Avx.Store(vm + i, Avx.Multiply(vpr, vqi).MultiplyAdd(vpi, vqr));
                 }
@@ -440,11 +440,11 @@ public readonly struct ComplexVector :
             if (Avx.IsSupported)
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                 {
-                    var vpr = Avx.LoadVector256(pr + i);
-                    var vpi = Avx.LoadVector256(pi + i);
-                    var vqr = Avx.LoadVector256(qr + i);
-                    var vqi = Avx.LoadVector256(qi + i);
-                    var quotient = Avx.Multiply(vqr, vqr).MultiplyAdd(vqi, vqi);
+                    Vector256<double> vpr = Avx.LoadVector256(pr + i);
+                    Vector256<double> vpi = Avx.LoadVector256(pi + i);
+                    Vector256<double> vqr = Avx.LoadVector256(qr + i);
+                    Vector256<double>    vqi = Avx.LoadVector256(qi + i);
+                    Vector256<double> quotient = Avx.Multiply(vqr, vqr).MultiplyAdd(vqi, vqi);
                     Avx.Store(vr + i,
                         Avx.Divide(Avx.Multiply(vpr, vqr).MultiplyAdd(vpi, vqi), quotient));
                     Avx.Store(vm + i,
@@ -479,10 +479,10 @@ public readonly struct ComplexVector :
                 Vector256<double> accIm = Vector256<double>.Zero;
                 for (int top = size & Simd.AVX_MASK; i < top; i += 4)
                 {
-                    var vpr = Avx.LoadVector256(pr + i);
-                    var vpi = Avx.LoadVector256(pi + i);
-                    var vqr = Avx.LoadVector256(qr + i);
-                    var vqi = Avx.LoadVector256(qi + i);
+                    Vector256<double> vpr = Avx.LoadVector256(pr + i);
+                    Vector256<double> vpi = Avx.LoadVector256(pi + i);
+                    Vector256<double> vqr = Avx.LoadVector256(qr + i);
+                    Vector256<double> vqi = Avx.LoadVector256(qi + i);
                     accRe = Avx.Add(accRe, Avx.Multiply(vpr, vqr).MultiplyAdd(vpi, vqi));
                     accIm = Avx.Add(accIm, Avx.Multiply(vpi, vqr).MultiplySub(vpr, vqi));
                 }
@@ -527,7 +527,7 @@ public readonly struct ComplexVector :
 
     /// <summary>Gets the Euclidean norm of this vector.</summary>
     /// <returns>The squared root of the dot product.</returns>
-    public unsafe double Norm() => Sqrt(Squared());
+    public double Norm() => Sqrt(Squared());
 
     /// <summary>Multiplies a vector by a scalar value.</summary>
     /// <param name="v">Vector to be multiplied.</param>
@@ -545,12 +545,12 @@ public readonly struct ComplexVector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                var vr = Vector256.Create(c.Real);
-                var vi = Vector256.Create(c.Imaginary);
+                Vector256<double> vr = Vector256.Create(c.Real);
+                Vector256<double> vi = Vector256.Create(c.Imaginary);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                 {
-                    var vpr = Avx.LoadVector256(pr + i);
-                    var vpi = Avx.LoadVector256(pi + i);
+                    Vector256<double> vpr = Avx.LoadVector256(pr + i);
+                    Vector256<double> vpi = Avx.LoadVector256(pi + i);
                     Avx.Store(qr + i, Avx.Multiply(vpr, vr).MultiplyAddNeg(vpi, vi));
                     Avx.Store(qi + i, Avx.Multiply(vpr, vi).MultiplyAdd(vpi, vr));
                 }
@@ -580,7 +580,7 @@ public readonly struct ComplexVector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                var vd = Vector256.Create(d);
+                Vector256<double> vd = Vector256.Create(d);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                 {
                     Avx.Store(qr + i, Avx.Multiply(Avx.LoadVector256(pr + i), vd));
@@ -600,14 +600,14 @@ public readonly struct ComplexVector :
     /// <param name="v">Vector to be divided.</param>
     /// <param name="c">A complex scalar divisor.</param>
     /// <returns>The division of the vector by the scalar.</returns>
-    public static unsafe ComplexVector operator /(ComplexVector v, Complex c) =>
+    public static ComplexVector operator /(ComplexVector v, Complex c) =>
         v * Complex.Reciprocal(c);
 
     /// <summary>Divides a complex vector by a scalar.</summary>
     /// <param name="v">Vector to be divided.</param>
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The division of the vector by the scalar.</returns>
-    public static unsafe ComplexVector operator /(ComplexVector v, double d) =>
+    public static ComplexVector operator /(ComplexVector v, double d) =>
         v * (1.0 / d);
 
     /// <summary>Multiplies a complex scalar value by a vector.</summary>

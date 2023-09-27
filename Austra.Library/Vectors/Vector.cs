@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents a dense vector of arbitrary size.</summary>
 public readonly struct Vector :
@@ -313,7 +311,7 @@ public readonly struct Vector :
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component subtraction.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe Vector operator -(Vector v1, Vector v2) =>
+    public static Vector operator -(Vector v1, Vector v2) =>
         v1.Sub(v2, GC.AllocateUninitializedArray<double>(v1.Length));
 
     /// <summary>subtracts a vector from this vector.</summary>
@@ -569,13 +567,13 @@ public readonly struct Vector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <returns>The multiplication of the vector by the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe Vector operator *(double d, Vector v) => v * d;
+    public static Vector operator *(double d, Vector v) => v * d;
 
     /// <summary>Divides a vector by a scalar value.</summary>
     /// <param name="v">Vector to be divided.</param>
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The division of the vector by the scalar.</returns>
-    public static unsafe Vector operator /(Vector v, double d) => v * (1.0 / d);
+    public static Vector operator /(Vector v, double d) => v * (1.0 / d);
 
     /// <summary>The external product of two vectors.</summary>
     /// <param name="v1">First vector operand.</param>
@@ -1311,15 +1309,13 @@ public readonly struct Vector :
     /// <param name="left">First vector operand.</param>
     /// <param name="right">Second vector operand.</param>
     /// <returns></returns>
-    public static bool operator ==(Vector left, Vector right) =>
-        left.Equals(right);
+    public static bool operator ==(Vector left, Vector right) => left.Equals(right);
 
     /// <summary>Compares two vectors for inequality. </summary>
     /// <param name="left">First vector operand.</param>
     /// <param name="right">Second vector operand.</param>
     /// <returns></returns>
-    public static bool operator !=(Vector left, Vector right) =>
-        !left.Equals(right);
+    public static bool operator !=(Vector left, Vector right) => !left.Equals(right);
 
     internal (double total, double residuals, double r2) GetSumSquares(Vector other)
     {

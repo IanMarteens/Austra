@@ -145,9 +145,9 @@ public partial class AustraEngine : IAustraEngine
             return new(dList, dList.GetType(), name);
         }
 
-        AstContext ctx = new(Source, formula);
+        Parser parser = new(Source, formula);
         Stopwatch sw = Stopwatch.StartNew();
-        Func<IDataSource, object> lambda = Parser.Parse(ctx);
+        Func<IDataSource, object> lambda = parser.Parse();
         sw.Stop();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         sw.Restart();
@@ -160,7 +160,7 @@ public partial class AustraEngine : IAustraEngine
             Source["ans"] = answer;
             lastType = answer.GetType();
         }
-        return new(answer, lastType, ctx.LeftValue);
+        return new(answer, lastType, parser.LeftValue);
     }
 
     /// <summary>Parses an AUSTRA formula and returns its type.</summary>
@@ -171,7 +171,7 @@ public partial class AustraEngine : IAustraEngine
     {
         ExecutionTime = CompileTime = null;
         Stopwatch sw = Stopwatch.StartNew();
-        Type result = Parser.ParseType(new(Source, formula));
+        Type result = new Parser(Source, formula).ParseType();
         sw.Stop();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         return result;
@@ -183,7 +183,7 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>The type resulting from the evaluation.</returns>
     public Definition ParseDefinition(string definition, string description)
     {
-        Definition def = Parser.ParseDefinition(new(Source, definition), description);
+        Definition def = new Parser(Source, definition).ParseDefinition(description);
         Source.AddDefinition(def);
         return def;
     }
