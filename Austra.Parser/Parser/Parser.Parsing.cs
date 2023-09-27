@@ -614,8 +614,7 @@ internal sealed partial class Parser
                 case Token.Transpose:
                     e = e.Type == typeof(ComplexVector)
                         ? Expression.Call(e, e.Type.Get(nameof(ComplexVector.Conjugate)))
-                        : e.Type == typeof(Matrix) || e.Type == typeof(LMatrix)
-                            || e.Type == typeof(RMatrix)
+                        : IsMatrix(e)
                         ? Expression.Call(e, e.Type.Get(nameof(Matrix.Transpose)))
                         : e.Type == typeof(Complex)
                         ? e.Type.Call(null, nameof(Complex.Conjugate), e)

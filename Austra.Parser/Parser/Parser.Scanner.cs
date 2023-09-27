@@ -456,6 +456,7 @@ internal sealed partial class Parser
     private static bool IsArithmetic(Expression e1) =>
         e1.Type == typeof(int) || e1.Type == typeof(double);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool AreArithmeticTypes(Expression e1, Expression e2) =>
         IsArithmetic(e1) && IsArithmetic(e2);
 
@@ -467,6 +468,7 @@ internal sealed partial class Parser
     private static bool IsMatrix(Expression e1) =>
         e1.Type.IsAssignableTo(typeof(IMatrix));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Expression ToDouble(Expression e) =>
         e.Type != typeof(int)
         ? e
