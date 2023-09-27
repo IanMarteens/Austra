@@ -305,16 +305,16 @@ internal sealed partial class Parser
     /// <returns>Token.Id, if not a keyword; otherwise, the corresponding keyword.</returns>
     private static Token IsIntelKeyword(ref char c, int len)
     {
-        const uint kAnd = 'a' | ('n' << 16);
-        const uint kDef = 'd' | ('e' << 16);
+        const ulong kAnd = 'a' | ('n' << 16) | ((ulong)'d' << 32);
+        const ulong kDef = 'd' | ('e' << 16) | ((ulong)'f' << 32);
         const ulong kElse = 'e' | ('l' << 16) | ((ulong)'s' << 32) | ((ulong)'e' << 48);
         const uint kIf = 'i' | ('f' << 16);
         const uint kIn = 'i' | ('n' << 16);
         const ulong kFalse = 'f' | ('a' << 16) | ((ulong)'l' << 32) | ((ulong)'s' << 48);
-        const uint kLet = 'l' | ('e' << 16);
-        const uint kNot = 'n' | ('o' << 16);
+        const ulong kLet = 'l' | ('e' << 16) | ((ulong)'t' << 32);
+        const ulong kNot = 'n' | ('o' << 16) | ((ulong)'t' << 32);
         const uint kOr = 'o' | ('r' << 16);
-        const uint kSet = 's' | ('e' << 16);
+        const ulong kSet = 's' | ('e' << 16) | ((ulong)'t' << 32);
         const ulong kThen = 't' | ('h' << 16) | ((ulong)'e' << 32) | ((ulong)'n' << 48);
         const ulong kTrue = 't' | ('r' << 16) | ((ulong)'u' << 32) | ((ulong)'e' << 48);
         const ulong kUndef = 'u' | ('n' << 16) | ((ulong)'d' << 32) | ((ulong)'e' << 48);
@@ -328,13 +328,13 @@ internal sealed partial class Parser
                 kOr => Token.Or,
                 _ => Token.Id,
             },
-            3 => (As<char, uint>(ref c) | 0x00200020) switch
+            3 => ((As<char, ulong>(ref c) | 0x0020002000200020) & 0xFFFFFFFFFFFF) switch
             {
-                kAnd => (Add(ref c, 2) | 0x20) == 'd' ? Token.And : Token.Id,
-                kDef => (Add(ref c, 2) | 0x20) == 'f' ? Token.Def : Token.Id,
-                kLet => (Add(ref c, 2) | 0x20) == 't' ? Token.Let : Token.Id,
-                kNot => (Add(ref c, 2) | 0x20) == 't' ? Token.Not : Token.Id,
-                kSet => (Add(ref c, 2) | 0x20) == 't' ? Token.Set : Token.Id,
+                kAnd => Token.And,
+                kDef => Token.Def,
+                kLet => Token.Let,
+                kNot => Token.Not,
+                kSet => Token.Set,
                 _ => Token.Id,
             },
             4 => (As<char, ulong>(ref c) | 0x0020002000200020) switch

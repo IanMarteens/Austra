@@ -442,59 +442,71 @@ public static class CommonMatrix
                 array[i, colIndex] = column.Item2[i];
             colIndex++;
         }
-        if (colEllipsis)
-        {
-            int rowIndex = 0;
-            for (int row = 0; row < upper; row++)
-                array[rowIndex++, colIndex] = "..";
-            if (rowEllipsis)
-                array[rowIndex++, colIndex] = "..";
-            for (int row = rowCount - lower; row < rowCount; row++)
-                array[rowIndex++, colIndex] = "..";
-            colIndex++;
-        }
+        int saveCol = colIndex++;
         foreach ((int, string[]) column in columnsRight)
         {
             for (int i = 0; i < column.Item2.Length; i++)
                 array[i, colIndex] = column.Item2[i];
             colIndex++;
         }
+        if (colEllipsis)
+        {
+            colIndex = saveCol;
+            int rowIndex = 0;
+            if (triangularity == 0)
+            {
+                for (int row = 0; row < upper; row++)
+                    array[rowIndex++, colIndex] = "..";
+                if (rowEllipsis)
+                    array[rowIndex++, colIndex] = "..";
+                for (int row = rowCount - lower; row < rowCount; row++)
+                    array[rowIndex++, colIndex] = "..";
+            }
+            else
+            {
+                (_, string[] refCol) = triangularity < 0 ? columnsLeft[^1] : columnsRight[0];
+                for (int row = 0; row < upper; row++, rowIndex++)
+                    if (refCol[rowIndex] != "")
+                        array[rowIndex, colIndex] = "..";
+                if (rowEllipsis)
+                    if (triangularity < 0)
+                        rowIndex++;
+                    else
+                        array[rowIndex++, colIndex] = "..";
+                for (int row = rowCount - lower; row < rowCount; row++, rowIndex++)
+                    if (refCol[rowIndex] != "")
+                        array[rowIndex, colIndex] = "..";
+            }
+        }
         return FormatStringArrayToString(array);
+
+        string Filter(double value, int row, int column) =>
+            triangularity switch
+            {
+                1 => row > column ? "" : formatter(value),
+                -1 => row < column ? "" : formatter(value),
+                _ => formatter(value)
+            };
 
         (int, string[]) FormatColumn(int column, int height, int upper, int lower)
         {
             string[] c = new string[height];
             int index = 0;
             for (int row = 0; row < upper; row++)
-                if (triangularity == 0)
-                    c[index++] = formatter(data[row, column]);
-                else if (triangularity < 0)
-                    if (row >= column)
-                        c[index++] = formatter(data[row, column]);
-                    else
-                        c[index++] = "";
-                else if (row <= column)
-                    c[index++] = formatter(data[row, column]);
-                else
-                    c[index++] = "";
+                c[index++] = Filter(data[row, column], row, column);
             if (rowEllipsis)
                 c[index++] = "";
             int rowCount = data.GetLength(0);
             for (int row = rowCount - lower; row < rowCount; row++)
-                if (triangularity == 0)
-                    c[index++] = formatter(data[row, column]);
-                else if (triangularity < 0)
-                    if (row >= column)
-                        c[index++] = formatter(data[row, column]);
-                    else
-                        c[index++] = "";
-                else if (row >= column)
-                    c[index++] = formatter(data[row, column]);
-                else
-                    c[index++] = "";
+                c[index++] = Filter(data[row, column], row, column);
             int w = c.Max(x => x.Length);
             if (rowEllipsis)
-                c[upper] = "..";
+                if (triangularity == 0 ||
+                    triangularity < 0 && column <= upper ||
+                    triangularity > 0 && column >= upper)
+                    c[upper] = "..";
+                else
+                    c[upper] = "";
             return (w, c);
         }
 
@@ -504,13 +516,13 @@ public static class CommonMatrix
             Span<int> widths = stackalloc int[cols];
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    widths[j] = Max(widths[j], data[i, j].Length);
+                    widths[j] = Max(widths[j], data[i, j]?.Length ?? 0);
             StringBuilder sb = new();
             for (int i = 0; i < rows; i++)
             {
                 sb.Append(data[i, 0].PadLeft(widths[0]));
                 for (int j = 1; j < cols; j++)
-                    sb.Append("  ").Append(data[i, j].PadLeft(widths[j]));
+                    sb.Append("  ").Append((data[i, j] ?? "").PadLeft(widths[j]));
                 sb.AppendLine();
             }
             return sb.ToString();

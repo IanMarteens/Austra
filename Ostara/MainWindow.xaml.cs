@@ -84,7 +84,7 @@ public partial class MainWindow : Window
                 if (!char.IsLetterOrDigit(e.Text[0]))
                 {
                     // Avoid inserting the same text twice!
-                    if (completionWindow.CompletionList.SelectedItem.Text.EndsWith(e.Text))
+                    if (completionWindow.CompletionList.SelectedItem?.Text.EndsWith(e.Text) == true)
                         e.Handled = true;
                     completionWindow.CompletionList.RequestInsertion(e);
                 }
