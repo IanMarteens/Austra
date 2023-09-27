@@ -396,337 +396,337 @@ internal sealed partial class Parser
             },
         };
 
-    private static readonly Dictionary<Type, (string name, string description)[]> members = new()
+    private static readonly Dictionary<Type, MemberDescription[]> members = new()
     {
-        [typeof(Series)] = new[]
+        [typeof(Series)] = new MemberDescription[]
         {
-            ("count", "Gets the number of points"),
-            ("min", "Gets the minimum value"),
-            ("max", "Gets the maximum value"),
-            ("mean", "Gets the mean value"),
-            ("var", "Gets the variance"),
-            ("varp", "Gets the variance of the population"),
-            ("std", "Gets the standard deviation"),
-            ("stdp", "Gets the standard deviation of the population"),
-            ("skew", "Gets the skewness"),
-            ("skewp", "Gets the skewness of the population"),
-            ("kurt", "Gets the kurtosis"),
-            ("kurtp", "Gets the kurtosis of the population"),
-            ("sum", "Gets the sum of all values"),
-            ("stats", "Gets all statistics"),
-            ("first", "Gets the first point"),
-            ("last", "Gets the last point"),
-            ("rets", "Gets the linear returns"),
-            ("logs", "Gets the logarithmic returns"),
-            ("fft", "Performs a Fast Fourier Transform"),
-            ("perc", "Gets the percentiles"),
-            ("values", "Gets the underlying vector of values"),
-            ("random", "Generates a random series"),
-            ("movingRet", "Gets the moving monthly/yearly return"),
-            ("type", "Gets the type of the series"),
-            ("amax", "Gets the maximum absolute value"),
-            ("amin", "Gets the minimum absolute value"),
-            ("ncdf", "Gets the percentile according to the normal distribution"),
-            ("fit", "Gets coefficients for a linear fit"),
-            ("linearfit", "Gets a line fitting the original series"),
-            ("autocorr(", "Gets the autocorrelation given a lag"),
-            ("corr(", "Gets the correlation with another given series"),
-            ("cov(", "Gets the covariance with another given series"),
-            ("correlogram(", "Gets all autocorrelations up to a given lag"),
-            ("linear(", "Gets the regression coefficients given a list of series"),
-            ("linearModel(", "Creates a linear model"),
-            ("stats(", "Gets monthly statistics for a given date"),
-            ("movingAvg(", "Calculates a Simple Moving Average"),
-            ("movingStd(", "Calculates a Moving Standard Deviation"),
-            ("movingNcdf(", "Calculates a Moving Normal Percentile"),
-            ("ewma(", "Calculates an Exponentially Weighted Moving Average"),
-            ("map(x => ", "Pointwise transformation of the series"),
-            ("any(x => ", "Existential operator"),
-            ("all(x => ", "Universal operator"),
-            ("zip(", "Combines two series"),
-            ("filter(x => ", "Filters points by values or dates"),
-            ("indexof(", "Returns the index where a value is stored"),
-            ("ar(", "Calculates the autoregression coefficients"),
-            ("arModel(", "Creates an AR(p) model"),
-            ("spline", "Creates a cubic interpolator"),
-            ("acf", "AutoCorrelation Function"),
+            new("count", "Gets the number of points"),
+            new("min", "Gets the minimum value"),
+            new("max", "Gets the maximum value"),
+            new("mean", "Gets the mean value"),
+            new("var", "Gets the variance"),
+            new("varp", "Gets the variance of the population"),
+            new("std", "Gets the standard deviation"),
+            new("stdp", "Gets the standard deviation of the population"),
+            new("skew", "Gets the skewness"),
+            new("skewp", "Gets the skewness of the population"),
+            new("kurt", "Gets the kurtosis"),
+            new("kurtp", "Gets the kurtosis of the population"),
+            new("sum", "Gets the sum of all values"),
+            new("stats", "Gets all statistics"),
+            new("first", "Gets the first point"),
+            new("last", "Gets the last point"),
+            new("rets", "Gets the linear returns"),
+            new("logs", "Gets the logarithmic returns"),
+            new("fft", "Performs a Fast Fourier Transform"),
+            new("perc", "Gets the percentiles"),
+            new("values", "Gets the underlying vector of values"),
+            new("random", "Generates a random series"),
+            new("movingRet", "Gets the moving monthly/yearly return"),
+            new("type", "Gets the type of the series"),
+            new("amax", "Gets the maximum absolute value"),
+            new("amin", "Gets the minimum absolute value"),
+            new("ncdf", "Gets the percentile according to the normal distribution"),
+            new("fit", "Gets coefficients for a linear fit"),
+            new("linearfit", "Gets a line fitting the original series"),
+            new("autocorr(", "Gets the autocorrelation given a lag"),
+            new("corr(", "Gets the correlation with another given series"),
+            new("cov(", "Gets the covariance with another given series"),
+            new("correlogram(", "Gets all autocorrelations up to a given lag"),
+            new("linear(", "Gets the regression coefficients given a list of series"),
+            new("linearModel(", "Creates a linear model"),
+            new("stats(", "Gets monthly statistics for a given date"),
+            new("movingAvg(", "Calculates a Simple Moving Average"),
+            new("movingStd(", "Calculates a Moving Standard Deviation"),
+            new("movingNcdf(", "Calculates a Moving Normal Percentile"),
+            new("ewma(", "Calculates an Exponentially Weighted Moving Average"),
+            new("map(x => ", "Pointwise transformation of the series"),
+            new("any(x => ", "Existential operator"),
+            new("all(x => ", "Universal operator"),
+            new("zip(", "Combines two series"),
+            new("filter(x => ", "Filters points by values or dates"),
+            new("indexof(", "Returns the index where a value is stored"),
+            new("ar(", "Calculates the autoregression coefficients"),
+            new("arModel(", "Creates an AR(p) model"),
+            new("spline", "Creates a cubic interpolator"),
+            new("acf", "AutoCorrelation Function"),
         },
-        [typeof(Series<int>)] = new[]
+        [typeof(Series<int>)] = new MemberDescription[]
         {
-            ("stats", "Gets all statistics"),
-            ("first", "Gets the first point"),
-            ("last", "Gets the last point"),
-            ("values", "Gets the underlying vector of values"),
+            new("stats", "Gets all statistics"),
+            new("first", "Gets the first point"),
+            new("last", "Gets the last point"),
+            new("values", "Gets the underlying vector of values"),
         },
-        [typeof(Series<double>)] = new[]
+        [typeof(Series<double>)] = new MemberDescription[]
         {
-            ("stats", "Gets all statistics"),
-            ("first", "Gets the first point"),
-            ("last", "Gets the last point"),
-            ("values", "Gets the underlying vector of values"),
+            new("stats", "Gets all statistics"),
+            new("first", "Gets the first point"),
+            new("last", "Gets the last point"),
+            new("values", "Gets the underlying vector of values"),
         },
-        [typeof(Acc)] = new[]
+        [typeof(Acc)] = new MemberDescription[]
         {
-            ("count", "Gets the number of points"),
-            ("min", "Gets the minimum value"),
-            ("max", "Gets the maximum value"),
-            ("mean", "Gets the mean value"),
-            ("var", "Gets the variance"),
-            ("varp", "Gets the variance of the population"),
-            ("std", "Gets the standard deviation"),
-            ("stdp", "Gets the standard deviation of the population"),
-            ("skew", "Gets the skewness"),
-            ("skewp", "Gets the skewness of the population"),
-            ("kurt", "Gets the kurtosis"),
-            ("kurtp", "Gets the kurtosis of the population"),
+            new("count", "Gets the number of points"),
+            new("min", "Gets the minimum value"),
+            new("max", "Gets the maximum value"),
+            new("mean", "Gets the mean value"),
+            new("var", "Gets the variance"),
+            new("varp", "Gets the variance of the population"),
+            new("std", "Gets the standard deviation"),
+            new("stdp", "Gets the standard deviation of the population"),
+            new("skew", "Gets the skewness"),
+            new("skewp", "Gets the skewness of the population"),
+            new("kurt", "Gets the kurtosis"),
+            new("kurtp", "Gets the kurtosis of the population"),
         },
-        [typeof(Matrix)] = new[]
+        [typeof(Matrix)] = new MemberDescription[]
         {
-            ("rows", "Gets the number of rows"),
-            ("cols", "Gets the number of columns"),
-            ("det", "Calculates the determinant"),
-            ("trace", "Gets the sum of the main diagonal"),
-            ("amax", "Gets the maximum absolute value"),
-            ("amin", "Gets the minimum absolute value"),
-            ("max", "Gets the maximum value"),
-            ("min", "Gets the minimum absolute value"),
-            ("chol", "Calculates the Cholesky Decomposition"),
-            ("evd", "Calculates the EigenValues Decomposition"),
-            ("diag", "Extracts the diagonal as a vector"),
-            ("inverse", "Calculates the inverse of a square matrix"),
-            ("getRow(", "Extracts a row as a vector"),
-            ("getCol(", "Extracts a column as a vector"),
-            ("map(x => ", "Pointwise transformation of matrix cells"),
-            ("any(x => ", "Existential operator"),
-            ("all(x => ", "Universal operator"),
+            new("rows", "Gets the number of rows"),
+            new("cols", "Gets the number of columns"),
+            new("det", "Calculates the determinant"),
+            new("trace", "Gets the sum of the main diagonal"),
+            new("amax", "Gets the maximum absolute value"),
+            new("amin", "Gets the minimum absolute value"),
+            new("max", "Gets the maximum value"),
+            new("min", "Gets the minimum absolute value"),
+            new("chol", "Calculates the Cholesky Decomposition"),
+            new("evd", "Calculates the EigenValues Decomposition"),
+            new("diag", "Extracts the diagonal as a vector"),
+            new("inverse", "Calculates the inverse of a square matrix"),
+            new("getRow(", "Extracts a row as a vector"),
+            new("getCol(", "Extracts a column as a vector"),
+            new("map(x => ", "Pointwise transformation of matrix cells"),
+            new("any(x => ", "Existential operator"),
+            new("all(x => ", "Universal operator"),
         },
-        [typeof(LMatrix)] = new[]
+        [typeof(LMatrix)] = new MemberDescription[]
         {
-            ("rows", "Gets the number of rows"),
-            ("cols", "Gets the number of columns"),
-            ("det", "Calculates the determinant"),
-            ("trace", "Gets the sum of the main diagonal"),
-            ("amax", "Gets the maximum absolute value"),
-            ("amin", "Gets the minimum absolute value"),
-            ("max", "Gets the maximum value"),
-            ("min", "Gets the minimum absolute value"),
-            ("diag", "Extracts the diagonal as a vector"),
+            new("rows", "Gets the number of rows"),
+            new("cols", "Gets the number of columns"),
+            new("det", "Calculates the determinant"),
+            new("trace", "Gets the sum of the main diagonal"),
+            new("amax", "Gets the maximum absolute value"),
+            new("amin", "Gets the minimum absolute value"),
+            new("max", "Gets the maximum value"),
+            new("min", "Gets the minimum absolute value"),
+            new("diag", "Extracts the diagonal as a vector"),
         },
-        [typeof(EVD)] = new[]
+        [typeof(EVD)] = new MemberDescription[]
         {
-            ("vectors", "Gets a matrix with eigenvectors as its columns"),
-            ("values", "Gets all the eigenvalues"),
-            ("d", "Gets a quasi-diagonal real matrix with all eigenvalues")
+            new("vectors", "Gets a matrix with eigenvectors as its columns"),
+            new("values", "Gets all the eigenvalues"),
+            new("d", "Gets a quasi-diagonal real matrix with all eigenvalues")
         },
-        [typeof(LinearSModel)] = new[]
+        [typeof(LinearSModel)] = new MemberDescription[]
         {
-            ("original", "Gets the series to be explained"),
-            ("prediction", "Gets the predicted series"),
-            ("weights", "Gets the regression coefficients"),
-            ("r2", "Gets the regression coefficient"),
-            ("rss", "Gets the Residual Sum of Squares"),
-            ("tss", "Gets the Total Sum of Squares"),
+            new("original", "Gets the series to be explained"),
+            new("prediction", "Gets the predicted series"),
+            new("weights", "Gets the regression coefficients"),
+            new("r2", "Gets the regression coefficient"),
+            new("rss", "Gets the Residual Sum of Squares"),
+            new("tss", "Gets the Total Sum of Squares"),
         },
-        [typeof(LinearVModel)] = new[]
+        [typeof(LinearVModel)] = new MemberDescription[]
         {
-            ("original", "Gets the vector to be explained"),
-            ("prediction", "Gets the predicted vector"),
-            ("weights", "Gets the regression coefficients"),
-            ("r2", "Gets the regression coefficient"),
-            ("rss", "Gets the Residual Sum of Squares"),
-            ("tss", "Gets the Total Sum of Squares"),
+            new("original", "Gets the vector to be explained"),
+            new("prediction", "Gets the predicted vector"),
+            new("weights", "Gets the regression coefficients"),
+            new("r2", "Gets the regression coefficient"),
+            new("rss", "Gets the Residual Sum of Squares"),
+            new("tss", "Gets the Total Sum of Squares"),
         },
-        [typeof(ARSModel)] = new[]
+        [typeof(ARSModel)] = new MemberDescription[]
         {
-            ("original", "Gets the series to be explained"),
-            ("prediction", "Gets the predicted series"),
-            ("coefficients", "Gets the autoregression coefficients"),
-            ("r2", "Gets the regression coefficient"),
-            ("rss", "Gets the Residual Sum of Squares"),
-            ("tss", "Gets the Total Sum of Squares"),
+            new("original", "Gets the series to be explained"),
+            new("prediction", "Gets the predicted series"),
+            new("coefficients", "Gets the autoregression coefficients"),
+            new("r2", "Gets the regression coefficient"),
+            new("rss", "Gets the Residual Sum of Squares"),
+            new("tss", "Gets the Total Sum of Squares"),
         },
-        [typeof(ARVModel)] = new[]
+        [typeof(ARVModel)] = new MemberDescription[]
         {
-            ("original", "Gets the vector to be explained"),
-            ("prediction", "Gets the predicted vector"),
-            ("coefficients", "Gets the autoregression coefficients"),
-            ("r2", "Gets the regression coefficient"),
-            ("rss", "Gets the Residual Sum of Squares"),
-            ("tss", "Gets the Total Sum of Squares"),
+            new("original", "Gets the vector to be explained"),
+            new("prediction", "Gets the predicted vector"),
+            new("coefficients", "Gets the autoregression coefficients"),
+            new("r2", "Gets the regression coefficient"),
+            new("rss", "Gets the Residual Sum of Squares"),
+            new("tss", "Gets the Total Sum of Squares"),
         },
-        [typeof(Vector)] = new[]
+        [typeof(Vector)] = new MemberDescription[]
         {
-            ("length", "Gets the number of items"),
-            ("norm", "Gets the norm of the vector"),
-            ("sqr", "Gets the squared norm of the vector"),
-            ("sum", "Gets the sum of all values"),
-            ("prod", "Gets the product of all values"),
-            ("mean", "Gets the mean value"),
-            ("sqrt", "Pointwise squared root"),
-            ("abs", "Pointwise absolute value"),
-            ("stats", "Gets all the statistics"),
-            ("amax", "Gets the maximum absolute value"),
-            ("amin", "Gets the minimum absolute value"),
-            ("max", "Gets the maximum  value"),
-            ("min", "Gets the minimum value"),
-            ("reverse", "Gets a reversed copy"),
-            ("distinct", "Gets a new vector with distinct values"),
-            ("sort", "Gets a new vector with sorted values"),
-            ("first", "Gets the first item from the vector"),
-            ("last", "Gets the last item from the vector"),
-            ("fft", "Performs a Fast Fourier Transform"),
-            ("autocorr(", "Gets the autocorrelation given a lag"),
-            ("correlogram(", "Gets all autocorrelations up to a given lag"),
-            ("map(x => ", "Pointwise transformation of vector items"),
-            ("filter(x => ", "Filters items by value"),
-            ("any(x => ", "Existential operator"),
-            ("all(x => ", "Universal operator"),
-            ("zip(", "Combines two vectors"),
-            ("reduce(", "Reduces a vector to a single value"),
-            ("indexOf(", "Returns the index where a value is stored"),
-            ("linear(", "Gets the regression coefficients given a list of vectors"),
-            ("linearModel(", "Creates a linear model"),
-            ("ar(", "Calculates the autoregression coefficients"),
-            ("arModel(", "Creates an AR(p) model"),
-            ("indexof(", "Returns the index where a value is stored"),
-            ("linear(", "Gets the regression coefficients given a list of vectors"),
-            ("linearModel(", "Creates a linear model"),
-            ("ar(", "Calculates the autoregression coefficients"),
-            ("arModel(", "Creates an AR(p) model"),
-            ("acf", "AutoCorrelation Function"),
+            new("length", "Gets the number of items"),
+            new("norm", "Gets the norm of the vector"),
+            new("sqr", "Gets the squared norm of the vector"),
+            new("sum", "Gets the sum of all values"),
+            new("prod", "Gets the product of all values"),
+            new("mean", "Gets the mean value"),
+            new("sqrt", "Pointwise squared root"),
+            new("abs", "Pointwise absolute value"),
+            new("stats", "Gets all the statistics"),
+            new("amax", "Gets the maximum absolute value"),
+            new("amin", "Gets the minimum absolute value"),
+            new("max", "Gets the maximum  value"),
+            new("min", "Gets the minimum value"),
+            new("reverse", "Gets a reversed copy"),
+            new("distinct", "Gets a new vector with distinct values"),
+            new("sort", "Gets a new vector with sorted values"),
+            new("first", "Gets the first item from the vector"),
+            new("last", "Gets the last item from the vector"),
+            new("fft", "Performs a Fast Fourier Transform"),
+            new("autocorr(", "Gets the autocorrelation given a lag"),
+            new("correlogram(", "Gets all autocorrelations up to a given lag"),
+            new("map(x => ", "Pointwise transformation of vector items"),
+            new("filter(x => ", "Filters items by value"),
+            new("any(x => ", "Existential operator"),
+            new("all(x => ", "Universal operator"),
+            new("zip(", "Combines two vectors"),
+            new("reduce(", "Reduces a vector to a single value"),
+            new("indexOf(", "Returns the index where a value is stored"),
+            new("linear(", "Gets the regression coefficients given a list of vectors"),
+            new("linearModel(", "Creates a linear model"),
+            new("ar(", "Calculates the autoregression coefficients"),
+            new("arModel(", "Creates an AR(p) model"),
+            new("indexof(", "Returns the index where a value is stored"),
+            new("linear(", "Gets the regression coefficients given a list of vectors"),
+            new("linearModel(", "Creates a linear model"),
+            new("ar(", "Calculates the autoregression coefficients"),
+            new("arModel(", "Creates an AR(p) model"),
+            new("acf", "AutoCorrelation Function"),
         },
-        [typeof(ComplexVector)] = new[]
+        [typeof(ComplexVector)] = new MemberDescription[]
         {
-            ("length", "Gets the number of items"),
-            ("norm", "Gets the norm of the vector"),
-            ("amax", "Gets the maximum absolute value"),
-            ("sqr", "Gets the squared norm of the vector"),
-            ("sum", "Gets the sum of all values"),
-            ("mean", "Gets the mean value"),
-            ("first", "Gets the first item from the vector"),
-            ("last", "Gets the last item from the vector"),
-            ("reverse", "Gets a reversed copy"),
-            ("distinct", "Gets a new vector with distinct values"),
-            ("fft", "Performs a Fast Fourier Transform"),
-            ("magnitudes", "Gets magnitudes as a vector"),
-            ("phases", "Gets phases as a vector"),
-            ("real", "Gets the real components as a vector"),
-            ("imag", "Gets the imaginary components as a vector"),
-            ("map(x => ", "Pointwise transformation of complex values"),
-            ("mapreal(x => ", "Transforms complex vector into a real one"),
-            ("filter(x => ", "Filters items by value"),
-            ("any(x => ", "Existential operator"),
-            ("all(x => ", "Universal operator"),
-            ("zip(", "Combines two complex vectors"),
-            ("reduce(", "Reduces a complex vector to a single value"),
-            ("indexof(", "Returns the index where a value is stored"),
+            new("length", "Gets the number of items"),
+            new("norm", "Gets the norm of the vector"),
+            new("amax", "Gets the maximum absolute value"),
+            new("sqr", "Gets the squared norm of the vector"),
+            new("sum", "Gets the sum of all values"),
+            new("mean", "Gets the mean value"),
+            new("first", "Gets the first item from the vector"),
+            new("last", "Gets the last item from the vector"),
+            new("reverse", "Gets a reversed copy"),
+            new("distinct", "Gets a new vector with distinct values"),
+            new("fft", "Performs a Fast Fourier Transform"),
+            new("magnitudes", "Gets magnitudes as a vector"),
+            new("phases", "Gets phases as a vector"),
+            new("real", "Gets the real components as a vector"),
+            new("imag", "Gets the imaginary components as a vector"),
+            new("map(x => ", "Pointwise transformation of complex values"),
+            new("mapreal(x => ", "Transforms complex vector into a real one"),
+            new("filter(x => ", "Filters items by value"),
+            new("any(x => ", "Existential operator"),
+            new("all(x => ", "Universal operator"),
+            new("zip(", "Combines two complex vectors"),
+            new("reduce(", "Reduces a complex vector to a single value"),
+            new("indexof(", "Returns the index where a value is stored"),
         },
-        [typeof(Library.MVO.MvoModel)] = new[]
+        [typeof(Library.MVO.MvoModel)] = new MemberDescription[]
         {
-            ("length", "Gets the number of corner portfolios"),
-            ("first", "Gets the first corner portfolio"),
-            ("last", "Gets the last corner portfolio"),
-            ("size", "Gets the number of assets in the model"),
+            new("length", "Gets the number of corner portfolios"),
+            new("first", "Gets the first corner portfolio"),
+            new("last", "Gets the last corner portfolio"),
+            new("size", "Gets the number of assets in the model"),
         },
-        [typeof(Library.MVO.Portfolio)] = new[]
+        [typeof(Library.MVO.Portfolio)] = new MemberDescription[]
         {
-            ("weights", "Gets weights of the portfolio"),
-            ("lambda", "Gets the lambda of a corner portfolio"),
-            ("ret", "Gets the expected return of the portfolio"),
-            ("std", "Gets the standard deviation of the portfolio"),
-            ("var", "Gets the variance of the portfolio"),
+            new("weights", "Gets weights of the portfolio"),
+            new("lambda", "Gets the lambda of a corner portfolio"),
+            new("ret", "Gets the expected return of the portfolio"),
+            new("std", "Gets the standard deviation of the portfolio"),
+            new("var", "Gets the variance of the portfolio"),
         },
-        [typeof(Point<Date>)] = new[]
+        [typeof(Point<Date>)] = new MemberDescription[]
         {
-            ("value", "Gets the numerical value of the point"),
-            ("date", "Gets the date argument"),
+            new("value", "Gets the numerical value of the point"),
+            new("date", "Gets the date argument"),
         },
-        [typeof(Date)] = new[]
+        [typeof(Date)] = new MemberDescription[]
         {
-            ("day", "Gets the day of the date"),
-            ("month", "Gets the month of the date"),
-            ("year", "Gets the year of the date"),
-            ("dow", "Gets the day of week the date"),
-            ("isleap", "Checks if the date belong to a leap year"),
-            ("addMonths(", "Adds a number of months to the date"),
-            ("addYears(", "Adds a number of years to the date"),
+            new("day", "Gets the day of the date"),
+            new("month", "Gets the month of the date"),
+            new("year", "Gets the year of the date"),
+            new("dow", "Gets the day of week the date"),
+            new("isleap", "Checks if the date belong to a leap year"),
+            new("addMonths(", "Adds a number of months to the date"),
+            new("addYears(", "Adds a number of years to the date"),
         },
-        [typeof(Complex)] = new[]
+        [typeof(Complex)] = new MemberDescription[]
         {
-            ("real", "Gets the real part of the complex number"),
-            ("imag", "Gets the imaginary part of the complex number"),
-            ("mag", "Gets the magnitude of the complex number"),
-            ("phase", "Gets the phase of the complex number"),
+            new("real", "Gets the real part of the complex number"),
+            new("imag", "Gets the imaginary part of the complex number"),
+            new("mag", "Gets the magnitude of the complex number"),
+            new("phase", "Gets the phase of the complex number"),
         },
-        [typeof(FftCModel)] = new[]
+        [typeof(FftCModel)] = new MemberDescription[]
         {
-            ("amplitudes", "Gets the amplitudes of the FFT"),
-            ("phases", "Gets the phases of the FFT"),
-            ("length", "Gets the length of the FFT"),
-            ("inverse", "Gets the inverse of the transform as a complex vector"),
-            ("values", "Gets the full spectrum as a complex vector"),
+            new("amplitudes", "Gets the amplitudes of the FFT"),
+            new("phases", "Gets the phases of the FFT"),
+            new("length", "Gets the length of the FFT"),
+            new("inverse", "Gets the inverse of the transform as a complex vector"),
+            new("values", "Gets the full spectrum as a complex vector"),
         },
-        [typeof(FftRModel)] = new[]
+        [typeof(FftRModel)] = new MemberDescription[]
         {
-            ("amplitudes", "Gets the amplitudes of the FFT"),
-            ("phases", "Gets the phases of the FFT"),
-            ("length", "Gets the length of the FFT"),
-            ("inverse", "Gets the inverse of the transform as a real vector"),
-            ("values", "Gets the full spectrum as a complex vector"),
+            new("amplitudes", "Gets the amplitudes of the FFT"),
+            new("phases", "Gets the phases of the FFT"),
+            new("length", "Gets the length of the FFT"),
+            new("inverse", "Gets the inverse of the transform as a real vector"),
+            new("values", "Gets the full spectrum as a complex vector"),
         },
-        [typeof(Polynomial)] = new[]
+        [typeof(Polynomial)] = new MemberDescription[]
         {
-            ("eval", "Evaluates the polynomial at a point between 0 and 1"),
-            ("derivative", "Gets the derivative at a point between 0 and 1"),
+            new("eval", "Evaluates the polynomial at a point between 0 and 1"),
+            new("derivative", "Gets the derivative at a point between 0 and 1"),
         },
     };
 
-    private static readonly Dictionary<string, (string name, string description)[]> classMembers =
+    private static readonly Dictionary<string, MemberDescription[]> classMembers =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["series"] = new[]
+            ["series"] = new MemberDescription[]
             {
-                ("new(", "Creates a new series using weights and a list of series"),
+                new("new(", "Creates a new series using weights and a list of series"),
             },
-            ["spline"] = new[]
+            ["spline"] = new MemberDescription[]
             {
-                ("new(", "Creates a new interpolator from two vectors"),
-                ("grid(", "Approximates a function with a spline"),
+                new("new(", "Creates a new interpolator from two vectors"),
+                new("grid(", "Approximates a function with a spline"),
             },
-            ["model"] = new[]
+            ["model"] = new MemberDescription[]
             {
-                ("mvo(", "Creates a model for a Mean Variance Optimizer"),
-                ("compare(", "Compares two series or two vectors"),
+                new("mvo(", "Creates a model for a Mean Variance Optimizer"),
+                new("compare(", "Compares two series or two vectors"),
             },
-            ["vector"] = new[]
+            ["vector"] = new MemberDescription[]
             {
-                ("new(", "Create a vector given an initialization lambda"),
-                ("random(", "Creates a random vector given a length"),
-                ("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
-                ("zero(", "Creates a vector with zeros given a length"),
-                ("ones(", "Creates a vector with ones given a length"),
+                new("new(", "Create a vector given an initialization lambda"),
+                new("random(", "Creates a random vector given a length"),
+                new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
+                new("zero(", "Creates a vector with zeros given a length"),
+                new("ones(", "Creates a vector with ones given a length"),
             },
-            ["complexvector"] = new[]
+            ["complexvector"] = new MemberDescription[]
             {
-                ("new(", "Create a complex vector given an initialization lambda"),
-                ("random(", "Creates a random complex vector given a length"),
-                ("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
-                ("zero(", "Creates a complex vector with zeros given a length"),
-                ("from(", "Creates a complex vector from one or two real vectors"),
+                new("new(", "Create a complex vector given an initialization lambda"),
+                new("random(", "Creates a random complex vector given a length"),
+                new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
+                new("zero(", "Creates a complex vector with zeros given a length"),
+                new("from(", "Creates a complex vector from one or two real vectors"),
             },
-            ["matrix"] = new[]
+            ["matrix"] = new MemberDescription[]
             {
-                ("new(", "Create a rectangular matrix given an initialization lambda"),
-                ("random(", "Creates a random matrix given a size"),
-                ("nrandom(", "Creates a random matrix using a standard normal distribution given a size"),
-                ("lrandom(", "Creates a random lower triangular matrix given a size"),
-                ("lnrandom(", "Creates a random lower triangular matrix with a standard normal distribution"),
-                ("zero(", "Creates a matrix with zeros given a size"),
-                ("eye(", "Creates an identity matrix given a size"),
-                ("diag(", "Creates an diagonal matrix from a vector"),
-                ("rows(", "Creates a matrix given its rows as vectors"),
-                ("corr(", "Creates a correlation matrix given a list of series"),
-                ("cov(", "Creates a covariance matrix given a list of series"),
+                new("new(", "Create a rectangular matrix given an initialization lambda"),
+                new("random(", "Creates a random matrix given a size"),
+                new("nrandom(", "Creates a random matrix using a standard normal distribution given a size"),
+                new("lrandom(", "Creates a random lower triangular matrix given a size"),
+                new("lnrandom(", "Creates a random lower triangular matrix with a standard normal distribution"),
+                new("zero(", "Creates a matrix with zeros given a size"),
+                new("eye(", "Creates an identity matrix given a size"),
+                new("diag(", "Creates an diagonal matrix from a vector"),
+                new("rows(", "Creates a matrix given its rows as vectors"),
+                new("corr(", "Creates a correlation matrix given a list of series"),
+                new("cov(", "Creates a covariance matrix given a list of series"),
             },
         };
 
@@ -746,7 +746,7 @@ internal sealed partial class Parser
     /// <param name="text">An expression fragment.</param>
     /// <param name="type">The type of the expression fragment.</param>
     /// <returns>A list of pairs member name/description.</returns>
-    public static IList<(string member, string description)> GetMembers(
+    public static IList<MemberDescription> GetMembers(
         IDataSource source,
         string text,
         out Type? type)
@@ -769,26 +769,26 @@ internal sealed partial class Parser
                     catch { }
             }
         type = null;
-        return Array.Empty<(string, string)>();
+        return Array.Empty<MemberDescription>();
 
-        static IList<(string member, string description)> ExtractType(IDataSource source, string text)
+        static IList<MemberDescription> ExtractType(IDataSource source, string text)
         {
             Type type = new Parser(source, text).ParseType();
-            return members.TryGetValue(type, out (string name, string description)[]? list)
-                ? list : Array.Empty<(string, string)>();
+            return members.TryGetValue(type, out MemberDescription[]? list)
+                ? list : Array.Empty<MemberDescription>();
         }
     }
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>A list of pairs member name/description.</returns>
-    public static IList<(string member, string description)> GetClassMembers(
+    public static IList<MemberDescription> GetClassMembers(
         string text)
     {
         return classMembers.TryGetValue(ExtractClassName(text),
-            out (string name, string description)[]? list)
+            out MemberDescription[]? list)
             ? list
-            : (IList<(string member, string description)>)Array.Empty<(string, string)>();
+            : (IList<MemberDescription>)Array.Empty<MemberDescription>();
 
         static string ExtractClassName(string text)
         {

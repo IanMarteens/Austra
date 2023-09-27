@@ -369,7 +369,7 @@ internal sealed partial class Parser
     private Expression ParseMultiplicative()
     {
         Expression e1 = ParseUnary();
-        while (kind >= Token.Times && kind <= Token.Mod)
+        while ((uint)(kind - Token.Times) <= (Token.Mod - Token.Times))
         {
             (Token opLex, int opPos) = (kind, start);
             Move();

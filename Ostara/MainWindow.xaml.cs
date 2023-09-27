@@ -1,4 +1,5 @@
-﻿using ICSharpCode.AvalonEdit.CodeCompletion;
+﻿using Austra.Parser;
+using ICSharpCode.AvalonEdit.CodeCompletion;
 
 namespace Ostara;
 
@@ -81,7 +82,12 @@ public partial class MainWindow : Window
             if (completionWindow != null)
             {
                 if (!char.IsLetterOrDigit(e.Text[0]))
+                {
+                    // Avoid inserting the same text twice!
+                    if (completionWindow.CompletionList.SelectedItem.Text.EndsWith(e.Text))
+                        e.Handled = true;
                     completionWindow.CompletionList.RequestInsertion(e);
+                }
             }
             else if (char.IsLetter(e.Text[0]))
                 if (avalon.CaretOffset == 0)
@@ -127,13 +133,13 @@ public partial class MainWindow : Window
 
     private string GetFragment(int delta = 1) => avalon.Document.GetText(0, avalon.CaretOffset - delta);
 
-    private void ShowCodeCompletion(IList<(string, string)> list)
+    private void ShowCodeCompletion(IList<MemberDescription> list)
     {
         if (list?.Count > 0)
         {
             completionWindow = new CompletionWindow(avalon.TextArea);
-            var data = completionWindow.CompletionList.CompletionData;
-            foreach (var (member, description) in list)
+            IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
+            foreach ((string member, string description) in list)
                 data.Add(new CompletionData(member, description));
             completionWindow.Show();
             completionWindow.Closed += CompletionListClosed;

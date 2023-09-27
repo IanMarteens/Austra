@@ -253,17 +253,17 @@ static void ShowHelpOnExpression(IAustraEngine engine, string expression, ref bo
         expression = expression[..^1].TrimEnd();
     if (expression.Length == 0)
         throw new Exception("Error: Missing expression.");
-    IOrderedEnumerable<(string member, string description)> members;
+    IOrderedEnumerable<MemberDescription> members;
     bool isClass = false;
     Type? type = null;
     if (engine.IsClass(expression))
     {
         isClass = true;
-        members = engine.GetClassMembers(expression + ":").OrderBy(t => t.member);
+        members = engine.GetClassMembers(expression + ":").OrderBy(t => t.Member);
     }
     else
     {
-        members = engine.GetMembers(expression, out type).OrderBy(t => t.member);
+        members = engine.GetMembers(expression, out type).OrderBy(t => t.Member);
         if (type == null)
             throw new Exception($"Unknown expression: {expression}");
     }

@@ -9,6 +9,11 @@ namespace Austra.Parser;
 /// <param name="Variable">If a variable has been defined, this is its name.</param>
 public readonly record struct AustraAnswer(object? Value, Type? Type, string Variable);
 
+/// <summary>Represents a member with its description for code completion.</summary>
+/// <param name="Member">The text of the member.</param>
+/// <param name="Description">A human-readable description.</param>
+public readonly record struct MemberDescription(string Member, string Description);
+
 /// <summary>Represents the AUSTRA engine.</summary>
 public interface IAustraEngine
 {
@@ -34,27 +39,27 @@ public interface IAustraEngine
 
     /// <summary>Gets a list of root variables.</summary>
     /// <returns>A list of variables and definitions.</returns>
-    IList<(string member, string description)> GetRoots();
+    IList<MemberDescription> GetRoots();
 
     /// <summary>Gets a list of root classes.</summary>
     /// <returns>A list of classes that accepts class methods.</returns>
-    IList<(string member, string description)> GetRootClasses();
+    IList<MemberDescription> GetRootClasses();
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
-    IList<(string member, string description)> GetMembers(string text);
+    IList<MemberDescription> GetMembers(string text);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <param name="type">The type of the expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
-    IList<(string member, string description)> GetMembers(string text, out Type? type);
+    IList<MemberDescription> GetMembers(string text, out Type? type);
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>Null if not a valid type.</returns>
-    IList<(string member, string description)> GetClassMembers(string text);
+    IList<MemberDescription> GetClassMembers(string text);
 
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
     /// <param name="text">Class name to check.</param>
@@ -190,62 +195,62 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Gets a list of root variables.</summary>
     /// <returns>A list of variables and definitions.</returns>
-    public IList<(string member, string description)> GetRoots() =>
-        Source.Variables.Select(t => (t.name, "Variable: " + t.type?.Name))
+    public IList<MemberDescription> GetRoots() =>
+        Source.Variables.Select(t => new MemberDescription(t.name, "Variable: " + t.type?.Name))
             .Concat(Source.AllDefinitions
-                .Select(d => (name: d.Name, "Definition: " + d.Type.Name)))
+                .Select(d => new MemberDescription(d.Name, "Definition: " + d.Type.Name)))
             .Concat(GetRootClasses())
             .Concat(GetGlobalFunctions())
-            .OrderBy(x => x.Item1)
+            .OrderBy(x => x.Member)
             .ToList();
 
-    private IList<(string member, string definition)> GetGlobalFunctions() =>
-        new[]
+    private IList<MemberDescription> GetGlobalFunctions() =>
+        new MemberDescription[]
         {
-            ("abs(", "Absolute value"),
-            ("sqrt(", "Squared root"),
-            ("gamma(", "The Gamma function"),
-            ("beta(", "The Beta function"),
-            ("erf(", "Error function"),
-            ("ncdf(", "Normal cummulative function"),
-            ("probit(", "Probit function"),
-            ("log(", "Natural logarithm"),
-            ("log10(", "Base 10 logarithm"),
-            ("exp(", "Exponential function"),
-            ("sin(", "Sine function"),
-            ("cos(", "Cosine function"),
-            ("tan(", "Tangent function"),
-            ("asin(", "Arcsine function"),
-            ("acos(", "Arccosine function"),
-            ("atan(", "Arctangent function"),
-            ("min(", "Minimum function"),
-            ("max(", "Maximum function"),
-            ("pi", "The constant π"),
-            ("e", "The constant e"),
-            ("i", "The imaginary unit"),
-            ("today", "The current date"),
-            ("compare(", "Compares two series or vectors"),
-            ("polyEval(", "Evaluates a polynomial at a given point"),
-            ("polyDerivative(", "Evaluates a polynomial first derivative at a given point"),
-            ("polySolve(", "Returns all real and complex roots of a polynomial"),
-            ("solve(", "Approximates a root with the Newton-Raphson algorithm"),
-            ("complex(", "Creates a complex number from its real and imaginary components"),
-            ("polar(", "Creates a complex number from its magnitude and phase components"),
-            ("set", "Assigns a value to a variable"),
-            ("let", "Declares local variables"),
+            new("abs(", "Absolute value"),
+            new("sqrt(", "Squared root"),
+            new("gamma(", "The Gamma function"),
+            new("beta(", "The Beta function"),
+            new("erf(", "Error function"),
+            new("ncdf(", "Normal cummulative function"),
+            new("probit(", "Probit function"),
+            new("log(", "Natural logarithm"),
+            new("log10(", "Base 10 logarithm"),
+            new("exp(", "Exponential function"),
+            new("sin(", "Sine function"),
+            new("cos(", "Cosine function"),
+            new("tan(", "Tangent function"),
+            new("asin(", "Arcsine function"),
+            new("acos(", "Arccosine function"),
+            new("atan(", "Arctangent function"),
+            new("min(", "Minimum function"),
+            new("max(", "Maximum function"),
+            new("pi", "The constant π"),
+            new("e", "The constant e"),
+            new("i", "The imaginary unit"),
+            new("today", "The current date"),
+            new("compare(", "Compares two series or vectors"),
+            new("polyEval(", "Evaluates a polynomial at a given point"),
+            new("polyDerivative(", "Evaluates a polynomial first derivative at a given point"),
+            new("polySolve(", "Returns all real and complex roots of a polynomial"),
+            new ("solve(", "Approximates a root with the Newton-Raphson algorithm"),
+            new("complex(", "Creates a complex number from its real and imaginary components"),
+            new("polar(", "Creates a complex number from its magnitude and phase components"),
+            new("set", "Assigns a value to a variable"),
+            new("let", "Declares local variables"),
         };  
 
     /// <summary>Gets a list of root classes.</summary>
     /// <returns>A list of classes that accepts class methods.</returns>
-    public IList<(string member, string description)> GetRootClasses() =>
-        new[]
+    public IList<MemberDescription> GetRootClasses() =>
+        new MemberDescription[]
         {
-            ("complexvector::", "Allows access to complex vector constructors"),
-            ("matrix::", "Allows access to matrix constructors"),
-            ("model::", "Allows access to model constructors"),
-            ("series::", "Allows access to series constructors"),
-            ("spline::", "Allows access to spline constructors"),
-            ("vector::", "Allows access to vector constructors"),
+            new("complexvector::", "Allows access to complex vector constructors"),
+            new("matrix::", "Allows access to matrix constructors"),
+            new("model::", "Allows access to model constructors"),
+            new("series::", "Allows access to series constructors"),
+            new("spline::", "Allows access to spline constructors"),
+            new("vector::", "Allows access to vector constructors"),
         };
 
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
@@ -260,20 +265,20 @@ public partial class AustraEngine : IAustraEngine
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
-    public IList<(string member, string description)> GetMembers(string text) =>
+    public IList<MemberDescription> GetMembers(string text) =>
         Parser.GetMembers(Source, text, out _);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <param name="type">The type of the expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
-    public IList<(string member, string description)> GetMembers(string text, out Type? type) =>
+    public IList<MemberDescription> GetMembers(string text, out Type? type) =>
         Parser.GetMembers(Source, text, out type);
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>Null if not a valid type.</returns>
-    public IList<(string member, string description)> GetClassMembers(string text) =>
+    public IList<MemberDescription> GetClassMembers(string text) =>
         Parser.GetClassMembers(text);
 
     /// <summary>Should load series and definitions from persistent storage.</summary>
