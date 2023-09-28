@@ -387,32 +387,6 @@ internal sealed partial class Parser
         _ => Token.Id,
     };
 
-    private static int TryGetMonth(ReadOnlySpan<char> name) => (name[0] | 0x20) switch
-    {
-        'a' =>
-            (name[1] | 0x20) is 'p' && (name[2] | 0x20) is 'r' ? 4
-            : (name[1] | 0x20) is 'u' && (name[2] | 0x20) is 'g' ? 8 : 0,
-        'd' =>
-            (name[1] | 0x20) is 'e' && (name[2] | 0x20) is 'c' ? 12 : 0,
-        'f' =>
-            (name[1] | 0x20) is 'e' && (name[2] | 0x20) is 'b' ? 2 : 0,
-        'j' =>
-            (name[1] | 0x20) is 'a' && (name[2] | 0x20) is 'n' ? 1
-            : (name[1] | 0x20) is not 'u' ? 0
-            : (name[2] | 0x20) is 'n' ? 6
-            : (name[2] | 0x20) is 'l' ? 7 : 0,
-        'm' =>
-            (name[1] | 0x20) is not 'a' ? 0
-            : (name[2] | 0x20) is 'r' ? 3 : (name[2] | 0x20) is 'y' ? 5 : 0,
-        'n' =>
-            (name[1] | 0x20) is 'o' && (name[2] | 0x20) is 'v' ? 11 : 0,
-        'o' =>
-            (name[1] | 0x20) is 'c' && (name[2] | 0x20) is 't' ? 10 : 0,
-        's' =>
-            (name[1] | 0x20) is 'e' && (name[2] | 0x20) is 'p' ? 9 : 0,
-        _ => 0,
-    };
-
     /// <summary>Parses date constants like <c>jan2020</c> and <c>dec20</c>.</summary>
     /// <param name="text">Text span to analyze.</param>
     /// <param name="date">When succeeds, returns the first date of the month.</param>
@@ -421,7 +395,31 @@ internal sealed partial class Parser
     {
         if (text.Length >= 5)
         {
-            int month = TryGetMonth(text);
+            int month = (text[0] | 0x20) switch
+            {
+                'a' =>
+                    (text[1] | 0x20) is 'p' && (text[2] | 0x20) is 'r' ? 4
+                    : (text[1] | 0x20) is 'u' && (text[2] | 0x20) is 'g' ? 8 : 0,
+                'd' =>
+                    (text[1] | 0x20) is 'e' && (text[2] | 0x20) is 'c' ? 12 : 0,
+                'f' =>
+                    (text[1] | 0x20) is 'e' && (text[2] | 0x20) is 'b' ? 2 : 0,
+                'j' =>
+                    (text[1] | 0x20) is 'a' && (text[2] | 0x20) is 'n' ? 1
+                    : (text[1] | 0x20) is not 'u' ? 0
+                    : (text[2] | 0x20) is 'n' ? 6
+                    : (text[2] | 0x20) is 'l' ? 7 : 0,
+                'm' =>
+                    (text[1] | 0x20) is not 'a' ? 0
+                    : (text[2] | 0x20) is 'r' ? 3 : (text[2] | 0x20) is 'y' ? 5 : 0,
+                'n' =>
+                    (text[1] | 0x20) is 'o' && (text[2] | 0x20) is 'v' ? 11 : 0,
+                'o' =>
+                    (text[1] | 0x20) is 'c' && (text[2] | 0x20) is 't' ? 10 : 0,
+                's' =>
+                    (text[1] | 0x20) is 'e' && (text[2] | 0x20) is 'p' ? 9 : 0,
+                _ => 0,
+            };
             if (month > 0 && int.TryParse(text[3..], out int year))
                 if (text.Length == 5)
                 {
