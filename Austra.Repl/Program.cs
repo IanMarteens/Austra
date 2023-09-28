@@ -253,7 +253,7 @@ static void ShowHelpOnExpression(IAustraEngine engine, string expression, ref bo
         expression = expression[..^1].TrimEnd();
     if (expression.Length == 0)
         throw new Exception("Error: Missing expression.");
-    IOrderedEnumerable<MemberDescription> members;
+    IOrderedEnumerable<MemberList> members;
     bool isClass = false;
     Type? type = null;
     if (engine.IsClass(expression))

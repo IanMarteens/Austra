@@ -937,7 +937,7 @@ internal sealed partial class Parser
             "random" => a.Count != 1 || a[0].Type != typeof(int)
                 ? throw Error("Vector size expected")
                 : typeof(Vector).New(a.AddRandom()),
-            "zero" => a.Count != 1 || a[0].Type != typeof(int)
+            "zero" or "zeros" => a.Count != 1 || a[0].Type != typeof(int)
                 ? throw Error("Vector size expected")
                 : typeof(Vector).New(a[0]),
             "ones" => a.Count != 1 || a[0].Type != typeof(int)
@@ -961,7 +961,7 @@ internal sealed partial class Parser
             "random" => e.Count != 1 || e[0].Type != typeof(int)
                 ? throw Error("Vector size expected")
                 : typeof(ComplexVector).New(e.AddRandom()),
-            "zero" => e.Count != 1 || e[0].Type != typeof(int)
+            "zero" or "zeros" => e.Count != 1 || e[0].Type != typeof(int)
                 ? throw Error("Vector size expected")
                 : typeof(ComplexVector).New(e[0]),
             "from" => e.Count == 1 && e[0].Type == typeof(Vector)
@@ -1213,14 +1213,11 @@ internal sealed partial class Parser
 
     private Expression ParseProperty(Expression e)
     {
-        string prop = id;
-        if (allProps.TryGetValue(e.Type, out Dictionary<string, MethodInfo>? dict) &&
-            dict.TryGetValue(prop, out MethodInfo? mInfo))
-        {
-            Move();
-            return Expression.Call(e, mInfo);
-        }
-        throw Error($"Invalid property: {prop}");
+        if (!allProps.TryGetValue(e.Type, out Dictionary<string, MethodInfo>? dict) ||
+            !dict.TryGetValue(id, out MethodInfo? mInfo))
+            throw Error($"Invalid property: {id}");
+        Move();
+        return Expression.Call(e, mInfo);
     }
 
     /// <summary>Parses a global function call.</summary>

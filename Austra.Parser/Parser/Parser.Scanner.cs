@@ -520,10 +520,14 @@ internal static class ParserExtensions
     public static MethodInfo Get(this Type type, string method) =>
          type.GetMethod(method)!;
 
+    /// <summary>Gets the property getter method for the specified property.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MethodInfo Prop(this Type type, string property) =>
          type.GetProperty(property)!.GetGetMethod()!;
 
+    /// <summary>
+    /// Gets the constructor for the specified types and creates a new expression.
+    /// </summary>
     public static NewExpression New(this Type type, params Expression[] args) =>
         Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
 
