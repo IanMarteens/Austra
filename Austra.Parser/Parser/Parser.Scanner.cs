@@ -387,28 +387,29 @@ internal sealed partial class Parser
         _ => Token.Id,
     };
 
-    private static int TryGetMonth(ReadOnlySpan<char> name) => name[0] switch
+    private static int TryGetMonth(ReadOnlySpan<char> name) => (name[0] | 0x20) switch
     {
-        'a' or 'A' =>
+        'a' =>
             name[1..].Equals("pr", StringComparison.OrdinalIgnoreCase) ? 4
             : name[1..].Equals("ug", StringComparison.OrdinalIgnoreCase) ? 8 : 0,
-        'd' or 'D' =>
-            name[1] is 'e' or 'E' && name[2] is 'c' or 'C' ? 12 : 0,
-        'f' or 'F' =>
-            name[1..].Equals("eb", StringComparison.OrdinalIgnoreCase) ? 2 : 0,
-        'j' or 'J' =>
+        'd' =>
+            (name[1] | 0x20) is 'e' && (name[2] | 0x20) is 'c' ? 12 : 0,
+        'f' =>
+            (name[1] | 0x20) is 'e' && (name[2] | 0x20) is 'b' ? 2 : 0,
+        'j' =>
             name[1..].Equals("an", StringComparison.OrdinalIgnoreCase) ? 1
             : name[1..].Equals("un", StringComparison.OrdinalIgnoreCase) ? 6
             : name[1..].Equals("ul", StringComparison.OrdinalIgnoreCase) ? 7 : 0,
-        'm' or 'M' =>
-            name[1..].Equals("ar", StringComparison.OrdinalIgnoreCase) ? 3
-            : name[1..].Equals("ay", StringComparison.OrdinalIgnoreCase) ? 5 : 0,
-        'n' or 'N' =>
-            name[1] is 'o' or 'O' && name[2] is 'v' or 'V' ? 11 : 0,
-        'o' or 'O' =>
-            name[1] is 'c' or 'C' && name[2] is 't' or 'T' ? 10 : 0,
-        's' or 'S' =>
-            name[1] is 'e' or 'E' && name[2] is 'p' or 'P' ? 9 : 0,
+        'm' =>
+            (name[1] | 0x20) is 'a'
+            ? (name[2] | 0x20) is 'r' ? 3 : (name[2] | 0x20) is 'y' ? 5 : 0
+            : 0,
+        'n' =>
+            (name[1] | 0x20) is 'o' && (name[2] | 0x20) is 'v' ? 11 : 0,
+        'o' =>
+            (name[1] | 0x20) is 'c' && (name[2] | 0x20) is 't' ? 10 : 0,
+        's' =>
+            (name[1] | 0x20) is 'e' && (name[2] | 0x20) is 'p' ? 9 : 0,
         _ => 0,
     };
 
