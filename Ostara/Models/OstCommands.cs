@@ -9,4 +9,5 @@ public static class OstCommands
     public static RoutedCommand HistoryUp { get; } = new();
     public static RoutedCommand HistoryDown { get; } = new();
     public static RoutedCommand FocusEditor { get; } = new();
+    public static RoutedCommand PasteFromExcel { get; } = new();
 }

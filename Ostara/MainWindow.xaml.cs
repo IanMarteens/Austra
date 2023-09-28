@@ -216,4 +216,26 @@ public partial class MainWindow : Window
             gMode = false;
         }
     }
+
+    private void ExecutePasteExcel(object sender, ExecutedRoutedEventArgs e)
+    {
+        string text = Clipboard.GetText();
+        StringBuilder sb = new(text.Length);
+        foreach (string line in text.Split("\r\n", StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+            string[] tokens = line.Replace(',', '.').Split("\t");
+            if (sb.Length > 0)
+                sb.AppendLine(";");
+            sb.Append(string.Join(", ", tokens));
+        }
+        if (sb.Length > 0)
+            avalon.TextArea.Selection.ReplaceSelectionWithText(
+                "[" + sb.ToString() + "]");
+
+    }
+
+    private void CanPasteExcel(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = Clipboard.ContainsText();
 }

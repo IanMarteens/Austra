@@ -36,6 +36,7 @@
 		<None Remove="Images\open.png" />
 		<None Remove="Images\options.png" />
 		<None Remove="Images\paste.png" />
+		<None Remove="Images\pasteExcel.png" />
 		<None Remove="Images\play.png" />
 		<None Remove="Images\playt.png" />
 		<None Remove="Images\redo.png" />
@@ -117,6 +118,7 @@
 	  <Resource Include="Images\new.png" />
 	  <Resource Include="Images\open.png" />
 	  <Resource Include="Images\options.png" />
+	  <Resource Include="Images\pasteExcel.png" />
 	  <Resource Include="Images\play.png" />
 	  <Resource Include="Images\playt.png" />
 	  <Resource Include="Images\redo.png" />
