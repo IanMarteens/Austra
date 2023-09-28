@@ -146,7 +146,7 @@ public readonly struct Matrix :
         {
             int i = 0, len = rows * cols;
             for (int t = len & ~1; i < t; i += 2)
-                (p[i], p[i + 1]) = random.NextDoubles();
+                random.NextDoubles(p + i);
             if (i < len)
                 p[i] = random.NextDouble();
         }

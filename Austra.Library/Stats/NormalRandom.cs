@@ -99,4 +99,17 @@ public sealed class NormalRandom
         target = FusedMultiplyAdd(Sin(v), r, mean);
         Unsafe.Add(ref target, 1) = FusedMultiplyAdd(Cos(v), r, mean);
     }
+
+    /// <summary>
+    /// Returns a couple of random values according to the standard normal distribution.
+    /// </summary>
+    /// <param name="target">A reference to a tuple to store the values.</param>
+    public unsafe void NextDoubles(double* target)
+    {
+        double u = Log(1 - random.NextDouble());
+        double r = Sqrt(-u - u) * stdDev;
+        double v = Tau * random.NextDouble();
+        *target = FusedMultiplyAdd(Sin(v), r, mean);
+        *(target + 1) = FusedMultiplyAdd(Cos(v), r, mean);
+    }
 }
