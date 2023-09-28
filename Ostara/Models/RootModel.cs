@@ -252,13 +252,13 @@ public sealed partial class RootModel : Entity
         }
     }
 
-    public IList<MemberList> GetRoots() =>
+    public IList<Member> GetRoots() =>
         environment!.Engine.GetRoots();
 
-    public IList<MemberList> GetMembers(string text) =>
+    public IList<Member> GetMembers(string text) =>
         environment!.Engine.GetMembers(text);
 
-    public IList<MemberList> GetClassMembers(string text) =>
+    public IList<Member> GetClassMembers(string text) =>
         environment!.Engine.GetClassMembers(text);
 
     public void AppendResult(string variable, string? text)

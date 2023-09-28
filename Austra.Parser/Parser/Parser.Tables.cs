@@ -397,9 +397,9 @@ internal sealed partial class Parser
         };
 
     /// <summary>Code completion descriptors for properties and methods.</summary>
-    private static readonly Dictionary<Type, MemberList[]> members = new()
+    private static readonly Dictionary<Type, Member[]> members = new()
     {
-        [typeof(Series)] = new MemberList[]
+        [typeof(Series)] = new Member[]
         {
             new("count", "Gets the number of points"),
             new("min", "Gets the minimum value"),
@@ -452,21 +452,21 @@ internal sealed partial class Parser
             new("spline", "Creates a cubic interpolator"),
             new("acf", "AutoCorrelation Function"),
         },
-        [typeof(Series<int>)] = new MemberList[]
+        [typeof(Series<int>)] = new Member[]
         {
             new("stats", "Gets all statistics"),
             new("first", "Gets the first point"),
             new("last", "Gets the last point"),
             new("values", "Gets the underlying vector of values"),
         },
-        [typeof(Series<double>)] = new MemberList[]
+        [typeof(Series<double>)] = new Member[]
         {
             new("stats", "Gets all statistics"),
             new("first", "Gets the first point"),
             new("last", "Gets the last point"),
             new("values", "Gets the underlying vector of values"),
         },
-        [typeof(Acc)] = new MemberList[]
+        [typeof(Acc)] = new Member[]
         {
             new("count", "Gets the number of points"),
             new("min", "Gets the minimum value"),
@@ -481,7 +481,7 @@ internal sealed partial class Parser
             new("kurt", "Gets the kurtosis"),
             new("kurtp", "Gets the kurtosis of the population"),
         },
-        [typeof(Matrix)] = new MemberList[]
+        [typeof(Matrix)] = new Member[]
         {
             new("rows", "Gets the number of rows"),
             new("cols", "Gets the number of columns"),
@@ -501,7 +501,7 @@ internal sealed partial class Parser
             new("any(x => ", "Existential operator"),
             new("all(x => ", "Universal operator"),
         },
-        [typeof(LMatrix)] = new MemberList[]
+        [typeof(LMatrix)] = new Member[]
         {
             new("rows", "Gets the number of rows"),
             new("cols", "Gets the number of columns"),
@@ -513,13 +513,13 @@ internal sealed partial class Parser
             new("min", "Gets the minimum absolute value"),
             new("diag", "Extracts the diagonal as a vector"),
         },
-        [typeof(EVD)] = new MemberList[]
+        [typeof(EVD)] = new Member[]
         {
             new("vectors", "Gets a matrix with eigenvectors as its columns"),
             new("values", "Gets all the eigenvalues"),
             new("d", "Gets a quasi-diagonal real matrix with all eigenvalues")
         },
-        [typeof(LinearSModel)] = new MemberList[]
+        [typeof(LinearSModel)] = new Member[]
         {
             new("original", "Gets the series to be explained"),
             new("prediction", "Gets the predicted series"),
@@ -528,7 +528,7 @@ internal sealed partial class Parser
             new("rss", "Gets the Residual Sum of Squares"),
             new("tss", "Gets the Total Sum of Squares"),
         },
-        [typeof(LinearVModel)] = new MemberList[]
+        [typeof(LinearVModel)] = new Member[]
         {
             new("original", "Gets the vector to be explained"),
             new("prediction", "Gets the predicted vector"),
@@ -537,7 +537,7 @@ internal sealed partial class Parser
             new("rss", "Gets the Residual Sum of Squares"),
             new("tss", "Gets the Total Sum of Squares"),
         },
-        [typeof(ARSModel)] = new MemberList[]
+        [typeof(ARSModel)] = new Member[]
         {
             new("original", "Gets the series to be explained"),
             new("prediction", "Gets the predicted series"),
@@ -546,7 +546,7 @@ internal sealed partial class Parser
             new("rss", "Gets the Residual Sum of Squares"),
             new("tss", "Gets the Total Sum of Squares"),
         },
-        [typeof(ARVModel)] = new MemberList[]
+        [typeof(ARVModel)] = new Member[]
         {
             new("original", "Gets the vector to be explained"),
             new("prediction", "Gets the predicted vector"),
@@ -555,7 +555,7 @@ internal sealed partial class Parser
             new("rss", "Gets the Residual Sum of Squares"),
             new("tss", "Gets the Total Sum of Squares"),
         },
-        [typeof(Vector)] = new MemberList[]
+        [typeof(Vector)] = new Member[]
         {
             new("length", "Gets the number of items"),
             new("norm", "Gets the norm of the vector"),
@@ -596,7 +596,7 @@ internal sealed partial class Parser
             new("arModel(", "Creates an AR(p) model"),
             new("acf", "AutoCorrelation Function"),
         },
-        [typeof(ComplexVector)] = new MemberList[]
+        [typeof(ComplexVector)] = new Member[]
         {
             new("length", "Gets the number of items"),
             new("norm", "Gets the norm of the vector"),
@@ -622,14 +622,14 @@ internal sealed partial class Parser
             new("reduce(", "Reduces a complex vector to a single value"),
             new("indexof(", "Returns the index where a value is stored"),
         },
-        [typeof(Library.MVO.MvoModel)] = new MemberList[]
+        [typeof(Library.MVO.MvoModel)] = new Member[]
         {
             new("length", "Gets the number of corner portfolios"),
             new("first", "Gets the first corner portfolio"),
             new("last", "Gets the last corner portfolio"),
             new("size", "Gets the number of assets in the model"),
         },
-        [typeof(Library.MVO.Portfolio)] = new MemberList[]
+        [typeof(Library.MVO.Portfolio)] = new Member[]
         {
             new("weights", "Gets weights of the portfolio"),
             new("lambda", "Gets the lambda of a corner portfolio"),
@@ -637,12 +637,12 @@ internal sealed partial class Parser
             new("std", "Gets the standard deviation of the portfolio"),
             new("var", "Gets the variance of the portfolio"),
         },
-        [typeof(Point<Date>)] = new MemberList[]
+        [typeof(Point<Date>)] = new Member[]
         {
             new("value", "Gets the numerical value of the point"),
             new("date", "Gets the date argument"),
         },
-        [typeof(Date)] = new MemberList[]
+        [typeof(Date)] = new Member[]
         {
             new("day", "Gets the day of the date"),
             new("month", "Gets the month of the date"),
@@ -652,14 +652,14 @@ internal sealed partial class Parser
             new("addMonths(", "Adds a number of months to the date"),
             new("addYears(", "Adds a number of years to the date"),
         },
-        [typeof(Complex)] = new MemberList[]
+        [typeof(Complex)] = new Member[]
         {
             new("real", "Gets the real part of the complex number"),
             new("imag", "Gets the imaginary part of the complex number"),
             new("mag", "Gets the magnitude of the complex number"),
             new("phase", "Gets the phase of the complex number"),
         },
-        [typeof(FftCModel)] = new MemberList[]
+        [typeof(FftCModel)] = new Member[]
         {
             new("amplitudes", "Gets the amplitudes of the FFT"),
             new("phases", "Gets the phases of the FFT"),
@@ -667,7 +667,7 @@ internal sealed partial class Parser
             new("inverse", "Gets the inverse of the transform as a complex vector"),
             new("values", "Gets the full spectrum as a complex vector"),
         },
-        [typeof(FftRModel)] = new MemberList[]
+        [typeof(FftRModel)] = new Member[]
         {
             new("amplitudes", "Gets the amplitudes of the FFT"),
             new("phases", "Gets the phases of the FFT"),
@@ -675,7 +675,7 @@ internal sealed partial class Parser
             new("inverse", "Gets the inverse of the transform as a real vector"),
             new("values", "Gets the full spectrum as a complex vector"),
         },
-        [typeof(Polynomial)] = new MemberList[]
+        [typeof(Polynomial)] = new Member[]
         {
             new("eval", "Evaluates the polynomial at a point between 0 and 1"),
             new("derivative", "Gets the derivative at a point between 0 and 1"),
@@ -683,24 +683,24 @@ internal sealed partial class Parser
     };
 
     /// <summary>Code completion descriptors for class methods or constructors.</summary>
-    private static readonly Dictionary<string, MemberList[]> classMembers =
+    private static readonly Dictionary<string, Member[]> classMembers =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["series"] = new MemberList[]
+            ["series"] = new Member[]
             {
                 new("new(", "Creates a new series using weights and a list of series"),
             },
-            ["spline"] = new MemberList[]
+            ["spline"] = new Member[]
             {
                 new("new(", "Creates a new interpolator from two vectors"),
                 new("grid(", "Approximates a function with a spline"),
             },
-            ["model"] = new MemberList[]
+            ["model"] = new Member[]
             {
                 new("mvo(", "Creates a model for a Mean Variance Optimizer"),
                 new("compare(", "Compares two series or two vectors"),
             },
-            ["vector"] = new MemberList[]
+            ["vector"] = new Member[]
             {
                 new("new(", "Create a vector given an initialization lambda"),
                 new("random(", "Creates a random vector given a length"),
@@ -708,7 +708,7 @@ internal sealed partial class Parser
                 new("zero(", "Creates a vector with zeros given a length"),
                 new("ones(", "Creates a vector with ones given a length"),
             },
-            ["complexvector"] = new MemberList[]
+            ["complexvector"] = new Member[]
             {
                 new("new(", "Create a complex vector given an initialization lambda"),
                 new("random(", "Creates a random complex vector given a length"),
@@ -716,7 +716,7 @@ internal sealed partial class Parser
                 new("zero(", "Creates a complex vector with zeros given a length"),
                 new("from(", "Creates a complex vector from one or two real vectors"),
             },
-            ["matrix"] = new MemberList[]
+            ["matrix"] = new Member[]
             {
                 new("new(", "Create a rectangular matrix given an initialization lambda"),
                 new("random(", "Creates a random matrix given a size"),
@@ -748,7 +748,7 @@ internal sealed partial class Parser
     /// <param name="text">An expression fragment.</param>
     /// <param name="type">The type of the expression fragment.</param>
     /// <returns>A list of pairs member name/description.</returns>
-    public static IList<MemberList> GetMembers(
+    public static IList<Member> GetMembers(
         IDataSource source,
         string text,
         out Type? type)
@@ -771,22 +771,22 @@ internal sealed partial class Parser
                     catch { }
             }
         type = null;
-        return Array.Empty<MemberList>();
+        return Array.Empty<Member>();
 
-        static IList<MemberList> ExtractType(IDataSource source, string text) =>
-            members.TryGetValue(new Parser(source, text).ParseType(), out MemberList[]? list)
-                ? list : Array.Empty<MemberList>();
+        static IList<Member> ExtractType(IDataSource source, string text) =>
+            members.TryGetValue(new Parser(source, text).ParseType(), out Member[]? list)
+                ? list : Array.Empty<Member>();
     }
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>A list of pairs member name/description.</returns>
-    public static IList<MemberList> GetClassMembers(
+    public static IList<Member> GetClassMembers(
         string text)
     {
         return classMembers.TryGetValue(ExtractClassName(text),
-            out MemberList[]? list)
-            ? list : Array.Empty<MemberList>();
+            out Member[]? list)
+            ? list : Array.Empty<Member>();
 
         static string ExtractClassName(string text)
         {

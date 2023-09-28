@@ -133,7 +133,7 @@ public partial class MainWindow : Window
 
     private string GetFragment(int delta = 1) => avalon.Document.GetText(0, avalon.CaretOffset - delta);
 
-    private void ShowCodeCompletion(IList<MemberList> list)
+    private void ShowCodeCompletion(IList<Member> list)
     {
         if (list?.Count > 0)
         {

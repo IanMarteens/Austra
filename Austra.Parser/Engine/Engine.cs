@@ -10,9 +10,9 @@ namespace Austra.Parser;
 public readonly record struct AustraAnswer(object? Value, Type? Type, string Variable);
 
 /// <summary>Represents a member with its description for code completion.</summary>
-/// <param name="Member">The text of the member.</param>
+/// <param name="Name">The text of the member.</param>
 /// <param name="Description">A human-readable description.</param>
-public readonly record struct MemberList(string Member, string Description);
+public readonly record struct Member(string Name, string Description);
 
 /// <summary>Represents the AUSTRA engine.</summary>
 public interface IAustraEngine
@@ -39,27 +39,27 @@ public interface IAustraEngine
 
     /// <summary>Gets a list of root variables.</summary>
     /// <returns>A list of variables and definitions.</returns>
-    IList<MemberList> GetRoots();
+    IList<Member> GetRoots();
 
     /// <summary>Gets a list of root classes.</summary>
     /// <returns>A list of classes that accepts class methods.</returns>
-    IList<MemberList> GetRootClasses();
+    IList<Member> GetRootClasses();
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
-    IList<MemberList> GetMembers(string text);
+    IList<Member> GetMembers(string text);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <param name="type">The type of the expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
-    IList<MemberList> GetMembers(string text, out Type? type);
+    IList<Member> GetMembers(string text, out Type? type);
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>Null if not a valid type.</returns>
-    IList<MemberList> GetClassMembers(string text);
+    IList<Member> GetClassMembers(string text);
 
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
     /// <param name="text">Class name to check.</param>
@@ -195,17 +195,17 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Gets a list of root variables.</summary>
     /// <returns>A list of variables and definitions.</returns>
-    public IList<MemberList> GetRoots() =>
-        Source.Variables.Select(t => new MemberList(t.name, "Variable: " + t.type?.Name))
+    public IList<Member> GetRoots() =>
+        Source.Variables.Select(t => new Member(t.name, "Variable: " + t.type?.Name))
             .Concat(Source.AllDefinitions
-                .Select(d => new MemberList(d.Name, "Definition: " + d.Type.Name)))
+                .Select(d => new Member(d.Name, "Definition: " + d.Type.Name)))
             .Concat(GetRootClasses())
             .Concat(GetGlobalFunctions())
-            .OrderBy(x => x.Member)
+            .OrderBy(x => x.Name)
             .ToList();
 
-    private IList<MemberList> GetGlobalFunctions() =>
-        new MemberList[]
+    private IList<Member> GetGlobalFunctions() =>
+        new Member[]
         {
             new("abs(", "Absolute value"),
             new("sqrt(", "Squared root"),
@@ -242,8 +242,8 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Gets a list of root classes.</summary>
     /// <returns>A list of classes that accepts class methods.</returns>
-    public IList<MemberList> GetRootClasses() =>
-        new MemberList[]
+    public IList<Member> GetRootClasses() =>
+        new Member[]
         {
             new("complexvector::", "Allows access to complex vector constructors"),
             new("matrix::", "Allows access to matrix constructors"),
@@ -265,20 +265,20 @@ public partial class AustraEngine : IAustraEngine
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
-    public IList<MemberList> GetMembers(string text) =>
+    public IList<Member> GetMembers(string text) =>
         Parser.GetMembers(Source, text, out _);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <param name="type">The type of the expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
-    public IList<MemberList> GetMembers(string text, out Type? type) =>
+    public IList<Member> GetMembers(string text, out Type? type) =>
         Parser.GetMembers(Source, text, out type);
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>Null if not a valid type.</returns>
-    public IList<MemberList> GetClassMembers(string text) =>
+    public IList<Member> GetClassMembers(string text) =>
         Parser.GetClassMembers(text);
 
     /// <summary>Should load series and definitions from persistent storage.</summary>
