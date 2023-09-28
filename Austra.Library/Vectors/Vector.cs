@@ -62,17 +62,15 @@ public readonly struct Vector :
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A normal random number generator.</param>
-    public unsafe Vector(int size, NormalRandom rnd)
+    public Vector(int size, NormalRandom rnd)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        fixed (double* p = values)
-        {
-            int i = 0;
-            for (int t = size & ~1; i < t; i += 2)
-                (p[i], p[i + 1]) = rnd.NextDoubles();
-            if (i < size)
-                p[i] = rnd.NextDouble();
-        }
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        int i = 0;
+        for (int t = size & ~1; i < t; i += 2)
+            rnd.NextDoubles(ref Unsafe.Add(ref p, i));
+        if (i < size)
+            Unsafe.Add(ref p, i) = rnd.NextDouble();
     }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>

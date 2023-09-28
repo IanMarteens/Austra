@@ -34,4 +34,7 @@ public class MatrixBenchmark : BenchmarkControl
 
     [Benchmark]
     public Vector AustraMatrixVector() => cm1 * cv1;
+
+    [Benchmark]
+    public LMatrix AustraLowerTriangular() => new(cv1.Length, NormalRandom.Shared);
 }

@@ -72,9 +72,10 @@ public readonly struct LMatrix :
     public LMatrix(int rows, int cols, Random random)
     {
         values = new double[rows, cols];
+        ref double cell = ref values[0, 0];
         for (int r = 0; r < rows; r++)
             for (int c = 0, top = Min(cols, r + 1); c < top; c++)
-                values[r, c] = random.NextDouble();
+                Unsafe.Add(ref cell, r * cols + c) = random.NextDouble();
     }
 
     /// <summary>
@@ -82,6 +83,7 @@ public readonly struct LMatrix :
     /// </summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <param name="random">A random number generator.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LMatrix(int size, Random random) : this(size, size, random)
     { }
 
@@ -94,14 +96,23 @@ public readonly struct LMatrix :
     public LMatrix(int rows, int cols, NormalRandom random)
     {
         values = new double[rows, cols];
+        ref double cell = ref values[0, 0];
         for (int r = 0; r < rows; r++)
-            for (int c = 0, top = Min(cols, r + 1); c < top; c++)
-                values[r, c] = random.NextDouble();
+        {
+            int c = 0, top = Min(cols, r + 1);
+            for (int t = top & ~1; c < t; c += 2)
+            {
+                random.NextDoubles(ref Unsafe.Add(ref cell, r * cols + c));
+            }
+            if (c < top)
+                Unsafe.Add(ref cell, r * cols + c) = random.NextDouble();
+        }
     }
 
     /// <summary>Creates a squared matrix with a standard normal distribution.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <param name="random">A random standard normal generator.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LMatrix(int size, NormalRandom random) : this(size, size, random)
     { }
 

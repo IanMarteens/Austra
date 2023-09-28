@@ -2,13 +2,14 @@
 
 public class VectorBenchmark : BenchmarkControl
 {
+    private readonly int size;
     private readonly Vector cv1, cv2, cv3, cv4, cv5;
     private readonly Complex[] cv = new Complex[1023];
     private readonly ComplexVector cxv;
 
     public VectorBenchmark()
     {
-        int size = Configure();
+        size = Configure();
         var rnd = new Random();
         cv1 = new Vector(size, rnd);
         cv2 = new Vector(size, rnd);
@@ -55,4 +56,7 @@ public class VectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public Vector AustraCombineLineal() => Vector.Combine(2, 3, cv4, cv5);
+
+    [Benchmark]
+    public Vector AustraRandomVector() => new(size, NormalRandom.Shared);
 }

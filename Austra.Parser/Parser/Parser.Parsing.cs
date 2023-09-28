@@ -1054,7 +1054,7 @@ internal sealed partial class Parser
         // Skip method name and left parenthesis.
         Skip2();
         Expression e1 = ParseLightConditional();
-        if (e1.Type == typeof(Vector))
+        if (e1.Type == typeof(Vector) && type == typeof(Vector))
         {
             List<Expression> args = new() { e1 };
             while (kind == Token.Comma)
