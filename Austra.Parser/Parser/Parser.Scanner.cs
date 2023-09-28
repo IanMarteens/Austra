@@ -390,20 +390,20 @@ internal sealed partial class Parser
     private static int TryGetMonth(ReadOnlySpan<char> name) => (name[0] | 0x20) switch
     {
         'a' =>
-            name[1..].Equals("pr", StringComparison.OrdinalIgnoreCase) ? 4
-            : name[1..].Equals("ug", StringComparison.OrdinalIgnoreCase) ? 8 : 0,
+            (name[1] | 0x20) is 'p' && (name[2] | 0x20) is 'r' ? 4
+            : (name[1] | 0x20) is 'u' && (name[2] | 0x20) is 'g' ? 8 : 0,
         'd' =>
             (name[1] | 0x20) is 'e' && (name[2] | 0x20) is 'c' ? 12 : 0,
         'f' =>
             (name[1] | 0x20) is 'e' && (name[2] | 0x20) is 'b' ? 2 : 0,
         'j' =>
-            name[1..].Equals("an", StringComparison.OrdinalIgnoreCase) ? 1
-            : name[1..].Equals("un", StringComparison.OrdinalIgnoreCase) ? 6
-            : name[1..].Equals("ul", StringComparison.OrdinalIgnoreCase) ? 7 : 0,
+            (name[1] | 0x20) is 'a' && (name[2] | 0x20) is 'n' ? 1
+            : (name[1] | 0x20) is not 'u' ? 0
+            : (name[2] | 0x20) is 'n' ? 6
+            : (name[2] | 0x20) is 'l' ? 7 : 0,
         'm' =>
-            (name[1] | 0x20) is 'a'
-            ? (name[2] | 0x20) is 'r' ? 3 : (name[2] | 0x20) is 'y' ? 5 : 0
-            : 0,
+            (name[1] | 0x20) is not 'a' ? 0
+            : (name[2] | 0x20) is 'r' ? 3 : (name[2] | 0x20) is 'y' ? 5 : 0,
         'n' =>
             (name[1] | 0x20) is 'o' && (name[2] | 0x20) is 'v' ? 11 : 0,
         'o' =>
@@ -421,7 +421,7 @@ internal sealed partial class Parser
     {
         if (text.Length >= 5)
         {
-            int month = TryGetMonth(text[..3]);
+            int month = TryGetMonth(text);
             if (month > 0 && int.TryParse(text[3..], out int year))
                 if (text.Length == 5)
                 {
