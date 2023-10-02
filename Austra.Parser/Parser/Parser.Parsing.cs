@@ -894,50 +894,15 @@ internal sealed partial class Parser
             return ParseNewVectorLambda(typeof(Vector));
         Skip2();
         return ParseClassMethod("vector", method);
-        /*(List<Expression> a, _) = ParseArguments();
-        return method switch
-        {
-            "nrandom" => a.Count != 1 || a[0].Type != typeof(int)
-                ? throw Error("Vector size expected")
-                : typeof(Vector).New(a.AddNormalRandom()),
-            "random" => a.Count != 1 || a[0].Type != typeof(int)
-                ? throw Error("Vector size expected")
-                : typeof(Vector).New(a.AddRandom()),
-            "zero" or "zeros" => a.Count != 1 || a[0].Type != typeof(int)
-                ? throw Error("Vector size expected")
-                : typeof(Vector).New(a[0]),
-            "ones" => a.Count != 1 || a[0].Type != typeof(int)
-                ? throw Error("Vector size expected")
-                : typeof(Vector).New(a.AddExp(Expression.Constant(1.0))),
-            _ => throw Error("Unknown method name", pos),
-        };*/
     }
 
     private Expression ParseComplexVectorMethod()
     {
-        (string method, int pos) = (id.ToLower(), start);
+        string method = id.ToLower();
         if (method == "new")
             return ParseNewVectorLambda(typeof(ComplexVector));
-        (List<Expression> e, _) = ParseArguments();
-        return method switch
-        {
-            "nrandom" => e.Count != 1 || e[0].Type != typeof(int)
-                ? throw Error("Vector size expected")
-                : typeof(ComplexVector).New(e.AddNormalRandom()),
-            "random" => e.Count != 1 || e[0].Type != typeof(int)
-                ? throw Error("Vector size expected")
-                : typeof(ComplexVector).New(e.AddRandom()),
-            "zero" or "zeros" => e.Count != 1 || e[0].Type != typeof(int)
-                ? throw Error("Vector size expected")
-                : typeof(ComplexVector).New(e[0]),
-            "from" => e.Count == 1 && e[0].Type == typeof(Vector)
-                ? typeof(ComplexVector).New(e[0])
-                : e.Count == 2 || e[0].Type == typeof(Vector)
-                    || e[1].Type == typeof(Vector)
-                ? typeof(ComplexVector).New(e[0], e[1])
-                : throw Error("One or two vectors expected"),
-            _ => throw Error("Unknown method name", pos),
-        };
+        Skip2();
+        return ParseClassMethod("complexvector", method);
     }
 
     private Expression ParseMatrixMethod()

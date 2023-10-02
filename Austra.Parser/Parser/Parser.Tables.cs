@@ -137,7 +137,7 @@ internal sealed partial class Parser
             },
         };
 
-    private record struct MethodData(Type Implementor, string? MemberName, params Type[] Args)
+    internal record struct MethodData(Type Implementor, string? MemberName, params Type[] Args)
     {
         public MethodData(Type implementor, params Type[] args) : this(implementor, null, args) { }
     }
@@ -151,31 +151,52 @@ internal sealed partial class Parser
             },
             ["spline.grid"] = new MethodData[]
             {
-                new(typeof(VectorSpline), typeof(double), typeof(double), typeof(int), typeof(Func<double, double>)),
+                typeof(VectorSpline).MD(typeof(double), typeof(double), typeof(int), typeof(Func<double, double>)),
             },
             ["spline.new"] = new MethodData[]
             {
-                new(typeof(VectorSpline), typeof(Vector), typeof(Vector))
+                typeof(VectorSpline).MD(typeof(Vector), typeof(Vector))
             },
             ["vector.nrandom"] = new MethodData[]
             {
-                new(typeof(Vector), typeof(int), typeof(NormalRandom)),
+                typeof(Vector).MD(typeof(int), typeof(NormalRandom)),
             },
             ["vector.random"] = new MethodData[]
             {
-                new(typeof(Vector), typeof(int), typeof(Random)),
+                typeof(Vector).MD(typeof(int), typeof(Random)),
             },
             ["vector.zero"] = new MethodData[]
             {
-                new(typeof(Vector), typeof(int)),
+                typeof(Vector).MD(typeof(int)),
             },
             ["vector.zeros"] = new MethodData[]
             {
-                new(typeof(Vector), typeof(int)),
+                typeof(Vector).MD(typeof(int)),
             },
             ["vector.ones"] = new MethodData[]
             {
-                new(typeof(Vector), typeof(int), typeof(One)),
+                typeof(Vector).MD(typeof(int), typeof(One)),
+            },
+            ["complexvector.nrandom"] = new MethodData[]
+            {
+                typeof(Vector).MD(typeof(int), typeof(NormalRandom)),
+            },
+            ["complexvector.random"] = new MethodData[]
+            {
+                typeof(ComplexVector).MD(typeof(int), typeof(Random)),
+            },
+            ["complexvector.zero"] = new MethodData[]
+            {
+                typeof(ComplexVector).MD(typeof(int)),
+            },
+            ["complexvector.zeros"] = new MethodData[]
+            {
+                typeof(ComplexVector).MD(typeof(int)),
+            },
+            ["complexvector.from"] = new MethodData[]
+            {
+                typeof(ComplexVector).MD(typeof(Vector)),
+                typeof(ComplexVector).MD(typeof(Vector), typeof(Vector)),
             },
         };
 

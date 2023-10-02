@@ -522,22 +522,30 @@ internal static class ParserExtensions
     public static MethodInfo Prop(this Type type, string property) =>
          type.GetProperty(property)!.GetGetMethod()!;
 
+    public static Parser.MethodData MD(this Type type, params Type[] argTypes) =>
+        new(type, argTypes);
+
     /// <summary>
     /// Gets the constructor for the specified types and creates a new expression.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NewExpression New(this Type type, params Expression[] args) =>
         Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NewExpression New(this Type type, List<Expression> args) =>
         Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NewArrayExpression Make(this Type type, IEnumerable<Expression> args) =>
         Expression.NewArrayInit(type, args);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MethodCallExpression Call(this Type type,
         Expression? instance, string method, Expression arg) =>
         Expression.Call(instance, type.GetMethod(method, new[] { arg.Type })!, arg);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MethodCallExpression Call(this Type type,
         string method, Expression a1, Expression a2) =>
         Expression.Call(type.GetMethod(method, new[] { a1.Type, a2.Type })!, a1, a2);
