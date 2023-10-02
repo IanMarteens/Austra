@@ -150,26 +150,8 @@ public partial class MainWindow : Window
 
     private void CloseCmdExecuted(object sender, ExecutedRoutedEventArgs e) => Close();
 
-    private void PlayCmdExecuted(object sender, ExecutedRoutedEventArgs e) =>
-        Root.Evaluate(avalon.Text);
-
-    private void CheckTypeExecuted(object sender, ExecutedRoutedEventArgs e) =>
-        Root.CheckType(avalon.Text);
-
-    private void CanExecuteCloseAll(object sender, CanExecuteRoutedEventArgs e) =>
-        e.CanExecute = Root.HasEnvironment;
-
-    private void ExecuteCloseAll(object sender, ExecutedRoutedEventArgs e) =>
-        Root.ExecuteCloseAllCommand();
-
-    private void CanExecutePlay(object sender, CanExecuteRoutedEventArgs e) =>
-        e.CanExecute = Root.HasEnvironment;
-
     private void ExecuteOpen(object sender, ExecutedRoutedEventArgs e) =>
         Root.ExecuteOpenCommand();
-
-    private void ExecuteAbout(object sender, ExecutedRoutedEventArgs e) =>
-        new AboutView().Show();
 
     private void ExecuteMinimize(object sender, ExecutedRoutedEventArgs e) =>
         SystemCommands.MinimizeWindow(this);
@@ -184,18 +166,6 @@ public partial class MainWindow : Window
 
     private void ExecuteClose(object sender, ExecutedRoutedEventArgs e) =>
         SystemCommands.CloseWindow(this);
-
-    private void ExecHistoryDown(object sender, ExecutedRoutedEventArgs e) =>
-        Root.ExecHistoryDown();
-
-    private void ExecHistoryUp(object sender, ExecutedRoutedEventArgs e) =>
-        Root.ExecHistoryUp();
-
-    private void ExecuteFocusEditor(object sender, ExecutedRoutedEventArgs e)
-    {
-        avalon.Focus();
-        avalon.SelectAll();
-    }
 
     private void AvalonPreviewKeyDown(object sender, KeyEventArgs e)
     {
@@ -216,26 +186,4 @@ public partial class MainWindow : Window
             gMode = false;
         }
     }
-
-    private void ExecutePasteExcel(object sender, ExecutedRoutedEventArgs e)
-    {
-        string text = Clipboard.GetText();
-        StringBuilder sb = new(text.Length);
-        foreach (string line in text.Split("\r\n", StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-            string[] tokens = line.Replace(',', '.').Split("\t");
-            if (sb.Length > 0)
-                sb.AppendLine(";");
-            sb.Append(string.Join(", ", tokens));
-        }
-        if (sb.Length > 0)
-            avalon.TextArea.Selection.ReplaceSelectionWithText(
-                "[" + sb.ToString() + "]");
-
-    }
-
-    private void CanPasteExcel(object sender, CanExecuteRoutedEventArgs e) =>
-        e.CanExecute = Clipboard.ContainsText();
 }

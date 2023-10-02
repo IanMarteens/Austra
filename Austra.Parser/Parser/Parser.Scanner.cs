@@ -502,10 +502,8 @@ internal sealed partial class Parser
     /// <summary>Internal stub for accessing string internals.</summary>
     private sealed class Str
     {
-#pragma warning disable CS0649
         /// <summary>The length of the string.</summary>
-        public int Length;
-#pragma warning restore CS0649
+        public int Length = 0;
         /// <summary>The first character in the string.</summary>
         public char FirstChar;
     }

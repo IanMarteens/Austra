@@ -137,6 +137,48 @@ internal sealed partial class Parser
             },
         };
 
+    private record struct MethodData(Type Implementor, string? MemberName, params Type[] Args)
+    {
+        public MethodData(Type implementor, params Type[] args) : this(implementor, null, args) { }
+    }
+
+    private static readonly Dictionary<string, MethodData[]> classMethods =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["series.new"] = new MethodData[]
+            {
+                new(typeof(Series), nameof(Series.Combine), typeof(Vector), typeof(Series[])),
+            },
+            ["spline.grid"] = new MethodData[]
+            {
+                new(typeof(VectorSpline), typeof(double), typeof(double), typeof(int), typeof(Func<double, double>)),
+            },
+            ["spline.new"] = new MethodData[]
+            {
+                new(typeof(VectorSpline), typeof(Vector), typeof(Vector))
+            },
+            ["vector.nrandom"] = new MethodData[]
+            {
+                new(typeof(Vector), typeof(int), typeof(NormalRandom)),
+            },
+            ["vector.random"] = new MethodData[]
+            {
+                new(typeof(Vector), typeof(int), typeof(Random)),
+            },
+            ["vector.zero"] = new MethodData[]
+            {
+                new(typeof(Vector), typeof(int)),
+            },
+            ["vector.zeros"] = new MethodData[]
+            {
+                new(typeof(Vector), typeof(int)),
+            },
+            ["vector.ones"] = new MethodData[]
+            {
+                new(typeof(Vector), typeof(int), typeof(One)),
+            },
+        };
+
     /// <summary>Allowed properties and their implementations.</summary>
     private static readonly Dictionary<Type, Dictionary<string, MethodInfo>> allProps =
         new()
@@ -732,6 +774,8 @@ internal sealed partial class Parser
             },
         };
 
+    private class One { }
+
     /// <summary>Gets a regex that matches a set statement.</summary>
     [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase)]
     private static partial Regex LetHeaderRegex();
@@ -785,20 +829,21 @@ internal sealed partial class Parser
         string text)
     {
         return classMembers.TryGetValue(ExtractClassName(text),
-            out Member[]? list)
-            ? list : Array.Empty<Member>();
+            out Member[]? list) ? list : Array.Empty<Member>();
 
         static string ExtractClassName(string text)
         {
-            int i = text.EndsWith("::") ? text.Length - 2 : text.Length - 1;
-            if (i < 0 || text[i--] != ':')
+            ref char c = ref Unsafe.As<Str>(text).FirstChar;
+            int i = Unsafe.Add(ref c, text.Length - 1) == ':'
+                && Unsafe.Add(ref c, text.Length - 2) == ':' ? text.Length - 2 : text.Length - 1;
+            if (i < 0 || Unsafe.Add(ref c, i--) != ':')
                 return "";
-            while (i >= 0 && char.IsWhiteSpace(text, i))
+            while (i >= 0 && char.IsWhiteSpace(Unsafe.Add(ref c, i)))
                 i--;
             if (i < 0)
                 return "";
             int end = i + 1;
-            while (i >= 0 && char.IsLetter(text, i))
+            while (i >= 0 && char.IsLetter(Unsafe.Add(ref c, i)))
                 i--;
             return text[(i + 1)..end].Trim();
         }
@@ -809,10 +854,11 @@ internal sealed partial class Parser
     /// <returns>The final object path.</returns>
     private static string ExtractObjectPath(string text)
     {
+        ref char c = ref Unsafe.As<Str>(text).FirstChar;
         int i = text.Length - 1;
         while (i >= 0)
         {
-            char ch = text[i];
+            char ch = Unsafe.Add(ref c, i);
             if (char.IsLetterOrDigit(ch) ||
                 ch is '_' or '.' or ':' or '=' or '\'' ||
                 char.IsWhiteSpace(ch))
@@ -824,9 +870,10 @@ internal sealed partial class Parser
                 int count = 1;
                 while (--i >= 0)
                 {
-                    if (text[i] == ')')
+                    ch = Unsafe.Add(ref c, i);
+                    if (ch == ')')
                         count++;
-                    else if (text[i] == '(')
+                    else if (ch == '(')
                     {
                         if (--count == 0)
                             break;
@@ -842,9 +889,10 @@ internal sealed partial class Parser
                 int count = 1;
                 while (--i >= 0)
                 {
-                    if (text[i] == ']')
+                    ch = Unsafe.Add(ref c, i);
+                    if (ch == ']')
                         count++;
-                    else if (text[i] == '[')
+                    else if (ch == '[')
                     {
                         if (--count == 0)
                             break;

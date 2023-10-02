@@ -6,10 +6,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:Ostara"
     mc:Ignorable="d"
-    WindowsStartupLocation="CenterScreen"
     ShowInTaskbar="False"
-    WindowsStyle="None"
-    Title="Options" Height="350" Width="600">
+    Title="" Height="350" Width="600">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="34" />
     </WindowChrome.WindowChrome>
@@ -26,7 +24,7 @@
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="LayoutRoot" Property="Background" Value="#202020"/>
+                                    <Setter TargetName="LayoutRoot" Property="Background" Value="#A02020"/>
                                     <Setter TargetName="txt" Property="Foreground" Value="White"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -42,11 +40,9 @@
         <DockPanel>
             <Grid DockPanel.Dock="Top" Height="30" Background="#FF000004">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <!--App icon-->
-                    <Image Source="/ak.ico" Width="18" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                </StackPanel>
+                <TextBlock Text="Settings" FontWeight="DemiBold" Foreground="White" Margin="6 3 0 0" />
+            </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="OSTARA, by Intuitive Sight" FontWeight="DemiBold" Foreground="White" Margin="4 3 0 0" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
                     <Button Style="{StaticResource CloseButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close"

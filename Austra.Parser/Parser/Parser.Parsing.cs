@@ -837,52 +837,16 @@ internal sealed partial class Parser
 
     private Expression ParseSeriesMethod()
     {
-        (string method, int pos) = (id.ToLower(), start);
-        (List<Expression> args, List<int> p) = ParseArguments();
-        return method switch
-        {
-            "new" => args.Count < 2
-                ? throw Error("NEW expects a vector and a list of series")
-                : args[0].Type != typeof(Vector)
-                ? throw Error("Vector expected", p[0])
-                : args.Skip(1).Any(e => e.Type != typeof(Series))
-                ? throw Error("NEW expects a vector and a list of series")
-                : typeof(Series).Call(nameof(Series.Combine),
-                    args[0], typeof(Series).Make(args.Skip(1))),
-            _ => throw Error("Unknown method name", pos),
-        };
+        string method = id.ToLower();
+        Skip2();
+        return ParseClassMethod("series", method);
     }
 
     private Expression ParseSplineMethod()
     {
-        (string method, int pos) = (id.ToLower(), start);
-        if (method == "grid")
-        {
-            Skip2();
-            Expression e1 = ParseLightConditional();
-            if (!IsArithmetic(e1))
-                throw Error("Lower bound must be double");
-            CheckAndMove(Token.Comma, "Comma expected");
-            Expression e2 = ParseLightConditional();
-            if (!IsArithmetic(e2))
-                throw Error("Upper bound must be double");
-            CheckAndMove(Token.Comma, "Comma expected");
-            Expression e3 = ParseLightConditional();
-            if (e3.Type != typeof(int))
-                throw Error("The number of segments must be an integer");
-            CheckAndMove(Token.Comma, "Comma expected");
-            return typeof(VectorSpline).New(ToDouble(e1), ToDouble(e2), e3,
-                ParseLambda(typeof(double), null, typeof(double)));
-
-        }
-        (List<Expression> a, List<int> _) = ParseArguments();
-        return method switch
-        {
-            "new" => a.Count != 2 || a[0].Type != typeof(Vector) || a[1].Type != typeof(Vector)
-                ? throw Error("Two vectors expected")
-                : typeof(VectorSpline).New(a[0], a[1]),
-            _ => throw Error("Unknown method name", pos),
-        }; ;
+        string method = id.ToLower();
+        Skip2();
+        return ParseClassMethod("spline", method);
     }
 
     private Expression ParseModelMethod()
@@ -925,10 +889,12 @@ internal sealed partial class Parser
 
     private Expression ParseVectorMethod()
     {
-        (string method, int pos) = (id.ToLower(), start);
+        string method = id.ToLower();
         if (method == "new")
             return ParseNewVectorLambda(typeof(Vector));
-        (List<Expression> a, _) = ParseArguments();
+        Skip2();
+        return ParseClassMethod("vector", method);
+        /*(List<Expression> a, _) = ParseArguments();
         return method switch
         {
             "nrandom" => a.Count != 1 || a[0].Type != typeof(int)
@@ -944,7 +910,7 @@ internal sealed partial class Parser
                 ? throw Error("Vector size expected")
                 : typeof(Vector).New(a.AddExp(Expression.Constant(1.0))),
             _ => throw Error("Unknown method name", pos),
-        };
+        };*/
     }
 
     private Expression ParseComplexVectorMethod()
@@ -977,9 +943,25 @@ internal sealed partial class Parser
     private Expression ParseMatrixMethod()
     {
         (string method, int pos) = (id.ToLower(), start);
+        // Skip method name and left parenthesis.
+        Skip2();
         if (method == "new")
-            return ParseNewMatrixLambda();
-        (List<Expression> a, _) = ParseArguments();
+        {
+            Expression e1 = ParseLightConditional();
+            if (e1.Type != typeof(int))
+                throw Error($"Rows must be integer");
+            CheckAndMove(Token.Comma, "Comma expected");
+            if (IsLambda())
+                return typeof(Matrix).New(e1,
+                    ParseLambda(typeof(int), typeof(int), typeof(double)));
+            Expression e2 = ParseLightConditional();
+            if (e2.Type != typeof(int))
+                throw Error($"Columns must be integer");
+            CheckAndMove(Token.Comma, "Comma expected");
+            return typeof(Matrix).New(e1, e2,
+                ParseLambda(typeof(int), typeof(int), typeof(double)));
+        }
+        (List<Expression> a, _) = CollectArguments();
         return method switch
         {
             "rows" => a.Any(e => e.Type != typeof(Vector))
@@ -1030,25 +1012,6 @@ internal sealed partial class Parser
             a.Count is 1 or 2 || a.All(e => e.Type == typeof(int));
     }
 
-    private Expression ParseNewMatrixLambda()
-    {
-        // Skip method name and left parenthesis.
-        Skip2();
-        Expression e1 = ParseLightConditional();
-        if (e1.Type != typeof(int))
-            throw Error($"Rows must be integer");
-        CheckAndMove(Token.Comma, "Comma expected");
-        if (IsLambda())
-            return typeof(Matrix).New(e1,
-                ParseLambda(typeof(int), typeof(int), typeof(double)));
-        Expression e2 = ParseLightConditional();
-        if (e2.Type != typeof(int))
-            throw Error($"Columns must be integer");
-        CheckAndMove(Token.Comma, "Comma expected");
-        return typeof(Matrix).New(e1, e2,
-            ParseLambda(typeof(int), typeof(int), typeof(double)));
-    }
-
     private Expression ParseNewVectorLambda(Type type)
     {
         // Skip method name and left parenthesis.
@@ -1080,17 +1043,17 @@ internal sealed partial class Parser
 
     private Expression ParseMethod(Expression e)
     {
-        string meth = id;
         if (!methods.TryGetValue(e.Type, out Dictionary<string, MethodInfo>? dict) ||
-            !dict.TryGetValue(meth, out MethodInfo? mInfo))
-            throw Error($"Invalid method: {meth}");
+            !dict.TryGetValue(id, out MethodInfo? mInfo))
+            throw Error($"Invalid method: {id}");
+        // Skip method name and left parenthesis.
+        Skip2();
         ParameterInfo[] paramInfo = mInfo.GetParameters();
         Type firstParam = paramInfo[0].ParameterType;
         if (paramInfo.Length == 2 &&
             paramInfo[1].ParameterType.IsAssignableTo(typeof(Delegate)))
         {
             // This is a zip or reduce method call.
-            Skip2();
             Expression e1 = ParseConditional();
             if (e1.Type != firstParam)
                 if (firstParam == typeof(double) && IsArithmetic(e1))
@@ -1106,22 +1069,18 @@ internal sealed partial class Parser
         }
         if (firstParam.IsAssignableTo(typeof(Delegate)))
         {
-            // Skip method name and left parenthesis.
-            Skip2();
             Type[] genTypes = firstParam.GenericTypeArguments;
             return Expression.Call(e, mInfo, ParseLambda(genTypes[0], null, genTypes[^1]));
         }
         if (firstParam == typeof(Index))
         {
-            // Skip method name and left parenthesis.
-            Skip2();
             bool fromEnd = false;
             Expression e1 = ParseIndex(ref fromEnd);
             CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
             return Expression.Call(e, mInfo,
                 Expression.New(indexCtor, e1, Expression.Constant(fromEnd)));
         }
-        (List<Expression> a, List<int> p) = ParseArguments();
+        (List<Expression> a, List<int> p) = CollectArguments();
         if (firstParam == typeof(Series[]) || firstParam == typeof(Vector[]))
             return a.Any(a => a.Type != e.Type)
                 ? throw Error(e.Type == typeof(Series) ?
@@ -1163,7 +1122,7 @@ internal sealed partial class Parser
         return e;
     }
 
-    private Expression ParseLambda(Type t1, Type? t2, Type retType, bool isLast = true)
+    private Expression ParseLambda(Type t1, Type? t2, Type retType, bool? isLast = true)
     {
         try
         {
@@ -1196,10 +1155,11 @@ internal sealed partial class Parser
                     : retType == typeof(double) && IsArithmetic(body)
                     ? ToDouble(body)
                     : throw Error($"Expected return type is {retType.Name}");
-            if (isLast)
-                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-            else
-                CheckAndMove(Token.Comma, "Comma expected");
+            if (isLast is not null)
+                if (isLast.Value)
+                    CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+                else
+                    CheckAndMove(Token.Comma, "Comma expected");
             return lambdaParameter2 != null
                 ? Expression.Lambda(body, lambdaParameter, lambdaParameter2)
                 : Expression.Lambda(body, lambdaParameter);
@@ -1387,6 +1347,85 @@ internal sealed partial class Parser
         // Check and skip right parenthesis.
         CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
         return (arguments, positions);
+    }
+
+    private Expression ParseClassMethod(string className, string methodName)
+    {
+        if (!classMethods.TryGetValue(className + "." + methodName, out var info))
+            throw Error($"Invalid class method name: {className}::{methodName}");
+        Type[] types = info[0].Args;
+        List<Expression> args = new(types.Length);
+        int i = 0;
+        for (; i < types.Length; i++)
+        {
+            Type currentType = types[i];
+            if (currentType.IsAssignableTo(typeof(Delegate)))
+            {
+                Type[] genTypes = currentType.GenericTypeArguments;
+                if (genTypes.Length == 3)
+                    args.Add(ParseLambda(genTypes[0], genTypes[1], genTypes[2], null));
+                else
+                    args.Add(ParseLambda(genTypes[0], null, genTypes[1], null));
+            }
+            else if (currentType == typeof(Index))
+            {
+                bool fromEnd = false;
+                args.Add(Expression.New(indexCtor, ParseIndex(ref fromEnd, true),
+                    Expression.Constant(fromEnd)));
+            }
+            else if (currentType.IsArray)
+            {
+                Type subType = currentType.GetElementType()!;
+                List<Expression> items = new();
+                for (; ; Move())
+                {
+                    Expression e = ParseLightConditional();
+                    if (e.Type != subType)
+                        throw Error($"Expected {subType.Name}");
+                    items.Add(e);
+                    if (kind != Token.Comma)
+                    {
+                        args.Add(subType.Make(items));
+                        goto END_PARSING;
+                    }
+                }
+            }
+            else
+            {
+                Expression e = ParseLightConditional();
+                if (e.Type == currentType)
+                    args.Add(e);
+                else if (currentType == typeof(double) && IsArithmetic(e))
+                    args.Add(ToDouble(e));
+                else if (currentType == typeof(Complex) && IsArithmetic(e))
+                    args.Add(Expression.Convert(ToDouble(e), typeof(Complex)));
+                else
+                    throw Error($"Expected {currentType.Name}");
+            }
+            if (kind != Token.Comma)
+            {
+                i++;
+                break;
+            }
+            Move();
+        }
+        if (i == types.Length - 1)
+        {
+            Type currentType = types[i];
+            if (currentType == typeof(Random) || currentType == typeof(NormalRandom))
+                args.Add(currentType.New());
+            else if (currentType == typeof(One))
+                args.Add(Expression.Constant(1d));
+            else
+                throw Error($"Invalid number of arguments");
+        }
+    END_PARSING:
+        Expression result = info[0].MemberName != null
+            ? Expression.Call(info[0].Implementor.GetMethod(info[0].MemberName!)!, args)
+            : info[0].Implementor.New(args);
+        // Check and skip right parenthesis.
+        CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+        return result;
     }
 
     private Expression ParseVectorLiteral()

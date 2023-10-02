@@ -61,25 +61,16 @@
         <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}" Executed="ExecuteMinimize" />
         <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}" Executed="ExecuteRestore" />
         <CommandBinding Command="ApplicationCommands.Open" Executed="ExecuteOpen"/>
-        <CommandBinding Command="{x:Static local:OstCommands.CloseAll}" Executed="ExecuteCloseAll"
-                        CanExecute="CanExecuteCloseAll"/>
-        <CommandBinding Command="{x:Static local:OstCommands.About}" Executed="ExecuteAbout"/>
         <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCmdExecuted"/>
-        <CommandBinding Command="MediaCommands.Play" Executed="PlayCmdExecuted" CanExecute="CanExecutePlay"/>
-        <CommandBinding Command="{x:Static local:OstCommands.ParseType}" Executed="CheckTypeExecuted" CanExecute="CanExecutePlay"/>
-        <CommandBinding Command="{x:Static local:OstCommands.HistoryUp}" Executed="ExecHistoryUp"/>
-        <CommandBinding Command="{x:Static local:OstCommands.HistoryDown}" Executed="ExecHistoryDown"/>
-        <CommandBinding Command="{x:Static local:OstCommands.FocusEditor}" Executed="ExecuteFocusEditor"/>
-        <CommandBinding Command="{x:Static local:OstCommands.PasteFromExcel}" Executed="ExecutePasteExcel" CanExecute="CanPasteExcel"/>
     </Window.CommandBindings>
     <Window.InputBindings>
-        <KeyBinding Key="F5" Command="MediaCommands.Play"/>
-        <KeyBinding Key="F5" Modifiers="Control" Command="{x:Static local:OstCommands.ParseType}"/>
-        <KeyBinding Key="F1" Modifiers="Control" Command="{x:Static local:OstCommands.About}"/>
-        <KeyBinding Key="F7" Command="{x:Static local:OstCommands.HistoryUp}"/>
-        <KeyBinding Key="F7" Modifiers="Control" Command="{x:Static local:OstCommands.HistoryDown}"/>
-        <KeyBinding Key="F10" Modifiers="Control" Command="{x:Static local:OstCommands.FocusEditor}"/>
-        <KeyBinding Key="V" Modifiers="Control+Shift" Command="{x:Static local:OstCommands.PasteFromExcel}"/>
+        <KeyBinding Key="F5" Command="{Binding EvaluateCommand}"/>
+        <KeyBinding Key="F5" Modifiers="Control" Command="{Binding CheckTypeCommand}"/>
+        <KeyBinding Key="F1" Modifiers="Control" Command="{Binding AboutCommand}"/>
+        <KeyBinding Key="F7" Command="{Binding HistoryUpCommand}"/>
+        <KeyBinding Key="F7" Modifiers="Control" Command="{Binding HistoryDownCommand}"/>
+        <KeyBinding Key="F10" Modifiers="Control" Command="{Binding FocusEditorCommand}"/>
+        <KeyBinding Key="V" Modifiers="Control+Shift" Command="{Binding PasteExcelCommand}"/>
     </Window.InputBindings>
     <Border x:Name="MainWindowBorder" BorderBrush="#FF000010" BorderThickness="8" >
         <DockPanel>
@@ -122,7 +113,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="Close all" Command="{x:Static local:OstCommands.CloseAll}">
+                    <MenuItem Header="Close all" Command="{Binding CloseAllCommand}">
                         <MenuItem.Icon>
                             <Image Source="/images/closeAll.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
@@ -173,31 +164,31 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="History up" Command="{x:Static local:OstCommands.HistoryUp}" InputGestureText="F7">
+                    <MenuItem Header="History up" Command="{Binding HistoryUpCommand}" InputGestureText="F7">
                         <MenuItem.Icon>
                             <Image Source="/images/histUp.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="History down" Command="{x:Static local:OstCommands.HistoryDown}" InputGestureText="Ctrl+F7">
+                    <MenuItem Header="History down" Command="{Binding HistoryDownCommand}" InputGestureText="Ctrl+F7">
                         <MenuItem.Icon>
                             <Image Source="/images/histDown.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Run">
-                    <MenuItem Header="_Execute" Command="MediaCommands.Play" InputGestureText="F5">
+                    <MenuItem Header="_Execute" Command="{Binding EvaluateCommand}" InputGestureText="F5">
                         <MenuItem.Icon>
                             <Image Source="/images/play.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="_Check type" InputGestureText="Ctrl+F5" Command="{x:Static local:OstCommands.ParseType}">
+                    <MenuItem Header="_Check type" InputGestureText="Ctrl+F5" Command="{Binding CheckTypeCommand}">
                         <MenuItem.Icon>
                             <Image Source="/images/playt.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Tools">
-                    <MenuItem Header="_Options">
+                    <MenuItem Header="_Options" Command="{Binding OptionsCommand}">
                         <MenuItem.Icon>
                             <Image Source="/images/options.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
@@ -210,7 +201,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="_About" Command="{x:Static local:OstCommands.About}">
+                    <MenuItem Header="_About" Command="{Binding AboutCommand}">
                         <MenuItem.Icon>
                             <Image Source="/images/info.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
@@ -224,14 +215,14 @@
                         <TextBlock>Open...</TextBlock>
                     </StackPanel>
                 </Button>
-                <Button Command="{x:Static local:OstCommands.CloseAll}" ToolTip="Closes the current session">
+                <Button Command="{Binding CloseAllCommand}" ToolTip="Closes the current session">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/images/closeAll.png" Margin="0,0,4,0" Width="16" Height="Auto"/>
                         <TextBlock>Close all</TextBlock>
                     </StackPanel>
                 </Button>
                 <Separator/>
-                <Button Command="MediaCommands.Play" ToolTip="Evaluates the current formula">
+                <Button Command="{Binding EvaluateCommand}" ToolTip="Evaluates the current formula">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/images/play.png" Margin="0,0,4,0" Width="16" Height="Auto"/>
                         <TextBlock>Execute</TextBlock>
@@ -321,7 +312,7 @@
                                             <Image Source="/images/paste.png" Width="15" Height="Auto"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="Paste from _Excel" Command="{x:Static local:OstCommands.PasteFromExcel}" InputGestureText="Ctrl+Shift+V">
+                                    <MenuItem Header="Paste from _Excel" Command="{Binding PasteExcelCommand}" InputGestureText="Ctrl+Shift+V">
                                         <MenuItem.Icon>
                                             <Image Source="/images/pasteExcel.png" Width="15" Height="Auto"/>
                                         </MenuItem.Icon>

@@ -49,6 +49,11 @@ public sealed partial class RootModel : Entity
             ErrorText = "";
             timer.Stop();
         };
+        CloseAllCommand = new DelegateCommand(ExecuteCloseAllCommand, GetHasEnvironment);
+        HistoryUpCommand = new DelegateCommand(ExecHistoryUp, GetHasEnvironment);
+        HistoryDownCommand = new DelegateCommand(ExecHistoryDown, GetHasEnvironment);
+        EvaluateCommand = new DelegateCommand(_ => Evaluate(Editor.Text), GetHasEnvironment);
+        CheckTypeCommand = new DelegateCommand(_ => CheckType(Editor.Text), GetHasEnvironment);
         string dataFile = GetDefaultDataFile();
         if (File.Exists(dataFile))
         {
@@ -56,6 +61,48 @@ public sealed partial class RootModel : Entity
             PrepareWorkspace();
         }
     }
+
+    public DelegateCommand CloseAllCommand { get; }
+
+    public DelegateCommand HistoryUpCommand { get; }
+
+    public DelegateCommand HistoryDownCommand { get; }
+
+    public DelegateCommand EvaluateCommand { get; }
+
+    public DelegateCommand CheckTypeCommand { get; }
+
+    public DelegateCommand PasteExcelCommand { get; } = new(
+        (object? _) =>
+        {
+            string text = Clipboard.GetText();
+            StringBuilder sb = new(text.Length);
+            foreach (string line in text.Split("\r\n", StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+                string[] tokens = line.Replace(',', '.').Split("\t");
+                if (sb.Length > 0)
+                    sb.AppendLine(";");
+                sb.Append(string.Join(", ", tokens));
+            }
+            if (sb.Length > 0)
+                Editor.TextArea.Selection.ReplaceSelectionWithText(
+                    "[" + sb.ToString() + "]");
+        },
+        (object? _) => Clipboard.ContainsText());
+
+    public DelegateCommand FocusEditorCommand { get; } = new((object? _) =>
+    {
+        Editor.Focus();
+        Editor.SelectAll();
+    });
+
+    public DelegateCommand OptionsCommand { get; } =
+        new(() => new OptionsView().ShowDialog());
+
+    public DelegateCommand AboutCommand { get; } =
+        new(() => new AboutView().Show());
 
     /// <summary>Gets the version of Austra.Libray.</summary>
     public static string Version { get; } =
@@ -83,6 +130,8 @@ public sealed partial class RootModel : Entity
     }
 
     public bool HasEnvironment => environment != null;
+
+    public bool GetHasEnvironment() => environment != null;
 
     public ObservableCollection<string> History { get; } = new();
 
@@ -300,7 +349,7 @@ public sealed partial class RootModel : Entity
         }
     }
 
-    public void ExecuteCloseAllCommand()
+    private void ExecuteCloseAllCommand()
     {
         Editor.Text = "";
         AustraDate = "";
@@ -323,7 +372,7 @@ public sealed partial class RootModel : Entity
             Editor.SelectedText = text;
     }
 
-    public void CheckType(string text)
+    private void CheckType(string text)
     {
         CleanBeforeParsing();
         if (string.IsNullOrWhiteSpace(text))
@@ -480,7 +529,7 @@ public sealed partial class RootModel : Entity
 
     private string savedHistory = "";
 
-    public void ExecHistoryUp()
+    private void ExecHistoryUp()
     {
         if (History.Count == 0)
             return;
@@ -523,7 +572,7 @@ public sealed partial class RootModel : Entity
         Editor.CaretOffset = Editor.Text.Length;
     }
 
-    public void ExecHistoryDown()
+    private void ExecHistoryDown()
     {
         if (historyIndex == -1)
         {
