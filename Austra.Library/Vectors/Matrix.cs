@@ -91,6 +91,11 @@ public readonly struct Matrix :
     public Matrix(Vector diagonal) =>
         values = CommonMatrix.CreateDiagonal(diagonal);
 
+    /// <summary>Creates a diagonal matrix given its diagonal.</summary>
+    /// <param name="diagonal">Values in the diagonal.</param>
+    public Matrix(double[] diagonal) =>
+        values = CommonMatrix.CreateDiagonal(diagonal);
+
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
@@ -178,6 +183,11 @@ public readonly struct Matrix :
     /// <returns>An identity matrix with the requested size.</returns>
     public static Matrix Identity(int size) =>
         CommonMatrix.CreateIdentity(size);
+
+    /// <summary>Creates a matrix given its columns.</summary>
+    /// <param name="columns">The array of columns.</param>
+    public static Matrix FromColumns(params Vector[] columns) =>
+        new Matrix(columns).Transpose();
 
     /// <summary>Horizontal concatenation of two matrices.</summary>
     /// <param name="left">Left matrix.</param>

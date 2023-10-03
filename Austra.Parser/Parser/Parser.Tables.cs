@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using Austra.Library.MVO;
+
+namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
@@ -137,67 +139,212 @@ internal sealed partial class Parser
             },
         };
 
-    internal record struct MethodData(Type Implementor, string? MemberName, params Type[] Args)
+    internal readonly struct MethodData
     {
+        public const uint MNone = 0u;
+        public const uint Mλ1 = 1u;
+        public const uint Mλ2 = 2u;
+        public const uint MIdx = 3u;
+
+        public Type Implementor { get; }
+        public string? MemberName { get; }
+        public Type[] Args { get; }
+        public uint TypeMask { get; }
+        public int ExpectedArgs { get; }
+
+        public MethodData(Type implementor, string? memberName, params Type[] args)
+        {
+            (Implementor, MemberName, Args) = (implementor, memberName, args);
+            for (int i = 0, m = 0; i < args.Length; i++, m += 2)
+            {
+                Type t = args[i];
+                if (t.IsAssignableTo(typeof(Delegate)))
+                    TypeMask |= t.GetGenericArguments().Length == 2 ? Mλ1 << m : Mλ2 << m;
+                else if (t == typeof(Index))
+                    TypeMask |= MIdx << m;
+            }
+            ExpectedArgs = Args[^1] switch
+            {
+                Type t when t == typeof(Random) || t == typeof(NormalRandom) || t == typeof(One)
+                    => Args.Length - 1,
+                _ => Args.Length
+            };
+        }
+
         public MethodData(Type implementor, params Type[] args) : this(implementor, null, args) { }
+
+        public uint GetMask(int typeId) => (TypeMask >> (typeId * 2)) & 3u;
     }
 
-    private static readonly Dictionary<string, MethodData[]> classMethods =
+    internal readonly struct MethodList
+    {
+        public MethodData[] Methods { get; }
+        public uint[] DKind { get; }
+
+        public MethodList(params MethodData[] methods)
+        {
+            Methods = methods;
+            int maxArgs = methods.Max(m => m.Args.Length);
+            DKind = new uint[maxArgs];
+            for (int i = 0; i < DKind.Length; i++)
+            {
+                uint mask = 0;
+                for (int j = 0; j < methods.Length; j++)
+                {
+                    MethodData method = methods[j];
+                    if (method.Args.Length > i
+                        && method.Args[i].IsAssignableTo(typeof(Delegate)))
+                    {
+                        int gCount = method.Args[i].GetGenericArguments().Length;
+                        if (gCount == 2)
+                            mask |= 1U;
+                        else if (gCount == 3)
+                            mask |= 2U;
+                    }
+                }
+                DKind[i] = mask;
+            }
+        }
+    }
+
+    private static readonly MethodList MatrixEye = new(
+        typeof(Matrix).MD(nameof(Matrix.Identity), typeof(int)));
+    private static readonly MethodList MatrixZero = new(
+        typeof(Matrix).MD(typeof(int)),
+        typeof(Matrix).MD(typeof(int), typeof(int)));
+    private static readonly MethodList MatrixCovariance = new(
+        typeof(Series<Date>).MD(nameof(Series.CovarianceMatrix), typeof(Series[])));
+    private static readonly MethodList MatrixCorrelation = new(
+        typeof(Series<Date>).MD(nameof(Series.CorrelationMatrix), typeof(Series[])));
+    private static readonly MethodList ModelCompare = new(
+        typeof(Tuple<Vector, Vector>).MD(typeof(Vector), typeof(Vector)),
+        typeof(Tuple<ComplexVector, ComplexVector>).MD(typeof(ComplexVector), typeof(ComplexVector)),
+        typeof(Tuple<Series, Series>).MD(typeof(Series), typeof(Series)));
+
+    private static readonly Dictionary<string, MethodList> classMethods =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["series.new"] = new MethodData[]
-            {
-                new(typeof(Series), nameof(Series.Combine), typeof(Vector), typeof(Series[])),
-            },
-            ["spline.grid"] = new MethodData[]
-            {
-                typeof(VectorSpline).MD(typeof(double), typeof(double), typeof(int), typeof(Func<double, double>)),
-            },
-            ["spline.new"] = new MethodData[]
-            {
+            ["series.new"] = new
+            (
+                typeof(Series).MD(nameof(Series.Combine), typeof(Series))
+            ),
+            ["spline.grid"] = new
+            (
+                typeof(VectorSpline).MD(typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))
+            ),
+            ["spline.new"] = new
+            (
                 typeof(VectorSpline).MD(typeof(Vector), typeof(Vector))
-            },
-            ["vector.nrandom"] = new MethodData[]
-            {
-                typeof(Vector).MD(typeof(int), typeof(NormalRandom)),
-            },
-            ["vector.random"] = new MethodData[]
-            {
-                typeof(Vector).MD(typeof(int), typeof(Random)),
-            },
-            ["vector.zero"] = new MethodData[]
-            {
-                typeof(Vector).MD(typeof(int)),
-            },
-            ["vector.zeros"] = new MethodData[]
-            {
-                typeof(Vector).MD(typeof(int)),
-            },
-            ["vector.ones"] = new MethodData[]
-            {
-                typeof(Vector).MD(typeof(int), typeof(One)),
-            },
-            ["complexvector.nrandom"] = new MethodData[]
-            {
-                typeof(Vector).MD(typeof(int), typeof(NormalRandom)),
-            },
-            ["complexvector.random"] = new MethodData[]
-            {
-                typeof(ComplexVector).MD(typeof(int), typeof(Random)),
-            },
-            ["complexvector.zero"] = new MethodData[]
-            {
-                typeof(ComplexVector).MD(typeof(int)),
-            },
-            ["complexvector.zeros"] = new MethodData[]
-            {
-                typeof(ComplexVector).MD(typeof(int)),
-            },
-            ["complexvector.from"] = new MethodData[]
-            {
+            ),
+            ["vector.new"] = new
+            (
+                typeof(Vector).MD(typeof(Vector), typeof(Vector[])),
+                typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
+                typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))
+            ),
+            ["vector.nrandom"] = new
+            (
+                typeof(Vector).MD(typeof(int), typeof(NormalRandom))
+            ),
+            ["vector.random"] = new
+            (
+                typeof(Vector).MD(typeof(int), typeof(Random))
+            ),
+            ["vector.zero"] = new
+            (
+                typeof(Vector).MD(typeof(int))
+            ),
+            ["vector.zeros"] = new
+            (
+                typeof(Vector).MD(typeof(int))
+            ),
+            ["vector.ones"] = new
+            (
+                typeof(Vector).MD(typeof(int), typeof(One))
+            ),
+            ["complexvector.new"] = new
+            (
+                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, double>)),
+                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, double>))
+            ),
+            ["complexvector.nrandom"] = new
+            (
+                typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))
+            ),
+            ["complexvector.random"] = new
+            (
+                typeof(ComplexVector).MD(typeof(int), typeof(Random))
+            ),
+            ["complexvector.zero"] = new
+            (
+                typeof(ComplexVector).MD(typeof(int))
+            ),
+            ["complexvector.zeros"] = new
+            (
+                typeof(ComplexVector).MD(typeof(int))
+            ),
+            ["complexvector.from"] = new
+            (
                 typeof(ComplexVector).MD(typeof(Vector)),
-                typeof(ComplexVector).MD(typeof(Vector), typeof(Vector)),
-            },
+                typeof(ComplexVector).MD(typeof(Vector), typeof(Vector))
+            ),
+            ["matrix.new"] = new
+            (
+                typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))
+            ),
+            ["matrix.rows"] = new
+            (
+                typeof(Matrix).MD(typeof(Vector[]))
+            ),
+            ["matrix.cols"] = new
+            (
+                typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))
+            ),
+            ["matrix.diag"] = new
+            (
+                typeof(Matrix).MD(typeof(Vector)),
+                typeof(Matrix).MD(typeof(double[]))
+            ),
+            ["matrix.i"] = MatrixEye,
+            ["matrix.eye"] = MatrixEye,
+            ["matrix.random"] = new
+            (
+                typeof(Matrix).MD(typeof(int), typeof(Random)),
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Random))
+            ),
+            ["matrix.nrandom"] = new
+            (
+                typeof(Matrix).MD(typeof(int), typeof(NormalRandom)),
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(NormalRandom))
+            ),
+            ["matrix.lrandom"] = new
+            (
+                typeof(LMatrix).MD(typeof(int), typeof(Random)),
+                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(Random))
+            ),
+            ["matrix.lnrandom"] = new
+            (
+                typeof(LMatrix).MD(typeof(int), typeof(NormalRandom)),
+                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(NormalRandom))
+            ),
+            ["matrix.zero"] = MatrixZero,
+            ["matrix.zeros"] = MatrixZero,
+            ["matrix.cov"] = MatrixCovariance,
+            ["matrix.covariance"] = MatrixCovariance,
+            ["matrix.corr"] = MatrixCorrelation,
+            ["matrix.correlation"] = MatrixCorrelation,
+            ["model.compare"] = ModelCompare,
+            ["model.comp"] = ModelCompare,
+            ["model.mvo"] = new
+            (
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Series[])),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector), typeof(Series[])),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector), typeof(string[]))
+            ),
         };
 
     /// <summary>Allowed properties and their implementations.</summary>
@@ -801,12 +948,26 @@ internal sealed partial class Parser
     [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase)]
     private static partial Regex LetHeaderRegex();
 
-    /// <summary>Gets a regex that matches a lambda header.</summary>
-    [GeneratedRegex(@"^(\w+|\(\s*\w+\s*\,\s*\w+\s*\))\s*\=\>")]
-    private static partial Regex IsLambdaHeader();
+    /// <summary>Gets a regex that matches a lambda header with one parameter.</summary>
+    [GeneratedRegex(@"^\w+\s*\=\>")]
+    private static partial Regex LambdaHeader1();
+
+    /// <summary>Gets a regex that matches a lambda header with two parameters.</summary>
+    [GeneratedRegex(@"^\(\s*\w+\s*\,\s*\w+\s*\)\s*\=\>")]
+    private static partial Regex LambdaHeader2();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool IsLambda() => IsLambdaHeader().IsMatch(text.AsSpan()[start..]);
+    private bool IsLambda1() =>
+        kind == Token.Id && LambdaHeader1().IsMatch(text.AsSpan()[start..]);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsLambda2() =>
+        kind == Token.LPar && LambdaHeader2().IsMatch(text.AsSpan()[start..]);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsLambda() => kind == Token.Id
+        ? LambdaHeader1().IsMatch(text.AsSpan()[start..])
+        : LambdaHeader2().IsMatch(text.AsSpan()[start..]);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="source">A data source.</param>
