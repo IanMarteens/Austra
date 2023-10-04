@@ -1304,12 +1304,15 @@ internal sealed partial class Parser
                 uint lambdaType = kind == Token.LPar ? MethodData.Mλ2 : MethodData.Mλ1;
                 for (int j = 0, m = 1; j < info.Methods.Length; j++, m <<= 1)
                     if ((mask & m) != 0)
-                        if (info.Methods[j].GetMask(i) != lambdaType)
+                    {
+                        MethodData md = info.Methods[j];
+                        if (md.GetMask(i) != lambdaType)
                             mask &= ~m;
                         else if (lambda == null)
-                            lambda = info.Methods[j].Args[i];
-                        else if (info.Methods[j].Args[i] != lambda)
+                            lambda = md.Args[i];
+                        else if (md.Args[i] != lambda)
                             throw Error("Inconsistent lambda types");
+                    }
                 if (lambda == null)
                     throw Error("Invalid number of arguments in lambda function");
                 args.Add(ParseLambda(lambda));
@@ -1321,10 +1324,7 @@ internal sealed partial class Parser
                         mask &= ~m;
                 if (mask == 0)
                     throw Error("Lambda function expected");
-                if (kind == Token.Caret)
-                    args.Add(ParseIndex());
-                else
-                    args.Add(ParseLightConditional());
+                args.Add(kind == Token.Caret ? ParseIndex() : ParseLightConditional());
             }
             if (kind == Token.Comma)
                 Move();
@@ -1349,12 +1349,9 @@ internal sealed partial class Parser
         // Get selected method overload and check conversions.
         MethodData mth = info.Methods[Log2((uint)mask)];
         if (mth.ExpectedArgs < mth.Args.Length)
-        {
-            if (mth.Args[^1] == typeof(Random) || mth.Args[^1] == typeof(NormalRandom))
-                args.Add(mth.Args[^1].New());
-            else
-                args.Add(Expression.Constant(1d));
-        }
+            args.Add(mth.Args[^1] == typeof(Random) || mth.Args[^1] == typeof(NormalRandom)
+                ? mth.Args[^1].New()
+                : Expression.Constant(1d));
         for (int i = 0; i < mth.ExpectedArgs; i++)
         {
             Type expected = mth.Args[i], actual = args[i].Type;
