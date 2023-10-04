@@ -166,7 +166,7 @@ internal sealed partial class Parser
             Type t = Args[^1];
             ExpectedArgs = t.IsArray
                 ? int.MaxValue
-                : t == typeof(Random) || t == typeof(NormalRandom) || t == typeof(One)
+                : t == typeof(Random) || t == typeof(NormalRandom) || t == typeof(One) || t == typeof(Zero)
                 ? Args.Length - 1
                 : Args.Length;
         }
@@ -327,6 +327,20 @@ internal sealed partial class Parser
                 typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
             ["math.compare"] = ModelCompare,
             ["math.comp"] = ModelCompare,
+            ["math.complex"] = new(
+                typeof(Complex).MD(typeof(double), typeof(double)),
+                typeof(Complex).MD(typeof(double), typeof(Zero))),
+            ["math.polar"] = new(
+                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(double)),
+                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
+            ["math.min"] = new(
+                typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
+                typeof(Math).MD(nameof(Math.Min), typeof(int), typeof(int)),
+                typeof(Math).MD(nameof(Math.Min), typeof(double), typeof(double))),
+            ["math.max"] = new(
+                typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
+                typeof(Math).MD(nameof(Math.Max), typeof(int), typeof(int)),
+                typeof(Math).MD(nameof(Math.Max), typeof(double), typeof(double))),
         };
 
     /// <summary>Allowed properties and their implementations.</summary>
@@ -362,7 +376,6 @@ internal sealed partial class Parser
                 ["values"] = typeof(FftModel).Prop(nameof(FftModel.Spectrum)),
                 ["inverse"] = typeof(FftCModel).Get(nameof(FftCModel.Inverse)),
             },
-
             [typeof(Series)] = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["count"] = typeof(Series).Prop(nameof(Series.Count)),
@@ -951,6 +964,8 @@ internal sealed partial class Parser
                 new("polar(", "Creates a complex number from its magnitude and phase components"),
             }
         };
+
+    private class Zero { }
 
     private class One { }
 

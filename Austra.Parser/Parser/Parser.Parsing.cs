@@ -1032,44 +1032,16 @@ internal sealed partial class Parser
                 : Expression.Call(typeof(Solver).Get("Solve"), a1);
         }
         (List<Expression> a, List<int> p) = ParseArguments();
-        switch (function)
+        if (function == "iff")
         {
-            case "iff":
-                {
-                    if (a.Count != 3)
-                        throw Error("Function 'iff' requires 3 arguments", pos);
-                    if (a[0].Type != typeof(bool))
-                        throw Error("First argument must be boolean", p[0]);
-                    Expression a2 = a[1], a3 = a[2];
-                    return DifferentTypes(ref a2, ref a3)
-                        ? throw Error("Second and third arguments must have the same type", p[2])
-                        : Expression.Condition(a[0], a2, a3);
-                }
-            case "min":
-            case "max":
-                {
-                    string fName = function[^1] == 'n' ? nameof(Math.Min) : nameof(Math.Max);
-                    return a.Count == 2
-                        && a[0].Type == typeof(Date) && a[1].Type == typeof(Date)
-                        ? typeof(Date).Call(fName, a[0], a[1])
-                        : a.Count != 2 || !IsArithmetic(a[0]) || !IsArithmetic(a[1])
-                        ? throw Error("Arguments must be numeric")
-                        : a[0].Type == typeof(int) && a[1].Type == typeof(int)
-                        ? typeof(Math).Call(fName, a[0], a[1])
-                        : typeof(Math).Call(fName, ToDouble(a[0]), ToDouble(a[1]));
-                }
-            case "complex":
-                return a.Count == 1 && IsArithmetic(a[0])
-                    ? Expression.Convert(a[0], typeof(Complex))
-                    : a.Count != 2 || !AreArithmeticTypes(a[0], a[1])
-                    ? throw Error("Arguments must be numeric")
-                    : typeof(Complex).New(ToDouble(a[0]), ToDouble(a[1]));
-            case "polar":
-                return a.Count == 1 && IsArithmetic(a[0])
-                    ? Expression.Convert(a[0], typeof(Complex))
-                    : a.Count != 2 || !AreArithmeticTypes(a[0], a[1])
-                    ? throw Error("Arguments must be numeric")
-                    : typeof(Complex).Call(nameof(Complex.FromPolarCoordinates), ToDouble(a[0]), ToDouble(a[1]));
+            if (a.Count != 3)
+                throw Error("Function 'iff' requires 3 arguments", pos);
+            if (a[0].Type != typeof(bool))
+                throw Error("First argument must be boolean", p[0]);
+            Expression a2 = a[1], a3 = a[2];
+            return DifferentTypes(ref a2, ref a3)
+                ? throw Error("Second and third arguments must have the same type", p[2])
+                : Expression.Condition(a[0], a2, a3);
         }
         if (a.Count == 1 && a[0].Type == typeof(Complex))
         {
@@ -1162,19 +1134,18 @@ internal sealed partial class Parser
             }
             if (kind != Token.Comma)
             {
-                i++;
+                if (++i == types.Length - 1)
+                {
+                    currentType = types[i];
+                    if (currentType == typeof(Random) || currentType == typeof(NormalRandom))
+                        args.Add(currentType.New());
+                    else if (currentType == typeof(One))
+                        args.Add(Expression.Constant(1d));
+                    else
+                        throw Error($"Invalid number of arguments");
+                }
                 break;
             }
-        }
-        if (i == types.Length - 1)
-        {
-            Type currentType = types[i];
-            if (currentType == typeof(Random) || currentType == typeof(NormalRandom))
-                args.Add(currentType.New());
-            else if (currentType == typeof(One))
-                args.Add(Expression.Constant(1d));
-            else
-                throw Error($"Invalid number of arguments");
         }
     END_PARSING:
         Expression result = method.GetExpression(args);
@@ -1237,12 +1208,19 @@ internal sealed partial class Parser
             }
             else
             {
-                for (int j = 0, m = 1; j < info.Methods.Length; j++, m <<= 1)
-                    if ((mask & m) != 0 && info.Methods[j].GetMask(i) >= MethodData.Mλ1)
-                        mask &= ~m;
-                if (mask == 0)
-                    throw Error("Lambda function expected");
                 args.Add(kind == Token.Caret ? ParseIndex() : ParseLightConditional());
+                for (int j = 0, m = 1; j < info.Methods.Length; j++, m <<= 1)
+                    if ((mask & m) != 0)
+                    {
+                        MethodData md = info.Methods[j];
+                        Type t = md.Args[i], tt = args[^1].Type;
+                        if (md.GetMask(i) >= MethodData.Mλ1
+                            || tt == typeof(int) && tt != t && t != typeof(double) && t != typeof(Complex)
+                            || tt == typeof(double) && tt != t && t != typeof(Complex))
+                            mask &= ~m;
+                    }
+                if (mask == 0)
+                    throw Error("Invalid argument type");
             }
             if (kind != Token.Comma)
                 break;
@@ -1297,7 +1275,7 @@ internal sealed partial class Parser
         if (mth.ExpectedArgs < mth.Args.Length)
             args.Add(mth.Args[^1] == typeof(Random) || mth.Args[^1] == typeof(NormalRandom)
                 ? mth.Args[^1].New()
-                : Expression.Constant(1d));
+                : Expression.Constant(mth.Args[^1] == typeof(One) ? 1d : 0d));
         for (int i = 0; i < mth.ExpectedArgs; i++)
         {
             Type expected = mth.Args[i], actual = args[i].Type;
