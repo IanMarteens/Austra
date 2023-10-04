@@ -1,6 +1,4 @@
-﻿using BO = System.Numerics.BitOperations;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /* THIS FILE IMPLEMENTS THE RECURSIVE DESCENT PARSING METHODS */
 
@@ -1334,7 +1332,7 @@ internal sealed partial class Parser
                 break;
         }
         // Discard overloads according to the number of arguments.
-        if (BO.PopCount((uint)mask) != 1)
+        if (PopCount((uint)mask) != 1)
         {
             for (int j = 0, m = 1; j < info.Methods.Length; j++, m <<= 1)
                 if ((mask & m) != 0)
@@ -1345,11 +1343,11 @@ internal sealed partial class Parser
                 }
             if (mask == 0)
                 throw Error("No class method accepts this argument list.");
-            if (BO.PopCount((uint)mask) != 1)
+            if (PopCount((uint)mask) != 1)
                 throw Error("Ambiguous class method call.");
         }
         // Get selected method overload and check conversions.
-        MethodData mth = info.Methods[BO.Log2((uint)mask)];
+        MethodData mth = info.Methods[Log2((uint)mask)];
         if (mth.ExpectedArgs < mth.Args.Length)
         {
             if (mth.Args[^1] == typeof(Random) || mth.Args[^1] == typeof(NormalRandom))
