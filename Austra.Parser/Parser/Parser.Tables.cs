@@ -230,6 +230,11 @@ internal sealed partial class Parser
         typeof(Vector).MD(typeof(int)));
     private static readonly MethodList ComplexVectorZero = new(
         typeof(ComplexVector).MD(typeof(int)));
+    private static readonly MethodList PolyDerivative = new(
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(Vector)),
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(Vector)),
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
 
     private static readonly Dictionary<string, MethodList> classMethods =
         new(StringComparer.OrdinalIgnoreCase)
@@ -313,6 +318,8 @@ internal sealed partial class Parser
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(Vector)),
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
+            ["math.polyderivative"] = PolyDerivative,
+            ["math.polyderiv"] = PolyDerivative,
             ["math.beta"] = new(
                 typeof(F).MD(nameof(F.Beta), typeof(double), typeof(double))),
             ["math.round"] = new(

@@ -1005,39 +1005,31 @@ internal sealed partial class Parser
     private Expression ParseFunction()
     {
         (string function, int pos) = (id.ToLower(), start);
-        switch (function)
+        if (classMethods.ContainsKey("math." + function))
+            return ParseClassMethod("math", function);
+        if (function == "solve")
         {
-            case "polysolve":
-            case "polyeval":
-            case "beta":
-            case "round":
-            case "comp":
-            case "compare":
-                return ParseClassMethod("math", function);
-            case "solve":
-                {
-                    Skip2();
-                    Expression λf = ParseLambda(typeof(double), null, typeof(double), false);
-                    Expression λdf = ParseLambda(typeof(double), null, typeof(double), false);
-                    (List<Expression> a1, List<int> p1) = CollectArguments();
-                    a1.Insert(0, λdf);
-                    a1.Insert(0, λf);
-                    if (!IsArithmetic(a1[2]))
-                        throw Error("The initial guess must be numeric", p1[0]);
-                    a1[2] = ToDouble(a1[2]);
-                    if (a1.Count == 3)
-                        a1.Add(Expression.Constant(1e-9));
-                    else if (!IsArithmetic(a1[3]))
-                        throw Error("Accuracy must be real", p1[1]);
-                    a1[3] = ToDouble(a1[3]);
-                    if (a1.Count == 4)
-                        a1.Add(Expression.Constant(100));
-                    else if (a1[4].Type != typeof(int))
-                        throw Error("Maximum number of iterations must be integer", p1[2]);
-                    return a1.Count > 5
-                        ? throw Error("Too many arguments")
-                        : Expression.Call(typeof(Solver).Get("Solve"), a1);
-                }
+            Skip2();
+            Expression λf = ParseLambda(typeof(double), null, typeof(double), false);
+            Expression λdf = ParseLambda(typeof(double), null, typeof(double), false);
+            (List<Expression> a1, List<int> p1) = CollectArguments();
+            a1.Insert(0, λdf);
+            a1.Insert(0, λf);
+            if (!IsArithmetic(a1[2]))
+                throw Error("The initial guess must be numeric", p1[0]);
+            a1[2] = ToDouble(a1[2]);
+            if (a1.Count == 3)
+                a1.Add(Expression.Constant(1e-9));
+            else if (!IsArithmetic(a1[3]))
+                throw Error("Accuracy must be real", p1[1]);
+            a1[3] = ToDouble(a1[3]);
+            if (a1.Count == 4)
+                a1.Add(Expression.Constant(100));
+            else if (a1[4].Type != typeof(int))
+                throw Error("Maximum number of iterations must be integer", p1[2]);
+            return a1.Count > 5
+                ? throw Error("Too many arguments")
+                : Expression.Call(typeof(Solver).Get("Solve"), a1);
         }
         (List<Expression> a, List<int> p) = ParseArguments();
         switch (function)
@@ -1078,11 +1070,6 @@ internal sealed partial class Parser
                     : a.Count != 2 || !AreArithmeticTypes(a[0], a[1])
                     ? throw Error("Arguments must be numeric")
                     : typeof(Complex).Call(nameof(Complex.FromPolarCoordinates), ToDouble(a[0]), ToDouble(a[1]));
-            case "polyeval":
-                return ParsePolyMethod(nameof(Polynomials.PolyEval));
-            case "polyderiv":
-            case "polyderivative":
-                return ParsePolyMethod(nameof(Polynomials.PolyDerivative));
         }
         if (a.Count == 1 && a[0].Type == typeof(Complex))
         {
@@ -1098,26 +1085,6 @@ internal sealed partial class Parser
             : a.Count != 1 || !IsArithmetic(a[0])
             ? throw Error("Argument must be numeric")
             : Expression.Call(mInfo, ToDouble(a[0]));
-
-        Expression ParsePolyMethod(string methodName)
-        {
-            if (a.Count < 2)
-                throw Error($"{methodName} requires two arguments", pos);
-            if (IsArithmetic(a[0]))
-                a[0] = ToDouble(a[0]);
-            else if (a[0].Type != typeof(Complex))
-                throw Error($"First argument of {methodName} must be numeric", p[0]);
-            if (a[1].Type != typeof(Vector))
-                if (a.Skip(1).All(IsArithmetic))
-                {
-                    a[1] = typeof(Vector).New(
-                        typeof(double).Make(a.Skip(1).Select(ToDouble).ToList()));
-                    a.RemoveRange(2, a.Count - 2);
-                }
-                else
-                    throw Error($"Second argument of {methodName} must be a vector", p[1]);
-            return typeof(Polynomials).Call(methodName, a[0], a[1]);
-        }
     }
 
     private (List<Expression>, List<int>) ParseArguments()
@@ -1287,10 +1254,39 @@ internal sealed partial class Parser
                 if ((mask & m) != 0)
                 {
                     MethodData md = info.Methods[j];
-                    if (md.ExpectedArgs != args.Count && (md.ExpectedArgs != int.MaxValue
-                        || md.Args[^1].GetElementType() != args[^1].Type))
-                        mask &= ~m;
+                    if (md.ExpectedArgs != args.Count)
+                    {
+                        Type? act = args[^1].Type, form = md.Args[^1].GetElementType();
+                        if (md.ExpectedArgs != int.MaxValue ||
+                            form != act && (form != typeof(double) || act != typeof(int)))
+                            mask &= ~m;
+                    }
                 }
+            if (PopCount((uint)mask) == 2)
+            {
+                int mth1 = -1, mth2 = -1;
+                for (int j = 0, m = 1; j < info.Methods.Length; j++, m <<= 1)
+                    if ((mask & m) != 0)
+                        if (mth1 == -1)
+                            mth1 = j;
+                        else
+                        {
+                            mth2 = j;
+                            break;
+                        }
+                MethodData m1 = info.Methods[mth1], m2 = info.Methods[mth2];
+                Type t0 = args[0].Type, tm1 = m1.Args[0], tm2 = m2.Args[0];
+                if (tm1 != tm2)
+                    if (t0 == tm1)
+                        mask &= ~(1 << mth2);
+                    else if (t0 == tm2)
+                        mask &= ~(1 << mth1);
+                    else if (t0 == typeof(int))
+                        if (tm1 == typeof(double))
+                            mask &= ~(1 << mth2);
+                        else if (tm2 == typeof(double))
+                            mask &= ~(1 << mth1);
+            }
             if (mask == 0)
                 throw Error("No class method accepts this argument list.");
             if (PopCount((uint)mask) != 1)

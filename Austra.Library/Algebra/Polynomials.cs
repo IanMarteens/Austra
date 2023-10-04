@@ -63,6 +63,14 @@ public static class Polynomials
         return res;
     }
 
+    /// <summary>Evaluates the derivative of a polynomial with real coefficients.</summary>
+    /// <param name="value">Value to substitute.</param>
+    /// <param name="coefficients">Original polynomial coefficients.</param>
+    /// <returns>The evaluation of the derivate of the polynomial.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Complex PolyDerivative(Complex value, double[] coefficients) =>
+        PolyDerivative(value, new Vector(coefficients));
+
 
     /// <summary>Evaluates the derivative of a polynomial with real coefficients.</summary>
     /// <param name="value">Value to substitute.</param>
@@ -76,6 +84,14 @@ public static class Polynomials
             result = FusedMultiplyAdd(result, value, k-- * coefficients[i]);
         return result;
     }
+
+    /// <summary>Evaluates the derivative of a polynomial with real coefficients.</summary>
+    /// <param name="value">Value to substitute.</param>
+    /// <param name="coefficients">Original polynomial coefficients.</param>
+    /// <returns>The evaluation of the derivate of the polynomial.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double PolyDerivative(double value, double[] coefficients) =>
+        PolyDerivative(value, new Vector(coefficients));
 
     /// <summary>Solves a polynomial equation with real coefficients.</summary>
     /// <param name="coefficients">
