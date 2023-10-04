@@ -225,6 +225,10 @@ internal sealed partial class Parser
         typeof(Tuple<Vector, Vector>).MD(typeof(Vector), typeof(Vector)),
         typeof(Tuple<ComplexVector, ComplexVector>).MD(typeof(ComplexVector), typeof(ComplexVector)),
         typeof(Tuple<Series, Series>).MD(typeof(Series), typeof(Series)));
+    private static readonly MethodList VectorZero = new(
+        typeof(Vector).MD(typeof(int)));
+    private static readonly MethodList ComplexVectorZero = new(
+        typeof(ComplexVector).MD(typeof(int)));
 
     private static readonly Dictionary<string, MethodList> classMethods =
         new(StringComparer.OrdinalIgnoreCase)
@@ -255,14 +259,8 @@ internal sealed partial class Parser
             (
                 typeof(Vector).MD(typeof(int), typeof(Random))
             ),
-            ["vector.zero"] = new
-            (
-                typeof(Vector).MD(typeof(int))
-            ),
-            ["vector.zeros"] = new
-            (
-                typeof(Vector).MD(typeof(int))
-            ),
+            ["vector.zero"] = VectorZero,
+            ["vector.zeros"] = VectorZero,
             ["vector.ones"] = new
             (
                 typeof(Vector).MD(typeof(int), typeof(One))
@@ -280,14 +278,8 @@ internal sealed partial class Parser
             (
                 typeof(ComplexVector).MD(typeof(int), typeof(Random))
             ),
-            ["complexvector.zero"] = new
-            (
-                typeof(ComplexVector).MD(typeof(int))
-            ),
-            ["complexvector.zeros"] = new
-            (
-                typeof(ComplexVector).MD(typeof(int))
-            ),
+            ["complexvector.zero"] = ComplexVectorZero,
+            ["complexvector.zeros"] = ComplexVectorZero,
             ["complexvector.from"] = new
             (
                 typeof(ComplexVector).MD(typeof(Vector)),
