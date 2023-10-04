@@ -937,6 +937,34 @@ internal sealed partial class Parser
                 new("corr(", "Creates a correlation matrix given a list of series"),
                 new("cov(", "Creates a covariance matrix given a list of series"),
             },
+            ["math"] = new Member[]
+            {
+                new("abs(", "Absolute value"),
+                new("solve(", "Newton-Raphson solver"),
+                new("round(", "Rounds a real value"),
+                new("sqrt(", "Squared root"),
+                new("gamma(", "The Gamma function"),
+                new("beta(", "The Beta function"),
+                new("erf(", "Error function"),
+                new("ncdf(", "Normal cummulative function"),
+                new("probit(", "Probit function"),
+                new("log(", "Natural logarithm"),
+                new("log10(", "Base 10 logarithm"),
+                new("exp(", "Exponential function"),
+                new("sin(", "Sine function"),
+                new("cos(", "Cosine function"),
+                new("tan(", "Tangent function"),
+                new("asin(", "Arcsine function"),
+                new("acos(", "Arccosine function"),
+                new("atan(", "Arctangent function"),
+                new("min(", "Minimum function"),
+                new("max(", "Maximum function"),
+                new("polySolve(", "Solves a polynomial equation"),
+                new("polyEval(", "Evaluates a polynomial"),
+                new("polyDerivative(", "Evaluates the derivative of a polynomial"),
+                new("complex(", "Creates a complex number from its real and imaginary components"),
+                new("polar(", "Creates a complex number from its magnitude and phase components"),
+            }
         };
 
     private class One { }

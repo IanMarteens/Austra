@@ -225,6 +225,7 @@ public partial class AustraEngine : IAustraEngine
             new("atan(", "Arctangent function"),
             new("min(", "Minimum function"),
             new("max(", "Maximum function"),
+            new("round(", "Rounds a real value"),
             new("pi", "The constant π"),
             new("e", "The constant e"),
             new("i", "The imaginary unit"),
@@ -251,6 +252,7 @@ public partial class AustraEngine : IAustraEngine
             new("series::", "Allows access to series constructors"),
             new("spline::", "Allows access to spline constructors"),
             new("vector::", "Allows access to vector constructors"),
+            new("math::", "Allows access to mathematical functions"),
         };
 
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
@@ -258,7 +260,7 @@ public partial class AustraEngine : IAustraEngine
     /// <returns><see langword="true"/> if the text is a valid class name.</returns>
     public bool IsClass(string text) => text.ToUpperInvariant() switch
     {
-        "COMPLEXVECTOR" or "MATRIX" or "MODEL" or "SERIES" or "VECTOR" or "SPLINE" => true,
+        "COMPLEXVECTOR" or "MATRIX" or "MATH" or "MODEL" or "SERIES" or "VECTOR" or "SPLINE" => true,
         _ => false,
     };
 

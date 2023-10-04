@@ -583,14 +583,11 @@ internal sealed partial class Parser
                     Skip2();
                     e = kind != Token.Functor
                         ? throw Error("Method name expected")
-                        : className switch
-                        {
-                            "matrix" => ParseMatrixMethod(),
-                            "model" => ParseModelMethod(),
-                            "vector" or "complexvector" or "series" or "spline" 
-                                => ParseClassMethod(className),
-                            _ => throw Error("Unknown class name", p)
-                        };
+                        : className == "math"
+                        ? ParseFunction()
+                        : className == "model"
+                        ? ParseModelMethod()
+                        : ParseClassMethod(className, id.ToLower());
                     break;
                 }
             default:
@@ -828,9 +825,6 @@ internal sealed partial class Parser
             e1, e2);
     }
 
-    private Expression ParseClassMethod(string className) =>
-        ParseClassMethod(className, id.ToLower());
-
     private Expression ParseModelMethod()
     {
         (string method, int pos) = (id.ToLower(), start);
@@ -858,21 +852,6 @@ internal sealed partial class Parser
                 : throw Error("A list of series was expected", p[^1]));
         }
         return ParseClassMethod("model", method);
-    }
-
-    private Expression ParseMatrixMethod()
-    {
-        string method = id.ToLower();
-        if (method == "diag")
-        {
-            (List<Expression> a, _) = ParseArguments();
-            return a.Count == 1 && a[0].Type == typeof(Vector)
-                ? typeof(Matrix).New(a[0])
-                : a.Count > 1 && a.All(IsArithmetic)
-                ? typeof(Matrix).New(typeof(double).Make(a.Select(ToDouble)))
-                : throw Error("Vector expected");
-        }
-        return ParseClassMethod("matrix", method);
     }
 
     private Expression ParseMethod(Expression e)
@@ -1338,7 +1317,8 @@ internal sealed partial class Parser
                 if ((mask & m) != 0)
                 {
                     MethodData md = info.Methods[j];
-                    if (md.ExpectedArgs != args.Count && md.ExpectedArgs != int.MaxValue)
+                    if (md.ExpectedArgs != args.Count && (md.ExpectedArgs != int.MaxValue 
+                        || md.Args[^1].GetElementType() != args[^1].Type))
                         mask &= ~m;
                 }
             if (mask == 0)
@@ -1364,9 +1344,11 @@ internal sealed partial class Parser
                 else if (expected.IsArray)
                 {
                     Type et = expected.GetElementType()!;
-                    if (!args.Skip(i).All(a => a.Type == et))
+                    if (!args.Skip(i).All(a => a.Type == et
+                        || et == typeof(double) && IsArithmetic(a)))
                         throw Error($"Expected {expected.Name}", starts[i]);
-                    args[i] = et.Make(args.Skip(i).ToArray());
+                    args[i] = et.Make(args.Skip(i)
+                        .Select(a => a.Type == et ? a : ToDouble(a)).ToArray());
                     args.RemoveRange(i + 1, args.Count - i - 1);
                     break;
                 }
