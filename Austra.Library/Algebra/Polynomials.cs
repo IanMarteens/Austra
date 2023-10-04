@@ -21,6 +21,14 @@ public static class Polynomials
     /// <param name="value">Value to substitute.</param>
     /// <param name="coefficients">Polynomial coefficients.</param>
     /// <returns>The evaluation of the polynomial.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Complex PolyEval(Complex value, double[] coefficients) =>
+        PolyEval(value, new Vector(coefficients));
+
+    /// <summary>Evaluates a polynomial with real coefficients.</summary>
+    /// <param name="value">Value to substitute.</param>
+    /// <param name="coefficients">Polynomial coefficients.</param>
+    /// <returns>The evaluation of the polynomial.</returns>
     public static double PolyEval(double value, Vector coefficients)
     {
         double result = 0.0;
@@ -28,6 +36,14 @@ public static class Polynomials
             result = FusedMultiplyAdd(result, value, c);
         return result;
     }
+
+    /// <summary>Evaluates a polynomial with real coefficients.</summary>
+    /// <param name="value">Value to substitute.</param>
+    /// <param name="coefficients">Polynomial coefficients.</param>
+    /// <returns>The evaluation of the polynomial.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double PolyEval(double value, double[] coefficients) =>
+        PolyEval(value, new Vector(coefficients));
 
     /// <summary>Evaluates the derivative of a polynomial with real coefficients.</summary>
     /// <param name="value">Value to substitute.</param>

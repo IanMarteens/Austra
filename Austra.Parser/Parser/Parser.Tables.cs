@@ -177,7 +177,8 @@ internal sealed partial class Parser
 
         public Expression GetExpression(List<Expression> actualArguments) =>
             MemberName != null
-            ? Expression.Call(Implementor.GetMethod(MemberName!)!, actualArguments)
+            ? Expression.Call(Implementor.GetMethod(MemberName!,
+                actualArguments.Select(a => a.Type).ToArray())!, actualArguments)
             : Implementor.New(actualArguments);
     }
 
@@ -233,98 +234,62 @@ internal sealed partial class Parser
     private static readonly Dictionary<string, MethodList> classMethods =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["series.new"] = new
-            (
+            ["series.new"] = new(
                 typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))
             ),
-            ["spline.grid"] = new
-            (
+            ["spline.grid"] = new(
                 typeof(VectorSpline).MD(typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))
             ),
-            ["spline.new"] = new
-            (
-                typeof(VectorSpline).MD(typeof(Vector), typeof(Vector))
-            ),
-            ["vector.new"] = new
-            (
+            ["spline.new"] = new(
+                typeof(VectorSpline).MD(typeof(Vector), typeof(Vector))),
+            ["vector.new"] = new(
                 typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
                 typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
-                typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))
-            ),
-            ["vector.nrandom"] = new
-            (
-                typeof(Vector).MD(typeof(int), typeof(NormalRandom))
-            ),
-            ["vector.random"] = new
-            (
-                typeof(Vector).MD(typeof(int), typeof(Random))
-            ),
+                typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))),
+            ["vector.nrandom"] = new(
+                typeof(Vector).MD(typeof(int), typeof(NormalRandom))),
+            ["vector.random"] = new(
+                typeof(Vector).MD(typeof(int), typeof(Random))),
             ["vector.zero"] = VectorZero,
             ["vector.zeros"] = VectorZero,
-            ["vector.ones"] = new
-            (
-                typeof(Vector).MD(typeof(int), typeof(One))
-            ),
-            ["complexvector.new"] = new
-            (
+            ["vector.ones"] = new(
+                typeof(Vector).MD(typeof(int), typeof(One))),
+            ["complexvector.new"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
-                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))
-            ),
-            ["complexvector.nrandom"] = new
-            (
-                typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))
-            ),
-            ["complexvector.random"] = new
-            (
-                typeof(ComplexVector).MD(typeof(int), typeof(Random))
-            ),
+                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))),
+            ["complexvector.nrandom"] = new(
+                typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))),
+            ["complexvector.random"] = new(
+                typeof(ComplexVector).MD(typeof(int), typeof(Random))),
             ["complexvector.zero"] = ComplexVectorZero,
             ["complexvector.zeros"] = ComplexVectorZero,
-            ["complexvector.from"] = new
-            (
+            ["complexvector.from"] = new(
                 typeof(ComplexVector).MD(typeof(Vector)),
-                typeof(ComplexVector).MD(typeof(Vector), typeof(Vector))
-            ),
-            ["matrix.new"] = new
-            (
+                typeof(ComplexVector).MD(typeof(Vector), typeof(Vector))),
+            ["matrix.new"] = new(
                 typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))
-            ),
-            ["matrix.rows"] = new
-            (
-                typeof(Matrix).MD(typeof(Vector[]))
-            ),
-            ["matrix.cols"] = new
-            (
-                typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))
-            ),
-            ["matrix.diag"] = new
-            (
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
+            ["matrix.rows"] = new(
+                typeof(Matrix).MD(typeof(Vector[]))),
+            ["matrix.cols"] = new(
+                typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))),
+            ["matrix.diag"] = new(
                 typeof(Matrix).MD(typeof(Vector)),
-                typeof(Matrix).MD(typeof(double[]))
-            ),
+                typeof(Matrix).MD(typeof(double[]))),
             ["matrix.i"] = MatrixEye,
             ["matrix.eye"] = MatrixEye,
-            ["matrix.random"] = new
-            (
+            ["matrix.random"] = new(
                 typeof(Matrix).MD(typeof(int), typeof(Random)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Random))
-            ),
-            ["matrix.nrandom"] = new
-            (
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Random))),
+            ["matrix.nrandom"] = new(
                 typeof(Matrix).MD(typeof(int), typeof(NormalRandom)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(NormalRandom))
-            ),
-            ["matrix.lrandom"] = new
-            (
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
+            ["matrix.lrandom"] = new(
                 typeof(LMatrix).MD(typeof(int), typeof(Random)),
-                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(Random))
-            ),
-            ["matrix.lnrandom"] = new
-            (
+                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(Random))),
+            ["matrix.lnrandom"] = new(
                 typeof(LMatrix).MD(typeof(int), typeof(NormalRandom)),
-                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(NormalRandom))
-            ),
+                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
             ["matrix.zero"] = MatrixZero,
             ["matrix.zeros"] = MatrixZero,
             ["matrix.cov"] = MatrixCovariance,
@@ -333,15 +298,28 @@ internal sealed partial class Parser
             ["matrix.correlation"] = MatrixCorrelation,
             ["model.compare"] = ModelCompare,
             ["model.comp"] = ModelCompare,
-            ["model.mvo"] = new
-            (
+            ["model.mvo"] = new(
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Series[])),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector), typeof(Series[])),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector), typeof(string[]))
-            ),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector), typeof(string[]))),
+            ["math.polysolve"] = new(
+                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(Vector)),
+                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
+            ["math.polyeval"] = new(
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(Vector)),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(Vector)),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
+            ["math.beta"] = new(
+                typeof(F).MD(nameof(F.Beta), typeof(double), typeof(double))),
+            ["math.round"] = new(
+                typeof(Math).MD(nameof(Math.Round), typeof(double)),
+                typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
+            ["math.compare"] = ModelCompare,
+            ["math.comp"] = ModelCompare,
         };
 
     /// <summary>Allowed properties and their implementations.</summary>
