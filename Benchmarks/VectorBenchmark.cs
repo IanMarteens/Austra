@@ -55,7 +55,7 @@ public class VectorBenchmark : BenchmarkControl
     public Vector AustraRawLineal() => 2 * cv4 + 3 * cv5;
 
     [Benchmark]
-    public Vector AustraCombineLineal() => Vector.Combine(2, 3, cv4, cv5);
+    public Vector AustraCombineLineal() => Vector.Combine2(2, 3, cv4, cv5);
 
     [Benchmark]
     public Vector AustraRandomVector() => new(size, NormalRandom.Shared);

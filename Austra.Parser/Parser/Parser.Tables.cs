@@ -142,9 +142,9 @@ internal sealed partial class Parser
     internal readonly struct MethodData
     {
         public const uint MNone = 0u;
-        public const uint Mλ1 = 1u;
-        public const uint Mλ2 = 2u;
-        public const uint MIdx = 3u;
+        public const uint MIdx = 1u;
+        public const uint Mλ1 = 2u;
+        public const uint Mλ2 = 3u;
 
         public Type Implementor { get; }
         public string? MemberName { get; }
@@ -157,23 +157,28 @@ internal sealed partial class Parser
             (Implementor, MemberName, Args) = (implementor, memberName, args);
             for (int i = 0, m = 0; i < args.Length; i++, m += 2)
             {
-                Type t = args[i];
-                if (t.IsAssignableTo(typeof(Delegate)))
-                    TypeMask |= t.GetGenericArguments().Length == 2 ? Mλ1 << m : Mλ2 << m;
-                else if (t == typeof(Index))
+                Type t1 = args[i];
+                if (t1.IsAssignableTo(typeof(Delegate)))
+                    TypeMask |= t1.GetGenericArguments().Length == 2 ? Mλ1 << m : Mλ2 << m;
+                else if (t1 == typeof(Index))
                     TypeMask |= MIdx << m;
             }
-            ExpectedArgs = Args[^1] switch
-            {
-                Type t when t == typeof(Random) || t == typeof(NormalRandom) || t == typeof(One)
-                    => Args.Length - 1,
-                _ => Args.Length
-            };
+            Type t = Args[^1];
+            ExpectedArgs = t.IsArray
+                ? int.MaxValue
+                : t == typeof(Random) || t == typeof(NormalRandom) || t == typeof(One)
+                ? Args.Length - 1
+                : Args.Length;
         }
 
         public MethodData(Type implementor, params Type[] args) : this(implementor, null, args) { }
 
         public uint GetMask(int typeId) => (TypeMask >> (typeId * 2)) & 3u;
+
+        public Expression GetExpression(List<Expression> actualArguments) =>
+            MemberName != null
+            ? Expression.Call(Implementor.GetMethod(MemberName!)!, actualArguments)
+            : Implementor.New(actualArguments);
     }
 
     internal readonly struct MethodList
@@ -226,7 +231,7 @@ internal sealed partial class Parser
         {
             ["series.new"] = new
             (
-                typeof(Series).MD(nameof(Series.Combine), typeof(Series))
+                typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))
             ),
             ["spline.grid"] = new
             (
@@ -238,7 +243,7 @@ internal sealed partial class Parser
             ),
             ["vector.new"] = new
             (
-                typeof(Vector).MD(typeof(Vector), typeof(Vector[])),
+                typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
                 typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
                 typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))
             ),
@@ -264,8 +269,8 @@ internal sealed partial class Parser
             ),
             ["complexvector.new"] = new
             (
-                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, double>)),
-                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, double>))
+                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
+                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))
             ),
             ["complexvector.nrandom"] = new
             (

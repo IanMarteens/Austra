@@ -742,7 +742,7 @@ public readonly struct Vector :
     }
 
     /// <summary>Low-level method to linearly combine two vectors with weights.</summary>
-    public static unsafe Vector Combine(double w1, double w2, Vector v1, Vector v2)
+    public static unsafe Vector Combine2(double w1, double w2, Vector v1, Vector v2)
     {
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
