@@ -1009,32 +1009,10 @@ internal sealed partial class Parser
         if (classMethods.ContainsKey("math." + function))
             return ParseClassMethod("math", function);
         Skip2();
-        if (function == "solve")
-        {
-            Expression λf = ParseLambda(typeof(double), null, typeof(double), false);
-            Expression λdf = ParseLambda(typeof(double), null, typeof(double), false);
-            (List<Expression> a1, List<int> p1) = CollectArguments();
-            a1.Insert(0, λdf);
-            a1.Insert(0, λf);
-            if (!IsArithmetic(a1[2]))
-                throw Error("The initial guess must be numeric", p1[0]);
-            a1[2] = ToDouble(a1[2]);
-            if (a1.Count == 3)
-                a1.Add(Expression.Constant(1e-9));
-            else if (!IsArithmetic(a1[3]))
-                throw Error("Accuracy must be real", p1[1]);
-            a1[3] = ToDouble(a1[3]);
-            if (a1.Count == 4)
-                a1.Add(Expression.Constant(100));
-            else if (a1[4].Type != typeof(int))
-                throw Error("Maximum number of iterations must be integer", p1[2]);
-            return a1.Count > 5
-                ? throw Error("Too many arguments")
-                : Expression.Call(typeof(Solver).Get("Solve"), a1);
-        }
         (List<Expression> a, List<int> p) = CollectArguments();
         if (function == "iff")
         {
+            // This is a generic function!
             if (a.Count != 3)
                 throw Error("Function 'iff' requires 3 arguments", pos);
             if (a[0].Type != typeof(bool))

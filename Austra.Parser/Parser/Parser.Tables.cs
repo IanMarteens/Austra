@@ -335,6 +335,15 @@ internal sealed partial class Parser
                 typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
                 typeof(Math).MD(nameof(Math.Max), typeof(int), typeof(int)),
                 typeof(Math).MD(nameof(Math.Max), DoubleDoubleArg)),
+            ["math.solve"] = new(
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double)),
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
+                    typeof(double)),
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
+                    typeof(double), typeof(int))),
         };
 
     /// <summary>Allowed properties and their implementations.</summary>
@@ -926,6 +935,7 @@ internal sealed partial class Parser
                 new("eye(", "Creates an identity matrix given a size"),
                 new("diag(", "Creates an diagonal matrix from a vector"),
                 new("rows(", "Creates a matrix given its rows as vectors"),
+                new("cols(", "Creates a matrix given its columns as vectors"),
                 new("corr(", "Creates a correlation matrix given a list of series"),
                 new("cov(", "Creates a covariance matrix given a list of series"),
             },
@@ -935,6 +945,7 @@ internal sealed partial class Parser
                 new("solve(", "Newton-Raphson solver"),
                 new("round(", "Rounds a real value"),
                 new("sqrt(", "Squared root"),
+                new("cbrt(", "Cubic root"),
                 new("gamma(", "The Gamma function"),
                 new("beta(", "The Beta function"),
                 new("erf(", "Error function"),
