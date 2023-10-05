@@ -49,7 +49,7 @@ public readonly struct Point<T> where T : struct, IComparable<T>
 }
 
 /// <summary>Represents a named series.</summary>
-public class Series<T> where T : struct, IComparable<T>
+public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
 {
     /// <summary>Stores the arguments for the series.</summary>
     protected internal readonly T[] args;

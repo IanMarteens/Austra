@@ -456,16 +456,20 @@ internal sealed partial class Parser
         e1.Type == typeof(int) || e1.Type == typeof(double);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool AreArithmeticTypes(Expression e1, Expression e2) =>
+    private static bool AreArithmetic(Expression e1, Expression e2) =>
         IsArithmetic(e1) && IsArithmetic(e2);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsVectorOrMatrix(Expression e1) =>
-        e1.Type == typeof(Vector) || IsMatrix(e1);
+        IsVector(e1) || IsMatrix(e1);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsMatrix(Expression e1) =>
         e1.Type.IsAssignableTo(typeof(IMatrix));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsVector(Expression e1) =>
+        e1.Type.IsAssignableTo(typeof(IVector));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Expression ToDouble(Expression e) =>
@@ -485,7 +489,7 @@ internal sealed partial class Parser
                 e1 = Expression.Convert(e1, typeof(Complex));
             else
             {
-                if (!AreArithmeticTypes(e1, e2))
+                if (!AreArithmetic(e1, e2))
                     return true;
                 (e1, e2) = (ToDouble(e1), ToDouble(e2));
             }
@@ -552,16 +556,4 @@ internal static class ParserExtensions
     public static MethodCallExpression Call(this Type type,
         string method, Expression a1, Expression a2) =>
         Expression.Call(type.GetMethod(method, new[] { a1.Type, a2.Type })!, a1, a2);
-
-    public static List<Expression> AddExp(this List<Expression> args, Expression exp)
-    {
-        args.Add(exp);
-        return args;
-    }
-
-    public static List<Expression> AddRandom(this List<Expression> args) =>
-        args.AddExp(Expression.New(typeof(Random).GetConstructor(Array.Empty<Type>())!));
-
-    public static List<Expression> AddNormalRandom(this List<Expression> args) =>
-        args.AddExp(Expression.New(typeof(NormalRandom).GetConstructor(Array.Empty<Type>())!));
 }

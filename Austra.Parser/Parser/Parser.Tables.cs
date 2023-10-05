@@ -224,7 +224,8 @@ internal sealed partial class Parser
                 typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))
             ),
             ["spline.grid"] = new(
-                typeof(VectorSpline).MD(typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))
+                typeof(VectorSpline).MD(
+                    typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))
             ),
             ["spline.new"] = new(
                 typeof(VectorSpline).MD(typeof(Vector), typeof(Vector))),
@@ -288,9 +289,11 @@ internal sealed partial class Parser
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Series[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector), typeof(Series[])),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
+                    typeof(Vector), typeof(Vector), typeof(Series[])),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector), typeof(string[]))),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
+                    typeof(Vector), typeof(Vector), typeof(string[]))),
             ["math.polysolve"] = new(
                 typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VectorArg),
                 typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),

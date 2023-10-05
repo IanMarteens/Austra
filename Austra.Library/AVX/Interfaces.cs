@@ -1,6 +1,11 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Common interface for all matrix types.</summary>
+public interface IVector
+{
+}
+
+/// <summary>Common interface for all matrix types.</summary>
 public interface IMatrix
 {
 }
@@ -20,3 +25,7 @@ public interface IPointwiseOperators<T>
     T PointwiseDivide(T other);
 }
 
+/// <summary>Defines a type with a SafeIndex method.</summary>
+public interface ISafeIndexed
+{
+}

@@ -225,7 +225,7 @@ internal sealed partial class Parser
                     Expression e2 = ParseAdditive();
                     if (e1.Type != e2.Type)
                     {
-                        if (!AreArithmeticTypes(e1, e2))
+                        if (!AreArithmetic(e1, e2))
                             throw Error("Comparison operators are not compatible", pos);
                         (e1, e2) = (ToDouble(e1), ToDouble(e2));
                     }
@@ -450,7 +450,7 @@ internal sealed partial class Parser
         int pos = start;
         Move();
         Expression e1 = ParseFactor();
-        if (AreArithmeticTypes(e, e1))
+        if (AreArithmetic(e, e1))
             return OptimizePowerOf() ? e : Expression.Power(ToDouble(e), ToDouble(e1));
         if (e.Type == typeof(Complex))
             if (e1.Type == typeof(Complex))
@@ -578,15 +578,13 @@ internal sealed partial class Parser
                 break;
             case Token.ClassName:
                 {
-                    (string className, int p) = (id.ToLower(), start);
+                    string className = id.ToLower();
                     // Skip class name and double colon.
                     Skip2();
                     e = kind != Token.Functor
                         ? throw Error("Method name expected")
                         : className == "math"
                         ? ParseFunction()
-                        : className == "model"
-                        ? ParseModelMethod()
                         : ParseClassMethod(className, id.ToLower());
                     break;
                 }
@@ -618,9 +616,8 @@ internal sealed partial class Parser
                     break;
                 case Token.LBra:
                     Move();
-                    e = e.Type == typeof(Vector) || e.Type == typeof(Series<int>)
-                            || e.Type == typeof(ComplexVector)
-                            || e.Type.IsAssignableTo(typeof(FftModel))
+                    e = IsVector(e) || e.Type == typeof(Series<int>)
+                        || e.Type.IsAssignableTo(typeof(FftModel))
                         ? ParseIndexer(e, true)
                         : IsMatrix(e)
                         ? ParseMatrixIndexer(e)
@@ -635,8 +632,7 @@ internal sealed partial class Parser
                         : throw Error("Invalid indexer");
                     break;
                 case Token.LBrace:
-                    e = e.Type == typeof(Vector) || e.Type == typeof(Series)
-                        || e.Type == typeof(ComplexVector) || e.Type == typeof(Series<int>)
+                    e = e.Type.IsAssignableTo(typeof(ISafeIndexed))
                         ? ParseSafeIndexer(e)
                         : throw Error("Safe indexes are only allowed for vectors and series");
                     break;
@@ -823,36 +819,6 @@ internal sealed partial class Parser
         return Expression.Call(e,
             typeof(Series).GetMethod(nameof(Series.Slice), new[] { e1.Type, e2.Type })!,
             e1, e2);
-    }
-
-    private Expression ParseModelMethod()
-    {
-        string method = id.ToLower();
-        if (method == "mvo")
-        {
-            Skip2();
-            (List<Expression> a, List<int> p) = CollectArguments();
-            return a.Count < 2
-                ? throw Error("Invalid number of parameters")
-                : a[0].Type != typeof(Vector)
-                ? throw Error("Vector expected", p[0])
-                : a[1].Type != typeof(Matrix)
-                ? throw Error("Covariance matrix expected", p[1])
-                : a.Count >= 4 && a[2].Type == typeof(Vector) && a[3].Type == typeof(Vector)
-                ? a.Skip(4).All(a => a.Type == typeof(Series))
-                    ? typeof(Library.MVO.MvoModel).New(
-                        a[0], a[1], a[2], a[3], typeof(Series).Make(a.Skip(4)))
-                    : a.Skip(4).All(a => a.Type == typeof(string))
-                    ? typeof(Library.MVO.MvoModel).New(
-                        a[0], a[1], a[2], a[3], typeof(string).Make(a.Skip(4)))
-                    : throw Error("A list of series was expected", p[^1])
-                : (a.Skip(2).All(a => a.Type == typeof(Series))
-                ? typeof(Library.MVO.MvoModel).New(a[0], a[1], typeof(Series).Make(a.Skip(2)))
-                : a.Skip(2).All(a => a.Type == typeof(string))
-                ? typeof(Library.MVO.MvoModel).New(a[0], a[1], typeof(string).Make(a.Skip(2)))
-                : throw Error("A list of series was expected", p[^1]));
-        }
-        return ParseClassMethod("model", method);
     }
 
     private Expression ParseMethod(Expression e)
@@ -1135,26 +1101,6 @@ internal sealed partial class Parser
         for (int i = 0; ; i++, Move())
         {
             starts.Add(start);
-            if (i > 0)
-            {
-                Expression last = args[^1];
-                for (int j = 0, m = 1; j < info.Methods.Length; j++, m <<= 1)
-                    if ((mask & m) != 0)
-                    {
-                        MethodData md = info.Methods[j];
-                        if (md.ExpectedArgs <= i)
-                            mask &= ~m;
-                        else
-                        {
-                            Type expected = md.Args[Math.Min(i - 1, md.Args.Length - 1)];
-                            if (expected != last.Type && !IsArithmetic(last)
-                                && !expected.IsArray && last.Type != expected.GetElementType())
-                                mask &= ~m;
-                        }
-                    }
-                if (mask == 0)
-                    throw Error("Invalid number of arguments");
-            }
             // Discard easy detectable types before parsing the argument.
             if (i >= info.IsLambda.Length)
                 args.Add(ParseLightConditional());
@@ -1179,15 +1125,14 @@ internal sealed partial class Parser
             }
             else
             {
-                args.Add(kind == Token.Caret ? ParseIndex() : ParseLightConditional());
+                Expression last = kind == Token.Caret ? ParseIndex() : ParseLightConditional();
+                args.Add(last);
                 for (int j = 0, m = 1; j < info.Methods.Length; j++, m <<= 1)
                     if ((mask & m) != 0)
                     {
                         MethodData md = info.Methods[j];
-                        Type t = md.Args[i], tt = args[^1].Type;
-                        if (md.GetMask(i) >= MethodData.Mλ1
-                            || tt == typeof(int) && tt != t && t != typeof(double) && t != typeof(Complex)
-                            || tt == typeof(double) && tt != t && t != typeof(Complex))
+                        if (md.ExpectedArgs < i || md.GetMask(i) >= MethodData.Mλ1 ||
+                            !CanConvert(last, md.Args[Math.Min(i, md.Args.Length - 1)]))
                             mask &= ~m;
                     }
                 if (mask == 0)
@@ -1273,6 +1218,14 @@ internal sealed partial class Parser
         }
         CheckAndMove(Token.RPar, "Right parenthesis expected in class method call");
         return mth.GetExpression(args);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool CanConvert(Expression actual, Type expected) =>
+            expected == actual.Type ||
+            expected == typeof(double) && IsArithmetic(actual) ||
+            expected == typeof(Complex) && IsArithmetic(actual) ||
+            expected.IsArray && expected.GetElementType() is var et
+                && (actual.Type == et || et == typeof(double) && IsArithmetic(actual));
     }
 
     private Expression ParseVectorLiteral()
