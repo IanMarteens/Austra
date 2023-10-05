@@ -1034,13 +1034,15 @@ internal sealed partial class Parser
     private Expression ParseClassSingleMethod(in MethodData method)
     {
         Type[] types = method.Args;
+        Type delType = typeof(Delegate), idxType = typeof(Index);
+        Type dType = typeof(double), iType = typeof(int);
         List<Expression> args = new(types.Length);
         for (int i = 0; i < types.Length; i++, Move())
         {
             Type currentType = types[i];
-            if (currentType.IsAssignableTo(typeof(Delegate)))
+            if (currentType.IsAssignableTo(delType))
                 args.Add(ParseLambda(currentType));
-            else if (currentType == typeof(Index))
+            else if (currentType == idxType)
                 args.Add(ParseIndex());
             else if (currentType.IsArray)
             {
@@ -1064,7 +1066,7 @@ internal sealed partial class Parser
                 Expression e = ParseLightConditional();
                 if (e.Type == currentType)
                     args.Add(e);
-                else if (currentType == typeof(double) && IsArithmetic(e))
+                else if (currentType == dType && e.Type == iType)
                     args.Add(ToDouble(e));
                 else if (currentType == typeof(Complex) && IsArithmetic(e))
                     args.Add(Expression.Convert(ToDouble(e), typeof(Complex)));
