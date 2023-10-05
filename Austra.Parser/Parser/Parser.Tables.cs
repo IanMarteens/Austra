@@ -34,8 +34,6 @@ internal sealed partial class Parser
             ["log"] = typeof(Math).GetMethod(nameof(Math.Log), DoubleArg)!,
             ["log10"] = typeof(Math).GetMethod(nameof(Math.Log10), DoubleArg)!,
             ["cbrt"] = typeof(Math).Get(nameof(Math.Cbrt)),
-            ["sin"] = typeof(Math).Get(nameof(Math.Sin)),
-            ["cos"] = typeof(Math).Get(nameof(Math.Cos)),
             ["tan"] = typeof(Math).Get(nameof(Math.Tan)),
             ["asin"] = typeof(Math).Get(nameof(Math.Asin)),
             ["acos"] = typeof(Math).Get(nameof(Math.Acos)),
@@ -164,6 +162,7 @@ internal sealed partial class Parser
                 : Args.Length;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetMask(int typeId) => (TypeMask >> (typeId * 2)) & 3u;
 
         public Expression GetExpression(List<Expression> actualArguments) =>
@@ -307,6 +306,10 @@ internal sealed partial class Parser
             ["math.atan"] = new(
                 typeof(Math).MD(nameof(Math.Atan), DoubleArg),
                 typeof(Math).MD(nameof(Math.Atan2), DoubleDoubleArg)),
+            ["math.sin"] = new(
+                typeof(Math).MD(nameof(Math.Sin), DoubleArg)),
+            ["math.cos"] = new(
+                typeof(Math).MD(nameof(Math.Cos), DoubleArg)),
             ["math.beta"] = new(
                 typeof(F).MD(nameof(F.Beta), DoubleDoubleArg)),
             ["math.erf"] = new(

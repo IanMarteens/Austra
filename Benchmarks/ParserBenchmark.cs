@@ -12,19 +12,27 @@ public class ParserBenchmark : BenchmarkControl
         engine = new AustraEngine(dataSource);
     }
 
-    [Benchmark]
-    public Type AustraParseMatrixTrace() =>
-        engine.EvalType("let v = vector::nrandom(16) in (v ^ v).trace");
+    //[Benchmark]
+    //public Type AustraParseMatrixTrace() =>
+    //    engine.EvalType("let v = vector::nrandom(16) in (v ^ v).trace");
+
+    //[Benchmark]
+    //public Type AustraParseSimpleSum() =>
+    //    engine.EvalType("1.0 + 2.0 * 3.0");
+
+    //[Benchmark]
+    //public double AustraEvalMatrixTrace() =>
+    //    (double)engine.Eval("let v = vector::nrandom(16) in (v ^ v).trace").Value;
+
+    //[Benchmark]
+    //public double AustraEvalSimpleSum() =>
+    //    (double)engine.Eval("1.0 + 2.0 * 3.0").Value;
 
     [Benchmark]
-    public Type AustraParseSimpleSum() =>
-        engine.EvalType("1.0 + 2.0 * 3.0");
+    public Type AustraParseFunctionCall() =>
+        engine.EvalType("sin(1) + cos(2)");
 
     [Benchmark]
-    public double AustraEvalMatrixTrace() =>
-        (double)engine.Eval("let v = vector::nrandom(16) in (v ^ v).trace").Value;
-
-    [Benchmark]
-    public double AustraEvalSimpleSum() =>
-        (double)engine.Eval("1.0 + 2.0 * 3.0").Value;
+    public double AustraEvalFunctionCall() =>
+        (double)engine.Eval("sin(1) + cos(2)").Value;
 }

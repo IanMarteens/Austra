@@ -972,9 +972,11 @@ internal sealed partial class Parser
     private Expression ParseFunction()
     {
         (string function, int pos) = (id.ToLower(), start);
-        if (classMethods.ContainsKey("math." + function))
-            return ParseClassMethod("math", function);
         Skip2();
+        if (classMethods.TryGetValue("math." + function, out MethodList inf))
+            return inf.Methods.Length == 1
+                ? ParseClassSingleMethod(inf.Methods[0])
+                : ParseClassMultiMethod(inf);
         (List<Expression> a, List<int> p) = CollectArguments();
         if (function == "iff")
         {
@@ -1029,7 +1031,7 @@ internal sealed partial class Parser
             : ParseClassMultiMethod(info);
     }
 
-    private Expression ParseClassSingleMethod(MethodData method)
+    private Expression ParseClassSingleMethod(in MethodData method)
     {
         Type[] types = method.Args;
         List<Expression> args = new(types.Length);
@@ -1091,7 +1093,7 @@ internal sealed partial class Parser
         return result;
     }
 
-    private Expression ParseClassMultiMethod(MethodList info)
+    private Expression ParseClassMultiMethod(in MethodList info)
     {
         List<Expression> args = new();
         List<int> starts = new();
