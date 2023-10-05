@@ -6,44 +6,42 @@ namespace Austra.Parser;
 internal sealed partial class Parser
 {
     /// <summary>Most common argument list in functions.</summary>
-    private static readonly Type[] doubleArg = new[] { typeof(double) };
+    private static readonly Type[] DoubleArg = new[] { typeof(double) };
     /// <summary>Second common argument list in functions.</summary>
-    private static readonly Type[] intArg = new[] { typeof(int) };
+    private static readonly Type[] IntArg = new[] { typeof(int) };
+    /// <summary>Another common argument list in functions.</summary>
+    private static readonly Type[] VectorArg = new[] { typeof(Vector) };
+    /// <summary>Another common argument list in functions.</summary>
+    private static readonly Type[] DoubleDoubleArg = new[] { typeof(double), typeof(double) };
     /// <summary>Constructor for <see cref="Index"/>.</summary>
-    private static readonly ConstructorInfo indexCtor =
+    private static readonly ConstructorInfo IndexCtor =
         typeof(Index).GetConstructor(new[] { typeof(int), typeof(bool) })!;
     /// <summary>Constructor for <see cref="Range"/>.</summary>
-    private static readonly ConstructorInfo rangeCtor =
+    private static readonly ConstructorInfo RangeCtor =
         typeof(Range).GetConstructor(new[] { typeof(Index), typeof(Index) })!;
     /// <summary>The <see cref="Expression"/> for <see langword="false"/>.</summary>
-    private static readonly ConstantExpression falseExpr = Expression.Constant(false);
+    private static readonly ConstantExpression FalseExpr = Expression.Constant(false);
     /// <summary>The <see cref="Expression"/> for <see langword="true"/>.</summary>
-    private static readonly ConstantExpression trueExpr = Expression.Constant(true);
+    private static readonly ConstantExpression TrueExpr = Expression.Constant(true);
 
     /// <summary>Allowed global functions and their implementations.</summary>
     private static readonly Dictionary<string, MethodInfo> functions =
         new(StringComparer.OrdinalIgnoreCase)
         {
             // Monadic functions.
-            ["abs"] = typeof(Math).GetMethod(nameof(Math.Abs), doubleArg)!,
+            ["abs"] = typeof(Math).GetMethod(nameof(Math.Abs), DoubleArg)!,
             ["exp"] = typeof(Math).Get(nameof(Math.Exp)),
-            ["log"] = typeof(Math).GetMethod(nameof(Math.Log), doubleArg)!,
+            ["log"] = typeof(Math).GetMethod(nameof(Math.Log), DoubleArg)!,
+            ["log10"] = typeof(Math).GetMethod(nameof(Math.Log10), DoubleArg)!,
             ["cbrt"] = typeof(Math).Get(nameof(Math.Cbrt)),
             ["sin"] = typeof(Math).Get(nameof(Math.Sin)),
             ["cos"] = typeof(Math).Get(nameof(Math.Cos)),
             ["tan"] = typeof(Math).Get(nameof(Math.Tan)),
             ["asin"] = typeof(Math).Get(nameof(Math.Asin)),
             ["acos"] = typeof(Math).Get(nameof(Math.Acos)),
-            ["atan"] = typeof(Math).Get(nameof(Math.Atan)),
             ["sqrt"] = typeof(Math).Get(nameof(Math.Sqrt)),
-            ["sign"] = typeof(Math).GetMethod(nameof(Math.Sign), doubleArg)!,
-            ["round"] = typeof(Math).GetMethod(nameof(Math.Round), doubleArg)!,
-            ["trunc"] = typeof(Math).GetMethod(nameof(Math.Truncate), doubleArg)!,
-            ["probit"] = typeof(F).Get(nameof(F.Probit)),
-            ["gamma"] = typeof(F).Get(nameof(F.Gamma)),
-            ["lngamma"] = typeof(F).Get(nameof(F.GammaLn)),
-            ["erf"] = typeof(F).Get(nameof(F.Erf)),
-            ["ncdf"] = typeof(F).Get(nameof(F.NCdf)),
+            ["sign"] = typeof(Math).GetMethod(nameof(Math.Sign), DoubleArg)!,
+            ["trunc"] = typeof(Math).GetMethod(nameof(Math.Truncate), DoubleArg)!,
         };
 
     /// <summary>Allowed series methods.</summary>
@@ -58,9 +56,9 @@ internal sealed partial class Parser
                 ["cov"] = typeof(Series).Get(nameof(Series.Covariance)),
                 ["stats"] = typeof(Series).GetMethod(nameof(Series.GetSliceStats),
                     new[] { typeof(Date) })!,
-                ["ncdf"] = typeof(Series).GetMethod(nameof(Series.NCdf), doubleArg)!,
+                ["ncdf"] = typeof(Series).GetMethod(nameof(Series.NCdf), DoubleArg)!,
                 ["movingAvg"] = typeof(Series).Get(nameof(Series.MovingAvg)),
-                ["movingStd"] = typeof(Series).GetMethod(nameof(Series.MovingStd), intArg)!,
+                ["movingStd"] = typeof(Series).GetMethod(nameof(Series.MovingStd), IntArg)!,
                 ["movingNcdf"] = typeof(Series).Get(nameof(Series.MovingNcdf)),
                 ["ewma"] = typeof(Series).Get(nameof(Series.EWMA)),
                 ["map"] = typeof(Series).Get(nameof(Series.Map)),
@@ -68,7 +66,7 @@ internal sealed partial class Parser
                 ["any"] = typeof(Series).Get(nameof(Series.Any)),
                 ["all"] = typeof(Series).Get(nameof(Series.All)),
                 ["zip"] = typeof(Series).Get(nameof(Series.Zip)),
-                ["indexof"] = typeof(Series).GetMethod(nameof(Series.IndexOf), doubleArg)!,
+                ["indexof"] = typeof(Series).GetMethod(nameof(Series.IndexOf), DoubleArg)!,
                 ["linear"] = typeof(Series).Get(nameof(Series.LinearModel)),
                 ["linearModel"] = typeof(Series).Get(nameof(Series.FullLinearModel)),
                 ["ar"] = typeof(Series).Get(nameof(Series.AutoRegression)),
@@ -98,7 +96,7 @@ internal sealed partial class Parser
                 ["reduce"] = typeof(Vector).Get(nameof(Vector.Reduce)),
                 ["zip"] = typeof(Vector).Get(nameof(Vector.Zip)),
                 ["filter"] = typeof(Vector).Get(nameof(Vector.Filter)),
-                ["indexof"] = typeof(Vector).GetMethod(nameof(Vector.IndexOf), doubleArg)!,
+                ["indexof"] = typeof(Vector).GetMethod(nameof(Vector.IndexOf), DoubleArg)!,
                 ["linear"] = typeof(Vector).Get(nameof(Vector.LinearModel)),
                 ["linearModel"] = typeof(Vector).Get(nameof(Vector.FullLinearModel)),
                 ["ar"] = typeof(Vector).Get(nameof(Vector.AutoRegression)),
@@ -119,13 +117,13 @@ internal sealed partial class Parser
             },
             [typeof(Date)] = new(StringComparer.OrdinalIgnoreCase)
             {
-                ["addmonths"] = typeof(Date).GetMethod(nameof(Date.AddMonths), intArg)!,
+                ["addmonths"] = typeof(Date).GetMethod(nameof(Date.AddMonths), IntArg)!,
                 ["addyears"] = typeof(Date).Get(nameof(Date.AddYears)),
             },
             [typeof(Matrix)] = new(StringComparer.OrdinalIgnoreCase)
             {
-                ["getcol"] = typeof(Matrix).GetMethod(nameof(Matrix.GetColumn), intArg)!,
-                ["getrow"] = typeof(Matrix).GetMethod(nameof(Matrix.GetRow), intArg)!,
+                ["getcol"] = typeof(Matrix).GetMethod(nameof(Matrix.GetColumn), IntArg)!,
+                ["getrow"] = typeof(Matrix).GetMethod(nameof(Matrix.GetRow), IntArg)!,
                 ["map"] = typeof(Matrix).Get(nameof(Matrix.Map)),
                 ["any"] = typeof(Matrix).Get(nameof(Matrix.Any)),
                 ["all"] = typeof(Matrix).Get(nameof(Matrix.All)),
@@ -141,10 +139,7 @@ internal sealed partial class Parser
 
     internal readonly struct MethodData
     {
-        public const uint MNone = 0u;
-        public const uint MIdx = 1u;
-        public const uint Mλ1 = 2u;
-        public const uint Mλ2 = 3u;
+        public const uint Mλ1 = 1u, Mλ2 = 2u;
 
         public Type Implementor { get; }
         public string? MemberName { get; }
@@ -159,9 +154,7 @@ internal sealed partial class Parser
             {
                 Type t1 = args[i];
                 if (t1.IsAssignableTo(typeof(Delegate)))
-                    TypeMask |= t1.GetGenericArguments().Length == 2 ? Mλ1 << m : Mλ2 << m;
-                else if (t1 == typeof(Index))
-                    TypeMask |= MIdx << m;
+                    TypeMask |= (t1.GetGenericArguments().Length == 2 ? Mλ1 : Mλ2) << m;
             }
             Type t = Args[^1];
             ExpectedArgs = t.IsArray
@@ -170,8 +163,6 @@ internal sealed partial class Parser
                 ? Args.Length - 1
                 : Args.Length;
         }
-
-        public MethodData(Type implementor, params Type[] args) : this(implementor, null, args) { }
 
         public uint GetMask(int typeId) => (TypeMask >> (typeId * 2)) & 3u;
 
@@ -204,9 +195,9 @@ internal sealed partial class Parser
     }
 
     private static readonly MethodList MatrixEye = new(
-        typeof(Matrix).MD(nameof(Matrix.Identity), typeof(int)));
+        typeof(Matrix).MD(nameof(Matrix.Identity), IntArg));
     private static readonly MethodList MatrixZero = new(
-        typeof(Matrix).MD(typeof(int)),
+        typeof(Matrix).MD(IntArg),
         typeof(Matrix).MD(typeof(int), typeof(int)));
     private static readonly MethodList MatrixCovariance = new(
         typeof(Series<Date>).MD(nameof(Series.CovarianceMatrix), typeof(Series[])));
@@ -217,9 +208,9 @@ internal sealed partial class Parser
         typeof(Tuple<ComplexVector, ComplexVector>).MD(typeof(ComplexVector), typeof(ComplexVector)),
         typeof(Tuple<Series, Series>).MD(typeof(Series), typeof(Series)));
     private static readonly MethodList VectorZero = new(
-        typeof(Vector).MD(typeof(int)));
+        typeof(Vector).MD(IntArg));
     private static readonly MethodList ComplexVectorZero = new(
-        typeof(ComplexVector).MD(typeof(int)));
+        typeof(ComplexVector).MD(IntArg));
     private static readonly MethodList PolyDerivative = new(
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(Vector)),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
@@ -259,7 +250,7 @@ internal sealed partial class Parser
             ["complexvector.zero"] = ComplexVectorZero,
             ["complexvector.zeros"] = ComplexVectorZero,
             ["complexvector.from"] = new(
-                typeof(ComplexVector).MD(typeof(Vector)),
+                typeof(ComplexVector).MD(VectorArg),
                 typeof(ComplexVector).MD(typeof(Vector), typeof(Vector))),
             ["matrix.new"] = new(
                 typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
@@ -269,7 +260,7 @@ internal sealed partial class Parser
             ["matrix.cols"] = new(
                 typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))),
             ["matrix.diag"] = new(
-                typeof(Matrix).MD(typeof(Vector)),
+                typeof(Matrix).MD(VectorArg),
                 typeof(Matrix).MD(typeof(double[]))),
             ["matrix.i"] = MatrixEye,
             ["matrix.eye"] = MatrixEye,
@@ -301,7 +292,7 @@ internal sealed partial class Parser
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector), typeof(string[]))),
             ["math.polysolve"] = new(
-                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(Vector)),
+                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VectorArg),
                 typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
             ["math.polyeval"] = new(
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(Vector)),
@@ -310,27 +301,40 @@ internal sealed partial class Parser
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
             ["math.polyderivative"] = PolyDerivative,
             ["math.polyderiv"] = PolyDerivative,
+            ["math.atan"] = new(
+                typeof(Math).MD(nameof(Math.Atan), DoubleArg),
+                typeof(Math).MD(nameof(Math.Atan2), DoubleDoubleArg)),
             ["math.beta"] = new(
-                typeof(F).MD(nameof(F.Beta), typeof(double), typeof(double))),
+                typeof(F).MD(nameof(F.Beta), DoubleDoubleArg)),
+            ["math.erf"] = new(
+                typeof(F).MD(nameof(F.Erf), DoubleArg)),
+            ["math.gamma"] = new(
+                typeof(F).MD(nameof(F.Gamma), DoubleArg)),
+            ["math.lngamma"] = new(
+                typeof(F).MD(nameof(F.GammaLn), DoubleArg)),
+            ["math.ncdf"] = new(
+                typeof(F).MD(nameof(F.NCdf), DoubleArg)),
+            ["math.probit"] = new(
+                typeof(F).MD(nameof(F.Probit), DoubleArg)),
             ["math.round"] = new(
-                typeof(Math).MD(nameof(Math.Round), typeof(double)),
+                typeof(Math).MD(nameof(Math.Round), DoubleArg),
                 typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
             ["math.compare"] = ModelCompare,
             ["math.comp"] = ModelCompare,
             ["math.complex"] = new(
-                typeof(Complex).MD(typeof(double), typeof(double)),
+                typeof(Complex).MD(DoubleDoubleArg),
                 typeof(Complex).MD(typeof(double), typeof(Zero))),
             ["math.polar"] = new(
-                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(double)),
+                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), DoubleDoubleArg),
                 typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
             ["math.min"] = new(
                 typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
                 typeof(Math).MD(nameof(Math.Min), typeof(int), typeof(int)),
-                typeof(Math).MD(nameof(Math.Min), typeof(double), typeof(double))),
+                typeof(Math).MD(nameof(Math.Min), DoubleDoubleArg)),
             ["math.max"] = new(
                 typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
                 typeof(Math).MD(nameof(Math.Max), typeof(int), typeof(int)),
-                typeof(Math).MD(nameof(Math.Max), typeof(double), typeof(double))),
+                typeof(Math).MD(nameof(Math.Max), DoubleDoubleArg)),
         };
 
     /// <summary>Allowed properties and their implementations.</summary>
@@ -533,20 +537,20 @@ internal sealed partial class Parser
                 ["imag"] = typeof(ComplexVector).Prop(nameof(ComplexVector.Imaginary)),
                 ["im"] = typeof(ComplexVector).Prop(nameof(ComplexVector.Imaginary)),
             },
-            [typeof(Library.MVO.MvoModel)] = new(StringComparer.OrdinalIgnoreCase)
+            [typeof(MvoModel)] = new(StringComparer.OrdinalIgnoreCase)
             {
-                ["length"] = typeof(Library.MVO.MvoModel).Prop(nameof(Library.MVO.MvoModel.Length)),
-                ["first"] = typeof(Library.MVO.MvoModel).Prop(nameof(Library.MVO.MvoModel.First)),
-                ["last"] = typeof(Library.MVO.MvoModel).Prop(nameof(Library.MVO.MvoModel.Last)),
-                ["size"] = typeof(Library.MVO.MvoModel).Prop(nameof(Library.MVO.MvoModel.Size)),
+                ["length"] = typeof(MvoModel).Prop(nameof(MvoModel.Length)),
+                ["first"] = typeof(MvoModel).Prop(nameof(MvoModel.First)),
+                ["last"] = typeof(MvoModel).Prop(nameof(MvoModel.Last)),
+                ["size"] = typeof(MvoModel).Prop(nameof(MvoModel.Size)),
             },
-            [typeof(Library.MVO.Portfolio)] = new(StringComparer.OrdinalIgnoreCase)
+            [typeof(Portfolio)] = new(StringComparer.OrdinalIgnoreCase)
             {
-                ["weights"] = typeof(Library.MVO.Portfolio).Prop(nameof(Library.MVO.Portfolio.Weights)),
-                ["lambda"] = typeof(Library.MVO.Portfolio).Prop(nameof(Library.MVO.Portfolio.Lambda)),
-                ["ret"] = typeof(Library.MVO.Portfolio).Prop(nameof(Library.MVO.Portfolio.Mean)),
-                ["var"] = typeof(Library.MVO.Portfolio).Prop(nameof(Library.MVO.Portfolio.Variance)),
-                ["std"] = typeof(Library.MVO.Portfolio).Prop(nameof(Library.MVO.Portfolio.StdDev)),
+                ["weights"] = typeof(Portfolio).Prop(nameof(Portfolio.Weights)),
+                ["lambda"] = typeof(Portfolio).Prop(nameof(Portfolio.Lambda)),
+                ["ret"] = typeof(Portfolio).Prop(nameof(Portfolio.Mean)),
+                ["var"] = typeof(Portfolio).Prop(nameof(Portfolio.Variance)),
+                ["std"] = typeof(Portfolio).Prop(nameof(Portfolio.StdDev)),
             },
             [typeof(ARSModel)] = new(StringComparer.OrdinalIgnoreCase)
             {
@@ -817,14 +821,14 @@ internal sealed partial class Parser
             new("reduce(", "Reduces a complex vector to a single value"),
             new("indexof(", "Returns the index where a value is stored"),
         },
-        [typeof(Library.MVO.MvoModel)] = new Member[]
+        [typeof(MvoModel)] = new Member[]
         {
             new("length", "Gets the number of corner portfolios"),
             new("first", "Gets the first corner portfolio"),
             new("last", "Gets the last corner portfolio"),
             new("size", "Gets the number of assets in the model"),
         },
-        [typeof(Library.MVO.Portfolio)] = new Member[]
+        [typeof(Portfolio)] = new Member[]
         {
             new("weights", "Gets weights of the portfolio"),
             new("lambda", "Gets the lambda of a corner portfolio"),
@@ -972,14 +976,6 @@ internal sealed partial class Parser
     private static partial Regex LambdaHeader2();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool IsLambda1() =>
-        kind == Token.Id && LambdaHeader1().IsMatch(text.AsSpan()[start..]);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool IsLambda2() =>
-        kind == Token.LPar && LambdaHeader2().IsMatch(text.AsSpan()[start..]);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsLambda() => kind == Token.Id
         ? LambdaHeader1().IsMatch(text.AsSpan()[start..])
         : LambdaHeader2().IsMatch(text.AsSpan()[start..]);
@@ -994,11 +990,11 @@ internal sealed partial class Parser
         string text,
         out Type? type)
     {
-        string trimmedText = ExtractObjectPath(text);
-        if (!string.IsNullOrEmpty(trimmedText))
+        ReadOnlySpan<char> trimmedText = ExtractObjectPath(text);
+        if (!trimmedText.IsEmpty)
             try
             {
-                return ExtractType(source, trimmedText);
+                return ExtractType(source, trimmedText.ToString());
             }
             catch
             {
@@ -1007,7 +1003,7 @@ internal sealed partial class Parser
                 if (m.Success && !LetHeaderRegex().IsMatch(trimmedText))
                     try
                     {
-                        return ExtractType(source, m.Groups["header"] + trimmedText);
+                        return ExtractType(source, m.Groups["header"] + trimmedText.ToString());
                     }
                     catch { }
             }
@@ -1049,7 +1045,7 @@ internal sealed partial class Parser
     /// <summary>Extracts an object path from an expression fragment.</summary>
     /// <param name="text">A fragment of an expression.</param>
     /// <returns>The final object path.</returns>
-    private static string ExtractObjectPath(string text)
+    private static ReadOnlySpan<char> ExtractObjectPath(string text)
     {
         ref char c = ref Unsafe.As<Str>(text).FirstChar;
         int i = text.Length - 1;
@@ -1061,7 +1057,7 @@ internal sealed partial class Parser
                 char.IsWhiteSpace(ch))
                 i--;
             else if (ch is '(' or '[')
-                return text[(i + 1)..];
+                return text.AsSpan()[(i + 1)..];
             else if (ch == ')')
             {
                 int count = 1;
@@ -1077,9 +1073,8 @@ internal sealed partial class Parser
                     }
                 }
                 if (count > 0)
-                    return "";
-                else
-                    i--;
+                    return ReadOnlySpan<char>.Empty;
+                i--;
             }
             else if (ch == ']')
             {
@@ -1096,13 +1091,12 @@ internal sealed partial class Parser
                     }
                 }
                 if (count > 0)
-                    return "";
-                else
-                    i--;
+                    return ReadOnlySpan<char>.Empty;
+                i--;
             }
             else
                 break;
         }
-        return text[(i + 1)..].Trim();
+        return text.AsSpan()[(i + 1)..].Trim();
     }
 }

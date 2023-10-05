@@ -523,10 +523,10 @@ internal sealed partial class Parser
                 }
             case Token.False:
                 Move();
-                return falseExpr;
+                return FalseExpr;
             case Token.True:
                 Move();
-                return trueExpr;
+                return TrueExpr;
             case Token.LPar:
                 Move();
                 e = ParseConditional();
@@ -677,12 +677,12 @@ internal sealed partial class Parser
                 ? Expression.Constant(Index.End)
                 : ParseIndex();
             CheckAndMove(Token.RBra, "] expected in indexer");
-            return Expression.Property(e, "Item", Expression.New(rangeCtor,
-                Expression.New(indexCtor, e1, Expression.Constant(fromEnd1)), e2));
+            return Expression.Property(e, "Item", Expression.New(RangeCtor,
+                Expression.New(IndexCtor, e1, Expression.Constant(fromEnd1)), e2));
         }
         CheckAndMove(Token.RBra, "] expected in indexer");
         if (fromEnd1)
-            e1 = Expression.New(indexCtor, e1, Expression.Constant(fromEnd1));
+            e1 = Expression.New(IndexCtor, e1, Expression.Constant(fromEnd1));
         return Expression.Property(e, "Item", e1);
     }
 
@@ -706,8 +706,8 @@ internal sealed partial class Parser
                     ? Expression.Constant(Index.End)
                     : ParseIndex();
                 if (e1.Type != typeof(Index))
-                    e1 = Expression.New(indexCtor, e1, Expression.Constant(fromEnd11));
-                e1 = Expression.New(rangeCtor, e1, e12);
+                    e1 = Expression.New(IndexCtor, e1, Expression.Constant(fromEnd11));
+                e1 = Expression.New(RangeCtor, e1, e12);
                 isRange = true;
             }
             if (kind != Token.RBra)
@@ -727,14 +727,14 @@ internal sealed partial class Parser
                     ? Expression.Constant(Index.End)
                     : ParseIndex();
                 if (e2.Type != typeof(Index))
-                    e2 = Expression.New(indexCtor, e2, Expression.Constant(fromEnd21));
-                e2 = Expression.New(rangeCtor, e2, e22);
+                    e2 = Expression.New(IndexCtor, e2, Expression.Constant(fromEnd21));
+                e2 = Expression.New(RangeCtor, e2, e22);
                 if (!isRange && fromEnd11)
-                    e1 = Expression.New(indexCtor, e1!, trueExpr);
+                    e1 = Expression.New(IndexCtor, e1!, TrueExpr);
                 isRange = true;
             }
             else if (isRange && fromEnd21)
-                e2 = Expression.New(indexCtor, e2, trueExpr);
+                e2 = Expression.New(IndexCtor, e2, TrueExpr);
             CheckAndMove(Token.RBra, "] expected");
         }
         if (isRange)
@@ -745,9 +745,9 @@ internal sealed partial class Parser
         else if (fromEnd11 || fromEnd21)
         {
             if (e1 != null)
-                e1 = Expression.New(indexCtor, e1, Expression.Constant(fromEnd11));
+                e1 = Expression.New(IndexCtor, e1, Expression.Constant(fromEnd11));
             if (e2 != null)
-                e2 = Expression.New(indexCtor, e2, Expression.Constant(fromEnd21));
+                e2 = Expression.New(IndexCtor, e2, Expression.Constant(fromEnd21));
         }
         return
             e1 != null && e2 != null
@@ -773,7 +773,7 @@ internal sealed partial class Parser
                 {
                     Move();
                     return Expression.Property(e, "Item", fromEnd1
-                        ? Expression.New(indexCtor, e1, trueExpr)
+                        ? Expression.New(IndexCtor, e1, TrueExpr)
                         : e1);
                 }
             }
@@ -805,14 +805,14 @@ internal sealed partial class Parser
         if (fromEnd1 || fromEnd2)
         {
             e1 = e1 != null
-                ? Expression.New(indexCtor, e1, Expression.Constant(fromEnd1))
+                ? Expression.New(IndexCtor, e1, Expression.Constant(fromEnd1))
                 : Expression.Constant(Index.Start);
             e2 = e2 != null
-                ? Expression.New(indexCtor, e2, Expression.Constant(fromEnd2))
+                ? Expression.New(IndexCtor, e2, Expression.Constant(fromEnd2))
                 : Expression.Constant(Index.End);
             return Expression.Property(e,
                 typeof(Series).GetProperty("Item", new[] { typeof(Range) })!,
-                Expression.New(rangeCtor, e1, e2));
+                Expression.New(RangeCtor, e1, e2));
         }
         e1 ??= e2!.Type == typeof(Date)
             ? Expression.Constant(Date.Zero)
@@ -827,10 +827,11 @@ internal sealed partial class Parser
 
     private Expression ParseModelMethod()
     {
-        (string method, int pos) = (id.ToLower(), start);
+        string method = id.ToLower();
         if (method == "mvo")
         {
-            (List<Expression> a, List<int> p) = ParseArguments();
+            Skip2();
+            (List<Expression> a, List<int> p) = CollectArguments();
             return a.Count < 2
                 ? throw Error("Invalid number of parameters")
                 : a[0].Type != typeof(Vector)
@@ -931,7 +932,7 @@ internal sealed partial class Parser
     private Expression ParseIndex()
     {
         bool fromEnd = false;
-        return Expression.New(indexCtor, ParseIndex(ref fromEnd), Expression.Constant(fromEnd));
+        return Expression.New(IndexCtor, ParseIndex(ref fromEnd), Expression.Constant(fromEnd));
     }
 
     private Expression ParseLambda(Type t1, Type? t2, Type retType, bool? isLast = true)
@@ -1007,9 +1008,9 @@ internal sealed partial class Parser
         (string function, int pos) = (id.ToLower(), start);
         if (classMethods.ContainsKey("math." + function))
             return ParseClassMethod("math", function);
+        Skip2();
         if (function == "solve")
         {
-            Skip2();
             Expression λf = ParseLambda(typeof(double), null, typeof(double), false);
             Expression λdf = ParseLambda(typeof(double), null, typeof(double), false);
             (List<Expression> a1, List<int> p1) = CollectArguments();
@@ -1031,7 +1032,7 @@ internal sealed partial class Parser
                 ? throw Error("Too many arguments")
                 : Expression.Call(typeof(Solver).Get("Solve"), a1);
         }
-        (List<Expression> a, List<int> p) = ParseArguments();
+        (List<Expression> a, List<int> p) = CollectArguments();
         if (function == "iff")
         {
             if (a.Count != 3)
@@ -1057,13 +1058,6 @@ internal sealed partial class Parser
             : a.Count != 1 || !IsArithmetic(a[0])
             ? throw Error("Argument must be numeric")
             : Expression.Call(mInfo, ToDouble(a[0]));
-    }
-
-    private (List<Expression>, List<int>) ParseArguments()
-    {
-        // Skip method name and left parenthesis.
-        Skip2();
-        return CollectArguments();
     }
 
     private (List<Expression>, List<int>) CollectArguments()

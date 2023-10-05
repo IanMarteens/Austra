@@ -523,7 +523,7 @@ internal static class ParserExtensions
          type.GetProperty(property)!.GetGetMethod()!;
 
     public static Parser.MethodData MD(this Type type, params Type[] argTypes) =>
-        new(type, argTypes);
+        new(type, null, argTypes);
 
     public static Parser.MethodData MD(this Type type, string member, params Type[] argTypes) =>
         new(type, member, argTypes);
