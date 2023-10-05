@@ -585,6 +585,8 @@ internal sealed partial class Parser
                         ? throw Error("Method name expected")
                         : className == "math"
                         ? ParseFunction()
+                        : className == "model"
+                        ? ParseModelMethod()
                         : ParseClassMethod(className, id.ToLower());
                     break;
                 }
@@ -821,6 +823,36 @@ internal sealed partial class Parser
         return Expression.Call(e,
             typeof(Series).GetMethod(nameof(Series.Slice), new[] { e1.Type, e2.Type })!,
             e1, e2);
+    }
+
+    private Expression ParseModelMethod()
+    {
+        string method = id.ToLower();
+        if (method == "mvo")
+        {
+            Skip2();
+            (List<Expression> a, List<int> p) = CollectArguments();
+            return a.Count < 2
+                ? throw Error("Invalid number of parameters")
+                : a[0].Type != typeof(Vector)
+                ? throw Error("Vector expected", p[0])
+                : a[1].Type != typeof(Matrix)
+                ? throw Error("Covariance matrix expected", p[1])
+                : a.Count >= 4 && a[2].Type == typeof(Vector) && a[3].Type == typeof(Vector)
+                ? a.Skip(4).All(a => a.Type == typeof(Series))
+                    ? typeof(Library.MVO.MvoModel).New(
+                        a[0], a[1], a[2], a[3], typeof(Series).Make(a.Skip(4)))
+                    : a.Skip(4).All(a => a.Type == typeof(string))
+                    ? typeof(Library.MVO.MvoModel).New(
+                        a[0], a[1], a[2], a[3], typeof(string).Make(a.Skip(4)))
+                    : throw Error("A list of series was expected", p[^1])
+                : (a.Skip(2).All(a => a.Type == typeof(Series))
+                ? typeof(Library.MVO.MvoModel).New(a[0], a[1], typeof(Series).Make(a.Skip(2)))
+                : a.Skip(2).All(a => a.Type == typeof(string))
+                ? typeof(Library.MVO.MvoModel).New(a[0], a[1], typeof(string).Make(a.Skip(2)))
+                : throw Error("A list of series was expected", p[^1]));
+        }
+        return ParseClassMethod("model", method);
     }
 
     private Expression ParseMethod(Expression e)
