@@ -1095,8 +1095,7 @@ internal sealed partial class Parser
     {
         Type[] types = method.Args;
         List<Expression> args = new(types.Length);
-        int i = 0;
-        for (; i < types.Length; i++, Move())
+        for (int i = 0; i < types.Length; i++, Move())
         {
             Type currentType = types[i];
             if (currentType.IsAssignableTo(typeof(Delegate)))
@@ -1185,9 +1184,9 @@ internal sealed partial class Parser
                     throw Error("Invalid number of arguments");
             }
             // Discard easy detectable types before parsing the argument.
-            if (i >= info.DKind.Length)
+            if (i >= info.IsLambda.Length)
                 args.Add(ParseLightConditional());
-            else if (info.DKind[i] != 0 && IsLambda())
+            else if (info.IsLambda[i] && IsLambda())
             {
                 Type? lambda = null;
                 uint lambdaType = kind == Token.LPar ? MethodData.Mλ2 : MethodData.Mλ1;

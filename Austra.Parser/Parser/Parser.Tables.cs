@@ -185,31 +185,21 @@ internal sealed partial class Parser
     internal readonly struct MethodList
     {
         public MethodData[] Methods { get; }
-        public uint[] DKind { get; }
+        public bool[] IsLambda { get; }
 
         public MethodList(params MethodData[] methods)
         {
             Methods = methods;
             int maxArgs = methods.Max(m => m.Args.Length);
-            DKind = new uint[maxArgs];
-            for (int i = 0; i < DKind.Length; i++)
-            {
-                uint mask = 0;
-                for (int j = 0; j < methods.Length; j++)
-                {
-                    MethodData method = methods[j];
+            IsLambda = new bool[maxArgs];
+            for (int i = 0; i < IsLambda.Length; i++)
+                foreach (MethodData method in methods)
                     if (method.Args.Length > i
                         && method.Args[i].IsAssignableTo(typeof(Delegate)))
                     {
-                        int gCount = method.Args[i].GetGenericArguments().Length;
-                        if (gCount == 2)
-                            mask |= 1U;
-                        else if (gCount == 3)
-                            mask |= 2U;
+                        IsLambda[i] = true;
+                        break;
                     }
-                }
-                DKind[i] = mask;
-            }
         }
     }
 
