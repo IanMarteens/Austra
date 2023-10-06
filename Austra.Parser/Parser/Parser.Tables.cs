@@ -236,6 +236,8 @@ internal sealed partial class Parser
             ["vector.ones"] = new(
                 typeof(Vector).MD(typeof(int), typeof(One))),
             ["complexvector.new"] = new(
+                typeof(ComplexVector).MD(VectorArg),
+                typeof(ComplexVector).MD(typeof(Vector), typeof(Vector)),
                 typeof(ComplexVector).MD(typeof(int)),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))),
@@ -243,9 +245,6 @@ internal sealed partial class Parser
                 typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))),
             ["complexvector.random"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(Random))),
-            ["complexvector.from"] = new(
-                typeof(ComplexVector).MD(VectorArg),
-                typeof(ComplexVector).MD(typeof(Vector), typeof(Vector))),
             ["matrix.new"] = new(
                 typeof(Matrix).MD(IntArg),
                 typeof(Matrix).MD(typeof(int), typeof(int)),
@@ -928,7 +927,6 @@ internal sealed partial class Parser
                 new("new(", "Create a complex vector given a size and an optional lambda"),
                 new("random(", "Creates a random complex vector given a length"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
-                new("from(", "Creates a complex vector from one or two real vectors"),
             },
             ["matrix"] = new Member[]
             {
