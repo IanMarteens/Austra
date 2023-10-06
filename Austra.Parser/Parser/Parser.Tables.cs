@@ -34,10 +34,8 @@ internal sealed partial class Parser
             ["log"] = typeof(Math).GetMethod(nameof(Math.Log), DoubleArg)!,
             ["log10"] = typeof(Math).GetMethod(nameof(Math.Log10), DoubleArg)!,
             ["cbrt"] = typeof(Math).Get(nameof(Math.Cbrt)),
-            ["tan"] = typeof(Math).Get(nameof(Math.Tan)),
             ["asin"] = typeof(Math).Get(nameof(Math.Asin)),
             ["acos"] = typeof(Math).Get(nameof(Math.Acos)),
-            ["sqrt"] = typeof(Math).Get(nameof(Math.Sqrt)),
             ["sign"] = typeof(Math).GetMethod(nameof(Math.Sign), DoubleArg)!,
             ["trunc"] = typeof(Math).GetMethod(nameof(Math.Truncate), DoubleArg)!,
         };
@@ -144,6 +142,7 @@ internal sealed partial class Parser
         public Type[] Args { get; }
         public uint TypeMask { get; }
         public int ExpectedArgs { get; }
+        public MethodInfo? MInfo { get; }
 
         public MethodData(Type implementor, string? memberName, params Type[] args)
         {
@@ -162,12 +161,18 @@ internal sealed partial class Parser
                 : Args.Length;
         }
 
+        public MethodData(string memberName, Type implementor, params Type[] args)
+            : this(implementor, memberName, args) =>
+            MInfo = Implementor.GetMethod(memberName, Args);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetMask(int typeId) => (TypeMask >> (typeId * 2)) & 3u;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Expression GetExpression(List<Expression> actualArguments) =>
-            MemberName != null
+            MInfo != null
+            ? Expression.Call(MInfo, actualArguments)
+            : MemberName != null
             ? Expression.Call(Implementor.GetMethod(MemberName!, Args)!, actualArguments)
             : Implementor.New(actualArguments);
     }
@@ -304,12 +309,9 @@ internal sealed partial class Parser
             ["math.polyderivative"] = PolyDerivative,
             ["math.polyderiv"] = PolyDerivative,
             ["math.atan"] = new(
-                typeof(Math).MD(nameof(Math.Atan), DoubleArg),
-                typeof(Math).MD(nameof(Math.Atan2), DoubleDoubleArg)),
-            ["math.sin"] = new(
-                typeof(Math).MD(nameof(Math.Sin), DoubleArg)),
-            ["math.cos"] = new(
-                typeof(Math).MD(nameof(Math.Cos), DoubleArg)),
+                typeof(Math).MDC(nameof(Math.Atan), DoubleArg),
+                typeof(Math).MDC(nameof(Math.Atan2), DoubleDoubleArg),
+                typeof(Complex).MDC(nameof(Complex.Atan), typeof(Complex))),
             ["math.beta"] = new(
                 typeof(F).MD(nameof(F.Beta), DoubleDoubleArg)),
             ["math.erf"] = new(
@@ -319,12 +321,24 @@ internal sealed partial class Parser
             ["math.lngamma"] = new(
                 typeof(F).MD(nameof(F.GammaLn), DoubleArg)),
             ["math.ncdf"] = new(
-                typeof(F).MD(nameof(F.NCdf), DoubleArg)),
+                typeof(F).MDC(nameof(F.NCdf), DoubleArg)),
             ["math.probit"] = new(
                 typeof(F).MD(nameof(F.Probit), DoubleArg)),
+            ["math.sin"] = new(
+                typeof(Math).MDC(nameof(Math.Sin), DoubleArg),
+                typeof(Complex).MDC(nameof(Complex.Sin), typeof(Complex))),
+            ["math.cos"] = new(
+                typeof(Math).MDC(nameof(Math.Cos), DoubleArg),
+                typeof(Complex).MDC(nameof(Complex.Cos), typeof(Complex))),
+            ["math.tan"] = new(
+                typeof(Math).MDC(nameof(Math.Tan), DoubleArg),
+                typeof(Complex).MDC(nameof(Complex.Tan), typeof(Complex))),
+            ["math.sqrt"] = new(
+                typeof(Math).MDC(nameof(Math.Sqrt), DoubleArg),
+                typeof(Complex).MDC(nameof(Complex.Sqrt), typeof(Complex))),
             ["math.round"] = new(
-                typeof(Math).MD(nameof(Math.Round), DoubleArg),
-                typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
+                typeof(Math).MDC(nameof(Math.Round), DoubleArg),
+                typeof(Math).MDC(nameof(Math.Round), typeof(double), typeof(int))),
             ["math.compare"] = ModelCompare,
             ["math.comp"] = ModelCompare,
             ["math.complex"] = new(
@@ -334,13 +348,13 @@ internal sealed partial class Parser
                 typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), DoubleDoubleArg),
                 typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
             ["math.min"] = new(
-                typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Min), typeof(int), typeof(int)),
-                typeof(Math).MD(nameof(Math.Min), DoubleDoubleArg)),
+                typeof(Date).MDC(nameof(Date.Min), typeof(Date), typeof(Date)),
+                typeof(Math).MDC(nameof(Math.Min), typeof(int), typeof(int)),
+                typeof(Math).MDC(nameof(Math.Min), DoubleDoubleArg)),
             ["math.max"] = new(
-                typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Max), typeof(int), typeof(int)),
-                typeof(Math).MD(nameof(Math.Max), DoubleDoubleArg)),
+                typeof(Date).MDC(nameof(Date.Max), typeof(Date), typeof(Date)),
+                typeof(Math).MDC(nameof(Math.Max), typeof(int), typeof(int)),
+                typeof(Math).MDC(nameof(Math.Max), DoubleDoubleArg)),
             ["math.solve"] = new(
                 typeof(Solver).MD(nameof(Solver.Solve),
                     typeof(Func<double, double>), typeof(Func<double, double>), typeof(double)),
