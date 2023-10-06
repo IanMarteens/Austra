@@ -451,25 +451,26 @@ internal sealed partial class Parser
             : throw new AstException("Invalid day of month", position);
     }
 
+    /// <summary>Checks if the expression's type is either a double or an integer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsArithmetic(Expression e1) =>
-        e1.Type == typeof(int) || e1.Type == typeof(double);
+    private static bool IsArithmetic(Expression e) =>
+        e.Type == typeof(int) || e.Type == typeof(double);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool AreArithmetic(Expression e1, Expression e2) =>
         IsArithmetic(e1) && IsArithmetic(e2);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsVectorOrMatrix(Expression e1) =>
-        IsVector(e1) || IsMatrix(e1);
+    private static bool IsVectorOrMatrix(Expression e) =>
+        IsVector(e) || IsMatrix(e);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsMatrix(Expression e1) =>
-        e1.Type.IsAssignableTo(typeof(IMatrix));
+    private static bool IsMatrix(Expression e) =>
+        e.Type.IsAssignableTo(typeof(IMatrix));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsVector(Expression e1) =>
-        e1.Type.IsAssignableTo(typeof(IVector));
+    private static bool IsVector(Expression e) =>
+        e.Type.IsAssignableTo(typeof(IVector));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Expression ToDouble(Expression e) =>

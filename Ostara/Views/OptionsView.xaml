@@ -8,12 +8,14 @@
     mc:Ignorable="d"
     ShowInTaskbar="False"
     WindowStyle="None"
+    ResizeMode="NoResize"
+    AllowsTransparency="True"
     WindowStartupLocation="CenterOwner"
     Background="#FF202020"
     Title="Settings" Height="Auto" Width="600">
-    <WindowChrome.WindowChrome>
+    <!--<WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="34" />
-    </WindowChrome.WindowChrome>
+    </WindowChrome.WindowChrome>-->
     <Window.Resources>
         <ResourceDictionary>
             <Style x:Key="CaptionButtonStyle" TargetType="Button">

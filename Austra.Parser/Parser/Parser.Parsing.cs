@@ -655,7 +655,7 @@ internal sealed partial class Parser
     {
         Expression e1 = ParseLightConditional();
         CheckAndMove(Token.RBra, "] expected in indexer");
-        return e1.Type != expected && (expected != typeof(double) || !IsArithmetic(e1))
+        return e1.Type != expected && (expected != typeof(double) || e1.Type != typeof(int))
             ? throw Error("Invalid index type")
             : Expression.Property(e, "Item", ToDouble(e1));
     }
@@ -836,7 +836,7 @@ internal sealed partial class Parser
             // This is a zip or reduce method call.
             Expression e1 = ParseConditional();
             if (e1.Type != firstParam)
-                if (firstParam == typeof(double) && IsArithmetic(e1))
+                if (firstParam == typeof(double) && e1.Type == typeof(int))
                     e1 = ToDouble(e1);
                 else if (firstParam == typeof(Complex) && IsArithmetic(e1))
                     e1 = Expression.Convert(ToDouble(e1), typeof(Complex));
@@ -931,7 +931,7 @@ internal sealed partial class Parser
             if (body.Type != retType)
                 body = retType == typeof(Complex) && IsArithmetic(body)
                     ? Expression.Convert(body, typeof(Complex))
-                    : retType == typeof(double) && IsArithmetic(body)
+                    : retType == typeof(double) && body.Type == typeof(int)
                     ? ToDouble(body)
                     : throw Error($"Expected return type is {retType.Name}");
             if (isLast is not null)
@@ -1209,7 +1209,7 @@ internal sealed partial class Parser
                 {
                     Type et = expected.GetElementType()!;
                     if (!args.Skip(i).All(a => a.Type == et
-                        || et == typeof(double) && IsArithmetic(a)))
+                        || et == typeof(double) && a.Type == typeof(int)))
                         throw Error($"Expected {expected.Name}", starts[i]);
                     args[i] = et.Make(args.Skip(i)
                         .Select(a => a.Type == et ? a : ToDouble(a)).ToArray());
@@ -1226,10 +1226,10 @@ internal sealed partial class Parser
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool CanConvert(Expression actual, Type expected) =>
             expected == actual.Type ||
-            expected == typeof(double) && IsArithmetic(actual) ||
+            expected == typeof(double) && actual.Type == typeof(int) ||
             expected == typeof(Complex) && IsArithmetic(actual) ||
             expected.IsArray && expected.GetElementType() is var et
-                && (actual.Type == et || et == typeof(double) && IsArithmetic(actual));
+                && (actual.Type == et || et == typeof(double) && actual.Type == typeof(int));
     }
 
     private Expression ParseVectorLiteral()
