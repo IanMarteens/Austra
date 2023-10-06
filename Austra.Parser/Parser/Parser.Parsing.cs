@@ -901,8 +901,11 @@ internal sealed partial class Parser
         return Expression.New(IndexCtor, ParseIndex(ref fromEnd), Expression.Constant(fromEnd));
     }
 
-    private Expression ParseLambda(Type t1, Type? t2, Type retType, bool? isLast = true)
+    private Expression ParseLambda(Type funcType, bool isLast = false)
     {
+        Type[] genTypes = funcType.GenericTypeArguments;
+        Type t1 = genTypes[0], retType = genTypes[^1];
+        Type? t2 = genTypes.Length == 3 ? genTypes[1] : null;
         try
         {
             if (t2 == null)
@@ -934,11 +937,8 @@ internal sealed partial class Parser
                     : retType == typeof(double) && body.Type == typeof(int)
                     ? ToDouble(body)
                     : throw Error($"Expected return type is {retType.Name}");
-            if (isLast is not null)
-                if (isLast.Value)
-                    CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-                else
-                    CheckAndMove(Token.Comma, "Comma expected");
+            if (isLast)
+                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
             return lambdaParameter2 != null
                 ? Expression.Lambda(body, lambdaParameter, lambdaParameter2)
                 : Expression.Lambda(body, lambdaParameter);
@@ -948,14 +948,6 @@ internal sealed partial class Parser
             lambdaParameter = null;
             lambdaParameter2 = null;
         }
-    }
-
-    private Expression ParseLambda(Type funcType, bool? isLast = null)
-    {
-        Type[] genTypes = funcType.GenericTypeArguments;
-        return genTypes.Length == 3
-            ? ParseLambda(genTypes[0], genTypes[1], genTypes[2], isLast)
-            : ParseLambda(genTypes[0], null, genTypes[^1], isLast);
     }
 
     private Expression ParseProperty(Expression e)
