@@ -275,7 +275,7 @@ internal sealed partial class Parser
     private Expression ParseAdditive()
     {
         Expression e1 = ParseMultiplicative();
-        while (kind == Token.Plus || kind == Token.Minus)
+        while ((uint)(kind - Token.Plus) <= (Token.Minus - Token.Plus))
         {
             (Token opLex, int opPos) = (kind, start);
             Move();
@@ -431,7 +431,7 @@ internal sealed partial class Parser
 
     private Expression ParseUnary()
     {
-        if (kind == Token.Minus || kind == Token.Plus)
+        if ((uint)(kind - Token.Plus) <= (Token.Minus - Token.Plus))
         {
             (Token opKind, int opPos) = (kind, start);
             Move();
