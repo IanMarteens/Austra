@@ -75,7 +75,11 @@ internal sealed partial class Parser
     public string LeftValue { get; set; } = "";
 
     /// <summary>Skips two tokens with a single call.</summary>
-    private void Skip2() { Move(); Move(); }
+    private void SkipFunctor()
+    {
+        if (kind == Token.Functor) i++; else i += 2;
+        Move();
+    }
 
     /// <summary>
     /// Checks that the current token is of the expected kind and advances the cursor.

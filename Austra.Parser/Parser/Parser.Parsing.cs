@@ -580,7 +580,7 @@ internal sealed partial class Parser
                 {
                     string className = id.ToLower();
                     // Skip class name and double colon.
-                    Skip2();
+                    SkipFunctor();
                     e = kind != Token.Functor
                         ? throw Error("Method name expected")
                         : className == "math"
@@ -827,7 +827,7 @@ internal sealed partial class Parser
             !dict.TryGetValue(id, out MethodInfo? mInfo))
             throw Error($"Invalid method: {id}");
         // Skip method name and left parenthesis.
-        Skip2();
+        SkipFunctor();
         ParameterInfo[] paramInfo = mInfo.GetParameters();
         Type firstParam = paramInfo[0].ParameterType;
         if (paramInfo.Length == 2 &&
@@ -964,7 +964,7 @@ internal sealed partial class Parser
     private Expression ParseFunction()
     {
         (string function, int pos) = (id.ToLower(), start);
-        Skip2();
+        SkipFunctor();
         if (classMethods.TryGetValue("math." + function, out MethodList inf))
             return inf.Methods.Length == 1
                 ? ParseClassSingleMethod(inf.Methods[0])
@@ -1015,7 +1015,7 @@ internal sealed partial class Parser
 
     private Expression ParseClassMethod(string className, string methodName)
     {
-        Skip2();
+        SkipFunctor();
         if (!classMethods.TryGetValue(className + "." + methodName, out MethodList info))
             throw Error($"Invalid class method name: {className}::{methodName}");
         return info.Methods.Length == 1
