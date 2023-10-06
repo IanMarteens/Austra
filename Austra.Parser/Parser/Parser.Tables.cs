@@ -200,9 +200,6 @@ internal sealed partial class Parser
 
     private static readonly MethodList MatrixEye = new(
         typeof(Matrix).MD(nameof(Matrix.Identity), IntArg));
-    private static readonly MethodList MatrixZero = new(
-        typeof(Matrix).MD(IntArg),
-        typeof(Matrix).MD(typeof(int), typeof(int)));
     private static readonly MethodList MatrixCovariance = new(
         typeof(Series<Date>).MD(nameof(Series.CovarianceMatrix), typeof(Series[])));
     private static readonly MethodList MatrixCorrelation = new(
@@ -211,10 +208,6 @@ internal sealed partial class Parser
         typeof(Tuple<Vector, Vector>).MD(typeof(Vector), typeof(Vector)),
         typeof(Tuple<ComplexVector, ComplexVector>).MD(typeof(ComplexVector), typeof(ComplexVector)),
         typeof(Tuple<Series, Series>).MD(typeof(Series), typeof(Series)));
-    private static readonly MethodList VectorZero = new(
-        typeof(Vector).MD(IntArg));
-    private static readonly MethodList ComplexVectorZero = new(
-        typeof(ComplexVector).MD(IntArg));
     private static readonly MethodList PolyDerivative = new(
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(Vector)),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
@@ -227,13 +220,12 @@ internal sealed partial class Parser
             ["series.new"] = new(
                 typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))
             ),
-            ["spline.grid"] = new(
-                typeof(VectorSpline).MD(
-                    typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))
-            ),
             ["spline.new"] = new(
-                typeof(VectorSpline).MD(typeof(Vector), typeof(Vector))),
+                typeof(VectorSpline).MD(typeof(Vector), typeof(Vector)),
+                typeof(VectorSpline).MD(
+                    typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))),
             ["vector.new"] = new(
+                typeof(Vector).MD(IntArg),
                 typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
                 typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
                 typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))),
@@ -241,23 +233,22 @@ internal sealed partial class Parser
                 typeof(Vector).MD(typeof(int), typeof(NormalRandom))),
             ["vector.random"] = new(
                 typeof(Vector).MD(typeof(int), typeof(Random))),
-            ["vector.zero"] = VectorZero,
-            ["vector.zeros"] = VectorZero,
             ["vector.ones"] = new(
                 typeof(Vector).MD(typeof(int), typeof(One))),
             ["complexvector.new"] = new(
+                typeof(ComplexVector).MD(typeof(int)),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))),
             ["complexvector.nrandom"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))),
             ["complexvector.random"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(Random))),
-            ["complexvector.zero"] = ComplexVectorZero,
-            ["complexvector.zeros"] = ComplexVectorZero,
             ["complexvector.from"] = new(
                 typeof(ComplexVector).MD(VectorArg),
                 typeof(ComplexVector).MD(typeof(Vector), typeof(Vector))),
             ["matrix.new"] = new(
+                typeof(Matrix).MD(IntArg),
+                typeof(Matrix).MD(typeof(int), typeof(int)),
                 typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
                 typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
             ["matrix.rows"] = new(
@@ -281,8 +272,6 @@ internal sealed partial class Parser
             ["matrix.lnrandom"] = new(
                 typeof(LMatrix).MD(typeof(int), typeof(NormalRandom)),
                 typeof(LMatrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
-            ["matrix.zero"] = MatrixZero,
-            ["matrix.zeros"] = MatrixZero,
             ["matrix.cov"] = MatrixCovariance,
             ["matrix.covariance"] = MatrixCovariance,
             ["matrix.corr"] = MatrixCorrelation,
@@ -920,8 +909,7 @@ internal sealed partial class Parser
             },
             ["spline"] = new Member[]
             {
-                new("new(", "Creates a new interpolator from two vectors"),
-                new("grid(", "Approximates a function with a spline"),
+                new("new(", "Creates a new interpolator from two vectors or from a function"),
             },
             ["model"] = new Member[]
             {
@@ -930,28 +918,25 @@ internal sealed partial class Parser
             },
             ["vector"] = new Member[]
             {
-                new("new(", "Create a vector given an initialization lambda"),
+                new("new(", "Create a vector given a length and an optional lambda"),
                 new("random(", "Creates a random vector given a length"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
-                new("zero(", "Creates a vector with zeros given a length"),
                 new("ones(", "Creates a vector with ones given a length"),
             },
             ["complexvector"] = new Member[]
             {
-                new("new(", "Create a complex vector given an initialization lambda"),
+                new("new(", "Create a complex vector given a size and an optional lambda"),
                 new("random(", "Creates a random complex vector given a length"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
-                new("zero(", "Creates a complex vector with zeros given a length"),
                 new("from(", "Creates a complex vector from one or two real vectors"),
             },
             ["matrix"] = new Member[]
             {
-                new("new(", "Create a rectangular matrix given an initialization lambda"),
+                new("new(", "Create a rectangular matrix given a size and an optional lambda"),
                 new("random(", "Creates a random matrix given a size"),
                 new("nrandom(", "Creates a random matrix using a standard normal distribution given a size"),
                 new("lrandom(", "Creates a random lower triangular matrix given a size"),
                 new("lnrandom(", "Creates a random lower triangular matrix with a standard normal distribution"),
-                new("zero(", "Creates a matrix with zeros given a size"),
                 new("eye(", "Creates an identity matrix given a size"),
                 new("diag(", "Creates an diagonal matrix from a vector"),
                 new("rows(", "Creates a matrix given its rows as vectors"),
