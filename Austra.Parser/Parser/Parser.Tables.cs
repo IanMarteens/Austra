@@ -165,10 +165,10 @@ internal sealed partial class Parser
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetMask(int typeId) => (TypeMask >> (typeId * 2)) & 3u;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Expression GetExpression(List<Expression> actualArguments) =>
             MemberName != null
-            ? Expression.Call(Implementor.GetMethod(MemberName!,
-                actualArguments.Select(a => a.Type).ToArray())!, actualArguments)
+            ? Expression.Call(Implementor.GetMethod(MemberName!, Args)!, actualArguments)
             : Implementor.New(actualArguments);
     }
 

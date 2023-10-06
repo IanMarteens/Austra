@@ -1201,7 +1201,7 @@ internal sealed partial class Parser
             Type expected = mth.Args[i], actual = args[i].Type;
             if (actual != expected)
             {
-                if (expected == typeof(double) && IsArithmetic(args[i]))
+                if (expected == typeof(double) && actual == typeof(int))
                     args[i] = ToDouble(args[i]);
                 else if (expected == typeof(Complex) && IsArithmetic(args[i]))
                     args[i] = Expression.Convert(ToDouble(args[i]), typeof(Complex));
