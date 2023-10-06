@@ -7,7 +7,10 @@
     xmlns:local="clr-namespace:Ostara"
     mc:Ignorable="d"
     ShowInTaskbar="False"
-    Title="" Height="350" Width="600">
+    WindowStyle="None"
+    WindowStartupLocation="CenterOwner"
+    Background="#FF202020"
+    Title="Settings" Height="Auto" Width="600">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="34" />
     </WindowChrome.WindowChrome>
@@ -19,7 +22,7 @@
                         <ControlTemplate TargetType="Button">
                             <Grid x:Name="LayoutRoot" Background="Transparent" Width="44" Height="30">
                                 <TextBlock x:Name="txt" Text="{TemplateBinding Content}" FontFamily="Segoe MDL2 Assets" FontSize="10" 
-                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Foreground="#FFDDDDDD" HorizontalAlignment="Center" VerticalAlignment="Center"
                                    RenderOptions.ClearTypeHint="Auto" TextOptions.TextRenderingMode="Aliased"  TextOptions.TextFormattingMode="Display"/>
                             </Grid>
                             <ControlTemplate.Triggers>
@@ -37,17 +40,23 @@
             </Style>
         </ResourceDictionary>
     </Window.Resources>
-        <DockPanel>
-            <Grid DockPanel.Dock="Top" Height="30" Background="#FF000004">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+    <DockPanel Background="#FF202020" Height="Auto">
+        <Grid DockPanel.Dock="Top" Height="30" Background="#FF000000">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                 <TextBlock Text="Settings" FontWeight="DemiBold" Foreground="White" Margin="6 3 0 0" />
             </StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
-                    <Button Style="{StaticResource CloseButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close"
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
+                <Button Style="{StaticResource CloseButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close"
                             Command="{x:Static SystemCommands.CloseWindowCommand}"/>
-                </StackPanel>
-            </Grid>
-        </DockPanel>
+            </StackPanel>
+        </Grid>
+        <StackPanel Orientation="Vertical" Height="Auto">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Height="Auto">
+                <Button Content="Ok" IsDefault="True"/>
+                <Button Content="Cancel" IsCancel="True"/>
+            </StackPanel>
+        </StackPanel>
+    </DockPanel>
 </Window>
