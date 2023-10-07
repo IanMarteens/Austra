@@ -1115,7 +1115,7 @@ internal sealed partial class Parser
             {
                 Type? lambda = null;
                 uint lambdaType = kind == Token.LPar ? MethodData.Mλ2 : MethodData.Mλ1;
-                for (int j = TrailingZeroCount((uint)mask), m = 1;
+                for (int j = TrailingZeroCount((uint)mask), m = 1 << j;
                     j < info.Methods.Length; j++, m <<= 1)
                     if ((mask & m) != 0)
                     {
@@ -1135,7 +1135,7 @@ internal sealed partial class Parser
             {
                 Expression last = kind == Token.Caret ? ParseIndex() : ParseLightConditional();
                 args.Add(last);
-                for (int j = TrailingZeroCount((uint)mask), m = 1;
+                for (int j = TrailingZeroCount((uint)mask), m = 1 << j;
                     j < info.Methods.Length; j++, m <<= 1)
                     if ((mask & m) != 0)
                     {
@@ -1153,7 +1153,7 @@ internal sealed partial class Parser
         // Discard overloads according to the number of arguments.
         if (PopCount((uint)mask) != 1)
         {
-            for (int j = TrailingZeroCount((uint)mask), m = 1;
+            for (int j = TrailingZeroCount((uint)mask), m = 1 << j;
                 j < info.Methods.Length; j++, m <<= 1)
                 if ((mask & m) != 0)
                 {
@@ -1169,7 +1169,7 @@ internal sealed partial class Parser
             if (PopCount((uint)mask) == 2)
             {
                 int mth1 = -1, mth2 = -1;
-                for (int j = TrailingZeroCount((uint)mask), m = 1;
+                for (int j = TrailingZeroCount((uint)mask), m = 1 << j;
                     j < info.Methods.Length; j++, m <<= 1)
                     if ((mask & m) != 0)
                         if (mth1 == -1)
