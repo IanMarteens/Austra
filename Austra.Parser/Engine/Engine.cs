@@ -95,7 +95,7 @@ public interface IAustraEngine
     /// <param name="time">Time in nanoseconds.</param>
     /// <returns>Time with the appropriate unit.</returns>
     public string FormatTime(double time) =>
-        time > 1E6 
+        time > 1E6
         ? $"{time * 1E-6:N0} ms"
         : time > 1E3
         ? $"{time * 1E-3:N0} μs"
@@ -119,9 +119,62 @@ public interface IAustraEngine
 /// <remarks>It does not supports persistency.</remarks>
 public partial class AustraEngine : IAustraEngine
 {
+    private static readonly Member[] rootClasses = new Member[]
+    {
+        new("complexvector::", "Allows access to complex vector constructors"),
+        new("matrix::", "Allows access to matrix constructors"),
+        new("model::", "Allows access to model constructors"),
+        new("series::", "Allows access to series constructors"),
+        new("spline::", "Allows access to spline constructors"),
+        new("vector::", "Allows access to vector constructors"),
+        new("math::", "Allows access to mathematical functions"),
+    };
+
+    private static readonly Member[] globalFunctions = new Member[]
+    {
+        new("abs(", "Absolute value"),
+        new("sqrt(", "Squared root"),
+        new("gamma(", "The Gamma function"),
+        new("beta(", "The Beta function"),
+        new("erf(", "Error function"),
+        new("ncdf(", "Normal cummulative function"),
+        new("probit(", "Probit function"),
+        new("log(", "Natural logarithm"),
+        new("log10(", "Base 10 logarithm"),
+        new("exp(", "Exponential function"),
+        new("sin(", "Sine function"),
+        new("cos(", "Cosine function"),
+        new("tan(", "Tangent function"),
+        new("asin(", "Arcsine function"),
+        new("acos(", "Arccosine function"),
+        new("atan(", "Arctangent function"),
+        new("min(", "Minimum function"),
+        new("max(", "Maximum function"),
+        new("round(", "Rounds a real value"),
+        new("pi", "The constant π"),
+        new("e", "The constant e"),
+        new("i", "The imaginary unit"),
+        new("today", "The current date"),
+        new("compare(", "Compares two series or vectors"),
+        new("polyEval(", "Evaluates a polynomial at a given point"),
+        new("polyDerivative(", "Evaluates a polynomial first derivative at a given point"),
+        new("polySolve(", "Returns all real and complex roots of a polynomial"),
+        new ("solve(", "Approximates a root with the Newton-Raphson algorithm"),
+        new("complex(", "Creates a complex number from its real and imaginary components"),
+        new("polar(", "Creates a complex number from its magnitude and phase components"),
+        new("set", "Assigns a value to a variable"),
+        new("let", "Declares local variables"),
+    };
+
+    private readonly Member[] classesAndGlobals;
+
     /// <summary>Creates an evaluation engine from a datasource.</summary>
     /// <param name="source">A scope for variables.</param>
-    public AustraEngine(IDataSource source) => Source = source;
+    public AustraEngine(IDataSource source)
+    {
+        Source = source;
+        classesAndGlobals = rootClasses.Concat(globalFunctions).ToArray();
+    }
 
     /// <summary>The data source associated with the engine.</summary>
     public IDataSource Source { get; }
@@ -199,61 +252,15 @@ public partial class AustraEngine : IAustraEngine
         Source.Variables.Select(t => new Member(t.name, "Variable: " + t.type?.Name))
             .Concat(Source.AllDefinitions
                 .Select(d => new Member(d.Name, "Definition: " + d.Type.Name)))
-            .Concat(GetRootClasses())
-            .Concat(GetGlobalFunctions())
+            .Concat(classesAndGlobals)
             .OrderBy(x => x.Name)
             .ToList();
 
-    private IList<Member> GetGlobalFunctions() =>
-        new Member[]
-        {
-            new("abs(", "Absolute value"),
-            new("sqrt(", "Squared root"),
-            new("gamma(", "The Gamma function"),
-            new("beta(", "The Beta function"),
-            new("erf(", "Error function"),
-            new("ncdf(", "Normal cummulative function"),
-            new("probit(", "Probit function"),
-            new("log(", "Natural logarithm"),
-            new("log10(", "Base 10 logarithm"),
-            new("exp(", "Exponential function"),
-            new("sin(", "Sine function"),
-            new("cos(", "Cosine function"),
-            new("tan(", "Tangent function"),
-            new("asin(", "Arcsine function"),
-            new("acos(", "Arccosine function"),
-            new("atan(", "Arctangent function"),
-            new("min(", "Minimum function"),
-            new("max(", "Maximum function"),
-            new("round(", "Rounds a real value"),
-            new("pi", "The constant π"),
-            new("e", "The constant e"),
-            new("i", "The imaginary unit"),
-            new("today", "The current date"),
-            new("compare(", "Compares two series or vectors"),
-            new("polyEval(", "Evaluates a polynomial at a given point"),
-            new("polyDerivative(", "Evaluates a polynomial first derivative at a given point"),
-            new("polySolve(", "Returns all real and complex roots of a polynomial"),
-            new ("solve(", "Approximates a root with the Newton-Raphson algorithm"),
-            new("complex(", "Creates a complex number from its real and imaginary components"),
-            new("polar(", "Creates a complex number from its magnitude and phase components"),
-            new("set", "Assigns a value to a variable"),
-            new("let", "Declares local variables"),
-        };  
+    private IList<Member> GetGlobalFunctions() => globalFunctions;
 
     /// <summary>Gets a list of root classes.</summary>
     /// <returns>A list of classes that accepts class methods.</returns>
-    public IList<Member> GetRootClasses() =>
-        new Member[]
-        {
-            new("complexvector::", "Allows access to complex vector constructors"),
-            new("matrix::", "Allows access to matrix constructors"),
-            new("model::", "Allows access to model constructors"),
-            new("series::", "Allows access to series constructors"),
-            new("spline::", "Allows access to spline constructors"),
-            new("vector::", "Allows access to vector constructors"),
-            new("math::", "Allows access to mathematical functions"),
-        };
+    public IList<Member> GetRootClasses() => rootClasses;
 
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
     /// <param name="text">Class name to check.</param>
@@ -302,10 +309,10 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>DTO for serializing a definition.</summary>
     protected sealed record DataDef(string Name, string Text, string Description);
-    
+
     /// <summary>DTO for serializing a series.</summary>
     protected sealed record DataSeries(
-        string Name, string? Ticker, int Type, int Frequency, 
+        string Name, string? Ticker, int Type, int Frequency,
         Date[] Dates, double[] Values);
 
     /// <summary>DTO for serializing a datasource.</summary>
@@ -326,7 +333,7 @@ public partial class AustraEngine : IAustraEngine
     public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes(
         new DataObject(
             Source.AllDefinitions.Select(d => new DataDef(d.Name, d.Text, d.Description)).ToList(),
-            Source.Series.Select(s => 
+            Source.Series.Select(s =>
                 new DataSeries(s.Name, s.Ticker, (int)s.Type, (int)s.Freq, s.Args.ToArray(),
                     s.Values.ToArray())).ToList()));
 
