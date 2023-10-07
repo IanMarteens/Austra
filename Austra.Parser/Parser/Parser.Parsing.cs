@@ -1200,8 +1200,8 @@ internal sealed partial class Parser
         // Get selected method overload and check conversions.
         MethodData mth = info.Methods[Log2((uint)mask)];
         if (mth.ExpectedArgs < mth.Args.Length)
-            args.Add(mth.Args[^1] == typeof(Random) || mth.Args[^1] == typeof(NormalRandom)
-                ? mth.Args[^1].New()
+            args.Add(mth.Args[^1] is var t && (t == typeof(Random) || t == typeof(NormalRandom))
+                ? t.New()
                 : Expression.Constant(mth.Args[^1] == typeof(One) ? 1d : 0d));
         for (int i = 0; i < mth.ExpectedArgs; i++)
         {
@@ -1217,11 +1217,9 @@ internal sealed partial class Parser
                 {
                     Type et = expected.GetElementType()!;
                     for (int j = i; j < args.Count; j++)
-                    {
-                        Type act = args[i].Type;
-                        if (act != et && (et != typeof(double) || act != typeof(int)))
+                        if (args[i].Type is var a && a != et &&
+                            (et != typeof(double) || a != typeof(int)))
                             throw Error($"Expected {expected.Name}", starts[i]);
-                    }
                     args[i] = et.Make(args.Skip(i).Select(a => a.Type == et ? a : ToDouble(a)));
                     args.RemoveRange(i + 1, args.Count - i - 1);
                     break;
