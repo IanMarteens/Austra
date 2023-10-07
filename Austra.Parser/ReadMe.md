@@ -20,7 +20,7 @@ vector::new(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256)).fft
 You can also approximate a function in a range using a function and a grid to create the spline:
 
 ```
-set wave = spline::new(0, 2pi, 1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
+set wave = spline::new(0, 2π, 1024, i => sin(i*π/512) + 0.8*cos(i*π/256))
 ```
 
 The `set` clause defines a session variable, which stores a non-persistent value. You can use the `wave` variable defined above to interpolate values and first derivative at any point in the defined range:
