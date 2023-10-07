@@ -3,7 +3,7 @@
 
 ## Some examples
 
-This fragment demonstrates how to create a random lower triangular matrix, how to multiply it by its transpose and how to compute its Cholesky decomposition. Then, we compute the maximum absolute difference between the original matrix and the product of the Cholesky decomposition with its transpose, to check the accuracy of the involved algorithms:
+This fragment demonstrates how to create a random lower triangular matrix, how to multiply it by its transpose and how to compute its Cholesky decomposition. We also compute the maximum absolute difference between the original matrix and the product of the Cholesky decomposition with its transpose, to check the accuracy of the involved algorithms:
 ```
 let m = matrix::lrandom(5),
     m1 = m * m',
@@ -19,7 +19,9 @@ vector::new(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256)).fft
 
 You can also approximate a function in a range using a function and a grid to create the spline:
 
-```set wave = spline::new(0, 2pi, 1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))```
+```
+set wave = spline::new(0, 2pi, 1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
+```
 
 The `set` clause defines a session variable, which stores a non-persistent value. You can use the `wave' variable defined above to interpolate values and first derivative at any point in the defined range:
 
@@ -31,6 +33,8 @@ wave.derivative(pi / 4)     -- First derivative.
 ## The language
 
 Formulas are parsed and executed in a context defined by a `IDataSource` instance. This context contains variables and definitions than can be initially loaded from a persistent source, such as a database or a JSON file. The current implementation does not support parameterized functions, but they may be included in the future.
+
+The data source stores two layers of variables. The first one is the session layer, which is volatile and is lost when the session ends. The second one is the persistent layer, which is stored in the data source and is available in future sessions. The persistent layer is read-only, but the session layer can be modified at any time.
 
 ## The scanner
 

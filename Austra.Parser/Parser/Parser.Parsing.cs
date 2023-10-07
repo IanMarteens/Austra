@@ -1000,17 +1000,17 @@ internal sealed partial class Parser
 
     private (List<Expression>, List<int>) CollectArguments()
     {
-        (List<Expression> arguments, List<int> positions) = (new(), new());
-        for (; ; Move())
+        for ((List<Expression> arguments, List<int> positions) = (new(), new()); ; Move())
         {
             arguments.Add(ParseConditional());
             positions.Add(start);
             if (kind != Token.Comma)
-                break;
+            {
+                // Check and skip right parenthesis.
+                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+                return (arguments, positions);
+            }
         }
-        // Check and skip right parenthesis.
-        CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-        return (arguments, positions);
     }
 
     private Expression ParseClassMethod(string className, string methodName)
@@ -1039,8 +1039,7 @@ internal sealed partial class Parser
             else if (currentType.IsArray)
             {
                 Type subType = currentType.GetElementType()!;
-                List<Expression> items = new();
-                for (; ; Move())
+                for (List<Expression> items = new(); ; Move())
                 {
                     Expression e = ParseLightConditional();
                     if (e.Type != subType)
