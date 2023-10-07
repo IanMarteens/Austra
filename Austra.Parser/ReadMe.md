@@ -1,4 +1,4 @@
-﻿# Austra.Parser
+# Austra.Parser
 *Austra.Parser* is a layer above *Austra.Library* that implements a simple functional language for accessing the library. We will also call the language _Austra_ for simplicity.
 
 ## Some examples
@@ -23,7 +23,7 @@ You can also approximate a function in a range using a function and a grid to cr
 set wave = spline::new(0, 2pi, 1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
 ```
 
-The `set` clause defines a session variable, which stores a non-persistent value. You can use the `wave' variable defined above to interpolate values and first derivative at any point in the defined range:
+The `set` clause defines a session variable, which stores a non-persistent value. You can use the `wave` variable defined above to interpolate values and first derivative at any point in the defined range:
 
 ```
 wave[pi / 4]                -- Interpolated value.
@@ -38,7 +38,7 @@ The data source stores two layers of variables. The first one is the session lay
 
 ## The scanner
 
-Parser and scanner are implemented by a single hand, in order to minimize data movement between instances. Access to the scanned text is done using a managed reference to the underlying character array coded as UTF-16. It allows any alphabetic character in identifiers, but case conversion is only supported for ASCII characters. This way, `A` and `a` are considered different characters, but `Π` and `π` are not, which most of the times is the desired behavior.
+Parser and scanner are implemented by a single class, in order to minimize data movement between instances. Access to the scanned text is done using a managed reference to the underlying character array coded as UTF-16. It allows any alphabetic character in identifiers, but case conversion is only supported for ASCII characters. This way, `A` and `a` are considered different characters, but `Π` and `π` are not, which most of the times is the desired behavior.
 
 ## The parser
 The parser is based on a simple recursive descent algorithm. It generates a .NET expression tree. The process may stop at this point, when we only need to find the type of the expression. Otherwise, the tree is compiled into a delegate, which is finally invoked to evaluate the expression.
