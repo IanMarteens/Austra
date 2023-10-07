@@ -39,6 +39,8 @@ internal sealed partial class Parser
     /// <summary>Place holder for the second lambda parameter, if any.</summary>
     private ParameterExpression? lambdaParameter2;
 
+    /// <summary>An expression list pool.</summary>
+    private readonly Stack<List<Expression>> listPool = new();
     /// <summary>Memoized expressions.</summary>
     private readonly Dictionary<string, Expression> memos = new();
     /// <summary>Used by the scanner to build string literals.</summary>
@@ -454,6 +456,20 @@ internal sealed partial class Parser
         return day <= Date.DaysInMonth(y, m) ? date + day - 1
             : throw new AstException("Invalid day of month", position);
     }
+
+    private List<Expression> Rent(int length = 0)
+    {
+        if (listPool.Count == 0)
+            return length == 0 ? new() : new(length);
+        else
+        {
+            List<Expression> list = listPool.Pop();
+            list.Clear();
+            return list;
+        }
+    }
+
+    private void Return(List<Expression> list) => listPool.Push(list);
 
     /// <summary>Checks if the expression's type is either a double or an integer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

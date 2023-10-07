@@ -11,7 +11,7 @@ let m = matrix::lrandom(5),
     (c * c' - m).aMax
 ```
 
-In this simpler example, we generate a vector of 1024 elements, using two harmonic components, and the compute its Fourier transform, to retrieve the original components:
+In this simpler example, we generate a vector of 1024 elements, using two harmonic components, and then we compute its Fourier transform, to retrieve the original components:
 
 ```
 vector::new(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256)).fft
@@ -38,16 +38,16 @@ The data source stores two layers of variables. The first one is the session lay
 
 ## The scanner
 
-Parser and scanner are implemented by a single hand, in order to minimize data movement between instances. The access to the scanned text is done using managed reference to the underlying character array coded as UTF-16. It allows any alphabetic character in identifiers, but case conversion is only supported for ASCII characters. This way, `A` and `a` are considered different characters, but `Π` and `π` are not, which most of the times is the desired behavior.
+Parser and scanner are implemented by a single hand, in order to minimize data movement between instances. Access to the scanned text is done using a managed reference to the underlying character array coded as UTF-16. It allows any alphabetic character in identifiers, but case conversion is only supported for ASCII characters. This way, `A` and `a` are considered different characters, but `Π` and `π` are not, which most of the times is the desired behavior.
 
 ## The parser
-The parser is based on a simple recursive descent algorithm. It generates a .NET expression tree. The process may stop at this point, when we only need to find the type of the expression. Otherwise, the tree is then compiled into a delegate, which is finally invoked to evaluate the expression.
+The parser is based on a simple recursive descent algorithm. It generates a .NET expression tree. The process may stop at this point, when we only need to find the type of the expression. Otherwise, the tree is compiled into a delegate, which is finally invoked to evaluate the expression.
 
 At first sight, it seems an overkill to generate a delegate for each expression, but this is not the case, since the language supports lambda expressions.
 
 It is also complicated to force the compile-time evaluation of vectors and matrices, since there are no easy options to store a complex "immediate" value.
 
-The parser is also able to perform some optimizations:
+The parser performs some optimizations:
 * `matrix' * vector` is converted to `matrix.TransposeMultiply(vector)`, saving one operation and one intermediate matrix.
 * `matrix1 * matrix2'` is converted to `matrix1.MultiplyTranspose(matrix)`, saving time and space too.
 * Both `vector * double + vector1` and `double * vector + vector1` are converted to `vector.MultiplyAdd(double, vector1)`, saving again one operation and one intermediate value.
@@ -56,7 +56,7 @@ The parser is also able to perform some optimizations:
 
 Some simple constant folding also takes place, but it only affects numeric expressions. In any case, most of the time spent by the parser has to do with compiling to IL.
 
-One thing that makes this parser different is the use of synonyms for methods and properties. For example, `i.mag` is equivalent to `i.magnitude`. This is done to make the language more natural to use but complicates the parser a bit.
+One thing that makes this parser different is the use of synonyms for methods and properties. For example, `i.mag` is equivalent to `i.magnitude`. This is done to make the language more natural to use, but it complicates the parser a bit.
 
 ## Experimental features
 
@@ -64,6 +64,10 @@ There are also some experimental features included, like operator elision for mu
 
 `1 / 2x` is equivalent to `1 / (2*x)`. However, `2x^2` is parsed as `2*(x^2)`, not as `(2*x)^2)`, and `2x.phase` means `2*(x.phase)`, which is the most sensible interpretation. 
 
-Another experimental feature is range comparisons:
+Another experimental feature are range comparisons:
 
-```3 <= pi < 4```
+```
+3 <= pi < 4
+pi > e >= 2
+```
+The only requirement is that both comparison operators must point in the same direction. This feature is better than then usual alternative for ranges: `x in [low, high]`, since it allows for closed or open bounds at both ends of the checked interval.
