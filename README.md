@@ -44,7 +44,8 @@ We have plans to create a full online help for Visual Studio using Sandcastle so
 
 ## Last changes
 
-* The lexical scanner has been rewritten. Most of the index checking is gone now. It is also a lot faster, in consequence.
+* The lexical scanner has been rewritten. Most of the index checking is gone now. It is also a lot faster, as a consequence.
+* Overload resolution has been enhanced. The parser is now shorter, easier to read and faster.
 * Ostara has been added as the main application for using the language. It is a WPF application, running on .NET Core 7/8.
 
 ## Next steps
@@ -52,7 +53,6 @@ We have plans to create a full online help for Visual Studio using Sandcastle so
 This project is still in an early stage of development. Most compelling needs are, not necessarily in that order:
 
 * Adding a `seq` class for doing calculations that, right now, are only possible when using vectors... and consuming space.
-* The parser should use a more flexible way to match arguments versus parameters. Right now, it is a very ad hoc algorithm, full of exceptional cases.
 * We should have control on formatting output and sending it to external files (Excel, JSON, CSV). It could be interesting formatting some kind of outputs to C# format, for retrofitting.
 * Parameterized definitions, that is, actual functions.
 * Connectors, to access external data sources with real time series, such as stock prices, meteorological data, etc.

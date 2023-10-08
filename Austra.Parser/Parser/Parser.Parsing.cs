@@ -999,11 +999,7 @@ internal sealed partial class Parser
                 : Expression.Call(info, a[0]);
         }
         else
-            result = !functions.TryGetValue(function, out MethodInfo? mInfo)
-                ? throw Error("Invalid function name", pos)
-                : a.Count != 1 || !IsArithmetic(a[0])
-                ? throw Error("Argument must be numeric")
-                : Expression.Call(mInfo, ToDouble(a[0]));
+            throw Error("Invalid function name", pos);
         Return(a);
         return result;
     }
@@ -1166,19 +1162,12 @@ internal sealed partial class Parser
                             mask &= ~m;
                     }
                 }
-            if (PopCount((uint)mask) == 2)
+            int bits = PopCount((uint)mask);
+            if (bits > 1)
             {
-                int mth1 = -1, mth2 = -1;
-                for (int j = TrailingZeroCount((uint)mask), m = 1 << j;
-                    j < info.Methods.Length; j++, m <<= 1)
-                    if ((mask & m) != 0)
-                        if (mth1 == -1)
-                            mth1 = j;
-                        else
-                        {
-                            mth2 = j;
-                            break;
-                        }
+            L1:
+                int mth1 = TrailingZeroCount((uint)mask);
+                int mth2 = 32 - LeadingZeroCount((uint)mask) - 1;
                 MethodData m1 = info.Methods[mth1], m2 = info.Methods[mth2];
                 Type t0 = args[0].Type, tm1 = m1.Args[0], tm2 = m2.Args[0];
                 if (tm1 != tm2)
@@ -1191,6 +1180,12 @@ internal sealed partial class Parser
                             mask &= ~(1 << mth2);
                         else if (tm2 == typeof(double))
                             mask &= ~(1 << mth1);
+                int bits1 = PopCount((uint)mask);
+                if (bits1 > 1 && bits1 < bits)
+                {
+                    bits = bits1;
+                    goto L1;
+                }
             }
             if (mask == 0)
                 throw Error("No class method accepts this argument list.");

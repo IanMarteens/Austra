@@ -553,9 +553,6 @@ internal static class ParserExtensions
     public static Parser.MethodData MD(this Type type, string member, params Type[] argTypes) =>
         new(type, member, argTypes);
 
-    public static Parser.MethodData MDC(this Type type, string member, params Type[] argTypes) =>
-        new(member, type, argTypes);
-
     /// <summary>
     /// Gets the constructor for the specified types and creates a new expression.
     /// </summary>

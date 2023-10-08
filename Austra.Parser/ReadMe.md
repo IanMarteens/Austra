@@ -36,6 +36,18 @@ Formulas are parsed and executed in a context defined by a `IDataSource` instanc
 
 The data source stores two layers of variables. The first one is the session layer, which is volatile and is lost when the session ends. The second one is the persistent layer, which is stored in the data source and is available in future sessions. The persistent layer is read-only, but the session layer can be modified at any time.
 
+For instance, lets say we have a `msft` series with closing prices, stored in the persistent layer. We can define a session variable that shadows it:
+
+```
+set msft = msft.rets
+```
+
+Now, we have no access to the original series, but we can use the new one, which contains the returns of the original series. We can revert this situation by removing the session variable:
+
+```
+set msft
+```
+
 ## The scanner
 
 Parser and scanner are implemented by a single class, in order to minimize data movement between instances. Access to the scanned text is done using a managed reference to the underlying character array coded as UTF-16. It allows any alphabetic character in identifiers, but case conversion is only supported for ASCII characters. This way, `A` and `a` are considered different characters, but `Π` and `π` are not, which most of the times is the desired behavior.
