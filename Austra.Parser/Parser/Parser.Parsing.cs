@@ -165,8 +165,9 @@ internal sealed partial class Parser
     private Expression ParseDisjunction()
     {
         Expression? e1 = null;
-        for (int orLex = start; ; Move())
+        for (; ; Move())
         {
+            int orLex = start;
             Expression e2 = ParseLogicalFactor();
             while (kind == Token.And)
             {
@@ -184,7 +185,6 @@ internal sealed partial class Parser
                 : Expression.OrElse(e1, e2);
             if (kind != Token.Or)
                 break;
-            orLex = start;
         }
         return e1;
     }
