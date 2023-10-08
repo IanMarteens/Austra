@@ -989,15 +989,6 @@ internal sealed partial class Parser
                 ? throw Error("Second and third arguments must have the same type", p[2])
                 : Expression.Condition(a[0], a2, a3);
         }
-        else if (a.Count == 1 && a[0].Type == typeof(Complex))
-        {
-            MethodInfo? info = typeof(Complex).GetMethod(function,
-                BindingFlags.Public | BindingFlags.Static | BindingFlags.IgnoreCase,
-                new[] { typeof(Complex) });
-            result = info is null
-                ? throw Error("Invalid function name", pos)
-                : Expression.Call(info, a[0]);
-        }
         else
             throw Error("Invalid function name", pos);
         Return(a);

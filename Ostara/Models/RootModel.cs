@@ -14,6 +14,8 @@ public sealed partial class RootModel : Entity
     /// <summary>Gets the global instance of the root view-model.</summary>
     public static RootModel Instance { get; } = new();
 
+    private static readonly char[] lineChange = new char[] { '\r', '\n', ' ' };
+
     /// <summary>Global transient message for the status bar.</summary>
     private string message = "";
     /// <summary>Austra session, containing variables and definitions.</summary>
@@ -506,7 +508,7 @@ public sealed partial class RootModel : Entity
                         node.Show();
                     else if (ans != null)
                     {
-                        AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : text, ans.ToString());
+                        AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : form, ans.ToString());
                         return;
                     }
                 }
@@ -617,7 +619,7 @@ public sealed partial class RootModel : Entity
         return (m.Success ? m.Groups["name"].Value : s).
             Replace("\r\n", " ").
             Replace(" \t", " ").
-            Replace("\t", " ");
+            Replace("\t", " ").TrimEnd(lineChange);
     }
 
     /// <summary>Shows the compiling and execution time in the status bar.</summary>

@@ -12,6 +12,8 @@ internal sealed partial class Parser
     /// <summary>Another common argument list in functions.</summary>
     private static readonly Type[] VectorArg = new[] { typeof(Vector) };
     /// <summary>Another common argument list in functions.</summary>
+    private static readonly Type[] ComplexArg = new[] { typeof(Complex) };
+    /// <summary>Another common argument list in functions.</summary>
     private static readonly Type[] DoubleDoubleArg = new[] { typeof(double), typeof(double) };
     /// <summary>Constructor for <see cref="Index"/>.</summary>
     private static readonly ConstructorInfo IndexCtor =
@@ -93,7 +95,7 @@ internal sealed partial class Parser
                 ["zip"] = typeof(ComplexVector).Get(nameof(ComplexVector.Zip)),
                 ["filter"] = typeof(ComplexVector).Get(nameof(ComplexVector.Filter)),
                 ["indexof"] = typeof(ComplexVector).GetMethod(nameof(ComplexVector.IndexOf),
-                    new[] { typeof(Complex) })!,
+                    ComplexArg)!,
             },
             [typeof(Date)] = new(StringComparer.OrdinalIgnoreCase)
             {
@@ -277,39 +279,42 @@ internal sealed partial class Parser
             ["math.abs"] = new(
                 typeof(Math).MD(nameof(Math.Abs), IntArg),
                 typeof(Math).MD(nameof(Math.Abs), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Abs), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Abs), ComplexArg)),
             ["math.acos"] = new(
                 typeof(Math).MD(nameof(Math.Acos), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Acos), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Acos), ComplexArg)),
             ["math.asin"] = new(
                 typeof(Math).MD(nameof(Math.Asin), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Asin), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Asin), ComplexArg)),
             ["math.atan"] = new(
                 typeof(Math).MD(nameof(Math.Atan), DoubleArg),
                 typeof(Math).MD(nameof(Math.Atan2), DoubleDoubleArg),
-                typeof(Complex).MD(nameof(Complex.Atan), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Atan), ComplexArg)),
             ["math.beta"] = new(
                 typeof(F).MD(nameof(F.Beta), DoubleDoubleArg)),
             ["math.cbrt"] = new(
                 typeof(Math).MD(nameof(Math.Cbrt), DoubleArg)),
             ["math.cos"] = new(
                 typeof(Math).MD(nameof(Math.Cos), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Cos), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Cos), ComplexArg)),
+            ["math.cosh"] = new(
+                typeof(Math).MD(nameof(Math.Cosh), DoubleArg),
+                typeof(Complex).MD(nameof(Complex.Cosh), ComplexArg)),
             ["math.erf"] = new(
                 typeof(F).MD(nameof(F.Erf), DoubleArg)),
             ["math.exp"] = new(
                 typeof(Math).MD(nameof(Math.Exp), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Exp), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Exp), ComplexArg)),
             ["math.gamma"] = new(
                 typeof(F).MD(nameof(F.Gamma), DoubleArg)),
             ["math.lngamma"] = new(
                 typeof(F).MD(nameof(F.GammaLn), DoubleArg)),
             ["math.log"] = new(
                 typeof(Math).MD(nameof(Math.Log), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Log), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Log), ComplexArg)),
             ["math.log10"] = new(
                 typeof(Math).MD(nameof(Math.Log10), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Log10), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Log10), ComplexArg)),
             ["math.ncdf"] = new(
                 typeof(F).MD(nameof(F.NCdf), DoubleArg)),
             ["math.probit"] = new(
@@ -319,13 +324,19 @@ internal sealed partial class Parser
                 typeof(Math).MD(nameof(Math.Sign), DoubleArg)),
             ["math.sin"] = new(
                 typeof(Math).MD(nameof(Math.Sin), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Sin), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Sin), ComplexArg)),
+            ["math.sinh"] = new(
+                typeof(Math).MD(nameof(Math.Sinh), DoubleArg),
+                typeof(Complex).MD(nameof(Complex.Sinh), ComplexArg)),
             ["math.tan"] = new(
                 typeof(Math).MD(nameof(Math.Tan), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Tan), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Tan), ComplexArg)),
+            ["math.tanh"] = new(
+                typeof(Math).MD(nameof(Math.Tanh), DoubleArg),
+                typeof(Complex).MD(nameof(Complex.Tanh), ComplexArg)),
             ["math.sqrt"] = new(
                 typeof(Math).MD(nameof(Math.Sqrt), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Sqrt), typeof(Complex))),
+                typeof(Complex).MD(nameof(Complex.Sqrt), ComplexArg)),
             ["math.trunc"] = new(
                 typeof(Math).MD(nameof(Math.Truncate), DoubleArg)),
             ["math.round"] = new(
