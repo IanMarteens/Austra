@@ -1,4 +1,4 @@
-﻿using Austra.Library.MVO;
+using Austra.Library.MVO;
 
 namespace Austra.Parser;
 
@@ -218,7 +218,7 @@ internal sealed partial class Parser
             ["complexvector.new"] = new(
                 typeof(ComplexVector).MD(VectorArg),
                 typeof(ComplexVector).MD(typeof(Vector), typeof(Vector)),
-                typeof(ComplexVector).MD(typeof(int)),
+                typeof(ComplexVector).MD(IntArg),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))),
             ["complexvector.nrandom"] = new(
