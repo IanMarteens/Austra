@@ -5,56 +5,35 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:Ostara"
+    xmlns:settings="clr-namespace:Ostara.Properties"
     mc:Ignorable="d"
     ShowInTaskbar="False"
     WindowStyle="None"
-    ResizeMode="NoResize"
     AllowsTransparency="True"
+    ResizeMode="NoResize"
     WindowStartupLocation="CenterOwner"
     Background="#FF202020"
-    Title="Settings" Height="Auto" Width="600">
-    <!--<WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="34" />
-    </WindowChrome.WindowChrome>-->
-    <Window.Resources>
-        <ResourceDictionary>
-            <Style x:Key="CaptionButtonStyle" TargetType="Button">
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="Button">
-                            <Grid x:Name="LayoutRoot" Background="Transparent" Width="44" Height="30">
-                                <TextBlock x:Name="txt" Text="{TemplateBinding Content}" FontFamily="Segoe MDL2 Assets" FontSize="10" 
-                                   Foreground="#FFDDDDDD" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   RenderOptions.ClearTypeHint="Auto" TextOptions.TextRenderingMode="Aliased"  TextOptions.TextFormattingMode="Display"/>
-                            </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="LayoutRoot" Property="Background" Value="#A02020"/>
-                                    <Setter TargetName="txt" Property="Foreground" Value="White"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource CaptionButtonStyle}">
-                <Setter Property="Content" Value="&#xE106;"/>
-            </Style>
-        </ResourceDictionary>
-    </Window.Resources>
-    <DockPanel Background="#FF202020" Height="Auto">
-        <Grid DockPanel.Dock="Top" Height="30" Background="#FF000000">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <TextBlock Text="Settings" FontWeight="DemiBold" Foreground="White" Margin="6 3 0 0" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
-                <Button Style="{StaticResource CloseButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close"
-                            Command="{x:Static SystemCommands.CloseWindowCommand}"/>
-            </StackPanel>
-        </Grid>
+    Title="Settings" SizeToContent="WidthAndHeight"
+    DataContext="{x:Static settings:Settings.Default}">
+    <DockPanel Background="#FF202020" Height="Auto" Width="500">
         <StackPanel Orientation="Vertical" Height="Auto">
+            <GroupBox Header="Autoload" FontSize="12" HorizontalAlignment="Stretch">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="A"/>
+                        <ColumnDefinition Width="350"/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Enable autoload" FontSize="12" VerticalAlignment="Center"
+                              IsChecked="{Binding Autoload}"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="Data file" VerticalAlignment="Center" FontSize="12"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontSize="12" Text="{Binding AutoloadFile}"/>
+                </Grid>
+            </GroupBox>
+            <Separator HorizontalAlignment="Stretch" Height="1" Background="#FF404040"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Height="Auto">
                 <Button Content="Ok" IsDefault="True"/>
                 <Button Content="Cancel" IsCancel="True"/>
