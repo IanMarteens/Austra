@@ -43,6 +43,44 @@ internal sealed partial class Parser
         return e.Type;
     }
 
+    /// <summary>Parse the formula up to a position and return local variables.</summary>
+    /// <param name="position">Last position to parse.</param>
+    /// <param name="parsingHeader">Are we inside a lambda header?</param>
+    /// <returns>The list of LET variables and any possible active lambda parameter.</returns>
+    public List<Member> ParseContext(int position, out bool parsingHeader)
+    {
+        abortPosition = position;
+        try
+        {
+            ParseType();
+        }
+        catch { /* Ignore */ }
+        finally
+        {
+            abortPosition = int.MaxValue;
+        }
+        parsingHeader = parsingLambdaHeader;
+        List<Member> result;
+        if (parsingHeader)
+            result = new();
+        else
+        {
+            result = new(locals.Count + 2);
+            foreach (var local in locals)
+                result.Add(new(local.Key, "Local variable"));
+            if (lambdaParameter != null)
+            {
+                if (!string.IsNullOrEmpty(lambdaParameter.Name))
+                    result.Add(new(lambdaParameter.Name, "Lambda parameter"));
+                if (lambdaParameter2 != null && !string.IsNullOrEmpty(lambdaParameter2.Name))
+                    result.Add(new(lambdaParameter2.Name, "Lambda parameter"));
+            }
+        }
+        parsingLambdaHeader = false;
+        lambdaParameter = lambdaParameter2 = null;
+        return result;
+    }
+
     /// <summary>Parses a definition and adds it to the source.</summary>
     /// <param name="description">A description for the definition.</param>
     /// <returns>A new definition, on success.</returns>
@@ -916,6 +954,7 @@ internal sealed partial class Parser
         Type? t2 = genTypes.Length == 3 ? genTypes[1] : null;
         try
         {
+            parsingLambdaHeader = true;
             if (t2 == null)
             {
                 if (kind != Token.Id)
@@ -938,6 +977,7 @@ internal sealed partial class Parser
                 CheckAndMove(Token.RPar, ") expected in lambda header");
             }
             CheckAndMove(Token.Arrow, "=> expected");
+            parsingLambdaHeader = false;
             Expression body = ParseConditional();
             if (body.Type != retType)
                 body = retType == typeof(Complex) && IsArithmetic(body)
@@ -947,14 +987,19 @@ internal sealed partial class Parser
                     : throw Error($"Expected return type is {retType.Name}");
             if (isLast)
                 CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-            return lambdaParameter2 != null
+            Expression result = lambdaParameter2 != null
                 ? Expression.Lambda(body, lambdaParameter, lambdaParameter2)
                 : Expression.Lambda(body, lambdaParameter);
+            lambdaParameter = lambdaParameter2 = null;
+            return result;
         }
         finally
         {
-            lambdaParameter = null;
-            lambdaParameter2 = null;
+            if (abortPosition == int.MaxValue)
+            {
+                lambdaParameter = lambdaParameter2 = null;
+                parsingLambdaHeader = false;
+            }
         }
     }
 

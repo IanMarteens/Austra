@@ -90,15 +90,17 @@ public partial class MainWindow : Window
                 }
             }
             else if (char.IsLetter(e.Text[0]))
-                if (avalon.CaretOffset == 0)
-                    ShowCodeCompletion(RootModel.Instance.GetRoots());
-                else if (avalon.CaretOffset > 0)
+            {
+                int offset = avalon.CaretOffset;
+                if (offset == 0)
+                    ShowCodeCompletion(RootModel.Instance.GetRoots(0, ""));
+                else if (offset > 0)
                 {
                     string fragment = GetFragment(0);
                     if (IsIdentifier(fragment))
                     {
-                        ShowCodeCompletion(RootModel.Instance.GetRoots());
-                        completionWindow!.StartOffset = avalon.CaretOffset - fragment.Length;
+                        ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
+                        completionWindow!.StartOffset = offset - fragment.Length;
                     }
                     else
                     {
@@ -108,14 +110,15 @@ public partial class MainWindow : Window
                         else if (fragment.EndsWith('('))
                         {
                             if (fragment.Length > 2 && char.IsLetterOrDigit(fragment, fragment.Length - 2))
-                                ShowCodeCompletion(RootModel.Instance.GetRoots());
+                                ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
                         }
                         else if (fragment.EndsWith(','))
-                            ShowCodeCompletion(RootModel.Instance.GetRoots());
+                            ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
                         else if (fragment.EndsWith("::"))
                             ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
                     }
                 }
+            }
 
         static bool IsIdentifier(string s) => s.Length > 0 &&
             char.IsLetter(s[0]) && s.All(c => char.IsLetterOrDigit(c) || c == '_');
@@ -128,7 +131,7 @@ public partial class MainWindow : Window
         else if (e.Text == ":")
             ShowCodeCompletion(RootModel.Instance.GetClassMembers(GetFragment()));
         else if (e.Text == "(")
-            ShowCodeCompletion(RootModel.Instance.GetRoots());
+            ShowCodeCompletion(RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text));
     }
 
     private string GetFragment(int delta = 1) => avalon.Document.GetText(0, avalon.CaretOffset - delta);

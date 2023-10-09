@@ -38,8 +38,10 @@ public interface IAustraEngine
     IDataSource Source { get; }
 
     /// <summary>Gets a list of root variables.</summary>
+    /// <param name="position">The position of the cursor.</param>
+    /// <param name="text">The text of the expression.</param>
     /// <returns>A list of variables and definitions.</returns>
-    IList<Member> GetRoots();
+    IList<Member> GetRoots(int position, string text);
 
     /// <summary>Gets a list of root classes.</summary>
     /// <returns>A list of classes that accepts class methods.</returns>
@@ -247,14 +249,33 @@ public partial class AustraEngine : IAustraEngine
     }
 
     /// <summary>Gets a list of root variables.</summary>
+    /// <param name="position">The position of the cursor.</param>
+    /// <param name="text">The text of the expression.</param>
     /// <returns>A list of variables and definitions.</returns>
-    public IList<Member> GetRoots() =>
-        Source.Variables.Select(t => new Member(t.name, "Variable: " + t.type?.Name))
+    public IList<Member> GetRoots(int position, string text)
+    {
+        if (position > 0)
+        {
+            List<Member> newMembers = new Parser(Source, text).ParseContext(position, out bool parsingHeader);
+            return parsingHeader
+                ? newMembers
+                : newMembers
+                    .Concat(Source.Variables
+                        .Select(t => new Member(t.name, "Variable: " + t.type?.Name)))
+                    .Concat(Source.AllDefinitions
+                        .Select(d => new Member(d.Name, "Definition: " + d.Type.Name)))
+                    .Concat(classesAndGlobals)
+                    .OrderBy(x => x.Name)
+                    .ToList();
+        }
+        return Source.Variables
+                .Select(t => new Member(t.name, "Variable: " + t.type?.Name))
             .Concat(Source.AllDefinitions
                 .Select(d => new Member(d.Name, "Definition: " + d.Type.Name)))
             .Concat(classesAndGlobals)
             .OrderBy(x => x.Name)
             .ToList();
+    }
 
     private IList<Member> GetGlobalFunctions() => globalFunctions;
 

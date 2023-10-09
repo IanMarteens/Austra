@@ -303,8 +303,8 @@ public sealed partial class RootModel : Entity
         }
     }
 
-    public IList<Member> GetRoots() =>
-        environment!.Engine.GetRoots();
+    public IList<Member> GetRoots(int position, string text) =>
+        environment!.Engine.GetRoots(position, text);
 
     public IList<Member> GetMembers(string text) =>
         environment!.Engine.GetMembers(text);

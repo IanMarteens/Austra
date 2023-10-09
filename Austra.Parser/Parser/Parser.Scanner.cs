@@ -47,6 +47,8 @@ internal sealed partial class Parser
     private ParameterExpression? lambdaParameter;
     /// <summary>Place holder for the second lambda parameter, if any.</summary>
     private ParameterExpression? lambdaParameter2;
+    /// <summary>Are we parsing a lambda header?</summary>
+    private bool parsingLambdaHeader;
 
     /// <summary>An expression list pool.</summary>
     private readonly Stack<List<Expression>> listPool = new();
@@ -72,6 +74,9 @@ internal sealed partial class Parser
     /// <summary>Current position in the text.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     private int i;
+    /// <summary>Position where the parsing should be aborted.</summary>
+    /// <remarks>This is checked by the scanner.</remarks>
+    private int abortPosition = int.MaxValue;
 
     /// <summary>Initializes a parsing context.</summary>
     /// <param name="source">Environment variables.</param>
@@ -109,6 +114,8 @@ internal sealed partial class Parser
     /// <summary>Advances the lexical analyzer one token.</summary>
     private void Move()
     {
+        if (i >= abortPosition)
+            throw new AbortException("Aborted by the scanner");
         ref char c = ref As<Str>(text).FirstChar;
     SKIP_BLANKS:
         while (char.IsWhiteSpace(Add(ref c, i)))
