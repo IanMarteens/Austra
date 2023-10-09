@@ -11,50 +11,42 @@ public partial class F
     public static double NCdf(double value) =>
         0.5 * (1 + Erf(value * InvSqrt2));
 
-    /// <summary>
     /// **************************************
     /// COEFFICIENTS FOR METHOD ErfImp       *
     /// **************************************
-    /// </summary>
     /// <summary> Polynomial coefficients for a numerator of ErfImp
-    /// calculation for Erf(x) in the interval [1e-10, 0.5].
-    /// </summary>
-    static readonly double[] ErfImpAn = { 0.00337916709551257388990745, -0.00073695653048167948530905, -0.374732337392919607868241, 0.0817442448733587196071743, -0.0421089319936548595203468, 0.0070165709512095756344528, -0.00495091255982435110337458, 0.000871646599037922480317225 };
+    /// calculation for Erf(x) in the interval [1e-10, 0.5].</summary>
+    static ReadOnlySpan<double> ErfImpAn => new double[] { 0.00337916709551257388990745, -0.00073695653048167948530905, -0.374732337392919607868241, 0.0817442448733587196071743, -0.0421089319936548595203468, 0.0070165709512095756344528, -0.00495091255982435110337458, 0.000871646599037922480317225 };
 
     /// <summary> Polynomial coefficients for  a denominator of ErfImp
-    /// calculation for Erf(x) in the interval [1e-10, 0.5].
-    /// </summary>
-    static readonly double[] ErfImpAd = { 1, -0.218088218087924645390535, 0.412542972725442099083918, -0.0841891147873106755410271, 0.0655338856400241519690695, -0.0120019604454941768171266, 0.00408165558926174048329689, -0.000615900721557769691924509 };
+    /// calculation for Erf(x) in the interval [1e-10, 0.5].</summary>
+    static ReadOnlySpan<double> ErfImpAd => new double[] { 1, -0.218088218087924645390535, 0.412542972725442099083918, -0.0841891147873106755410271, 0.0655338856400241519690695, -0.0120019604454941768171266, 0.00408165558926174048329689, -0.000615900721557769691924509 };
 
     /// <summary> Polynomial coefficients for a numerator in ErfImp
-    /// calculation for Erfc(x) in the interval [0.5, 0.75].
-    /// </summary>
-    static readonly double[] ErfImpBn = { -0.0361790390718262471360258, 0.292251883444882683221149, 0.281447041797604512774415, 0.125610208862766947294894, 0.0274135028268930549240776, 0.00250839672168065762786937 };
+    /// calculation for Erfc(x) in the interval [0.5, 0.75].</summary>
+    static ReadOnlySpan<double> ErfImpBn => new double[] { -0.0361790390718262471360258, 0.292251883444882683221149, 0.281447041797604512774415, 0.125610208862766947294894, 0.0274135028268930549240776, 0.00250839672168065762786937 };
 
     /// <summary> Polynomial coefficients for a denominator in ErfImp
-    /// calculation for Erfc(x) in the interval [0.5, 0.75].
-    /// </summary>
-    static readonly double[] ErfImpBd = { 1, 1.8545005897903486499845, 1.43575803037831418074962, 0.582827658753036572454135, 0.124810476932949746447682, 0.0113724176546353285778481 };
+    /// calculation for Erfc(x) in the interval [0.5, 0.75].</summary>
+    static ReadOnlySpan<double> ErfImpBd => new double[] { 1, 1.8545005897903486499845, 1.43575803037831418074962, 0.582827658753036572454135, 0.124810476932949746447682, 0.0113724176546353285778481 };
 
     /// <summary> Polynomial coefficients for a numerator in ErfImp
-    /// calculation for Erfc(x) in the interval [0.75, 1.25].
-    /// </summary>
-    static readonly double[] ErfImpCn = { -0.0397876892611136856954425, 0.153165212467878293257683, 0.191260295600936245503129, 0.10276327061989304213645, 0.029637090615738836726027, 0.0046093486780275489468812, 0.000307607820348680180548455 };
+    /// calculation for Erfc(x) in the interval [0.75, 1.25].</summary>
+    static ReadOnlySpan<double> ErfImpCn => new double[] { -0.0397876892611136856954425, 0.153165212467878293257683, 0.191260295600936245503129, 0.10276327061989304213645, 0.029637090615738836726027, 0.0046093486780275489468812, 0.000307607820348680180548455 };
 
     /// <summary> Polynomial coefficients for a denominator in ErfImp
-    /// calculation for Erfc(x) in the interval [0.75, 1.25].
-    /// </summary>
-    static readonly double[] ErfImpCd = { 1, 1.95520072987627704987886, 1.64762317199384860109595, 0.768238607022126250082483, 0.209793185936509782784315, 0.0319569316899913392596356, 0.00213363160895785378615014 };
+    /// calculation for Erfc(x) in the interval [0.75, 1.25].</summary>
+    static ReadOnlySpan<double> ErfImpCd => new double[] { 1, 1.95520072987627704987886, 1.64762317199384860109595, 0.768238607022126250082483, 0.209793185936509782784315, 0.0319569316899913392596356, 0.00213363160895785378615014 };
 
     /// <summary> Polynomial coefficients for a numerator in ErfImp
     /// calculation for Erfc(x) in the interval [1.25, 2.25].
     /// </summary>
-    static readonly double[] ErfImpDn = { -0.0300838560557949717328341, 0.0538578829844454508530552, 0.0726211541651914182692959, 0.0367628469888049348429018, 0.00964629015572527529605267, 0.00133453480075291076745275, 0.778087599782504251917881e-4 };
+    static ReadOnlySpan<double> ErfImpDn => new double[] { -0.0300838560557949717328341, 0.0538578829844454508530552, 0.0726211541651914182692959, 0.0367628469888049348429018, 0.00964629015572527529605267, 0.00133453480075291076745275, 0.778087599782504251917881e-4 };
 
     /// <summary> Polynomial coefficients for a denominator in ErfImp
     /// calculation for Erfc(x) in the interval [1.25, 2.25].
     /// </summary>
-    static readonly double[] ErfImpDd = { 1, 1.75967098147167528287343, 1.32883571437961120556307, 0.552528596508757581287907, 0.133793056941332861912279, 0.0179509645176280768640766, 0.00104712440019937356634038, -0.106640381820357337177643e-7 };
+    static ReadOnlySpan<double> ErfImpDd => new double[] { 1, 1.75967098147167528287343, 1.32883571437961120556307, 0.552528596508757581287907, 0.133793056941332861912279, 0.0179509645176280768640766, 0.00104712440019937356634038, -0.106640381820357337177643e-7 };
 
     /// <summary> Polynomial coefficients for a numerator in ErfImp
     /// calculation for Erfc(x) in the interval [2.25, 3.5].
@@ -494,35 +486,23 @@ public partial class F
     /// </summary>
     /// <param name="z">The location where to evaluate the polynomial at.</param>
     /// <param name="coefficients">The coefficients of the polynomial, coefficient for power k at index k.</param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="coefficients"/> is a null reference.
-    /// </exception>
     private static double Evaluate(double z, params double[] coefficients)
     {
-
-        // 2020-10-07 jbialogrodzki #730 Since this is public API we should probably
-        // handle null arguments? It doesn't seem to have been done consistently in this class though.
-        if (coefficients == null)
-        {
-            throw new ArgumentNullException(nameof(coefficients));
-        }
-
-        // 2020-10-07 jbialogrodzki #730 Zero polynomials need explicit handling.
-        // Without this check, we attempted to peek coefficients at negative indices!
         int n = coefficients.Length;
-        if (n == 0)
-        {
-            return 0;
-        }
         double sum = coefficients[n - 1];
         for (int i = n - 2; i >= 0; --i)
-        {
-            sum *= z;
-            sum += coefficients[i];
-        }
+            sum = FusedMultiplyAdd(z, sum, coefficients[i]);
         return sum;
     }
 
+    private static double Evaluate(double z, ReadOnlySpan<double> coefficients)
+    {
+        int n = coefficients.Length;
+        double sum = coefficients[n - 1];
+        for (int i = n - 2; i >= 0; --i)
+            sum = FusedMultiplyAdd(z, sum, coefficients[i]);
+        return sum;
+    }
 
     /// <summary>Calculates the complementary inverse error function evaluated at z.</summary>
     /// <returns>The complementary inverse error function evaluated at given value.</returns>

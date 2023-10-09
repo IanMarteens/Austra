@@ -110,7 +110,7 @@ public static partial class F
     /// <summary>
     /// Polynomial coefficients for the <see cref="GammaLn"/> approximation.
     /// </summary>
-    private static readonly double[] GammaDk =
+    private static ReadOnlySpan<double> GammaDk => new double[]
     {
         2.48574089138753565546e-5,
         1.05142378581721974210,

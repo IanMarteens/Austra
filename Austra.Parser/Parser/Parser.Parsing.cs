@@ -2,8 +2,6 @@
 
 namespace Austra.Parser;
 
-/* THIS FILE IMPLEMENTS THE RECURSIVE DESCENT PARSING METHODS */
-
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
 {
