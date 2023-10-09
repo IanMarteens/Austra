@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using System.Runtime.InteropServices;
+
+namespace Austra.Parser;
 
 /* THIS FILE IMPLEMENTS THE RECURSIVE DESCENT PARSING METHODS */
 
@@ -225,7 +227,7 @@ internal sealed partial class Parser
                     Expression e2 = ParseAdditive();
                     if (e1.Type != e2.Type)
                     {
-                        if (!AreArithmetic(e1, e2))
+                        if (!IsArithmetic(e1) || !IsArithmetic(e2))
                             throw Error("Comparison operators are not compatible", pos);
                         (e1, e2) = (ToDouble(e1), ToDouble(e2));
                     }
@@ -437,7 +439,7 @@ internal sealed partial class Parser
             Move();
             Expression e1 = ParseUnary();
             return e1.Type != typeof(Complex) && !IsArithmetic(e1)
-                && !IsVectorOrMatrix(e1) && e1.Type != typeof(Series)
+                && !IsVector(e1) && !IsMatrix(e1) && e1.Type != typeof(Series)
                 ? throw Error("Unary operand must be numeric", opPos)
                 : opKind == Token.Plus ? e1 : Expression.Negate(e1);
         }
@@ -450,7 +452,7 @@ internal sealed partial class Parser
         int pos = start;
         Move();
         Expression e1 = ParseFactor();
-        if (AreArithmetic(e, e1))
+        if (IsArithmetic(e) && IsArithmetic(e1))
             return OptimizePowerOf() ? e : Expression.Power(ToDouble(e), ToDouble(e1));
         if (e.Type == typeof(Complex))
             if (e1.Type == typeof(Complex))
@@ -1128,7 +1130,7 @@ internal sealed partial class Parser
                     {
                         MethodData md = info.Methods[j];
                         if (md.ExpectedArgs < i || md.GetMask(i) >= MethodData.Mλ1 ||
-                            !CanConvert(last, md.Args[Math.Min(i, md.Args.Length - 1)]))
+                            !CanConvert(last.Type, md.Args[Math.Min(i, md.Args.Length - 1)]))
                             mask &= ~m;
                     }
                 if (mask == 0)
@@ -1140,11 +1142,11 @@ internal sealed partial class Parser
         // Discard overloads according to the number of arguments.
         if (PopCount((uint)mask) != 1)
         {
-            for (int j = TrailingZeroCount((uint)mask), m = 1 << j;
-                j < info.Methods.Length; j++, m <<= 1)
+            for (int j = TrailingZeroCount((uint)mask), m = 1 << j,
+                last = 32 - LeadingZeroCount((uint)mask); j < last; j++, m <<= 1)
                 if ((mask & m) != 0)
                 {
-                    MethodData md = info.Methods[j];
+                    var md = Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(info.Methods), j);
                     if (md.ExpectedArgs != args.Count)
                     {
                         Type? act = args[^1].Type, form = md.Args[^1].GetElementType();
@@ -1153,10 +1155,8 @@ internal sealed partial class Parser
                             mask &= ~m;
                     }
                 }
-            int bits = PopCount((uint)mask);
-            if (bits > 1)
+            for (int bits = PopCount((uint)mask); bits > 1;)
             {
-            L1:
                 int mth1 = TrailingZeroCount((uint)mask);
                 int mth2 = 32 - LeadingZeroCount((uint)mask) - 1;
                 MethodData m1 = info.Methods[mth1], m2 = info.Methods[mth2];
@@ -1172,11 +1172,9 @@ internal sealed partial class Parser
                         else if (tm2 == typeof(double))
                             mask &= ~(1 << mth1);
                 int bits1 = PopCount((uint)mask);
-                if (bits1 > 1 && bits1 < bits)
-                {
-                    bits = bits1;
-                    goto L1;
-                }
+                if (bits1 <= 1 || bits1 == bits)
+                    break;
+                bits = bits1;
             }
             if (mask == 0)
                 throw Error("No class method accepts this argument list.");
@@ -1220,12 +1218,12 @@ internal sealed partial class Parser
         return result;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static bool CanConvert(Expression actual, Type expected) =>
-            expected == actual.Type ||
-            expected == typeof(double) && actual.Type == typeof(int) ||
-            expected == typeof(Complex) && IsArithmetic(actual) ||
+        static bool CanConvert(Type actual, Type expected) =>
+            expected == actual ||
+            expected == typeof(double) && actual == typeof(int) ||
+            expected == typeof(Complex) && (actual == typeof(double) || actual == typeof(int)) ||
             expected.IsArray && expected.GetElementType() is var et
-                && (actual.Type == et || et == typeof(double) && actual.Type == typeof(int));
+                && (actual == et || et == typeof(double) && actual == typeof(int));
     }
 
     private Expression ParseVectorLiteral()

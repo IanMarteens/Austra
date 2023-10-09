@@ -155,7 +155,7 @@ internal sealed partial class Parser
         public Expression GetExpression(List<Expression> actualArguments) =>
             MInfo != null
             ? Expression.Call(MInfo, actualArguments)
-            : Implementor.New(actualArguments);
+            : Expression.New(Implementor.GetConstructor(Args)!, actualArguments);
     }
 
     internal readonly struct MethodList

@@ -16,6 +16,15 @@ public class AstException : ApplicationException
         : base(message) => Position = position;
 }
 
+/// <summary>Silently aborts parsing for code-completion purposes.</summary>
+/// <remarks>This exception must always be catched inside the library.</remarks>
+internal sealed class AbortException : ApplicationException
+{
+    /// <summary>Creates a new exception with an attached message.</summary>
+    /// <param name="message">Error message.</param>
+    public AbortException(string message) : base(message) { }
+}
+
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
 {
@@ -461,12 +470,9 @@ internal sealed partial class Parser
     {
         if (listPool.Count == 0)
             return length == 0 ? new() : new(length);
-        else
-        {
-            List<Expression> list = listPool.Pop();
-            list.Clear();
-            return list;
-        }
+        List<Expression> list = listPool.Pop();
+        list.Clear();
+        return list;
     }
 
     private void Return(List<Expression> list) => listPool.Push(list);
@@ -475,14 +481,6 @@ internal sealed partial class Parser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsArithmetic(Expression e) =>
         e.Type == typeof(int) || e.Type == typeof(double);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool AreArithmetic(Expression e1, Expression e2) =>
-        IsArithmetic(e1) && IsArithmetic(e2);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsVectorOrMatrix(Expression e) =>
-        IsVector(e) || IsMatrix(e);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsMatrix(Expression e) =>
@@ -510,7 +508,7 @@ internal sealed partial class Parser
                 e1 = Expression.Convert(e1, typeof(Complex));
             else
             {
-                if (!AreArithmetic(e1, e2))
+                if (!IsArithmetic(e1) || !IsArithmetic(e2))
                     return true;
                 (e1, e2) = (ToDouble(e1), ToDouble(e2));
             }
@@ -560,9 +558,12 @@ internal static class ParserExtensions
     public static NewExpression New(this Type type, params Expression[] args) =>
         Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
 
+    /// <summary>
+    /// Gets the parameterless constructor for the specified type and creates a new expression.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NewExpression New(this Type type, List<Expression> args) =>
-        Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
+    public static NewExpression New(this Type type) =>
+        Expression.New(type.GetConstructor(Type.EmptyTypes)!);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NewArrayExpression Make(this Type type, IEnumerable<Expression> args) =>
