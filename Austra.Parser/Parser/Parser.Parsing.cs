@@ -874,12 +874,11 @@ internal sealed partial class Parser
             // This is a zip or reduce method call.
             Expression e1 = ParseConditional();
             if (e1.Type != firstParam)
-                if (firstParam == typeof(double) && e1.Type == typeof(int))
-                    e1 = ToDouble(e1);
-                else if (firstParam == typeof(Complex) && IsArithmetic(e1))
-                    e1 = Expression.Convert(ToDouble(e1), typeof(Complex));
-                else
-                    throw Error($"{firstParam.Name} expected");
+                e1 = firstParam == typeof(double) && e1.Type == typeof(int)
+                    ? ToDouble(e1)
+                    : firstParam == typeof(Complex) && IsArithmetic(e1)
+                    ? Expression.Convert(ToDouble(e1), typeof(Complex))
+                    : throw Error($"{firstParam.Name} expected");
             CheckAndMove(Token.Comma, "Comma expected");
             return Expression.Call(e, mInfo, e1, ParseLambda(paramInfo[1].ParameterType, true));
         }
@@ -903,23 +902,23 @@ internal sealed partial class Parser
             if (a.Count != paramInfo.Length)
                 throw Error("Invalid number of arguments");
             if (a[0].Type != firstParam)
-                if (firstParam == typeof(Date))
-                    throw Error("Date expression expected", p[0]);
-                else if (firstParam == typeof(Series<Date>))
+                if (firstParam == typeof(Series<Date>))
                 {
                     if (a[0].Type != typeof(Series))
                         throw Error("Series expected", p[0]);
                 }
-                else if (firstParam == typeof(int))
-                    throw Error("Integer expression expected", p[0]);
-                else if (firstParam == typeof(Complex))
-                    a[0] = IsArithmetic(a[0])
-                        ? Expression.Convert(a[0], typeof(Complex))
-                        : throw Error("Complex expression expected", p[0]);
                 else
-                    a[0] = IsArithmetic(a[0])
-                        ? ToDouble(a[0])
-                        : throw Error("Real expression expected", p[0]);
+                    a[0] = firstParam == typeof(Date)
+                        ? throw Error("Date expression expected", p[0])
+                        : firstParam == typeof(int)
+                        ? throw Error("Integer expression expected", p[0])
+                        : firstParam == typeof(Complex)
+                            ? IsArithmetic(a[0])
+                                ? Expression.Convert(a[0], typeof(Complex))
+                                : throw Error("Complex expression expected", p[0])
+                            : IsArithmetic(a[0])
+                                ? ToDouble(a[0])
+                                : throw Error("Real expression expected", p[0]);
             result = Expression.Call(e, mInfo, a[0]);
         }
         Return(a);
