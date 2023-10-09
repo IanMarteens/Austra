@@ -15,6 +15,8 @@ internal sealed partial class Parser
     private static readonly Type[] ComplexArg = new[] { typeof(Complex) };
     /// <summary>Another common argument list in functions.</summary>
     private static readonly Type[] DoubleDoubleArg = new[] { typeof(double), typeof(double) };
+    /// <summary>Another common argument list in functions.</summary>
+    private static readonly Type[] VectorVectorArg = new[] { typeof(Vector), typeof(Vector) };
     /// <summary>Constructor for <see cref="Index"/>.</summary>
     private static readonly ConstructorInfo IndexCtor =
         typeof(Index).GetConstructor(new[] { typeof(int), typeof(bool) })!;
@@ -186,7 +188,7 @@ internal sealed partial class Parser
     private static readonly MethodList MatrixCorrelation = new(
         typeof(Series<Date>).MD(nameof(Series.CorrelationMatrix), typeof(Series[])));
     private static readonly MethodList ModelCompare = new(
-        typeof(Tuple<Vector, Vector>).MD(typeof(Vector), typeof(Vector)),
+        typeof(Tuple<Vector, Vector>).MD(VectorVectorArg),
         typeof(Tuple<ComplexVector, ComplexVector>).MD(typeof(ComplexVector), typeof(ComplexVector)),
         typeof(Tuple<Series, Series>).MD(typeof(Series), typeof(Series)));
     private static readonly MethodList PolyDerivative = new(
@@ -195,179 +197,178 @@ internal sealed partial class Parser
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(Vector)),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
 
-    private static readonly Dictionary<string, MethodList> classMethods =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["series.new"] = new(
-                typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))),
-            ["spline.new"] = new(
-                typeof(VectorSpline).MD(typeof(Vector), typeof(Vector)),
-                typeof(VectorSpline).MD(
-                    typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))),
-            ["vector.new"] = new(
-                typeof(Vector).MD(IntArg),
-                typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
-                typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
-                typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))),
-            ["vector.nrandom"] = new(
-                typeof(Vector).MD(typeof(int), typeof(NormalRandom))),
-            ["vector.random"] = new(
-                typeof(Vector).MD(typeof(int), typeof(Random))),
-            ["vector.ones"] = new(
-                typeof(Vector).MD(typeof(int), typeof(One))),
-            ["complexvector.new"] = new(
-                typeof(ComplexVector).MD(VectorArg),
-                typeof(ComplexVector).MD(typeof(Vector), typeof(Vector)),
-                typeof(ComplexVector).MD(IntArg),
-                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
-                typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))),
-            ["complexvector.nrandom"] = new(
-                typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))),
-            ["complexvector.random"] = new(
-                typeof(ComplexVector).MD(typeof(int), typeof(Random))),
-            ["matrix.new"] = new(
-                typeof(Matrix).MD(IntArg),
-                typeof(Matrix).MD(typeof(int), typeof(int)),
-                typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
-            ["matrix.rows"] = new(
-                typeof(Matrix).MD(typeof(Vector[]))),
-            ["matrix.cols"] = new(
-                typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))),
-            ["matrix.diag"] = new(
-                typeof(Matrix).MD(VectorArg),
-                typeof(Matrix).MD(typeof(double[]))),
-            ["matrix.i"] = MatrixEye,
-            ["matrix.eye"] = MatrixEye,
-            ["matrix.random"] = new(
-                typeof(Matrix).MD(typeof(int), typeof(Random)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Random))),
-            ["matrix.nrandom"] = new(
-                typeof(Matrix).MD(typeof(int), typeof(NormalRandom)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
-            ["matrix.lrandom"] = new(
-                typeof(LMatrix).MD(typeof(int), typeof(Random)),
-                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(Random))),
-            ["matrix.lnrandom"] = new(
-                typeof(LMatrix).MD(typeof(int), typeof(NormalRandom)),
-                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
-            ["matrix.cov"] = MatrixCovariance,
-            ["matrix.covariance"] = MatrixCovariance,
-            ["matrix.corr"] = MatrixCorrelation,
-            ["matrix.correlation"] = MatrixCorrelation,
-            ["model.compare"] = ModelCompare,
-            ["model.comp"] = ModelCompare,
-            ["model.mvo"] = new(
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Series[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
-                    typeof(Vector), typeof(Vector), typeof(Series[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
-                    typeof(Vector), typeof(Vector), typeof(string[]))),
-            ["math.polysolve"] = new(
-                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VectorArg),
-                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
-            ["math.polyeval"] = new(
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(Vector)),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(Vector)),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
-            ["math.polyderivative"] = PolyDerivative,
-            ["math.polyderiv"] = PolyDerivative,
-            ["math.abs"] = new(
-                typeof(Math).MD(nameof(Math.Abs), IntArg),
-                typeof(Math).MD(nameof(Math.Abs), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Abs), ComplexArg)),
-            ["math.acos"] = new(
-                typeof(Math).MD(nameof(Math.Acos), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Acos), ComplexArg)),
-            ["math.asin"] = new(
-                typeof(Math).MD(nameof(Math.Asin), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Asin), ComplexArg)),
-            ["math.atan"] = new(
-                typeof(Math).MD(nameof(Math.Atan), DoubleArg),
-                typeof(Math).MD(nameof(Math.Atan2), DoubleDoubleArg),
-                typeof(Complex).MD(nameof(Complex.Atan), ComplexArg)),
-            ["math.beta"] = new(
-                typeof(F).MD(nameof(F.Beta), DoubleDoubleArg)),
-            ["math.cbrt"] = new(
-                typeof(Math).MD(nameof(Math.Cbrt), DoubleArg)),
-            ["math.cos"] = new(
-                typeof(Math).MD(nameof(Math.Cos), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Cos), ComplexArg)),
-            ["math.cosh"] = new(
-                typeof(Math).MD(nameof(Math.Cosh), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Cosh), ComplexArg)),
-            ["math.erf"] = new(
-                typeof(F).MD(nameof(F.Erf), DoubleArg)),
-            ["math.exp"] = new(
-                typeof(Math).MD(nameof(Math.Exp), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Exp), ComplexArg)),
-            ["math.gamma"] = new(
-                typeof(F).MD(nameof(F.Gamma), DoubleArg)),
-            ["math.lngamma"] = new(
-                typeof(F).MD(nameof(F.GammaLn), DoubleArg)),
-            ["math.log"] = new(
-                typeof(Math).MD(nameof(Math.Log), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Log), ComplexArg)),
-            ["math.log10"] = new(
-                typeof(Math).MD(nameof(Math.Log10), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Log10), ComplexArg)),
-            ["math.ncdf"] = new(
-                typeof(F).MD(nameof(F.NCdf), DoubleArg)),
-            ["math.probit"] = new(
-                typeof(F).MD(nameof(F.Probit), DoubleArg)),
-            ["math.sign"] = new(
-                typeof(Math).MD(nameof(Math.Sign), IntArg),
-                typeof(Math).MD(nameof(Math.Sign), DoubleArg)),
-            ["math.sin"] = new(
-                typeof(Math).MD(nameof(Math.Sin), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Sin), ComplexArg)),
-            ["math.sinh"] = new(
-                typeof(Math).MD(nameof(Math.Sinh), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Sinh), ComplexArg)),
-            ["math.tan"] = new(
-                typeof(Math).MD(nameof(Math.Tan), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Tan), ComplexArg)),
-            ["math.tanh"] = new(
-                typeof(Math).MD(nameof(Math.Tanh), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Tanh), ComplexArg)),
-            ["math.sqrt"] = new(
-                typeof(Math).MD(nameof(Math.Sqrt), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Sqrt), ComplexArg)),
-            ["math.trunc"] = new(
-                typeof(Math).MD(nameof(Math.Truncate), DoubleArg)),
-            ["math.round"] = new(
-                typeof(Math).MD(nameof(Math.Round), DoubleArg),
-                typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
-            ["math.compare"] = ModelCompare,
-            ["math.comp"] = ModelCompare,
-            ["math.complex"] = new(
-                typeof(Complex).MD(DoubleDoubleArg),
-                typeof(Complex).MD(typeof(double), typeof(Zero))),
-            ["math.polar"] = new(
-                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), DoubleDoubleArg),
-                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
-            ["math.min"] = new(
-                typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Min), typeof(int), typeof(int)),
-                typeof(Math).MD(nameof(Math.Min), DoubleDoubleArg)),
-            ["math.max"] = new(
-                typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Max), typeof(int), typeof(int)),
-                typeof(Math).MD(nameof(Math.Max), DoubleDoubleArg)),
-            ["math.solve"] = new(
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double)),
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
-                    typeof(double)),
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
-                    typeof(double), typeof(int))),
-        };
+    private static readonly Dictionary<string, MethodList> classMethods = new()
+    {
+        ["series.new"] = new(
+            typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))),
+        ["spline.new"] = new(
+            typeof(VectorSpline).MD(VectorVectorArg),
+            typeof(VectorSpline).MD(
+                typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))),
+        ["vector.new"] = new(
+            typeof(Vector).MD(IntArg),
+            typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
+            typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
+            typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))),
+        ["vector.nrandom"] = new(
+            typeof(Vector).MD(typeof(int), typeof(NormalRandom))),
+        ["vector.random"] = new(
+            typeof(Vector).MD(typeof(int), typeof(Random))),
+        ["vector.ones"] = new(
+            typeof(Vector).MD(typeof(int), typeof(One))),
+        ["complexvector.new"] = new(
+            typeof(ComplexVector).MD(VectorArg),
+            typeof(ComplexVector).MD(VectorVectorArg),
+            typeof(ComplexVector).MD(IntArg),
+            typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
+            typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))),
+        ["complexvector.nrandom"] = new(
+            typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))),
+        ["complexvector.random"] = new(
+            typeof(ComplexVector).MD(typeof(int), typeof(Random))),
+        ["matrix.new"] = new(
+            typeof(Matrix).MD(IntArg),
+            typeof(Matrix).MD(typeof(int), typeof(int)),
+            typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
+            typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
+        ["matrix.rows"] = new(
+            typeof(Matrix).MD(typeof(Vector[]))),
+        ["matrix.cols"] = new(
+            typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))),
+        ["matrix.diag"] = new(
+            typeof(Matrix).MD(VectorArg),
+            typeof(Matrix).MD(typeof(double[]))),
+        ["matrix.i"] = MatrixEye,
+        ["matrix.eye"] = MatrixEye,
+        ["matrix.random"] = new(
+            typeof(Matrix).MD(typeof(int), typeof(Random)),
+            typeof(Matrix).MD(typeof(int), typeof(int), typeof(Random))),
+        ["matrix.nrandom"] = new(
+            typeof(Matrix).MD(typeof(int), typeof(NormalRandom)),
+            typeof(Matrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
+        ["matrix.lrandom"] = new(
+            typeof(LMatrix).MD(typeof(int), typeof(Random)),
+            typeof(LMatrix).MD(typeof(int), typeof(int), typeof(Random))),
+        ["matrix.lnrandom"] = new(
+            typeof(LMatrix).MD(typeof(int), typeof(NormalRandom)),
+            typeof(LMatrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
+        ["matrix.cov"] = MatrixCovariance,
+        ["matrix.covariance"] = MatrixCovariance,
+        ["matrix.corr"] = MatrixCorrelation,
+        ["matrix.correlation"] = MatrixCorrelation,
+        ["model.compare"] = ModelCompare,
+        ["model.comp"] = ModelCompare,
+        ["model.mvo"] = new(
+            typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
+            typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
+            typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Series[])),
+            typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
+                typeof(Vector), typeof(Vector), typeof(Series[])),
+            typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
+            typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
+                typeof(Vector), typeof(Vector), typeof(string[]))),
+        ["math.polysolve"] = new(
+            typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VectorArg),
+            typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
+        ["math.polyeval"] = new(
+            typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(Vector)),
+            typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
+            typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(Vector)),
+            typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
+        ["math.polyderivative"] = PolyDerivative,
+        ["math.polyderiv"] = PolyDerivative,
+        ["math.abs"] = new(
+            typeof(Math).MD(nameof(Math.Abs), IntArg),
+            typeof(Math).MD(nameof(Math.Abs), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Abs), ComplexArg)),
+        ["math.acos"] = new(
+            typeof(Math).MD(nameof(Math.Acos), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Acos), ComplexArg)),
+        ["math.asin"] = new(
+            typeof(Math).MD(nameof(Math.Asin), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Asin), ComplexArg)),
+        ["math.atan"] = new(
+            typeof(Math).MD(nameof(Math.Atan), DoubleArg),
+            typeof(Math).MD(nameof(Math.Atan2), DoubleDoubleArg),
+            typeof(Complex).MD(nameof(Complex.Atan), ComplexArg)),
+        ["math.beta"] = new(
+            typeof(F).MD(nameof(F.Beta), DoubleDoubleArg)),
+        ["math.cbrt"] = new(
+            typeof(Math).MD(nameof(Math.Cbrt), DoubleArg)),
+        ["math.cos"] = new(
+            typeof(Math).MD(nameof(Math.Cos), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Cos), ComplexArg)),
+        ["math.cosh"] = new(
+            typeof(Math).MD(nameof(Math.Cosh), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Cosh), ComplexArg)),
+        ["math.erf"] = new(
+            typeof(F).MD(nameof(F.Erf), DoubleArg)),
+        ["math.exp"] = new(
+            typeof(Math).MD(nameof(Math.Exp), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Exp), ComplexArg)),
+        ["math.gamma"] = new(
+            typeof(F).MD(nameof(F.Gamma), DoubleArg)),
+        ["math.lngamma"] = new(
+            typeof(F).MD(nameof(F.GammaLn), DoubleArg)),
+        ["math.log"] = new(
+            typeof(Math).MD(nameof(Math.Log), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Log), ComplexArg)),
+        ["math.log10"] = new(
+            typeof(Math).MD(nameof(Math.Log10), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Log10), ComplexArg)),
+        ["math.ncdf"] = new(
+            typeof(F).MD(nameof(F.NCdf), DoubleArg)),
+        ["math.probit"] = new(
+            typeof(F).MD(nameof(F.Probit), DoubleArg)),
+        ["math.sign"] = new(
+            typeof(Math).MD(nameof(Math.Sign), IntArg),
+            typeof(Math).MD(nameof(Math.Sign), DoubleArg)),
+        ["math.sin"] = new(
+            typeof(Math).MD(nameof(Math.Sin), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Sin), ComplexArg)),
+        ["math.sinh"] = new(
+            typeof(Math).MD(nameof(Math.Sinh), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Sinh), ComplexArg)),
+        ["math.tan"] = new(
+            typeof(Math).MD(nameof(Math.Tan), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Tan), ComplexArg)),
+        ["math.tanh"] = new(
+            typeof(Math).MD(nameof(Math.Tanh), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Tanh), ComplexArg)),
+        ["math.sqrt"] = new(
+            typeof(Math).MD(nameof(Math.Sqrt), DoubleArg),
+            typeof(Complex).MD(nameof(Complex.Sqrt), ComplexArg)),
+        ["math.trunc"] = new(
+            typeof(Math).MD(nameof(Math.Truncate), DoubleArg)),
+        ["math.round"] = new(
+            typeof(Math).MD(nameof(Math.Round), DoubleArg),
+            typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
+        ["math.compare"] = ModelCompare,
+        ["math.comp"] = ModelCompare,
+        ["math.complex"] = new(
+            typeof(Complex).MD(DoubleDoubleArg),
+            typeof(Complex).MD(typeof(double), typeof(Zero))),
+        ["math.polar"] = new(
+            typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), DoubleDoubleArg),
+            typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
+        ["math.min"] = new(
+            typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
+            typeof(Math).MD(nameof(Math.Min), typeof(int), typeof(int)),
+            typeof(Math).MD(nameof(Math.Min), DoubleDoubleArg)),
+        ["math.max"] = new(
+            typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
+            typeof(Math).MD(nameof(Math.Max), typeof(int), typeof(int)),
+            typeof(Math).MD(nameof(Math.Max), DoubleDoubleArg)),
+        ["math.solve"] = new(
+            typeof(Solver).MD(nameof(Solver.Solve),
+                typeof(Func<double, double>), typeof(Func<double, double>), typeof(double)),
+            typeof(Solver).MD(nameof(Solver.Solve),
+                typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
+                typeof(double)),
+            typeof(Solver).MD(nameof(Solver.Solve),
+                typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
+                typeof(double), typeof(int))),
+    };
 
     /// <summary>Allowed properties and their implementations.</summary>
     private static readonly Dictionary<Type, Dictionary<string, MethodInfo>> allProps =
