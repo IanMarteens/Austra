@@ -670,6 +670,7 @@ internal sealed partial class Parser
                         : throw Error("Invalid indexer");
                     break;
                 case Token.LBrace:
+                    Move();
                     e = e.Type.IsAssignableTo(typeof(ISafeIndexed))
                         ? ParseSafeIndexer(e)
                         : throw Error("Safe indexes are only allowed for vectors and series");
@@ -681,12 +682,11 @@ internal sealed partial class Parser
 
     private Expression ParseSafeIndexer(Expression e)
     {
-        Move();
         Expression e1 = ParseLightConditional();
-        if (e1.Type != typeof(int))
-            throw Error("Index must be an integer");
         CheckAndMove(Token.RBrace, "} expected in indexer");
-        return e.Type.Call(e, nameof(Vector.SafeThis), e1);
+        return e1.Type != typeof(int)
+            ? throw Error("Index must be an integer")
+            : e.Type.Call(e, nameof(Vector.SafeThis), e1);
     }
 
     private Expression ParseSplineIndexer(Expression e, Type expected)
