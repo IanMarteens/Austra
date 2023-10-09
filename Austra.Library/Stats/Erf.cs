@@ -498,9 +498,10 @@ public partial class F
     private static double Evaluate(double z, ReadOnlySpan<double> coefficients)
     {
         int n = coefficients.Length;
-        double sum = coefficients[n - 1];
+        ref double rd = ref MemoryMarshal.GetReference(coefficients);
+        double sum = Unsafe.Add(ref rd, n - 1);
         for (int i = n - 2; i >= 0; --i)
-            sum = FusedMultiplyAdd(z, sum, coefficients[i]);
+            sum = FusedMultiplyAdd(z, sum, Unsafe.Add(ref rd, i));
         return sum;
     }
 

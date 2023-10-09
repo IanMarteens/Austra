@@ -155,23 +155,19 @@ public static partial class F
     /// <returns>The gamma function.</returns>
     public static double Gamma(double z)
     {
+        ref double rd = ref MemoryMarshal.GetReference(GammaDk);
+        double s = rd;
         if (z < 0.5)
         {
-            double s = GammaDk[0];
             for (int i = 1; i <= GammaN; i++)
-            {
-                s += GammaDk[i] / (i - z);
-            }
+                s += Unsafe.Add(ref rd, i) / (i - z);
             return PI / (Sin(PI * z) * s
                 * TwoSqrtEOverPi * Pow((0.5 - z + GammaR) / E, 0.5 - z));
         }
         else
         {
-            double s = GammaDk[0];
             for (int i = 1; i <= GammaN; i++)
-            {
-                s += GammaDk[i] / (z + i - 1.0);
-            }
+                s += Unsafe.Add(ref rd, i) / (z + i - 1.0);
             return s * TwoSqrtEOverPi * Pow((z - 0.5 + GammaR) / E, z - 0.5);
         }
     }
