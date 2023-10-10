@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Austra.Parser;
 
@@ -617,8 +618,16 @@ internal sealed partial class Parser
             case Token.ClassName:
                 {
                     string className = id.ToLower();
-                    // Skip class name and double colon.
                     SkipFunctor();
+                    if (kind == Token.Id && className == "math")
+                    {
+                        e = ParseGlobals(id.ToLower());
+                        if (e != null)
+                        {
+                            Move();
+                            return e;
+                        }
+                    }
                     e = kind != Token.Functor
                         ? throw Error("Method name expected")
                         : className == "math"
@@ -1388,6 +1397,19 @@ internal sealed partial class Parser
                         Expression.Property(sourceParameter, "Item",
                         Expression.Constant(ident)), val.GetType())
             };
+        Expression e = ParseGlobals(ident);
+        if (e != null)
+            return e;
+        if (TryParseMonthYear(ident, out Date d))
+            return Expression.Constant(d);
+        // Check if we tried to reference a SET variable in a DEF.
+        if (isParsingDefinition && source[ident] != null)
+            throw Error("SET variables cannot be used in persistent definitions", pos);
+        throw Error($"Unknown variable: {ident}", pos);
+    }
+
+    private Expression? ParseGlobals(string ident)
+    {
         if (ident == "π")
             return Expression.Constant(Math.PI);
         if (ident == "τ")
@@ -1401,12 +1423,8 @@ internal sealed partial class Parser
             case "pearl": return Expression.Call(typeof(F).Get(nameof(F.Austra)));
             case "random": return Expression.Call(typeof(F).GetMethod(nameof(F.Random))!);
             case "nrandom": return Expression.Call(typeof(F).GetMethod(nameof(F.NRandom))!);
+            default: return null;
         }
-        if (TryParseMonthYear(ident, out Date d))
-            return Expression.Constant(d);
-        // Check if we tried to reference a SET variable in a DEF.
-        if (isParsingDefinition && source[ident] != null)
-            throw Error("SET variables cannot be used in persistent definitions", pos);
-        throw Error($"Unknown variable: {ident}", pos);
+
     }
 }

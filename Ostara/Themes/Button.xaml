@@ -6,7 +6,6 @@
         <ResourceDictionary Source="Common.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
-
     <Style x:Key="ButtonFocusVisual">
         <Setter Property="Control.Template">
             <Setter.Value>
@@ -75,7 +74,6 @@
         <Setter Property="FontSize" Value="{StaticResource ControlsFontSizeSmall}"/>
         <Setter Property="Margin" Value="0"/>
     </Style>
-
 
     <Style TargetType="{x:Type ToggleButton}">
         <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}"/>

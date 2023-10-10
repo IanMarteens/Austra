@@ -436,7 +436,7 @@ internal sealed partial class Parser
                 ["type"] = typeof(Series).Prop(nameof(Series.Type)),
                 ["amax"] = typeof(Series).Get(nameof(Series.AbsMax)),
                 ["amin"] = typeof(Series).Get(nameof(Series.AbsMin)),
-                ["ncdf"] = typeof(Series).GetMethod(nameof(Series.NCdf), Array.Empty<Type>())!,
+                ["ncdf"] = typeof(Series).GetMethod(nameof(Series.NCdf), Type.EmptyTypes)!,
                 ["fit"] = typeof(Series).Get(nameof(Series.Fit)),
                 ["linearfit"] = typeof(Series).Get(nameof(Series.LinearFit)),
                 ["spline"] = typeof(Series).Get(nameof(Series.Spline)),
@@ -477,7 +477,7 @@ internal sealed partial class Parser
             {
                 ["det"] = typeof(Matrix).Get(nameof(Matrix.Determinant)),
                 ["chol"] = typeof(Matrix).Get(nameof(Matrix.CholeskyMatrix)),
-                ["evd"] = typeof(Matrix).GetMethod(nameof(Matrix.EVD), Array.Empty<Type>())!,
+                ["evd"] = typeof(Matrix).GetMethod(nameof(Matrix.EVD), Type.EmptyTypes)!,
                 ["trace"] = typeof(Matrix).Get(nameof(Matrix.Trace)),
                 ["rows"] = typeof(Matrix).Prop(nameof(Matrix.Rows)),
                 ["cols"] = typeof(Matrix).Prop(nameof(Matrix.Cols)),
@@ -990,6 +990,14 @@ internal sealed partial class Parser
                 new("polyDerivative(", "Evaluates the derivative of a polynomial"),
                 new("complex(", "Creates a complex number from its real and imaginary components"),
                 new("polar(", "Creates a complex number from its magnitude and phase components"),
+                new("random", "Generate a random number from a uniform distribution"),
+                new("nrandom", "Generate a random number from a normal standard distribution"),
+                new("e", "Euler's constant"),
+                new("i", "The imaginary unit"),
+                new("pi", "Don't be irrational: be trascendent!"),
+                new("today", "Gets the current date"),
+                new("pearl", "Try me!"),
+                new("τ", "Twice π"),
             }
         };
 

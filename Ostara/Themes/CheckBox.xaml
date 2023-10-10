@@ -185,7 +185,6 @@
 
     <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource DefaultCheckBox}" />
 
-
     <Style x:Key="{x:Static ToolBar.CheckBoxStyleKey}" TargetType="CheckBox"  BasedOn="{StaticResource DefaultCheckBox}">
         <Setter Property="FontSize" Value="{StaticResource ControlsFontSizeSmall}"/>
         <Setter Property="Margin" Value="0"/>
