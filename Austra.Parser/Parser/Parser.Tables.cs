@@ -125,15 +125,15 @@ internal sealed partial class Parser
     {
         public const uint Mλ1 = 1u, Mλ2 = 2u;
 
-        public Type Implementor { get; }
         public Type[] Args { get; }
         public uint TypeMask { get; }
         public int ExpectedArgs { get; }
         public MethodInfo? MInfo { get; }
+        public ConstructorInfo? CInfo { get; }
 
         public MethodData(Type implementor, string? memberName, params Type[] args)
         {
-            (Implementor, Args) = (implementor, args);
+            Args = args;
             for (int i = 0, m = 0; i < args.Length; i++, m += 2)
             {
                 Type t1 = args[i];
@@ -146,8 +146,12 @@ internal sealed partial class Parser
                 : t == typeof(Random) || t == typeof(NormalRandom) || t == typeof(One) || t == typeof(Zero)
                 ? Args.Length - 1
                 : Args.Length;
+            Args[^1] = t == typeof(Zero) || t == typeof(One) ? typeof(double) : t;
             if (memberName != null)
-                MInfo = Implementor.GetMethod(memberName, Args);
+                MInfo = implementor.GetMethod(memberName, Args);
+            else
+                CInfo = implementor.GetConstructor(Args)!;
+            Args[^1] = t;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -157,7 +161,7 @@ internal sealed partial class Parser
         public Expression GetExpression(List<Expression> actualArguments) =>
             MInfo != null
             ? Expression.Call(MInfo, actualArguments)
-            : Expression.New(Implementor.GetConstructor(Args)!, actualArguments);
+            : Expression.New(CInfo!, actualArguments);
     }
 
     internal readonly struct MethodList
