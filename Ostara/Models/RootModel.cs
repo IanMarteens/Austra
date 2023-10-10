@@ -51,11 +51,12 @@ public sealed partial class RootModel : Entity
             ErrorText = "";
             timer.Stop();
         };
-        CloseAllCommand = new DelegateCommand(ExecuteCloseAllCommand, GetHasEnvironment);
-        HistoryUpCommand = new DelegateCommand(ExecHistoryUp, GetHasEnvironment);
-        HistoryDownCommand = new DelegateCommand(ExecHistoryDown, GetHasEnvironment);
-        EvaluateCommand = new DelegateCommand(_ => Evaluate(Editor.Text), GetHasEnvironment);
-        CheckTypeCommand = new DelegateCommand(_ => CheckType(Editor.Text), GetHasEnvironment);
+        CloseAllCommand = new(ExecuteCloseAllCommand, GetHasEnvironment);
+        HistoryUpCommand = new(ExecHistoryUp, GetHasEnvironment);
+        HistoryDownCommand = new(ExecHistoryDown, GetHasEnvironment);
+        EvaluateCommand = new(_ => Evaluate(Editor.Text), GetHasEnvironment);
+        CheckTypeCommand = new(_ => CheckType(Editor.Text), GetHasEnvironment);
+        ClearCommand = new (_ => MainSection?.Blocks.Clear(), GetHasEnvironment);
         string dataFile = GetDefaultDataFile();
         if (File.Exists(dataFile))
         {
@@ -73,6 +74,8 @@ public sealed partial class RootModel : Entity
     public DelegateCommand EvaluateCommand { get; }
 
     public DelegateCommand CheckTypeCommand { get; }
+
+    public DelegateCommand ClearCommand { get; }
 
     public DelegateCommand PasteExcelCommand { get; } = new(
         (object? _) =>

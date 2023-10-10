@@ -186,6 +186,12 @@
                             <Image Source="/images/playt.png" Width="15" Height="Auto"/>
                         </MenuItem.Icon>
                     </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Clear _results" Command="{Binding ClearCommand}">
+                        <MenuItem.Icon>
+                            <Image Source="/images/clearResults.png" Width="15" Height="Auto"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Tools">
                     <MenuItem Header="_Options" Command="{Binding OptionsCommand}">

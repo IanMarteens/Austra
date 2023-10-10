@@ -16,6 +16,7 @@
 		<None Remove="ak.ico" />
 		<None Remove="austra.jpg" />
 		<None Remove="austra.xshd" />
+		<None Remove="Images\clearResults.png" />
 		<None Remove="Images\closeAll.png" />
 		<None Remove="Images\compare.png" />
 		<None Remove="Images\copy.png" />
@@ -57,6 +58,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Resource Include="Images\clearResults.png" />
 	  <Resource Include="Images\delete.png" />
 	  <Resource Include="Images\help.png" />
 	  <Resource Include="Images\histDown.png" />
