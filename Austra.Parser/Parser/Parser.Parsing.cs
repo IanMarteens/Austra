@@ -1407,13 +1407,12 @@ internal sealed partial class Parser
         throw Error($"Unknown variable: {ident}", pos);
     }
 
-    private Expression? ParseGlobals(string ident)
-    {
-        if (ident == "π")
-            return Expression.Constant(Math.PI);
-        if (ident == "τ")
-            return Expression.Constant(Math.Tau);
-        return ident.ToLower() switch
+    private Expression? ParseGlobals(string ident) =>
+        ident == "π"
+        ? Expression.Constant(Math.PI)
+        : ident == "τ"
+        ? Expression.Constant(Math.Tau)
+        : ident.ToLower() switch
         {
             "e" => Expression.Constant(Math.E),
             "i" => Expression.Constant(Complex.ImaginaryOne),
@@ -1424,5 +1423,4 @@ internal sealed partial class Parser
             "nrandom" => Expression.Call(typeof(F).GetMethod(nameof(F.NRandom))!),
             _ => null,
         };
-    }
 }
