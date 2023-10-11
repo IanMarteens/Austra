@@ -136,8 +136,8 @@
                             <Setter Property="Foreground" Value="{StaticResource SelectedComboBoxItemForeground}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-							<Setter Property="Foreground" Value="{StaticResource DisabledComboBoxItemForeground}"/>
-						</Trigger>
+                            <Setter Property="Foreground" Value="{StaticResource DisabledComboBoxItemForeground}"/>
+                        </Trigger>
 					</ControlTemplate.Triggers>
 				</ControlTemplate>
 			</Setter.Value>
