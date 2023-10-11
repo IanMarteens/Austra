@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace Austra.Parser;
 
@@ -621,11 +620,11 @@ internal sealed partial class Parser
                     SkipFunctor();
                     if (kind == Token.Id && className == "math")
                     {
-                        e = ParseGlobals(id.ToLower());
-                        if (e != null)
+                        Expression? e1 = ParseGlobals(id);
+                        if (e1 != null)
                         {
                             Move();
-                            return e;
+                            return e1;
                         }
                     }
                     e = kind != Token.Functor
@@ -1397,7 +1396,7 @@ internal sealed partial class Parser
                         Expression.Property(sourceParameter, "Item",
                         Expression.Constant(ident)), val.GetType())
             };
-        Expression e = ParseGlobals(ident);
+        Expression? e = ParseGlobals(ident);
         if (e != null)
             return e;
         if (TryParseMonthYear(ident, out Date d))
@@ -1414,17 +1413,16 @@ internal sealed partial class Parser
             return Expression.Constant(Math.PI);
         if (ident == "τ")
             return Expression.Constant(Math.Tau);
-        switch (ident.ToLower())
+        return ident.ToLower() switch
         {
-            case "e": return Expression.Constant(Math.E);
-            case "i": return Expression.Constant(Complex.ImaginaryOne);
-            case "pi": return Expression.Constant(Math.PI);
-            case "today": return Expression.Constant(Date.Today);
-            case "pearl": return Expression.Call(typeof(F).Get(nameof(F.Austra)));
-            case "random": return Expression.Call(typeof(F).GetMethod(nameof(F.Random))!);
-            case "nrandom": return Expression.Call(typeof(F).GetMethod(nameof(F.NRandom))!);
-            default: return null;
-        }
-
+            "e" => Expression.Constant(Math.E),
+            "i" => Expression.Constant(Complex.ImaginaryOne),
+            "pi" => Expression.Constant(Math.PI),
+            "today" => Expression.Constant(Date.Today),
+            "pearl" => Expression.Call(typeof(F).Get(nameof(F.Austra))),
+            "random" => Expression.Call(typeof(F).GetMethod(nameof(F.Random))!),
+            "nrandom" => Expression.Call(typeof(F).GetMethod(nameof(F.NRandom))!),
+            _ => null,
+        };
     }
 }
