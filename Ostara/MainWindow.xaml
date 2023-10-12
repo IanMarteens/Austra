@@ -263,8 +263,8 @@
                 <local:HierarchyView Grid.Column="0"/>
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="2*" MinHeight="50" MaxHeight="1024"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="{Binding FormulaRowHeight}"/>
+                        <RowDefinition Height="3"/>
                         <RowDefinition Height="8*"/>
                     </Grid.RowDefinitions>
                     <Grid>

@@ -46,5 +46,29 @@ namespace Ostara.Properties {
                 this["AutoloadFile"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowCompileTime {
+            get {
+                return ((bool)(this["ShowCompileTime"]));
+            }
+            set {
+                this["ShowCompileTime"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowExecutionTime {
+            get {
+                return ((bool)(this["ShowExecutionTime"]));
+            }
+            set {
+                this["ShowExecutionTime"] = value;
+            }
+        }
     }
 }

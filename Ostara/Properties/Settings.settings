@@ -8,5 +8,11 @@
     <Setting Name="AutoloadFile" Type="System.String" Scope="User">
       <Value Profile="(Default)">data.austra</Value>
     </Setting>
+    <Setting Name="ShowCompileTime" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ShowExecutionTime" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

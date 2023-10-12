@@ -1,5 +1,6 @@
 ﻿using Austra.Parser;
 using ICSharpCode.AvalonEdit.CodeCompletion;
+using System.IO;
 
 namespace Ostara;
 
@@ -30,9 +31,10 @@ public partial class MainWindow : Window
     };
     private static readonly Dictionary<Key, char> tmgUp = new()
     {
+        [Key.C] = 'Ψ',
         [Key.D] = 'Δ',
-        [Key.E] = 'ε',
         [Key.G] = 'Γ',
+        [Key.F] = 'Φ',
         [Key.J] = 'Ξ',
         [Key.L] = 'Λ',
         [Key.O] = 'Ω',
@@ -53,7 +55,27 @@ public partial class MainWindow : Window
         avalon.TextArea.TextEntered += TextArea_TextEntered;
         avalon.TextArea.TextEntering += TextArea_TextEntering;
         avalon.PreviewKeyDown += AvalonPreviewKeyDown;
-        mainSection.ContentEnd.InsertTextInRun("Welcome to Ostara!\nv" + RootModel.Version + "\n\n");
+        Loaded += MainWindowLoaded;
+    }
+
+    private void MainWindowLoaded(object sender, RoutedEventArgs e)
+    {
+        if (Properties.Settings.Default.Autoload)
+        {
+            string file = Properties.Settings.Default.AutoloadFile;
+            if ( string.IsNullOrWhiteSpace(file))
+                file = @"Austra\data.austra";
+            if (!File.Exists(file))
+            {
+                string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                string dataFile = Path.Combine(docs, Path.Combine("Austra", file));
+                file = File.Exists(dataFile)
+                    ? dataFile
+                    : Path.Combine(docs, file);
+            }
+            if (File.Exists(file))
+                Root.LoadFile(file);
+        }
     }
 
     private void MainWindowStateChangeRaised(object? sender, EventArgs e)

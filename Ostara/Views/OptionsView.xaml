@@ -16,6 +16,16 @@
     Title="Settings" SizeToContent="WidthAndHeight"
     DataContext="{x:Static settings:Settings.Default}">
     <DockPanel Background="#FF202020" Height="Auto" Width="500">
+        <Grid DockPanel.Dock="Top" Height="24" Background="#FF000004" MouseDown="GridMouseDown">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <TextBlock Text="Settings" FontSize="12" Foreground="White" Margin="8 0 0 0" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
+                <Button Content="&#xE106;" FontFamily="Segoe MDL2 Assets" BorderThickness="0"
+                    Padding="4" Margin="0" Background="DarkRed"
+                    Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Click="CloseDlg"/>
+            </StackPanel>
+        </Grid>
         <StackPanel Orientation="Vertical" Height="Auto">
             <GroupBox Header="Autoload" FontSize="12" HorizontalAlignment="Stretch">
                 <Grid>
@@ -27,16 +37,30 @@
                         <ColumnDefinition SharedSizeGroup="A"/>
                         <ColumnDefinition Width="350"/>
                     </Grid.ColumnDefinitions>
-                    <CheckBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Enable autoload" FontSize="12" VerticalAlignment="Center"
-                              IsChecked="{Binding Autoload}"/>
+                    <CheckBox x:Name="ctrlAutoload" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content=" Enable autoload" FontSize="12" VerticalAlignment="Center"/>
                     <Label Grid.Row="1" Grid.Column="0" Content="Data file" VerticalAlignment="Center" FontSize="12"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontSize="12" Text="{Binding AutoloadFile}"/>
+                    <TextBox x:Name="ctrlFile" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontSize="12"/>
+                </Grid>
+            </GroupBox>
+            <Separator HorizontalAlignment="Stretch" Height="1" Background="#FF404040"/>
+            <GroupBox Header="Insights" FontSize="12" HorizontalAlignment="Stretch">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="A"/>
+                        <ColumnDefinition Width="350"/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox x:Name="ctrlCompTime" Grid.Row="0" Grid.Column="1" Content=" Show compile time" FontSize="12" VerticalAlignment="Center"/>
+                    <CheckBox x:Name="ctrlExecTime" Grid.Row="1" Grid.Column="1" Content=" Show execution time" FontSize="12" VerticalAlignment="Center"/>
                 </Grid>
             </GroupBox>
             <Separator HorizontalAlignment="Stretch" Height="1" Background="#FF404040"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Height="Auto">
-                <Button Content="Ok" IsDefault="True"/>
-                <Button Content="Cancel" IsCancel="True"/>
+                <Button Content="OK" Width="60" Height="28" IsDefault="True" Click="OkClose"/>
+                <Button Content="Cancel" Width="60" Height="28" IsCancel="True"/>
             </StackPanel>
         </StackPanel>
     </DockPanel>

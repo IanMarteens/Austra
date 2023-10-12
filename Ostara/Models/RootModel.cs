@@ -1,6 +1,5 @@
 ﻿using Austra.Parser;
 using Microsoft.Win32;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -36,6 +35,7 @@ public sealed partial class RootModel : Entity
     private Visibility showErrorText = Visibility.Collapsed;
     /// <summary>Gets the visibility of the code editor.</summary>
     private Visibility showFormulaEditor = Visibility.Collapsed;
+    private GridLength formulaRowHeight = new(0);
     private int historyIndex = -1;
 
     /// <summary>Creates a new instance of the root view-model.</summary>
@@ -57,12 +57,6 @@ public sealed partial class RootModel : Entity
         EvaluateCommand = new(_ => Evaluate(Editor.Text), GetHasEnvironment);
         CheckTypeCommand = new(_ => CheckType(Editor.Text), GetHasEnvironment);
         ClearCommand = new (_ => MainSection?.Blocks.Clear(), GetHasEnvironment);
-        string dataFile = GetDefaultDataFile();
-        if (File.Exists(dataFile))
-        {
-            Environment = new Session(dataFile);
-            PrepareWorkspace();
-        }
     }
 
     public DelegateCommand CloseAllCommand { get; }
@@ -140,11 +134,22 @@ public sealed partial class RootModel : Entity
 
     public ObservableCollection<string> History { get; } = new();
 
+    public GridLength FormulaRowHeight
+    {
+        get => formulaRowHeight;
+        set => SetField(ref formulaRowHeight, value);
+    }
+
     /// <summary>Gets the visibility of the code editor.</summary>
     public Visibility ShowFormulaEditor
     {
         get => showFormulaEditor;
-        set => SetField(ref showFormulaEditor, value);
+        set
+        {
+            if (SetField(ref showFormulaEditor, value))
+                FormulaRowHeight = showFormulaEditor == Visibility.Collapsed
+                    ? new(0) : new(2, GridUnitType.Star);
+        }
     }
 
     /// <summary>Gets the last date in time series, in Austra date format.</summary>
@@ -347,11 +352,16 @@ public sealed partial class RootModel : Entity
             FilterIndex = 1,
         };
         if (dlg.ShowDialog(Application.Current.MainWindow) == true)
-        {
-            ExecuteCloseAllCommand();
-            Environment = new Session(dlg.FileName);
-            PrepareWorkspace();
-        }
+            LoadFile(dlg.FileName);
+    }
+
+    public void LoadFile(string dataFile)
+    {
+        ExecuteCloseAllCommand();
+        Environment = new Session(dataFile);
+        PrepareWorkspace();
+        DoEvents();
+        Editor.Focus();
     }
 
     private void ExecuteCloseAllCommand()
@@ -631,19 +641,16 @@ public sealed partial class RootModel : Entity
     private void ShowTimesMessage(bool showComp, bool showExec)
     {
         string msg = "";
-        if (showComp && Environment!.Engine.CompileTime is not null)
+        Properties.Settings props = Properties.Settings.Default;
+        if (showComp && props.ShowCompileTime && Environment!.Engine.CompileTime is not null)
             msg = "Compile: " +
                 Environment.Engine.FormatTime(Environment.Engine.CompileTime.Value);
-        if (showExec && Environment!.Engine.ExecutionTime is not null)
+        if (showExec && props.ShowExecutionTime && Environment!.Engine.ExecutionTime is not null)
             msg += (msg.Length > 0 ? ", execution: " : "Execution: ") +
                 Environment!.Engine.FormatTime(Environment.Engine.ExecutionTime.Value);
         if (msg != "")
             Message = msg;
     }
-
-    static string GetDefaultDataFile() => Path.Combine(
-        System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
-        @"Austra\data.austra");
 
     /// <summary>Gets a regex that matches a set statement</summary>
     [GeneratedRegex("^\\s*set\\s*(?'name'[\\w]+)\\s*=", RegexOptions.IgnoreCase, "en-US")]
