@@ -156,7 +156,7 @@ public partial class F
     /// <summary> Polynomial coefficients for a numerator of ErfInvImp
     /// calculation for Erf^-1(z) in the interval [0, 0.5].
     /// </summary>
-    static readonly double[] ErvInvImpAn = { -0.000508781949658280665617, -0.00836874819741736770379, 0.0334806625409744615033, -0.0126926147662974029034, -0.0365637971411762664006, 0.0219878681111168899165, 0.00822687874676915743155, -0.00538772965071242932965 };
+    static ReadOnlySpan<double> ErvInvImpAn => new[] { -0.000508781949658280665617, -0.00836874819741736770379, 0.0334806625409744615033, -0.0126926147662974029034, -0.0365637971411762664006, 0.0219878681111168899165, 0.00822687874676915743155, -0.00538772965071242932965 };
 
     /// <summary> Polynomial coefficients for a denominator of ErfInvImp
     /// calculation for Erf^-1(z) in the interval [0, 0.5].

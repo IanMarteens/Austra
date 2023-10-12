@@ -131,7 +131,7 @@ public partial class MainWindow : Window
                             ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
                         else if (fragment.EndsWith('('))
                         {
-                            if (fragment.Length > 2 && char.IsLetterOrDigit(fragment, fragment.Length - 2))
+                            if (fragment.Length > 2 && char.IsLetterOrDigit(fragment[^2]))
                                 ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
                         }
                         else if (fragment.EndsWith(','))
@@ -146,19 +146,18 @@ public partial class MainWindow : Window
             char.IsLetter(s[0]) && s.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
 
-    private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
-    {
-        if (e.Text == ".")
-            ShowCodeCompletion(RootModel.Instance.GetMembers(GetFragment()));
-        else if (e.Text == ":")
-            ShowCodeCompletion(RootModel.Instance.GetClassMembers(GetFragment()));
-        else if (e.Text == "(")
-            ShowCodeCompletion(RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text));
-    }
+    private void TextArea_TextEntered(object sender, TextCompositionEventArgs e) =>
+        ShowCodeCompletion(e.Text == "."
+            ? RootModel.Instance.GetMembers(GetFragment())
+            : e.Text == ":"
+            ? RootModel.Instance.GetClassMembers(GetFragment())
+            : e.Text == "("
+            ? RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text)
+            : null);
 
     private string GetFragment(int delta = 1) => avalon.Document.GetText(0, avalon.CaretOffset - delta);
 
-    private void ShowCodeCompletion(IList<Member> list)
+    private void ShowCodeCompletion(IList<Member>? list)
     {
         if (list?.Count > 0)
         {
