@@ -982,34 +982,19 @@ internal sealed partial class Parser
             return inf.Methods.Length == 1
                 ? ParseClassSingleMethod(inf.Methods[0])
                 : ParseClassMultiMethod(inf);
-        (List<Expression> a, List<int> p) = (Rent(), new());
-        for (; ; Move())
-        {
-            a.Add(ParseConditional());
-            p.Add(start);
-            if (kind != Token.Comma)
-            {
-                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-                break;
-            }
-        }
-        Expression result;
-        if (function == "iff")
-        {
-            // This is a generic function!
-            if (a.Count != 3)
-                throw Error("Function 'iff' requires 3 arguments", pos);
-            if (a[0].Type != typeof(bool))
-                throw Error("First argument must be boolean", p[0]);
-            Expression a2 = a[1], a3 = a[2];
-            result = DifferentTypes(ref a2, ref a3)
-                ? throw Error("Second and third arguments must have the same type", p[2])
-                : Expression.Condition(a[0], a2, a3);
-        }
-        else
+        if (function != "iff")
             throw Error("Invalid function name", pos);
-        Return(a);
-        return result;
+        Expression a0 = ParseConditional();
+        if (a0.Type != typeof(bool))
+            throw Error("First argument must be boolean");
+        CheckAndMove(Token.Comma, "Comma expected");
+        Expression a1 = ParseConditional();
+        CheckAndMove(Token.Comma, "Comma expected");
+        Expression a2 = ParseConditional();
+        if (DifferentTypes(ref a1, ref a2))
+            throw Error("Second and third arguments must have the same type");
+        CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+        return Expression.Condition(a0, a1, a2);
     }
 
     private Expression ParseClassMethod(string className, string methodName)
@@ -1078,7 +1063,7 @@ internal sealed partial class Parser
             : expected == typeof(double) && e.Type == typeof(int)
             ? ToDouble(e)
             : expected == typeof(Complex) && IsArithmetic(e)
-            ? (Expression)Expression.Convert(ToDouble(e), typeof(Complex))
+            ? Expression.Convert(ToDouble(e), typeof(Complex))
             : throw Error($"Expected {expected.Name}");
     }
 
