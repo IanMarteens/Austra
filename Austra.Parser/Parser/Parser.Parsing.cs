@@ -1016,16 +1016,13 @@ internal sealed partial class Parser
             args.Add(ParseByType(types[i]));
             if (kind != Token.Comma)
             {
-                if (++i == types.Length - 1)
-                {
-                    Type currentType = types[i];
-                    if (currentType == typeof(Random) || currentType == typeof(NormalRandom))
-                        args.Add(currentType.New());
-                    else if (currentType == typeof(One))
+                if (++i == types.Length - 1 && types[i] is Type t)
+                    if (t == typeof(Random) || t == typeof(NormalRandom))
+                        args.Add(t.New());
+                    else if (t == typeof(One))
                         args.Add(Expression.Constant(1d));
                     else
                         throw Error($"Invalid number of arguments");
-                }
                 break;
             }
         }
@@ -1086,16 +1083,13 @@ internal sealed partial class Parser
                 uint lambdaType = kind == Token.LPar ? MethodData.Mλ2 : MethodData.Mλ1;
                 for (int j = TrailingZeroCount((uint)mask), m = 1 << j;
                     j < info.Methods.Length; j++, m <<= 1)
-                    if ((mask & m) != 0)
-                    {
-                        MethodData md = info.Methods[j];
+                    if ((mask & m) != 0 && info.Methods[j] is MethodData md)
                         if (md.GetMask(i) != lambdaType)
                             mask &= ~m;
                         else if (lambda == null)
                             lambda = md.Args[i];
                         else if (md.Args[i] != lambda)
                             throw Error("Inconsistent lambda types");
-                    }
                 if (lambda == null)
                     throw Error("Invalid number of arguments in lambda function");
                 args.Add(ParseLambda(lambda));
@@ -1160,10 +1154,10 @@ internal sealed partial class Parser
         }
         // Get selected method overload and check conversions.
         MethodData mth = info.Methods[Log2((uint)mask)];
-        if (mth.ExpectedArgs < mth.Args.Length)
-            args.Add(mth.Args[^1] is var t && (t == typeof(Random) || t == typeof(NormalRandom))
+        if (mth.ExpectedArgs < mth.Args.Length && mth.Args[^1] is Type t)
+            args.Add(t == typeof(Random) || t == typeof(NormalRandom)
                 ? t.New()
-                : Expression.Constant(mth.Args[^1] == typeof(One) ? 1d : 0d));
+                : Expression.Constant(t == typeof(One) ? 1d : 0d));
         for (int i = 0; i < mth.ExpectedArgs; i++)
         {
             Type expected = mth.Args[i], actual = args[i].Type;
@@ -1174,9 +1168,8 @@ internal sealed partial class Parser
                 else if (expected == typeof(Complex) &&
                     (actual == typeof(int) || actual == typeof(double)))
                     args[i] = Expression.Convert(ToDouble(args[i]), typeof(Complex));
-                else if (expected.IsArray)
+                else if (expected.IsArray && expected.GetElementType() is Type et)
                 {
-                    Type et = expected.GetElementType()!;
                     for (int j = i; j < args.Count; j++)
                         if (args[i].Type is var a && a != et &&
                             (et != typeof(double) || a != typeof(int)))
