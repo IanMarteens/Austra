@@ -177,7 +177,7 @@ internal static class OxyExts
     {
         OxyPlot.Series.LineSeries lineSeries = new()
         {
-            TrackerFormatString = "{0}\n{1}: {2:dd/MM/yyyy}\n{3}: {4:0.####}",
+            TrackerFormatString = "{0}\n{1}: {2:#0}\n{3}: {4:0.####}",
         };
         if (title != "")
             lineSeries.Title = title;

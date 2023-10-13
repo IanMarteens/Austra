@@ -875,7 +875,7 @@ internal sealed partial class Parser
         // Skip method name and left parenthesis.
         SkipFunctor();
         ParameterInfo[] paramInfo = mInfo.GetParameters();
-        List<Expression> args = new(paramInfo.Length);
+        List<Expression> args = Rent(paramInfo.Length);
         for (int i = 0; i < paramInfo.Length; i++, Move())
         {
             args.Add(ParseByType(paramInfo[i].ParameterType));
@@ -898,9 +898,8 @@ internal sealed partial class Parser
             Move();
         }
         Expression e = ParseLightConditional();
-        if (check && e.Type != typeof(int))
-            throw Error("Index must be integer");
-        return e;
+        return check && e.Type != typeof(int)
+            ? throw Error("Index must be integer") : e;
     }
 
     private Expression ParseIndex()
@@ -1028,7 +1027,6 @@ internal sealed partial class Parser
         }
         Expression result = method.GetExpression(args);
         Return(args);
-        // Check and skip right parenthesis.
         CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
         return result;
     }
@@ -1115,17 +1113,15 @@ internal sealed partial class Parser
         {
             for (int j = TrailingZeroCount((uint)mask), m = 1 << j,
                 last = 32 - LeadingZeroCount((uint)mask); j < last; j++, m <<= 1)
-                if ((mask & m) != 0)
-                {
-                    var md = Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(info.Methods), j);
-                    if (md.ExpectedArgs != args.Count)
+                if ((mask & m) != 0 &&
+                    Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(info.Methods), j) is var md
+                    && md.ExpectedArgs != args.Count)
                     {
                         Type? act = args[^1].Type, form = md.Args[^1].GetElementType();
                         if (md.ExpectedArgs != int.MaxValue ||
                             form != act && (form != typeof(double) || act != typeof(int)))
                             mask &= ~m;
                     }
-                }
             for (int bits = PopCount((uint)mask); bits > 1;)
             {
                 int mth1 = TrailingZeroCount((uint)mask);
@@ -1156,8 +1152,7 @@ internal sealed partial class Parser
         MethodData mth = info.Methods[Log2((uint)mask)];
         if (mth.ExpectedArgs < mth.Args.Length && mth.Args[^1] is Type t)
             args.Add(t == typeof(Random) || t == typeof(NormalRandom)
-                ? t.New()
-                : Expression.Constant(t == typeof(One) ? 1d : 0d));
+                ? t.New() : Expression.Constant(t == typeof(One) ? 1d : 0d));
         for (int i = 0; i < mth.ExpectedArgs; i++)
         {
             Type expected = mth.Args[i], actual = args[i].Type;
