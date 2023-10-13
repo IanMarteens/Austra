@@ -1106,13 +1106,10 @@ internal sealed partial class Parser
                 args.Add(last);
                 for (int j = TrailingZeroCount((uint)mask), m = 1 << j;
                     j < info.Methods.Length; j++, m <<= 1)
-                    if ((mask & m) != 0)
-                    {
-                        MethodData md = info.Methods[j];
+                    if ((mask & m) != 0 && info.Methods[j] is MethodData md)
                         if (md.ExpectedArgs < i || md.GetMask(i) >= MethodData.Mλ1 ||
                             !CanConvert(last.Type, md.Args[Math.Min(i, md.Args.Length - 1)]))
                             mask &= ~m;
-                    }
                 if (mask == 0)
                     throw Error("Invalid argument type");
             }
