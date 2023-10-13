@@ -875,61 +875,18 @@ internal sealed partial class Parser
         // Skip method name and left parenthesis.
         SkipFunctor();
         ParameterInfo[] paramInfo = mInfo.GetParameters();
-        Type firstParam = paramInfo[0].ParameterType;
-        if (paramInfo.Length == 2 &&
-            paramInfo[1].ParameterType.IsAssignableTo(typeof(Delegate)))
+        List<Expression> args = new(paramInfo.Length);
+        for (int i = 0; i < paramInfo.Length; i++, Move())
         {
-            // This is a zip or reduce method call.
-            Expression e1 = ParseConditional();
-            if (e1.Type != firstParam)
-                e1 = firstParam == typeof(double) && e1.Type == typeof(int)
-                    ? ToDouble(e1)
-                    : firstParam == typeof(Complex) && IsArithmetic(e1)
-                    ? Expression.Convert(ToDouble(e1), typeof(Complex))
-                    : throw Error($"{firstParam.Name} expected");
-            CheckAndMove(Token.Comma, "Comma expected");
-            return Expression.Call(e, mInfo, e1, ParseLambda(paramInfo[1].ParameterType, true));
+            args.Add(ParseByType(paramInfo[i].ParameterType));
+            if (kind != Token.Comma)
+                break;
         }
-        if (firstParam.IsAssignableTo(typeof(Delegate)))
-            return Expression.Call(e, mInfo, ParseLambda(firstParam, true));
-        if (firstParam == typeof(Index))
-        {
-            Expression e1 = ParseIndex();
-            CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-            return Expression.Call(e, mInfo, e1);
-        }
-        (List<Expression> a, List<int> p) = CollectArguments();
-        Expression result;
-        if (firstParam == typeof(Series[]) || firstParam == typeof(Vector[]))
-            result = a.Any(a => a.Type != e.Type)
-                ? throw Error(e.Type == typeof(Series) ?
-                    "Series list expected" : "Vector list expected")
-                : Expression.Call(e, mInfo, e.Type.Make(a));
-        else
-        {
-            if (a.Count != paramInfo.Length)
-                throw Error("Invalid number of arguments");
-            if (a[0].Type != firstParam)
-                if (firstParam == typeof(Series<Date>))
-                {
-                    if (a[0].Type != typeof(Series))
-                        throw Error("Series expected", p[0]);
-                }
-                else
-                    a[0] = firstParam == typeof(Date)
-                        ? throw Error("Date expression expected", p[0])
-                        : firstParam == typeof(int)
-                        ? throw Error("Integer expression expected", p[0])
-                        : firstParam == typeof(Complex)
-                            ? IsArithmetic(a[0])
-                                ? Expression.Convert(a[0], typeof(Complex))
-                                : throw Error("Complex expression expected", p[0])
-                            : IsArithmetic(a[0])
-                                ? ToDouble(a[0])
-                                : throw Error("Real expression expected", p[0]);
-            result = Expression.Call(e, mInfo, a[0]);
-        }
-        Return(a);
+        if (args.Count != paramInfo.Length)
+            throw Error("Invalid number of arguments");
+        CheckAndMove(Token.RPar, "Right parenthesis expected");
+        Expression result = Expression.Call(e, mInfo, args);
+        Return(args);
         return result;
     }
 
@@ -952,7 +909,7 @@ internal sealed partial class Parser
         return Expression.New(IndexCtor, ParseIndex(ref fromEnd), Expression.Constant(fromEnd));
     }
 
-    private Expression ParseLambda(Type funcType, bool isLast = false)
+    private Expression ParseLambda(Type funcType)
     {
         Type[] genTypes = funcType.GenericTypeArguments;
         Type t1 = genTypes[0], retType = genTypes[^1];
@@ -990,8 +947,6 @@ internal sealed partial class Parser
                     : retType == typeof(double) && body.Type == typeof(int)
                     ? ToDouble(body)
                     : throw Error($"Expected return type is {retType.Name}");
-            if (isLast)
-                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
             Expression result = lambdaParameter2 != null
                 ? Expression.Lambda(body, lambdaParameter, lambdaParameter2)
                 : Expression.Lambda(body, lambdaParameter);
@@ -1027,7 +982,17 @@ internal sealed partial class Parser
             return inf.Methods.Length == 1
                 ? ParseClassSingleMethod(inf.Methods[0])
                 : ParseClassMultiMethod(inf);
-        (List<Expression> a, List<int> p) = CollectArguments();
+        (List<Expression> a, List<int> p) = (Rent(), new());
+        for (; ; Move())
+        {
+            a.Add(ParseConditional());
+            p.Add(start);
+            if (kind != Token.Comma)
+            {
+                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+                break;
+            }
+        }
         Expression result;
         if (function == "iff")
         {
@@ -1047,21 +1012,6 @@ internal sealed partial class Parser
         return result;
     }
 
-    private (List<Expression>, List<int>) CollectArguments()
-    {
-        for ((List<Expression> arguments, List<int> positions) = (Rent(), new()); ; Move())
-        {
-            arguments.Add(ParseConditional());
-            positions.Add(start);
-            if (kind != Token.Comma)
-            {
-                // Check and skip right parenthesis.
-                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-                return (arguments, positions);
-            }
-        }
-    }
-
     private Expression ParseClassMethod(string className, string methodName)
     {
         SkipFunctor();
@@ -1075,51 +1025,15 @@ internal sealed partial class Parser
     private Expression ParseClassSingleMethod(in MethodData method)
     {
         Type[] types = method.Args;
-        Type delType = typeof(Delegate), idxType = typeof(Index);
-        Type dType = typeof(double), iType = typeof(int);
         List<Expression> args = Rent(types.Length);
         for (int i = 0; i < types.Length; i++, Move())
         {
-            Type currentType = types[i];
-            if (currentType.IsAssignableTo(delType))
-                args.Add(ParseLambda(currentType));
-            else if (currentType == idxType)
-                args.Add(ParseIndex());
-            else if (currentType.IsArray)
-            {
-                Type subType = currentType.GetElementType()!;
-                for (List<Expression> items = Rent(); ; Move())
-                {
-                    Expression e = ParseLightConditional();
-                    if (e.Type != subType)
-                        throw Error($"Expected {subType.Name}");
-                    items.Add(e);
-                    if (kind != Token.Comma)
-                    {
-                        args.Add(subType.Make(items));
-                        Return(items);
-                        break;
-                    }
-                }
-                break;
-            }
-            else
-            {
-                Expression e = ParseLightConditional();
-                if (e.Type == currentType)
-                    args.Add(e);
-                else if (currentType == dType && e.Type == iType)
-                    args.Add(ToDouble(e));
-                else if (currentType == typeof(Complex) && IsArithmetic(e))
-                    args.Add(Expression.Convert(ToDouble(e), typeof(Complex)));
-                else
-                    throw Error($"Expected {currentType.Name}");
-            }
+            args.Add(ParseByType(types[i]));
             if (kind != Token.Comma)
             {
                 if (++i == types.Length - 1)
                 {
-                    currentType = types[i];
+                    Type currentType = types[i];
                     if (currentType == typeof(Random) || currentType == typeof(NormalRandom))
                         args.Add(currentType.New());
                     else if (currentType == typeof(One))
@@ -1135,6 +1049,37 @@ internal sealed partial class Parser
         // Check and skip right parenthesis.
         CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
         return result;
+    }
+
+    private Expression ParseByType(Type expected)
+    {
+        if (expected.IsAssignableTo(typeof(Delegate)))
+            return ParseLambda(expected);
+        if (expected == typeof(Index))
+            return ParseIndex();
+        if (expected.IsArray && expected.GetElementType() is Type subType)
+            for (List<Expression> items = Rent(); ; Move())
+            {
+                Expression it = ParseLightConditional();
+                if (it.Type != subType)
+                    throw Error($"Expected {subType.Name}");
+                items.Add(it);
+                if (kind != Token.Comma)
+                {
+                    Expression result = subType.Make(items);
+                    Return(items);
+                    return result;
+                }
+            }
+        Expression e = ParseLightConditional();
+        return e.Type == expected ||
+            expected == typeof(Series<Date>) && e.Type == typeof(Series)
+            ? e
+            : expected == typeof(double) && e.Type == typeof(int)
+            ? ToDouble(e)
+            : expected == typeof(Complex) && IsArithmetic(e)
+            ? (Expression)Expression.Convert(ToDouble(e), typeof(Complex))
+            : throw Error($"Expected {expected.Name}");
     }
 
     private Expression ParseClassMultiMethod(in MethodList info)
