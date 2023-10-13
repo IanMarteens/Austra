@@ -63,7 +63,7 @@ public partial class MainWindow : Window
         if (Properties.Settings.Default.Autoload)
         {
             string file = Properties.Settings.Default.AutoloadFile;
-            if ( string.IsNullOrWhiteSpace(file))
+            if (string.IsNullOrWhiteSpace(file))
                 file = @"Austra\data.austra";
             if (!File.Exists(file))
             {
@@ -108,7 +108,12 @@ public partial class MainWindow : Window
                     // Avoid inserting the same text twice!
                     if (completionWindow.CompletionList.SelectedItem?.Text.EndsWith(e.Text) == true)
                         e.Handled = true;
-                    completionWindow.CompletionList.RequestInsertion(e);
+                    string prefix = avalon.Document.GetText(
+                        completionWindow.StartOffset, avalon.CaretOffset - completionWindow.StartOffset);
+                    if (prefix.All(c => char.IsDigit(c) || c == '.'))
+                        completionWindow.Close();
+                    else
+                        completionWindow.CompletionList.RequestInsertion(e);
                 }
             }
             else if (char.IsLetter(e.Text[0]))
