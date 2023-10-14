@@ -142,8 +142,8 @@ internal sealed partial class Parser
     /// <returns>A block expression.</returns>
     private Expression ParseFormula(bool forceCast)
     {
-        List<ParameterExpression> locals = new();
-        List<Expression> expressions = new();
+        List<ParameterExpression> locals = new(8);
+        List<Expression> expressions = new(8);
         if (kind == Token.Let)
         {
             do
@@ -181,9 +181,9 @@ internal sealed partial class Parser
     private Expression ParseConditional()
     {
         if (kind != Token.If)
-            return ParseDisjunction();
+            return ParseDisjunctionConjunction();
         Move();
-        Expression c = ParseDisjunction();
+        Expression c = ParseDisjunctionConjunction();
         if (c.Type != typeof(bool))
             throw Error("Condition must be boolean");
         CheckAndMove(Token.Then, "THEN expected");
@@ -197,13 +197,12 @@ internal sealed partial class Parser
 
     /// <summary>Compiles a ternary conditional expression not returning a boolean.</summary>
     private Expression ParseLightConditional() =>
-        kind == Token.If ? ParseConditional() : ParseAdditive();
+        kind == Token.If ? ParseConditional() : ParseAdditiveMultiplicative();
 
     /// <summary>Compiles an OR/AND expression.</summary>
-    private Expression ParseDisjunction()
+    private Expression ParseDisjunctionConjunction()
     {
-        Expression? e1 = null;
-        for (; ; Move())
+        for (Expression? e1 = null; ; Move())
         {
             int orLex = start;
             Expression e2 = ParseLogicalFactor();
@@ -222,9 +221,8 @@ internal sealed partial class Parser
                 ? throw Error("OR operands must be boolean", orLex)
                 : Expression.OrElse(e1, e2);
             if (kind != Token.Or)
-                break;
+                return e1;
         }
-        return e1;
     }
 
     /// <summary>Compiles a [NOT] comparison expression.</summary>
@@ -239,7 +237,7 @@ internal sealed partial class Parser
                 ? throw Error("NOT operand must be boolean", notLex)
                 : Expression.Not(e);
         }
-        Expression e1 = ParseAdditive();
+        Expression e1 = ParseAdditiveMultiplicative();
         (Token opKind, int pos) = (kind, start);
         switch (opKind)
         {
@@ -247,7 +245,7 @@ internal sealed partial class Parser
             case Token.Ne:
                 {
                     Move();
-                    Expression e2 = ParseAdditive();
+                    Expression e2 = ParseAdditiveMultiplicative();
                     return DifferentTypes(ref e1, ref e2) && !(IsMatrix(e1) && IsMatrix(e2))
                         ? throw Error("Equality operands are not compatible", pos)
                         : opKind == Token.Eq ? Expression.Equal(e1, e2)
@@ -260,7 +258,7 @@ internal sealed partial class Parser
             case Token.Ge:
                 {
                     Move();
-                    Expression e2 = ParseAdditive();
+                    Expression e2 = ParseAdditiveMultiplicative();
                     if (e1.Type != e2.Type)
                     {
                         if (!IsArithmetic(e1) || !IsArithmetic(e2))
@@ -278,7 +276,7 @@ internal sealed partial class Parser
                                 (op2 == Token.Gt || op2 == Token.Ge))
                             {
                                 Move();
-                                Expression e3 = ParseAdditive();
+                                Expression e3 = ParseAdditiveMultiplicative();
                                 if (!IsArithmetic(e3))
                                     throw Error("Upper bound must be numeric");
                                 if (e3.Type != e2.Type)
@@ -310,15 +308,72 @@ internal sealed partial class Parser
         }
     }
 
-    private Expression ParseAdditive()
+    private Expression ParseAdditiveMultiplicative()
     {
-        Expression e1 = ParseMultiplicative();
-        while ((uint)(kind - Token.Plus) <= (Token.Minus - Token.Plus))
+        for (Expression? e1 = null; ; Move())
         {
-            (Token opLex, int opPos) = (kind, start);
-            Move();
-            Expression e2 = ParseMultiplicative();
-            if (opLex == Token.Plus && e1.Type == typeof(string))
+            (Token opAdd, int opAPos) = (kind, start);
+            Expression e2 = ParseUnary();
+            while ((uint)(kind - Token.Times) <= (Token.Mod - Token.Times))
+            {
+                (Token opMul, int opMPos) = (kind, start);
+                Move();
+                Expression e3 = ParseUnary();
+                if (opMul == Token.Backslash)
+                    e2 = e2.Type != typeof(Matrix)
+                        ? throw Error("First operand must be a matrix", opMPos)
+                        : e3.Type != typeof(Vector) && e3.Type != typeof(Matrix)
+                        ? throw Error("Second operand must be a vector or a matrix", opMPos)
+                        : typeof(Matrix).Call(e2, nameof(Matrix.Solve), e3);
+                else if (opMul == Token.PointTimes || opMul == Token.PointDiv)
+                    e2 = e2.Type == e3.Type && e2.Type.IsAssignableTo(
+                            typeof(IPointwiseOperators<>).MakeGenericType(e2.Type))
+                        ? e2.Type.Call(e2, opMul == Token.PointTimes
+                            ? nameof(Vector.PointwiseMultiply) : nameof(Vector.PointwiseDivide),
+                            e3)
+                        : throw Error("Invalid operator", opMPos);
+                else
+                {
+                    if (e2.Type != e3.Type)
+                        (e2, e3) = (ToDouble(e2), ToDouble(e3));
+                    try
+                    {
+                        // Try to optimize matrix transpose multiplying a vector.
+                        e2 = opMul == Token.Times && e2.Type == typeof(Matrix)
+                            ? (e3.Type == typeof(Vector) && e2 is MethodCallExpression
+                            { Method.Name: nameof(Matrix.Transpose) } mca
+                                ? typeof(Matrix).Call(mca.Object, nameof(Matrix.TransposeMultiply), e3)
+                                : e3.Type == typeof(Matrix) && e3 is MethodCallExpression
+                                { Method.Name: nameof(Matrix.Transpose) } mcb
+                                ? typeof(Matrix).Call(e2, nameof(Matrix.MultiplyTranspose), mcb.Object!)
+                                : e2 == e3
+                                ? Expression.Call(e2, typeof(Matrix).Get(nameof(Matrix.Square)))
+                                : Expression.Multiply(e2, e3))
+                            : e2 is ConstantExpression c1 && c1.Value is double d1 &&
+                                e3 is ConstantExpression c2 && c2.Value is double d2
+                            ? Expression.Constant(opMul switch
+                            {
+                                Token.Times => d1 * d2,
+                                Token.Div => d1 / d2,
+                                _ => d1 % d2
+                            })
+                            : opMul == Token.Times
+                            ? (e2 == e3 && e2.Type == typeof(Vector)
+                                ? Expression.Call(e2, typeof(Vector).Get(nameof(Vector.Squared)))
+                                : Expression.Multiply(e2, e3))
+                            : opMul == Token.Div
+                            ? Expression.Divide(e2, e3)
+                            : Expression.Modulo(e2, e3);
+                    }
+                    catch
+                    {
+                        throw Error($"Operator not supported for these types", opMPos);
+                    }
+                }
+            }
+            if (e1 is null)
+                e1 = e2;
+            else if (opAdd == Token.Plus && e1.Type == typeof(string))
             {
                 if (e2.Type != typeof(string))
                     e2 = Expression.Call(e2,
@@ -334,7 +389,7 @@ internal sealed partial class Parser
                 {
                     if (e1.Type == typeof(Vector) && e2.Type == typeof(Vector))
                     {
-                        string method = opLex == Token.Plus
+                        string method = opAdd == Token.Plus
                             ? nameof(Vector.MultiplyAdd)
                             : nameof(Vector.MultiplySubtract);
                         if (e1 is BinaryExpression { NodeType: ExpressionType.Multiply } be1)
@@ -347,7 +402,7 @@ internal sealed partial class Parser
                                         new[] { typeof(double), typeof(double),
                                                 typeof(Vector), typeof(Vector)})!,
                                     be1.Left,
-                                    opLex == Token.Plus ? be2.Left : Expression.Negate(be2.Left),
+                                    opAdd == Token.Plus ? be2.Left : Expression.Negate(be2.Left),
                                     be1.Right, be2.Right);
                             else
                                 e1 = be1.Right.Type == typeof(double)
@@ -362,11 +417,11 @@ internal sealed partial class Parser
                                     ? Expression.Call(be1.Left,
                                         typeof(Matrix).GetMethod(method,
                                         new[] { typeof(Vector), typeof(Vector) })!, be1.Right, e2)
-                                    : opLex == Token.Plus
+                                    : opAdd == Token.Plus
                                     ? Expression.Add(e1, e2)
                                     : Expression.Subtract(e1, e2);
                         }
-                        else if (opLex == Token.Plus &&
+                        else if (opAdd == Token.Plus &&
                             e2 is BinaryExpression { NodeType: ExpressionType.Multiply } be2)
                         {
                             e1 = be2.Right.Type == typeof(double)
@@ -384,87 +439,25 @@ internal sealed partial class Parser
                                 : Expression.Add(e1, e2);
                         }
                         else
-                            e1 = opLex == Token.Plus
+                            e1 = opAdd == Token.Plus
                                 ? Expression.Add(e1, e2) : Expression.Subtract(e1, e2);
                     }
                     else
                         e1 = e1 is ConstantExpression c1 && c1.Value is double d1 &&
                                 e2 is ConstantExpression c2 && c2.Value is double d2
-                            ? Expression.Constant(opLex == Token.Plus ? d1 + d2 : d1 - d2)
-                            : opLex == Token.Plus
+                            ? Expression.Constant(opAdd == Token.Plus ? d1 + d2 : d1 - d2)
+                            : opAdd == Token.Plus
                             ? Expression.Add(e1, e2)
                             : Expression.Subtract(e1, e2);
                 }
                 catch
                 {
-                    throw Error($"Operator not supported for these types", opPos);
+                    throw Error($"Operator not supported for these types", opAPos);
                 }
             }
+            if ((uint)(kind - Token.Plus) > (Token.Minus - Token.Plus))
+                return e1;
         }
-        return e1;
-    }
-
-    private Expression ParseMultiplicative()
-    {
-        Expression e1 = ParseUnary();
-        while ((uint)(kind - Token.Times) <= (Token.Mod - Token.Times))
-        {
-            (Token opLex, int opPos) = (kind, start);
-            Move();
-            Expression e2 = ParseUnary();
-            if (opLex == Token.Backslash)
-                e1 = e1.Type != typeof(Matrix)
-                    ? throw Error("First operand must be a matrix", opPos)
-                    : e2.Type != typeof(Vector) && e2.Type != typeof(Matrix)
-                    ? throw Error("Second operand must be a vector or a matrix", opPos)
-                    : typeof(Matrix).Call(e1, nameof(Matrix.Solve), e2);
-            else if (opLex == Token.PointTimes || opLex == Token.PointDiv)
-                e1 = e1.Type == e2.Type && e1.Type.IsAssignableTo(
-                        typeof(IPointwiseOperators<>).MakeGenericType(e1.Type))
-                    ? e1.Type.Call(e1, opLex == Token.PointTimes
-                        ? nameof(Vector.PointwiseMultiply) : nameof(Vector.PointwiseDivide),
-                        e2)
-                    : throw Error("Invalid operator", opPos);
-            else
-            {
-                if (e1.Type != e2.Type)
-                    (e1, e2) = (ToDouble(e1), ToDouble(e2));
-                try
-                {
-                    // Try to optimize matrix transpose multiplying a vector.
-                    e1 = opLex == Token.Times && e1.Type == typeof(Matrix)
-                        ? (e2.Type == typeof(Vector) && e1 is MethodCallExpression
-                        { Method.Name: nameof(Matrix.Transpose) } mca
-                            ? typeof(Matrix).Call(mca.Object, nameof(Matrix.TransposeMultiply), e2)
-                            : e2.Type == typeof(Matrix) && e2 is MethodCallExpression
-                            { Method.Name: nameof(Matrix.Transpose) } mcb
-                            ? typeof(Matrix).Call(e1, nameof(Matrix.MultiplyTranspose), mcb.Object!)
-                            : e1 == e2
-                            ? Expression.Call(e1, typeof(Matrix).Get(nameof(Matrix.Square)))
-                            : Expression.Multiply(e1, e2))
-                        : e1 is ConstantExpression c1 && c1.Value is double d1 &&
-                            e2 is ConstantExpression c2 && c2.Value is double d2
-                        ? Expression.Constant(opLex switch
-                        {
-                            Token.Times => d1 * d2,
-                            Token.Div => d1 / d2,
-                            _ => d1 % d2
-                        })
-                        : opLex == Token.Times
-                        ? (e1 == e2 && e1.Type == typeof(Vector)
-                            ? Expression.Call(e1, typeof(Vector).Get(nameof(Vector.Squared)))
-                            : Expression.Multiply(e1, e2))
-                        : opLex == Token.Div
-                        ? Expression.Divide(e1, e2)
-                        : Expression.Modulo(e1, e2);
-                }
-                catch
-                {
-                    throw Error($"Operator not supported for these types", opPos);
-                }
-            }
-        }
-        return e1;
     }
 
     private Expression ParseUnary()
@@ -1038,7 +1031,7 @@ internal sealed partial class Parser
         if (expected == typeof(Index))
             return ParseIndex();
         if (expected.IsArray && expected.GetElementType() is Type subType)
-            for (List<Expression> items = Rent(); ; Move())
+            for (List<Expression> items = Rent(16); ; Move())
             {
                 Expression it = ParseLightConditional();
                 if (it.Type != subType)
@@ -1064,8 +1057,8 @@ internal sealed partial class Parser
 
     private Expression ParseClassMultiMethod(in MethodList info)
     {
-        List<Expression> args = Rent();
-        List<int> starts = new();
+        List<Expression> args = Rent(16);
+        List<int> starts = new(16);
         // All overloads are alive at start.
         int mask = (0x1 << info.Methods.Length) - 1;
         // Create the initial list of actual arguments.
@@ -1194,7 +1187,7 @@ internal sealed partial class Parser
     private Expression ParseVectorLiteral()
     {
         Move();
-        List<Expression> items = Rent();
+        List<Expression> items = Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
         for (; ; )
         {

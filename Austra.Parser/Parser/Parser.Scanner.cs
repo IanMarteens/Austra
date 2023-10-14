@@ -51,7 +51,7 @@ internal sealed partial class Parser
     private bool parsingLambdaHeader;
 
     /// <summary>An expression list pool.</summary>
-    private readonly Stack<List<Expression>> listPool = new();
+    private readonly Stack<List<Expression>> listPool = new(4);
     /// <summary>Memoized expressions.</summary>
     private readonly Dictionary<string, Expression> memos = new();
     /// <summary>Used by the scanner to build string literals.</summary>
@@ -473,10 +473,10 @@ internal sealed partial class Parser
             : throw new AstException("Invalid day of month", position);
     }
 
-    private List<Expression> Rent(int length = 0)
+    private List<Expression> Rent(int length)
     {
         if (listPool.Count == 0)
-            return length == 0 ? new() : new(length);
+            return new(length);
         List<Expression> list = listPool.Pop();
         list.Clear();
         return list;
