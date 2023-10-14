@@ -34,6 +34,10 @@ internal sealed partial class Parser
     private readonly string text;
     /// <summary>Referenced definitions.</summary>
     private readonly HashSet<Definition> references = new();
+    /// <summary>All top-level locals, from LET clauses.</summary>
+    private readonly List<ParameterExpression> topLocals = new(8);
+    /// <summary>Top-level local asignment expressions.</summary>
+    private readonly List<Expression> topExpressions = new(8);
     /// <summary>Transient local variable definitions.</summary>
     private readonly Dictionary<string, ParameterExpression> locals =
         new(StringComparer.OrdinalIgnoreCase);

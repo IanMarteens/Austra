@@ -134,8 +134,6 @@ internal sealed partial class Parser
     /// <returns>A block expression.</returns>
     private Expression ParseFormula(bool forceCast)
     {
-        List<ParameterExpression> locals = new(8);
-        List<Expression> expressions = new(8);
         if (kind == Token.Let)
         {
             do
@@ -148,9 +146,9 @@ internal sealed partial class Parser
                 CheckAndMove(Token.Eq, "= expected");
                 Expression init = ParseConditional();
                 ParameterExpression le = Expression.Variable(init.Type, localId);
-                locals.Add(le);
-                expressions.Add(Expression.Assign(le, init));
-                this.locals[localId] = le;
+                topLocals.Add(le);
+                topExpressions.Add(Expression.Assign(le, init));
+                locals[localId] = le;
             }
             while (kind == Token.Comma);
             CheckAndMove(Token.In, "IN expected");
@@ -160,12 +158,12 @@ internal sealed partial class Parser
             rvalue = Expression.Convert(rvalue, typeof(object));
         if (LeftValue != "")
             rvalue = source.SetExpression(LeftValue, rvalue);
-        expressions.Add(rvalue);
+        topExpressions.Add(rvalue);
         return kind != Token.Eof
             ? throw Error("Extra input after expression")
-            : locals.Count == 0 && expressions.Count == 1
-            ? expressions[0]
-            : Expression.Block(locals, expressions);
+            : topLocals.Count == 0 && topExpressions.Count == 1
+            ? topExpressions[0]
+            : Expression.Block(topLocals, topExpressions);
     }
 
     /// <summary>Compiles a ternary conditional expression.</summary>
@@ -490,18 +488,27 @@ internal sealed partial class Parser
             if (e1 is ConstantExpression ce && ce.Value is int power)
                 if (power == 2)
                 {
-                    e = Expression.Multiply(e, e);
+                    ParameterExpression p = Expression.Parameter(e.Type);
+                    e = Expression.Block(new[] { p },
+                        Expression.Assign(p, e),
+                        Expression.Multiply(p, p));
                     return true;
                 }
                 else if (power == 3)
                 {
-                    e = Expression.Multiply(Expression.Multiply(e, e), e);
+                    ParameterExpression p = Expression.Parameter(e.Type);
+                    e = Expression.Block(new[] { p },
+                        Expression.Assign(p, e),
+                        Expression.Multiply(Expression.Multiply(p, p), p));
                     return true;
                 }
                 else if (power == 4)
                 {
-                    e = Expression.Multiply(e, e);
-                    e = Expression.Multiply(e, e);
+                    ParameterExpression p = Expression.Parameter(e.Type);
+                    e = Expression.Block(new[] { p },
+                        Expression.Assign(p, e),
+                        Expression.Assign(p, Expression.Multiply(p, p)),
+                        Expression.Multiply(p, p));
                     return true;
                 }
             return false;
@@ -1273,7 +1280,14 @@ internal sealed partial class Parser
         {
             if (isParsingDefinition)
                 references.Add(def);
-            return def.Expression;
+            string ident1 = "$" + def.Name;
+            if (!locals.TryGetValue(ident1, out local))
+            {
+                locals.Add(ident1, local = Expression.Parameter(def.Type, ident));
+                topLocals.Add(local);
+                topExpressions.Add(Expression.Assign(local, def.Expression));
+            }
+            return local;
         }
         // Check the global scope.
         Expression? e = source.GetExpression(ident, isParsingDefinition) ?? ParseGlobals(ident);
