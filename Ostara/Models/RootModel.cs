@@ -56,7 +56,7 @@ public sealed partial class RootModel : Entity
         HistoryDownCommand = new(ExecHistoryDown, GetHasEnvironment);
         EvaluateCommand = new(_ => Evaluate(Editor.Text), GetHasEnvironment);
         CheckTypeCommand = new(_ => CheckType(Editor.Text), GetHasEnvironment);
-        ClearCommand = new (_ => MainSection?.Blocks.Clear(), GetHasEnvironment);
+        ClearCommand = new(_ => MainSection?.Blocks.Clear(), GetHasEnvironment);
     }
 
     public DelegateCommand CloseAllCommand { get; }
@@ -395,7 +395,7 @@ public sealed partial class RootModel : Entity
         try
         {
             Type result = environment!.Engine.EvalType(text);
-            ShowTimesMessage(true, false);
+            ShowTimesMessage();
             AppendResult(CleanFormula(text),
                 result == typeof(Series<double>) ? "Series<double>" :
                 result == typeof(Series<int>) ? "Series<int>" :
@@ -424,7 +424,7 @@ public sealed partial class RootModel : Entity
         try
         {
             var (ans, ansType, ansVar) = environment!.Engine.Eval(text);
-            ShowTimesMessage(true, true);
+            ShowTimesMessage();
 
             if (ans is Definition def)
             {
@@ -636,18 +636,21 @@ public sealed partial class RootModel : Entity
     }
 
     /// <summary>Shows the compiling and execution time in the status bar.</summary>
-    /// <param name="showComp">Must we show the compiling time?</param>
-    /// <param name="showExec">Must we show the execution time?</param>
-    private void ShowTimesMessage(bool showComp, bool showExec)
+    private void ShowTimesMessage()
     {
         string msg = "";
+        IAustraEngine engine = Environment!.Engine;
         Properties.Settings props = Properties.Settings.Default;
-        if (showComp && props.ShowCompileTime && Environment!.Engine.CompileTime is not null)
-            msg = "Compile: " +
-                Environment.Engine.FormatTime(Environment.Engine.CompileTime.Value);
-        if (showExec && props.ShowExecutionTime && Environment!.Engine.ExecutionTime is not null)
+        if (props.ShowCompileTime)
+            if (engine.CompileTime is not null)
+                if (engine.GenerationTime is not null)
+                    msg = "Compile: " + engine.FormatTime(engine.CompileTime.Value) + 
+                        ", code generation: " + engine.FormatTime(engine.GenerationTime.Value);
+                else
+                    msg = "Compile: " + engine.FormatTime(engine.CompileTime.Value);
+        if (props.ShowExecutionTime && engine.ExecutionTime is not null)
             msg += (msg.Length > 0 ? ", execution: " : "Execution: ") +
-                Environment!.Engine.FormatTime(Environment.Engine.ExecutionTime.Value);
+                engine.FormatTime(engine.ExecutionTime.Value);
         if (msg != "")
             Message = msg;
     }

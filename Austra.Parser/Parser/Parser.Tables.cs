@@ -29,6 +29,10 @@ internal sealed partial class Parser
     private static readonly ConstantExpression FalseExpr = Expression.Constant(false);
     /// <summary>The <see cref="Expression"/> for <see langword="true"/>.</summary>
     private static readonly ConstantExpression TrueExpr = Expression.Constant(true);
+    /// <summary>The <see cref="Expression"/> for <see cref="Complex.ImaginaryOne"/>.</summary>
+    private static readonly ConstantExpression ImExpr = Expression.Constant(Complex.ImaginaryOne);
+    /// <summary>The <see cref="Expression"/> for <see cref="Math.PI"/>.</summary>
+    private static readonly ConstantExpression PiExpr = Expression.Constant(Math.PI);
     /// <summary>Method for multiplying by a transposed matrix.</summary>
     private static readonly MethodInfo MatrixMultiplyTranspose =
         typeof(Matrix).Get(nameof(Matrix.MultiplyTranspose));

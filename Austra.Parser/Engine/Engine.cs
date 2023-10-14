@@ -90,6 +90,8 @@ public interface IAustraEngine
 
     /// <summary>Gets the execution time, in nanoseconds, of the last evaluation.</summary>
     double? ExecutionTime { get; }
+    /// <summary>Gets the code generation time, in nanoseconds, of the last evaluation.</summary>
+    double? GenerationTime { get; }
     /// <summary>Gets the compiling time, in nanoseconds, of the last evaluation.</summary>
     double? CompileTime { get; }
 
@@ -186,7 +188,7 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>The result of the evaluation.</returns>
     public AustraAnswer Eval(string formula)
     {
-        ExecutionTime = CompileTime = null;
+        ExecutionTime = GenerationTime = CompileTime = null;
         if (DefineRegex().IsMatch(formula))
         {
             Definition def = ParseDefinition(formula, "");
@@ -207,9 +209,14 @@ public partial class AustraEngine : IAustraEngine
 
         Parser parser = new(Source, formula);
         Stopwatch sw = Stopwatch.StartNew();
-        Func<IDataSource, object> lambda = parser.Parse();
+        Expression<Func<IDataSource, object>> expression =
+            Source.CreateLambda(parser.ParseStatement());
         sw.Stop();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
+        sw.Restart();
+        Func<IDataSource, object> lambda = expression.Compile();
+        sw.Stop();
+        GenerationTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         sw.Restart();
         object answer = lambda(Source);
         sw.Stop();
@@ -229,7 +236,7 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>The type resulting from the evaluation.</returns>
     public Type EvalType(string formula)
     {
-        ExecutionTime = CompileTime = null;
+        ExecutionTime = GenerationTime = CompileTime = null;
         Stopwatch sw = Stopwatch.StartNew();
         Type result = new Parser(Source, formula).ParseType();
         sw.Stop();
@@ -324,6 +331,9 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Gets the execution time, in nanoseconds, of the last evaluation.</summary>
     public double? ExecutionTime { get; private set; }
+
+    /// <summary>Gets the code generation time, in nanoseconds, of the last evaluation.</summary>
+    public double? GenerationTime { get; private set; }
 
     /// <summary>Gets the compiling time, in nanoseconds, of the last evaluation.</summary>
     public double? CompileTime { get; private set; }

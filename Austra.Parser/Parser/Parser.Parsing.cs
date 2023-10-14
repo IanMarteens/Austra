@@ -5,13 +5,32 @@ namespace Austra.Parser;
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
 {
-    /// <summary>Compiles a block expression as a lambda function.</summary>
-    /// <returns>A lambda method, when successful.</returns>
-    public Func<IDataSource, object> Parse() =>
-        Expression.Lambda<Func<IDataSource, object>>(
-            ParseStatement(), sourceParameter).Compile();
+    /// <summary>Compiles a block expression.</summary>
+    /// <returns>A block expression.</returns>
+    public Expression ParseStatement()
+    {
+        if (kind == Token.Set)
+        {
+            Move();
+            if (kind != Token.Id)
+                throw Error("Left side variable expected");
+            int namePos = start;
+            LeftValue = id;
+            Move();
+            if (kind == Token.Eof)
+            {
+                source[LeftValue] = null;
+                return Expression.Constant(null);
+            }
+            CheckAndMove(Token.Eq, "= expected");
+            // Always allow deleting a session variable.
+            if (source.GetDefinition(LeftValue) != null)
+                throw Error($"{LeftValue} already in use", namePos);
+        }
+        return ParseFormula(true);
+    }
 
-    /// <summary>Parses a block expression without compiling it.</summary>
+    /// <summary>Parses a block expression without generating code.</summary>
     /// <returns>The type of the block expression.</returns>
     public Type ParseType()
     {
@@ -36,9 +55,7 @@ internal sealed partial class Parser
                 return typeof(void);
             CheckAndMove(Token.Eq, "= expected");
         }
-        Expression e = ParseFormula(false);
-        Debug.WriteLine(e.ToString());
-        return e.Type;
+        return ParseFormula(false).Type;
     }
 
     /// <summary>Parse the formula up to a position and return local variables.</summary>
@@ -113,31 +130,6 @@ internal sealed partial class Parser
     }
 
     /// <summary>Compiles a block expression.</summary>
-    /// <returns>A block expression.</returns>
-    private Expression ParseStatement()
-    {
-        if (kind == Token.Set)
-        {
-            Move();
-            if (kind != Token.Id)
-                throw Error("Left side variable expected");
-            int namePos = start;
-            LeftValue = id;
-            Move();
-            if (kind == Token.Eof)
-            {
-                source[LeftValue] = null;
-                return Expression.Constant(null);
-            }
-            CheckAndMove(Token.Eq, "= expected");
-            // Always allow deleting a session variable.
-            if (source.GetDefinition(LeftValue) != null)
-                throw Error($"{LeftValue} already in use", namePos);
-        }
-        return ParseFormula(true);
-    }
-
-    /// <summary>Compiles a block expression.</summary>
     /// <param name="forceCast">Whether to force a cast to object.</param>
     /// <returns>A block expression.</returns>
     private Expression ParseFormula(bool forceCast)
@@ -167,8 +159,7 @@ internal sealed partial class Parser
         if (forceCast)
             rvalue = Expression.Convert(rvalue, typeof(object));
         if (LeftValue != "")
-            rvalue = Expression.Assign(Expression.Property(
-                sourceParameter, "Item", Expression.Constant(LeftValue)), rvalue);
+            rvalue = source.SetExpression(LeftValue, rvalue);
         expressions.Add(rvalue);
         return kind != Token.Eof
             ? throw Error("Extra input after expression")
@@ -1285,23 +1276,7 @@ internal sealed partial class Parser
             return def.Expression;
         }
         // Check the global scope.
-        object? val = isParsingDefinition
-            ? source.GetPersistedValue(ident)
-            : source[ident];
-        if (val != null)
-            return val switch
-            {
-                double dv => Expression.Constant(dv),
-                int iv => Expression.Constant(iv),
-                bool bv => Expression.Constant(bv),
-                string sv => Expression.Constant(sv),
-                _ => memos.TryGetValue(ident, out Expression? memo)
-                    ? memo
-                    : memos[ident] = Expression.Convert(
-                        Expression.Property(sourceParameter, "Item",
-                        Expression.Constant(ident)), val.GetType())
-            };
-        Expression? e = ParseGlobals(ident);
+        Expression? e = source.GetExpression(ident, isParsingDefinition) ?? ParseGlobals(ident);
         if (e != null)
             return e;
         if (TryParseMonthYear(ident, out Date d))
@@ -1313,15 +1288,13 @@ internal sealed partial class Parser
     }
 
     private Expression? ParseGlobals(string ident) =>
-        ident == "π"
-        ? Expression.Constant(Math.PI)
-        : ident == "τ"
-        ? Expression.Constant(Math.Tau)
+        ident == "π" ? PiExpr
+        : ident == "τ" ? Expression.Constant(Math.Tau)
         : ident.ToLower() switch
         {
             "e" => Expression.Constant(Math.E),
-            "i" => Expression.Constant(Complex.ImaginaryOne),
-            "pi" => Expression.Constant(Math.PI),
+            "i" => ImExpr,
+            "pi" => PiExpr,
             "today" => Expression.Constant(Date.Today),
             "pearl" => Expression.Call(typeof(F).Get(nameof(F.Austra))),
             "random" => Expression.Call(typeof(F).GetMethod(nameof(F.Random))!),

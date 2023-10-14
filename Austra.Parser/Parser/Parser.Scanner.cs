@@ -28,10 +28,6 @@ internal sealed class AbortException : ApplicationException
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
 {
-    /// <summary>Gets the parameter referencing the outer scope.</summary>
-    private static readonly ParameterExpression sourceParameter =
-        Expression.Parameter(typeof(IDataSource), "datasource");
-
     /// <summary>Gets the outer scope for variables.</summary>
     private readonly IDataSource source;
     /// <summary>The text being scanned.</summary>
@@ -52,8 +48,6 @@ internal sealed partial class Parser
 
     /// <summary>An expression list pool.</summary>
     private readonly Stack<List<Expression>> listPool = new(4);
-    /// <summary>Memoized expressions.</summary>
-    private readonly Dictionary<string, Expression> memos = new();
     /// <summary>Used by the scanner to build string literals.</summary>
     private StringBuilder? sb;
     /// <summary>Gets the type of the current lexeme.</summary>

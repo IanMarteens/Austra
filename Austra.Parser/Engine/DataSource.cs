@@ -14,8 +14,8 @@ public interface IDataSource
     Series? GetPersistedValue(string name);
 
     /// <summary>Adds a global variable definition.</summary>
-    /// <param name="name"></param>
-    /// <param name="value"></param>
+    /// <param name="name">A name to attach to the series.</param>
+    /// <param name="value">A time series.</param>
     void Add(string name, Series value);
 
     /// <summary>Retrieves the list of persisted series in the global scope.</summary>
@@ -52,11 +52,31 @@ public interface IDataSource
 
     /// <summary>Get a list of definitions that are not fully resolved.</summary>
     IList<Definition> TroubledDefinitions { get; }
+
+    /// <summary>Gets an expression tree for a given identifier.</summary>
+    /// <param name="identifier">The name of a variable.</param>
+    /// <param name="parsingDefinition">Are we parsing a definition.</param>
+    /// <returns>May return a null expression if the identifier is not defined.</returns>
+    Expression? GetExpression(string identifier, bool parsingDefinition);
+
+    /// <summary>Gets an expression tree for a given identifier.</summary>
+    /// <param name="identifier">The name of a variable.</param>
+    /// <param name="value">A new expression for the identifier.</param>
+    /// <returns>An assignment expression.</returns>
+    Expression SetExpression(string identifier, Expression value);
+
+    /// <summary>Creates a lambda expression from a given body.</summary>
+    /// <param name="body">An expression returning an object.</param>
+    /// <returns>The corresponding lambda expression.</returns>
+    Expression<Func<IDataSource, object>> CreateLambda(Expression body);
 }
 
 /// <summary>A simple, synchronous implementation for the global scope.</summary>
 public class DataSource : IDataSource
 {
+    /// <summary>Gets a parameter referencing a <see cref="IDataSource"/>.</summary>
+    private readonly ParameterExpression sourceParameter =
+        Expression.Parameter(typeof(IDataSource), "datasource");
     /// <summary>First scope of session variables.</summary>
     private readonly Dictionary<string, Series> variables;
     /// <summary>Outer scope of session variables.</summary>
@@ -67,6 +87,8 @@ public class DataSource : IDataSource
         new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Topologically-sorted list of definitions.</summary>
     private readonly List<Definition> allDefinitions = new();
+    /// <summary>Memoized expressions.</summary>
+    private readonly Dictionary<string, Expression> memos = new();
     /// <summary>Synchronizes access to definitions.</summary>
     private readonly object defLock = new();
 
@@ -92,24 +114,22 @@ public class DataSource : IDataSource
     public Series? GetPersistedValue(string name) =>
         variables.TryGetValue(name, out Series? result) ? result : null;
 
-    /// <summary>Retrieves a global variable given its name.</summary>
+    /// <summary>Retrieves the value of a global variable given its name.</summary>
     /// <param name="name">A case insensitive identifier.</param>
     /// <returns>The value, when exists, or null, otherwise.</returns>
     public object? this[string name]
     {
-        get
-        {
-            if (variables2.TryGetValue(name, out object? result))
-                return result;
-            variables.TryGetValue(name, out Series? series);
-            return series;
-        }
+        get => variables2.TryGetValue(name, out object? result)
+            ? result
+            : variables.TryGetValue(name, out Series? series)
+            ? series : null;
         set
         {
             if (value == null)
                 variables2.Remove(name);
             else
                 variables2[name] = value;
+            memos.Remove(name);
         }
     }
 
@@ -192,6 +212,7 @@ public class DataSource : IDataSource
             definitions.Clear();
             allDefinitions.Clear();
             TroubledDefinitions.Clear();
+            memos.Clear();
         }
     }
 
@@ -207,21 +228,62 @@ public class DataSource : IDataSource
 
     /// <summary>Retrieves the list of series in the global scope.</summary>
     public IEnumerable<Series> Series =>
-        variables.Values.OfType<Series>().OrderBy(s => s.Name);
+        variables.Values.OrderBy(s => s.Name);
 
     /// <summary>Retrieves the list of transient stored values.</summary>
     public IEnumerable<(string name, Type? type)> Locals =>
         variables2
-            .Select(kp => (kp.Key, kp.Value?.GetType() ?? null))
+            .Select(kp => (kp.Key, kp.Value?.GetType()))
             .OrderBy(t => t.Key);
 
     /// <summary>Gets all variables.</summary>
     public IEnumerable<(string name, Type? type)> Variables =>
         variables.Where(kp => !variables2.ContainsKey(kp.Key))
-            .Select(kp => (kp.Key, kp.Value?.GetType() ?? null))
-            .Concat(variables2.Select(kp => (kp.Key, kp.Value?.GetType() ?? null)))
+            .Select(kp => (kp.Key, kp.Value?.GetType()))
+            .Concat(variables2.Select(kp => (kp.Key, kp.Value?.GetType())))
             .OrderBy(t => t.Key);
 
     /// <summary>A list with non-compilable definitions.</summary>
     public IList<Definition> TroubledDefinitions { get; } = new List<Definition>();
+
+    /// <summary>Gets an expression tree for a given identifier.</summary>
+    /// <param name="identifier">The name of a variable.</param>
+    /// <param name="parsingDefinition">Are we parsing a definition.</param>
+    /// <returns>An expression tree, when the identifier exists.</returns>
+    public Expression? GetExpression(string identifier, bool parsingDefinition)
+    {
+        object? val = parsingDefinition ? GetPersistedValue(identifier) : this[identifier];
+        return val switch
+        {
+            null => null,
+            double dv => Expression.Constant(dv),
+            int iv => Expression.Constant(iv),
+            bool bv => Expression.Constant(bv),
+            string sv => Expression.Constant(sv),
+            _ => memos.TryGetValue(identifier, out Expression? memo)
+                ? memo
+                : identifier.Equals("ans", StringComparison.OrdinalIgnoreCase)
+                // "ans" cannot be memoized because of its dynamic type.
+                ? Expression.Convert(
+                    Expression.Property(sourceParameter, "Item",
+                    Expression.Constant("ans")), val.GetType())
+                : memos[identifier] = Expression.Convert(
+                    Expression.Property(sourceParameter, "Item",
+                    Expression.Constant(identifier)), val.GetType())
+        };
+    }
+
+    /// <summary>Gets an expression tree for a given identifier.</summary>
+    /// <param name="identifier">The name of a variable.</param>
+    /// <param name="value">A new expression for the identifier.</param>
+    /// <returns>An assignment expression.</returns>
+    public Expression SetExpression(string identifier, Expression value) =>
+        Expression.Assign(Expression.Property(sourceParameter, "Item",
+            Expression.Constant(identifier)), value);
+
+    /// <summary>Creates a lambda expression from a given body.</summary>
+    /// <param name="body">An expression returning an object.</param>
+    /// <returns>The corresponding lambda expression.</returns>
+    public Expression<Func<IDataSource, object>> CreateLambda(Expression body) =>
+        Expression.Lambda<Func<IDataSource, object>>(body, sourceParameter);
 }
