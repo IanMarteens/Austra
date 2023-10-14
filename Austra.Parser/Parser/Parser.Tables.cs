@@ -761,7 +761,8 @@ internal sealed partial class Parser
         {
             new("vectors", "Gets a matrix with eigenvectors as its columns"),
             new("values", "Gets all the eigenvalues"),
-            new("d", "Gets a quasi-diagonal real matrix with all eigenvalues")
+            new("d", "Gets a quasi-diagonal real matrix with all eigenvalues"),
+            new("rank", "Gets the rank of the original matrix"),
         },
         [typeof(LinearSModel)] = new Member[]
         {
