@@ -17,6 +17,8 @@ internal sealed partial class Parser
     private static readonly Type[] DoubleDoubleArg = new[] { typeof(double), typeof(double) };
     /// <summary>Another common argument list in functions.</summary>
     private static readonly Type[] VectorVectorArg = new[] { typeof(Vector), typeof(Vector) };
+    /// <summary>Another common argument list in functions.</summary>
+    private static readonly Type[] DoubleVectorArg = new[] { typeof(double), typeof(Vector) };
     /// <summary>Constructor for <see cref="Index"/>.</summary>
     private static readonly ConstructorInfo IndexCtor =
         typeof(Index).GetConstructor(new[] { typeof(int), typeof(bool) })!;
@@ -196,7 +198,7 @@ internal sealed partial class Parser
         typeof(Tuple<ComplexVector, ComplexVector>).MD(typeof(ComplexVector), typeof(ComplexVector)),
         typeof(Tuple<Series, Series>).MD(typeof(Series), typeof(Series)));
     private static readonly MethodList PolyDerivative = new(
-        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(Vector)),
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), DoubleVectorArg),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(Vector)),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
@@ -275,7 +277,7 @@ internal sealed partial class Parser
             typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VectorArg),
             typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
         ["math.polyeval"] = new(
-            typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(Vector)),
+            typeof(Polynomials).MD(nameof(Polynomials.PolyEval), DoubleVectorArg),
             typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
             typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(Vector)),
             typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),

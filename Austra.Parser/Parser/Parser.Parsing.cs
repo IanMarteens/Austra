@@ -407,16 +407,16 @@ internal sealed partial class Parser
                             else
                                 e1 = be1.Right.Type == typeof(double)
                                     ? Expression.Call(be1.Left,
-                                        typeof(Vector).GetMethod(method,
-                                        new[] { typeof(double), typeof(Vector) })!, be1.Right, e2)
+                                        typeof(Vector).GetMethod(method, DoubleVectorArg)!,
+                                        be1.Right, e2)
                                     : be1.Left.Type == typeof(double)
                                     ? Expression.Call(be1.Right,
-                                        typeof(Vector).GetMethod(method,
-                                        new[] { typeof(double), typeof(Vector) })!, be1.Left, e2)
+                                        typeof(Vector).GetMethod(method, DoubleVectorArg)!,
+                                        be1.Left, e2)
                                     : be1.Left.Type == typeof(Matrix)
                                     ? Expression.Call(be1.Left,
-                                        typeof(Matrix).GetMethod(method,
-                                        new[] { typeof(Vector), typeof(Vector) })!, be1.Right, e2)
+                                        typeof(Matrix).GetMethod(method, VectorVectorArg)!,
+                                        be1.Right, e2)
                                     : opAdd == Token.Plus
                                     ? Expression.Add(e1, e2)
                                     : Expression.Subtract(e1, e2);
@@ -426,16 +426,16 @@ internal sealed partial class Parser
                         {
                             e1 = be2.Right.Type == typeof(double)
                                 ? Expression.Call(be2.Left,
-                                    typeof(Vector).GetMethod(method,
-                                    new[] { typeof(double), typeof(Vector) })!, be2.Right, e1)
+                                    typeof(Vector).GetMethod(method, DoubleVectorArg)!,
+                                    be2.Right, e1)
                                 : be2.Left.Type == typeof(double)
                                 ? Expression.Call(be2.Right,
-                                    typeof(Vector).GetMethod(method,
-                                    new[] { typeof(double), typeof(Vector) })!, be2.Left, e1)
+                                    typeof(Vector).GetMethod(method, DoubleVectorArg)!,
+                                    be2.Left, e1)
                                 : be2.Left.Type == typeof(Matrix)
                                 ? Expression.Call(be2.Left,
-                                    typeof(Matrix).GetMethod(method,
-                                    new[] { typeof(Vector), typeof(Vector) })!, be2.Right, e1)
+                                    typeof(Matrix).GetMethod(method, VectorVectorArg)!,
+                                    be2.Right, e1)
                                 : Expression.Add(e1, e2);
                         }
                         else
