@@ -786,13 +786,9 @@ internal sealed partial class Parser
                 e2 = Expression.New(IndexCtor, e2, Expression.Constant(fromEnd21));
         }
         return
-            e1 != null && e2 != null
-            ? Expression.Property(e, "Item", e1, e2)
-            : e2 != null
-            ? typeof(Matrix).Call(e, nameof(Matrix.GetColumn), e2)
-            : e1 != null
-            ? typeof(Matrix).Call(e, nameof(Matrix.GetRow), e1)
-            : e;
+            e1 != null && e2 != null ? Expression.Property(e, "Item", e1, e2)
+            : e2 != null ? typeof(Matrix).Call(e, nameof(Matrix.GetColumn), e2)
+            : e1 != null ? typeof(Matrix).Call(e, nameof(Matrix.GetRow), e1) : e;
     }
 
     private Expression ParseSeriesIndexer(Expression e)
