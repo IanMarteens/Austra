@@ -341,11 +341,11 @@ internal sealed partial class Parser
                         // Try to optimize matrix transpose multiplying a vector.
                         e2 = opMul == Token.Times && e2.Type == typeof(Matrix)
                             ? (e3.Type == typeof(Vector) && e2 is MethodCallExpression
-                            { Method.Name: nameof(Matrix.Transpose) } mca
-                                ? typeof(Matrix).Call(mca.Object, nameof(Matrix.TransposeMultiply), e3)
+                                { Method.Name: nameof(Matrix.Transpose) } mca
+                                ? Expression.Call(mca.Object, MatrixTransposeMultiply, e3)
                                 : e3.Type == typeof(Matrix) && e3 is MethodCallExpression
-                                { Method.Name: nameof(Matrix.Transpose) } mcb
-                                ? typeof(Matrix).Call(e2, nameof(Matrix.MultiplyTranspose), mcb.Object!)
+                                    { Method.Name: nameof(Matrix.Transpose) } mcb
+                                ? Expression.Call(e2, MatrixMultiplyTranspose, mcb.Object!)
                                 : e2 == e3
                                 ? Expression.Call(e2, typeof(Matrix).Get(nameof(Matrix.Square)))
                                 : Expression.Multiply(e2, e3))
