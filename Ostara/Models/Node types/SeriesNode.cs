@@ -1,6 +1,6 @@
 ﻿using System.Windows.Data;
 
-namespace Ostara;
+namespace Austra;
 
 public sealed class SeriesNode : VarNode<Series>
 {

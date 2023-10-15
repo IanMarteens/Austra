@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 /// <summary>An abstract autoregressive model.</summary>
 /// <typeparam name="M">Type of model.</typeparam>

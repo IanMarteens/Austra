@@ -2,7 +2,7 @@
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Editing;
 
-namespace Ostara;
+namespace Austra;
 
 public class CompletionData : ICompletionData
 {

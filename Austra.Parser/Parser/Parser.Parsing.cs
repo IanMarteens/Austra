@@ -270,7 +270,7 @@ internal sealed partial class Parser
                                     throw Error("Upper bound must be numeric");
                                 if (e3.Type != e2.Type)
                                     if (e3.Type == typeof(int))
-                                        e3 = ToDouble(e3);
+                                        e3 = IntToDouble(e3);
                                     else
                                         (e1, e2) = (ToDouble(e1), ToDouble(e2));
                                 return Expression.AndAlso(
@@ -571,7 +571,7 @@ internal sealed partial class Parser
                     int pos = start;
                     e = ParseVariable();
                     if (e.Type == typeof(int))
-                        e = ToDouble(e);
+                        e = IntToDouble(e);
                     else if (e.Type != typeof(double) && e.Type != typeof(Complex))
                         throw Error("Variable must be numeric", pos);
                     if (kind == Token.Caret)
@@ -932,7 +932,7 @@ internal sealed partial class Parser
                 body = retType == typeof(Complex) && IsArithmetic(body)
                     ? Expression.Convert(body, typeof(Complex))
                     : retType == typeof(double) && body.Type == typeof(int)
-                    ? ToDouble(body)
+                    ? IntToDouble(body)
                     : throw Error($"Expected return type is {retType.Name}");
             Expression result = lambdaParameter2 != null
                 ? Expression.Lambda(body, lambdaParameter, lambdaParameter2)
@@ -1044,7 +1044,7 @@ internal sealed partial class Parser
             expected == typeof(Series<Date>) && e.Type == typeof(Series)
             ? e
             : expected == typeof(double) && e.Type == typeof(int)
-            ? ToDouble(e)
+            ? IntToDouble(e)
             : expected == typeof(Complex) && IsArithmetic(e)
             ? Expression.Convert(ToDouble(e), typeof(Complex))
             : throw Error($"Expected {expected.Name}");
@@ -1147,7 +1147,7 @@ internal sealed partial class Parser
             if (actual != expected)
             {
                 if (expected == typeof(double) && actual == typeof(int))
-                    args[i] = ToDouble(args[i]);
+                    args[i] = IntToDouble(args[i]);
                 else if (expected == typeof(Complex) &&
                     (actual == typeof(int) || actual == typeof(double)))
                     args[i] = Expression.Convert(ToDouble(args[i]), typeof(Complex));

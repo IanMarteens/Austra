@@ -1,6 +1,6 @@
 ﻿using Austra.Parser;
 
-namespace Ostara;
+namespace Austra;
 
 public sealed class Session : Entity
 {

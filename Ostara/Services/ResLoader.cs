@@ -2,7 +2,7 @@
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using System.Xml;
 
-namespace Ostara;
+namespace Austra;
 
 public static class ResLoader
 {

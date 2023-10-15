@@ -1,7 +1,7 @@
-﻿<Application x:Class="Ostara.App"
+﻿<Application x:Class="Austra.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Ostara"
+             xmlns:local="clr-namespace:Austra"
              StartupUri="MainWindow.xaml"
              Startup="Application_Startup"
              DispatcherUnhandledException="Application_DispatcherUnhandledException">

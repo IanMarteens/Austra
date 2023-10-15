@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 /// <summary>
 /// Base class implementing <see cref="INotifyPropertyChanged"/>.

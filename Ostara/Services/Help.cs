@@ -1,6 +1,6 @@
 ﻿using System.Windows.Media;
 
-namespace Ostara;
+namespace Austra;
 
 /// <summary>
 /// This class provides the ability to easily attach Help functionality 

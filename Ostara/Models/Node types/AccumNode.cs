@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 /// <summary>A view-model for a running statistics node.</summary>
 public sealed class AccumNode : VarNode<Accumulator>

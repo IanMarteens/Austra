@@ -2,7 +2,7 @@
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using System.IO;
 
-namespace Ostara;
+namespace Austra;
 
 /// <summary>Interaction logic for MainWindow.xaml</summary>
 public partial class MainWindow : Window

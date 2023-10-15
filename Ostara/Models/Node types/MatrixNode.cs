@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 public class MatrixNode : VarNode<AMatrix>
 {

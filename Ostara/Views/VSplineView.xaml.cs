@@ -1,6 +1,6 @@
 ﻿using System.Windows.Data;
 
-namespace Ostara;
+namespace Austra;
 
 /// <summary>Interaction logic for VSplineView.xaml</summary>
 public partial class VSplineView : UserControl

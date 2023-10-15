@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 public sealed class FftNode : VarNode<FftModel>
 {

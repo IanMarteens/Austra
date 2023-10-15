@@ -1,6 +1,6 @@
 ﻿using Austra.Parser;
 
-namespace Ostara;
+namespace Austra;
 
 /// <summary>Represents a node in the entities tree.</summary>
 public abstract class NodeBase : Entity

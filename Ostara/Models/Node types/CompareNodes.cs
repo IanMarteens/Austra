@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 /// <summary>Base class for comparing series and vectors.</summary>
 /// <typeparam name="T">The type of the compared items.</typeparam>

@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 /// <summary>Interaction logic for Sparkline.xaml</summary>
 public partial class Sparkline : UserControl

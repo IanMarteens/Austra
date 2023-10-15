@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 /// <summary>Interaction logic for HierarchyView.xaml</summary>
 public partial class HierarchyView : UserControl

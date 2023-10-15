@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 /// <summary>Interaction logic for AboutView.xaml</summary>
 public partial class AboutView : Window

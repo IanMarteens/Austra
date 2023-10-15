@@ -500,7 +500,13 @@ internal sealed partial class Parser
         e.Type != typeof(int)
         ? e
         : e is ConstantExpression constExpr
-        ? Expression.Constant((double)(int)constExpr.Value!, typeof(double))
+        ? Expression.Constant((double)(int)constExpr.Value!)
+        : Expression.Convert(e, typeof(double));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Expression IntToDouble(Expression e) =>
+        e is ConstantExpression constExpr
+        ? Expression.Constant((double)(int)constExpr.Value!)
         : Expression.Convert(e, typeof(double));
 
     private static bool DifferentTypes(ref Expression e1, ref Expression e2)

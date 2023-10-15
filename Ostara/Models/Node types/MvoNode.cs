@@ -2,7 +2,7 @@
 using System.Windows.Data;
 using System.Windows.Documents;
 
-namespace Ostara;
+namespace Austra;
 
 public sealed class MvoNode : VarNode<MvoModel>
 {

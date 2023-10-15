@@ -5,9 +5,9 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace Ostara;
+namespace Austra;
 
-/// <summary>Represents the initial view-model of Ostara.</summary>
+/// <summary>Represents the initial view-model of AUSTRA.</summary>
 public sealed partial class RootModel : Entity
 {
     /// <summary>Gets the global instance of the root view-model.</summary>
@@ -225,7 +225,7 @@ public sealed partial class RootModel : Entity
                     System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant();
             }
             ShowFormulaEditor = Visibility.Visible;
-            MainSection?.ContentEnd.InsertTextInRun("Welcome to Ostara!\nv" + Version + "\n\n");
+            MainSection?.ContentEnd.InsertTextInRun("Welcome to AUSTRA!\nv" + Version + "\n\n");
         }
     }
 

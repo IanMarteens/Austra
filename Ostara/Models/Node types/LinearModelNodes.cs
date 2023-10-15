@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 public abstract class LinearModelNode<M, T> : VarNode<M> where M : LinearModelBase<T>
 {

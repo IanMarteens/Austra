@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Austra.Tests", "Austra.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Austra.Repl", "Austra.Repl\Austra.Repl.csproj", "{34AADDD6-52CE-45A6-A67F-0E019A78618B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ostara", "Ostara\Ostara.csproj", "{97FCF919-98F1-4F5F-8E9B-182701DB2DE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Austra", "Ostara\Austra.csproj", "{97FCF919-98F1-4F5F-8E9B-182701DB2DE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

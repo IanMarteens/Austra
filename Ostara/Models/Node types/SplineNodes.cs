@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 /// <summary>Common base class for nodes representing a spline model.</summary>
 /// <typeparam name="T">The spline type.</typeparam>

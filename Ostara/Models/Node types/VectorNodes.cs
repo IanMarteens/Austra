@@ -1,4 +1,4 @@
-﻿namespace Ostara;
+﻿namespace Austra;
 
 public abstract class CommonVectorNode<T>: VarNode<T> where T: struct
 {

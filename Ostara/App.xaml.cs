@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Threading;
 
-namespace Ostara;
+namespace Austra;
 
 /// <summary>Interaction logic for App.xaml</summary>
 public partial class App : Application
