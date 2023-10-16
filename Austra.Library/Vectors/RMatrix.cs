@@ -105,7 +105,7 @@ public readonly struct RMatrix :
     /// <remarks>
     /// Use carefully: it returns the underlying bidimensional array.
     /// </remarks>
-    /// <param name="m">The original matrix.</param>
+    /// <param name="m">The original upper-triangular matrix.</param>
     /// <returns>The underlying bidimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator double[,](RMatrix m) => m.values;
@@ -113,6 +113,8 @@ public readonly struct RMatrix :
     /// <summary>
     /// Explicit conversion from a triangular matrix to a rectangular one.
     /// </summary>
+    /// <param name="m">The original upper-triangular matrix.</param>
+    /// <returns>A new rectangular matrix.</returns>
     public static explicit operator Matrix(RMatrix m) => new(m.values);
 
     /// <summary>Has the matrix been properly initialized?</summary>

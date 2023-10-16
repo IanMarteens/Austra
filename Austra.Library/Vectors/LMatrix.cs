@@ -350,6 +350,10 @@ public readonly struct LMatrix :
     }
 
     /// <summary>Adds a scalar value to a lower triangular matrix.</summary>
+    /// <remarks>The value is just added to the lower triangular part.</remarks>
+    /// <param name="d">The scalar summand.</param>
+    /// <param name="m">The matrix summand.</param>
+    /// <returns>The sum of the matrix and the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static LMatrix operator +(double d, LMatrix m) => m + d;
 
@@ -404,6 +408,9 @@ public readonly struct LMatrix :
     }
 
     /// <summary>Subtracts an upper triangular matrix from a lower triangular one.</summary>
+    /// <param name="m1">Matrix minuend.</param>
+    /// <param name="m2">Matrix subtrahend.</param>
+    /// <returns>The subtraction of the two operands, as a rectangular matrix.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix operator -(LMatrix m1, RMatrix m2) => new Matrix(m1.values) - m2;
 
@@ -638,12 +645,18 @@ public readonly struct LMatrix :
         return result;
     }
 
-    /// <summary>Adds a lower triangular matrix to an upper triangular one.</summary>
+    /// <summary>Multiplies a lower-triangular matrix with an upper-triangular one.</summary>
+    /// <param name="m1">First matrix.</param>
+    /// <param name="m2">Second matrix.</param>
+    /// <returns>The product of the two operands.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix operator *(LMatrix m1, RMatrix m2) =>
         m1 * new Matrix((double[,])m2);
 
-    /// <summary>Multiplies an upper triangular matrix with a lower triangular one.</summary>
+    /// <summary>Multiplies an upper-triangular matrix with a lower-triangular one.</summary>
+    /// <param name="m1">First matrix.</param>
+    /// <param name="m2">Second matrix.</param>
+    /// <returns>The product of the two operands.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix operator *(RMatrix m1, LMatrix m2) =>
         new Matrix((double[,])m1) * m2;
