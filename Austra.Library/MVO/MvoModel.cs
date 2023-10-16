@@ -117,7 +117,8 @@ public class MvoModel
     /// <summary>Gets the last portfolio in the efficient frontier.</summary>
     public Portfolio Last => this[^1];
 
-    /// <inheritdoc/>
+    /// <summary>Gets a textual representation of the models.</summary>
+    /// <returns>A list with all portfolios in the efficient frontier.</returns>
     public override string ToString()
     {
         var sb = new StringBuilder($"MVO Model ({Size} assets)")

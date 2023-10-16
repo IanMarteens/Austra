@@ -16,6 +16,7 @@ public enum SeriesType
 }
 
 /// <summary>Represents a point in a series.</summary>
+/// <typeparam name="T">Represents the type of the abscissa.</typeparam>
 public readonly struct Point<T> where T : struct, IComparable<T>
 {
     /// <summary>Gets the argument from the point.</summary>
@@ -29,26 +30,37 @@ public readonly struct Point<T> where T : struct, IComparable<T>
     public Point(T arg, double value) =>
         (Arg, Value) = (arg, value);
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the argument is a point with the same values.</summary>
+    /// <param name="obj">Object to compare.</param>
+    /// <returns><see langword="true"/> if the argument is a point with the same values.</returns>
     public override bool Equals(object? obj) => obj is Point<T> point && this == point;
 
-    /// <inheritdoc/>
+    /// <summary>Returns a hashcode for the series.</summary>
+    /// <returns>A hashcode combining hashcodes from argument and value.</returns>
     public override int GetHashCode() => Arg.GetHashCode() ^ Value.GetHashCode();
 
-    /// <inheritdoc/>
+    /// <summary>Checks two points for equality.</summary>
+    /// <param name="left">First point to compare.</param>
+    /// <param name="right">Second point to compare.</param>
+    /// <returns><see langword="true"/> when both points has the same components.</returns>
     public static bool operator ==(Point<T> left, Point<T> right) =>
         left.Arg.Equals(right.Arg) && left.Value.Equals(right.Value);
-    /// <inheritdoc/>
+
+    /// <summary>Checks two points for inequality.</summary>
+    /// <param name="left">First point to compare.</param>
+    /// <param name="right">Second point to compare.</param>
+    /// <returns><see langword="true"/> when both points has diffent components.</returns>
     public static bool operator !=(Point<T> left, Point<T> right) =>
         !left.Arg.Equals(right.Arg) || !left.Value.Equals(right.Value);
 
     /// <summary>Gets a text representation of the point.</summary>
-    /// <returns>A string containing the date and its value.</returns>
+    /// <returns>A string containing the argument and its associated value.</returns>
     public override string ToString() =>
         $"[{Arg}: {Value}]";
 }
 
 /// <summary>Represents a named series.</summary>
+/// <typeparam name="T">Type of the abscissa.</typeparam>
 public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
 {
     /// <summary>Stores the arguments for the series.</summary>
@@ -92,6 +104,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     public IEnumerable<double> Values => values;
 
     /// <summary>Gets the values array as a vector.</summary>
+    /// <returns>The values array as a vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector GetValues() => values;
 
@@ -161,43 +174,56 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     public Accumulator Stats { get; }
 
     /// <summary>Returns the minimum value from the series.</summary>
-    public double Minimum() => Stats.Minimum;
+    [JsonIgnore]
+    public double Minimum => Stats.Minimum;
 
     /// <summary>Returns the maximum value from the series.</summary>
-    public double Maximum() => Stats.Maximum;
+    [JsonIgnore]
+    public double Maximum => Stats.Maximum;
 
     /// <summary>Gets the mean value from the series.</summary>
-    public double Mean() => Stats.Mean;
+    [JsonIgnore]
+    public double Mean => Stats.Mean;
 
     /// <summary>Gets the unbiased variance.</summary>
-    public double Variance() => Stats.Variance;
+    [JsonIgnore]
+    public double Variance => Stats.Variance;
 
     /// <summary>Gets the variance from the full population.</summary>
-    public double PopulationVariance() => Stats.PopulationVariance;
+    [JsonIgnore]
+    public double PopulationVariance => Stats.PopulationVariance;
 
     /// <summary>Gets the unbiased standard deviation.</summary>
-    public double StandardDeviation() => Stats.StandardDeviation;
+    [JsonIgnore]
+    public double StandardDeviation => Stats.StandardDeviation;
 
     /// <summary>Gets the standard deviation from the full population.</summary>
-    public double PopulationStandardDeviation() => Stats.PopulationStandardDeviation;
+    [JsonIgnore]
+    public double PopulationStandardDeviation => Stats.PopulationStandardDeviation;
 
     /// <summary>Gets the unbiased population skewness.</summary>
-    public double Skewness() => Stats.Skewness;
+    [JsonIgnore]
+    public double Skewness => Stats.Skewness;
 
     /// <summary>Get the skewness from the full population.</summary>
-    public double PopulationSkewness() => Stats.PopulationSkewness;
+    [JsonIgnore]
+    public double PopulationSkewness => Stats.PopulationSkewness;
 
     /// <summary>Gets the unbiased population kurtosis.</summary>
-    public double Kurtosis() => Stats.Kurtosis;
+    [JsonIgnore]
+    public double Kurtosis => Stats.Kurtosis;
 
     /// <summary>Gets the kurtosis from the full population.</summary>
-    public double PopulationKurtosis() => Stats.PopulationKurtosis;
+    [JsonIgnore]
+    public double PopulationKurtosis => Stats.PopulationKurtosis;
 
     /// <summary>Gets the first point in the series.</summary>
-    public Point<T> First() => this[0];
+    [JsonIgnore]
+    public Point<T> First => this[0];
 
     /// <summary>Gets the last point in the series.</summary>
-    public Point<T> Last() => this[^1];
+    [JsonIgnore]
+    public Point<T> Last => this[^1];
 
     /// <summary>Creates a new series based in the returns.</summary>
     /// <returns>A derived series with one less point.</returns>
@@ -230,6 +256,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <summary>Calculate indexes given a range of arguments.</summary>
     /// <param name="lower">Inclusive lower bound for the argument.</param>
     /// <param name="upper">Exclusive upper bound for the argument.</param>
+    /// <returns>Indexes for the requested slice.</returns>
     protected (int low, int high) GetSliceRange(T lower, T upper)
     {
         int low = Array.BinarySearch(args, lower, comparer);
@@ -313,10 +340,10 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     public unsafe double Covariance(Series<T> other)
     {
         if (this == other)
-            return Variance();
+            return Variance;
         int count = Min(Count, other.Count);
-        double x0 = Mean();
-        double y0 = other.Mean();
+        double x0 = Mean;
+        double y0 = other.Mean;
         double ex = 0, ey = 0, exy = 0;
         fixed (double* pA = values, pB = other.values)
         {
@@ -358,7 +385,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     public double Correlation(Series<T> other) =>
         this == other
         ? 1.0
-        : Covariance(other) / (StandardDeviation() * other.StandardDeviation());
+        : Covariance(other) / (StandardDeviation * other.StandardDeviation);
 
     /// <summary>Computes the covariance matrix for a group of series.</summary>
     /// <param name="series">A list of series.</param>
@@ -368,7 +395,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
         double[,] result = new double[series.Length, series.Length];
         for (int row = 0; row < series.Length; row++)
         {
-            result[row, row] = series[row].Variance();
+            result[row, row] = series[row].Variance;
             for (int col = row + 1; col < series.Length; col++)
             {
                 double cov = series[row].Covariance(series[col]);
@@ -438,10 +465,11 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <param name="value">The value to check.</param>
     /// <returns>NCDF of the value according to the estimated mean and variance.</returns>
     public double NCdf(double value) =>
-        0.5 * (1 + F.Erf((value - Mean()) / (StandardDeviation() * Simd.SQRT2)));
+        0.5 * (1 + F.Erf((value - Mean) / (StandardDeviation * Simd.SQRT2)));
 
     /// <summary>The normal cumulative distribution function of the most recent value.</summary>
-    public double NCdf() => NCdf(Last().Value);
+    /// <returns>NCDF of the value according to the estimated mean and variance.</returns>
+    public double NCdf() => NCdf(Last.Value);
 
     /// <summary>Combines two series types.</summary>
     /// <param name="s1">First type.</param>
@@ -457,6 +485,9 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
         : SeriesType.MixedRets;
 
     /// <summary>Low level method to add two series.</summary>
+    /// <param name="s1">First series to add.</param>
+    /// <param name="s2">Second series to add.</param>
+    /// <returns>A tuple with the arguments, values and type of the new series.</returns>
     protected static unsafe (T[], double[], SeriesType) Add(Series<T> s1, Series<T> s2)
     {
         int len = Min(s1.Count, s2.Count);
@@ -487,6 +518,9 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     }
 
     /// <summary>Low level method to perform series subtraction.</summary>
+    /// <param name="s1">The minuend.</param>
+    /// <param name="s2">The subtrahend.</param>
+    /// <returns>A tuple with the arguments, values and type of the new series.</returns>
     protected static unsafe (T[], double[], SeriesType) Sub(Series<T> s1, Series<T> s2)
     {
         int len = Min(s1.Count, s2.Count);
@@ -531,8 +565,11 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     public static Series<T> operator *(Series<T> s, double d) => d * s;
 
     /// <summary>Low-level method to linearly combine series with weights.</summary>
+    /// <param name="weights">The weights of the linear combination.</param>
+    /// <param name="series">Series to combine.</param>
+    /// <returns>The linear combination of the series.</returns>
     protected static unsafe (string, T[], double[], SeriesType) CombineSeries(
-        Vector weights, Series<T>[] series)
+        Vector weights, params Series<T>[] series)
     {
         if (weights.Length == 0 ||
             weights.Length != series.Length &&

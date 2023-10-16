@@ -186,6 +186,7 @@ public readonly struct Matrix :
 
     /// <summary>Creates a matrix given its columns.</summary>
     /// <param name="columns">The array of columns.</param>
+    /// <returns>A new matrix created with the provided columns.</returns>
     public static Matrix FromColumns(params Vector[] columns) =>
         new Matrix(columns).Transpose();
 
@@ -328,6 +329,7 @@ public readonly struct Matrix :
     /// Use carefully: it returns the underlying bidimensional array.
     /// </remarks>
     /// <param name="m">The original matrix.</param>
+    /// <returns>The underlying bidimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator double[,](Matrix m) => m.values;
 
@@ -356,6 +358,7 @@ public readonly struct Matrix :
     public bool IsSquare => Rows == Cols;
 
     /// <summary>Checks if the matrix is a symmetric one.</summary>
+    /// <returns><see langword="true"/> when there's symmetry accross the diagonal.</returns>
     public unsafe bool IsSymmetric()
     {
         if (Rows != Cols)
@@ -611,38 +614,58 @@ public readonly struct Matrix :
 
     /// <summary>Adds a full matrix to a lower triangular matrix.</summary>
     /// <param name="m1">Full matrix operand.</param>
-    /// <param name="lm2">Lower matrix operand.</param>
+    /// <param name="lm2">Lower-triangular matrix operand.</param>
     /// <returns>The sum of the two matrices.</returns>
     public static Matrix operator +(Matrix m1, LMatrix lm2) =>
         m1 + new Matrix((double[,])lm2);
 
     /// <summary>Adds a full matrix to an upper triangular matrix.</summary>
-    public static Matrix operator +(Matrix m1, RMatrix lm2) =>
-        m1 + new Matrix((double[,])lm2);
+    /// <param name="m1">Full matrix operand.</param>
+    /// <param name="rm2">Upper-triangular matrix operand.</param>
+    /// <returns>The sum of the two matrices.</returns>
+    public static Matrix operator +(Matrix m1, RMatrix rm2) =>
+        m1 + new Matrix((double[,])rm2);
 
     /// <summary>Adds a lower triangular matrix to a full matrix.</summary>
+    /// <param name="lm1">Lower-triangular matrix operand.</param>
+    /// <param name="m2">Full matrix operand.</param>
+    /// <returns>The sum of the two matrices.</returns>
     public static Matrix operator +(LMatrix lm1, Matrix m2) =>
         new Matrix((double[,])lm1) + m2;
 
     /// <summary>Adds an upper triangular matrix to a full matrix.</summary>
-    public static Matrix operator +(RMatrix lm1, Matrix m2) =>
-        new Matrix((double[,])lm1) + m2;
+    /// <param name="rm1">Upper-triangular matrix operand.</param>
+    /// <param name="m2">Full matrix operand.</param>
+    /// <returns>The sum of the two matrices.</returns>
+    public static Matrix operator +(RMatrix rm1, Matrix m2) =>
+        new Matrix((double[,])rm1) + m2;
 
-    /// <summary>Subtracts a lower triangular matrix from a full matrix.</summary>
+    /// <summary>Subtracts a lower-triangular matrix from a full matrix.</summary>
+    /// <param name="m1">Full matrix minuend.</param>
+    /// <param name="lm2">Lower-triangular matrix subtrahend.</param>
+    /// <returns>The difference of the two matrices.</returns>
     public static Matrix operator -(Matrix m1, LMatrix lm2) =>
         m1 - new Matrix((double[,])lm2);
 
-    /// <summary>Subtracts an upper triangular matrix from a full matrix.</summary>
-    public static Matrix operator -(Matrix m1, RMatrix lm2) =>
-        m1 - new Matrix((double[,])lm2);
+    /// <summary>Subtracts an upper-triangular matrix from a full matrix.</summary>
+    /// <param name="m1">Full matrix minuend.</param>
+    /// <param name="rm2">Upper-triangular matrix subtrahend.</param>
+    public static Matrix operator -(Matrix m1, RMatrix rm2) =>
+        m1 - new Matrix((double[,])rm2);
 
-    /// <summary>Subtracts a full matrix from a lower triangular matrix.</summary>
+    /// <summary>Subtracts a full matrix from a lower-triangular matrix.</summary>
+    /// <param name="lm1">Lower-triangular matrix minuend.</param>
+    /// <param name="m2">Full matrix subtrahend.</param>
+    /// <returns>The difference of the two matrices.</returns>
     public static Matrix operator -(LMatrix lm1, Matrix m2) =>
         new Matrix((double[,])lm1) - m2;
 
-    /// <summary>Subtracts a full matrix from an upper triangular matrix.</summary>
-    public static Matrix operator -(RMatrix lm1, Matrix m2) =>
-        new Matrix((double[,])lm1) - m2;
+    /// <summary>Subtracts a full matrix from an upper-triangular matrix.</summary>
+    /// <param name="rm1">Upper-triangular matrix minuend.</param>
+    /// <param name="m2">Full matrix subtrahend.</param>
+    /// <returns>The difference of the two matrices.</returns>
+    public static Matrix operator -(RMatrix rm1, Matrix m2) =>
+        new Matrix((double[,])rm1) - m2;
 
     /// <summary>Sums two matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
@@ -1382,7 +1405,9 @@ public readonly struct Matrix :
         return false;
     }
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
+    /// <param name="other">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
     public unsafe bool Equals(Matrix other)
     {
         if (other.Rows != Rows || other.Cols != Cols)
@@ -1402,30 +1427,51 @@ public readonly struct Matrix :
         return true;
     }
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
+    /// <param name="obj">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
     public override bool Equals(object? obj) =>
         obj is Matrix matrix && Equals(matrix);
 
-    /// <inheritdoc/>
+    /// <summary>Returns the hashcode for this matrix.</summary>
+    /// <returns>A hashcode summarizing the content of the matrix.</returns>
     public override int GetHashCode() =>
         ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First matrix to compare.</param>
+    /// <param name="right">Second matrix to compare.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     public static bool operator ==(Matrix left, Matrix right) => left.Equals(right);
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First rectangular matrix to compare.</param>
+    /// <param name="right">Second lower-triangular matrix to compare.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     public static bool operator ==(Matrix left, LMatrix right) => left.Equals((Matrix)right);
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First rectangular matrix to compare.</param>
+    /// <param name="right">Second upper-triangular matrix to compare.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     public static bool operator ==(Matrix left, RMatrix right) => left.Equals((Matrix)right);
 
     /// <summary>Checks two matrices for inequality.</summary>
+    /// <param name="left">First rectangular matrix to compare.</param>
+    /// <param name="right">Second rectangular matrix to compare.</param>
+    /// <returns><see langword="true"/> if there are cells with different values.</returns>
     public static bool operator !=(Matrix left, Matrix right) => !(left == right);
 
     /// <summary>Checks two matrices for inequality.</summary>
+    /// <param name="left">First rectangular matrix to compare.</param>
+    /// <param name="right">Second low-triangular matrix to compare.</param>
+    /// <returns><see langword="true"/> if there are cells with different values.</returns>
     public static bool operator !=(Matrix left, LMatrix right) => !(left == right);
 
     /// <summary>Checks two matrices for inequality.</summary>
+    /// <param name="left">First rectangular matrix to compare.</param>
+    /// <param name="right">Second upper-triangular matrix to compare.</param>
+    /// <returns><see langword="true"/> if there are cells with different values.</returns>
     public static bool operator !=(Matrix left, RMatrix right) => !(left == right);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
@@ -1446,7 +1492,11 @@ public readonly struct Matrix :
 /// <summary>JSON converter for rectangular matrices.</summary>
 public class MatrixJsonConverter : JsonConverter<Matrix>
 {
-    ///<inheritdoc/>
+    /// <summary>Reads and convert JSON to a <see cref="LMatrix"/> instance.</summary>
+    /// <param name="reader">The JSON reader.</param>
+    /// <param name="typeToConvert">The type of the object to convert.</param>
+    /// <param name="options">JSON options.</param>
+    /// <returns>A triangular matrix with the values read from JSON.</returns>
     public unsafe override Matrix Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
@@ -1488,7 +1538,10 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
         return new(values!);
     }
 
-    ///<inheritdoc/>
+    /// <summary>Converts a rectangular matrix to JSON.</summary>
+    /// <param name="writer">The JSON writer.</param>
+    /// <param name="value">The matrix to serialize.</param>
+    /// <param name="options">JSON options.</param>    
     public unsafe override void Write(
         Utf8JsonWriter writer,
         Matrix value,

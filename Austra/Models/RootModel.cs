@@ -220,7 +220,7 @@ public sealed partial class RootModel : Entity
                 AustraDate = "";
             else
             {
-                var d = environment.DataSource.Series.Select(s => s.Last().Arg).Max();
+                var d = environment.DataSource.Series.Select(s => s.Last.Arg).Max();
                 AustraDate = ((DateTime)d).ToString("d@MMMyyyy",
                     System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant();
             }

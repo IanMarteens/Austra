@@ -143,6 +143,7 @@ public readonly struct Vector :
 
     /// <summary>Implicit conversion from an array to a vector.</summary>
     /// <param name="values">An array.</param>
+    /// <returns>A vector with the same components as the array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Vector(double[] values) => new(values);
 
@@ -151,6 +152,7 @@ public readonly struct Vector :
     /// Use carefully: it returns the underlying component array.
     /// </remarks>
     /// <param name="v">The original vector.</param>
+    /// <returns>The underlying component array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator double[](Vector v) => v.values;
 
@@ -706,6 +708,13 @@ public readonly struct Vector :
     }
 
     /// <summary>Low-level method to linearly combine vectors with weights.</summary>
+    /// <param name="weights">The weights for each vector.</param>
+    /// <param name="vectors">Vectors to be linearly combined.</param>
+    /// <returns>The linear combination of vectors.</returns>
+    /// <remarks>
+    /// When <paramref name="weights"/> has one more item than <paramref name="vectors"/>,
+    /// that first item is used as the constant term.
+    /// </remarks>
     public static unsafe Vector Combine(Vector weights, Vector[] vectors)
     {
         if (weights.Length == 0 ||
@@ -742,6 +751,11 @@ public readonly struct Vector :
     }
 
     /// <summary>Low-level method to linearly combine two vectors with weights.</summary>
+    /// <param name="w1">Weight for the first vector.</param>
+    /// <param name="w2">Weight for the second vector.</param>
+    /// <param name="v1">First vector in the linear combination.</param>
+    /// <param name="v2">Second vector in the linear combination.</param>
+    /// <returns><c>w1 * v1 + w2 * v2</c></returns>
     public static unsafe Vector Combine2(double w1, double w2, Vector v1, Vector v2)
     {
         if (v1.Length != v2.Length)
@@ -1278,7 +1292,9 @@ public readonly struct Vector :
     IEnumerator IEnumerable.GetEnumerator() =>
         values.GetEnumerator();
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a vector with the same values.</summary>
+    /// <param name="other">The vector to be compared.</param>
+    /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
     public unsafe bool Equals(Vector other)
     {
         if (other.Length != Length)
@@ -1298,23 +1314,28 @@ public readonly struct Vector :
         return true;
     }
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a vector with the same values.</summary>
+    /// <param name="obj">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a vector with the same items.</returns>
     public override bool Equals(object? obj) =>
         obj is Vector vector && Equals(vector);
 
-    /// <inheritdoc/>
+    /// <summary>Returns the hashcode for this vector.</summary>
+    /// <returns>A hashcode summarizing the content of the vector.</returns>
     public override int GetHashCode() =>
         ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
 
     /// <summary>Compares two vectors for equality. </summary>
     /// <param name="left">First vector operand.</param>
     /// <param name="right">Second vector operand.</param>
+    /// <returns><see langword="true"/> if all corresponding items are equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Vector left, Vector right) => left.Equals(right);
 
     /// <summary>Compares two vectors for inequality. </summary>
     /// <param name="left">First vector operand.</param>
     /// <param name="right">Second vector operand.</param>
+    /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Vector left, Vector right) => !left.Equals(right);
 

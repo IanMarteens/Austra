@@ -3,6 +3,10 @@
 namespace Austra.Library;
 
 /// <summary>Represents a set of splines for cubic interpolation.</summary>
+/// <typeparam name="ARG">The type of the abscissa.</typeparam>
+/// <remarks>
+/// Splines are implemented in AUSTRA using natural cubic splines.
+/// </remarks>
 public abstract class Spline<ARG> where ARG : struct
 {
     /// <summary>Scale for calculating derivatives.</summary>
@@ -93,6 +97,8 @@ public abstract class Spline<ARG> where ARG : struct
     public Polynomial[] K { get; }
 
     /// <summary>Gets a piecewise polynomial by its index.</summary>
+    /// <param name="index">The index of the polynomial to be retrieved.</param>
+    /// <returns>The polynomial for the given segment.</returns>
     public Polynomial GetPoly(Index index) => K[index.GetOffset(K.Length)];
 
     /// <summary>Gets the number of piecewise polynomials.</summary>
@@ -168,7 +174,8 @@ public abstract class Spline<ARG> where ARG : struct
         return i;
     }
 
-    /// <inheritdoc/>
+    /// <summary>Gets a textual representation of the spline.</summary>
+    /// <returns>The list of generated polynomials.</returns>
     public override string ToString()
     {
         StringBuilder sb = new StringBuilder(1024)
@@ -195,6 +202,8 @@ public abstract class Spline<ARG> where ARG : struct
     }
 
     /// <summary>Creates a string representation of an argument.</summary>
+    /// <param name="x">A value from the abscissa of the spline.</param>
+    /// <returns>The string representation of the argument.</returns>
     protected abstract string FormatArgument(double x);
 }
 
@@ -231,7 +240,9 @@ public sealed class DateSpline : Spline<Date>
     /// <returns>The final date.</returns>
     public override Date To(int idx) => new((uint)xs[idx + 1]);
 
-    /// <inheritdoc/>
+    /// <summary>Creates a string representation of an argument.</summary>
+    /// <param name="x">A value from the abscissa of the spline.</param>
+    /// <returns>The values formatted as a date.</returns>
     protected override string FormatArgument(double x) => new Date((uint)x).ToString();
 }
 
@@ -279,11 +290,16 @@ public sealed class VectorSpline : Spline<double>
     /// <returns>The final date.</returns>
     public override double To(int idx) => xs[idx + 1];
 
-    /// <inheritdoc/>
+    /// <summary>Creates a string representation of an argument.</summary>
+    /// <param name="x">A value from the abscissa of the spline.</param>
+    /// <returns>The values formated as a real number.</returns>
     protected override string FormatArgument(double x) => x.ToString("G6");
 }
 
 /// <summary>Represents a cubic polynomial.</summary>
+/// <remarks>
+/// These polynomials admit arguments in the interval [0, 1].
+/// </remarks>
 /// <param name="K0">Coefficient for 0th-degree term.</param>
 /// <param name="K1">Coefficient for 1st-degree term.</param>
 /// <param name="K2">Coefficient for 2nd-degree term.</param>
@@ -291,18 +307,19 @@ public sealed class VectorSpline : Spline<double>
 public readonly record struct Polynomial(double K0, double K1, double K2, double K3)
 {
     /// <summary>Evaluates the polynomial at a given argument.</summary>
-    /// <param name="t">Argument.</param>
+    /// <param name="t">Argument, in the interval [0, 1].</param>
     /// <returns>The evaluation of the cubic polynomial.</returns>
     public double Eval(double t) => FusedMultiplyAdd(
         FusedMultiplyAdd(FusedMultiplyAdd(K3, t, K2), t, K1), t, K0);
 
     /// <summary>Evaluates the derivative of the polynomial at a given argument.</summary>
-    /// <param name="t">Argument.</param>
+    /// <param name="t">Argument, in the interval [0, 1].</param>
     /// <returns>The evaluation of the derivative.</returns>
     public double Derivative(double t) =>
         FusedMultiplyAdd(FusedMultiplyAdd(3 * K3, t, K2 + K2), t, K1);
 
-    /// <inheritdoc/>
+    /// <summary>Gets a textual representation of the cubic polynomial.</summary>
+    /// <returns>The formatted equation defining the polynomial.</returns>
     public override string ToString() => $"{K3:G6}x³{Format(K2, "x²")}{Format(K1, "x")}{Format(K0, "")}";
 
     private static string Format(double k, string suffix) => k == 0 ? "" : $" + {k:G6}{suffix}";

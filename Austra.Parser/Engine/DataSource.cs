@@ -37,7 +37,7 @@ public interface IDataSource
     void AddDefinition(Definition definition);
 
     /// <summary>Removes a definition, given its name.</summary>
-    /// <param name="name"></param>
+    /// <param name="name">Definition to be deleted.</param>
     /// <returns>The effective ordered set of definitions to remove.</returns>
     IList<string> DeleteDefinition(string name);
 
@@ -104,8 +104,8 @@ public class DataSource : IDataSource
         (source.variables, source.definitions, source.allDefinitions);
 
     /// <summary>Adds a global variable definition.</summary>
-    /// <param name="name"></param>
-    /// <param name="value"></param>
+    /// <param name="name">Name of the series.</param>
+    /// <param name="value">The series to be added.</param>
     public void Add(string name, Series value) => variables[name] = value;
 
     /// <summary>Retrieves a persisted global variable given its name.</summary>
@@ -154,7 +154,7 @@ public class DataSource : IDataSource
     }
 
     /// <summary>Removes a definition, given its name.</summary>
-    /// <param name="name"></param>
+    /// <param name="name">Name of the definition to remove.</param>
     /// <returns>The effective ordered set of definitions to remove.</returns>
     public IList<string> DeleteDefinition(string name)
     {

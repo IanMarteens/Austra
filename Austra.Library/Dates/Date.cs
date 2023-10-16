@@ -79,6 +79,7 @@ public readonly struct Date :
 
     /// <summary>Creates a Date instance for Jan 1st of the given year.</summary>
     /// <param name="year">The year of the date.</param>
+    /// <returns>Jan 1st of the given year.</returns>
     public static Date FromYear(int year) => new(DaysToYear((uint)year));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -282,33 +283,71 @@ public readonly struct Date :
     public int CompareTo(Date other) => (int)(date - other.date);
 
     /// <summary>Compares two dates for equality.</summary>
+    /// <param name="d1">First date.</param>
+    /// <param name="d2">Second date.</param>
+    /// <returns><see langword="true"/> if the dates are equal.</returns>
     public static bool operator ==(Date d1, Date d2) => d1.date == d2.date;
     /// <summary>Compares two dates for inequality.</summary>
+    /// <param name="d1">First date.</param>
+    /// <param name="d2">Second date.</param>
+    /// <returns><see langword="true"/> if the dates are not equal.</returns>
     public static bool operator !=(Date d1, Date d2) => d1.date != d2.date;
-    /// <inheritdoc/>
+    /// <summary>Checks if the first date comes before the second.</summary>
+    /// <param name="d1">First date.</param>
+    /// <param name="d2">Second date.</param>
+    /// <returns><see langword="true"/> if <paramref name="d1"/>> is the earliest date.</returns>
     public static bool operator <(Date d1, Date d2) => d1.date < d2.date;
-    /// <inheritdoc/>
+    /// <summary>Checks if the first date is equal comes before the second.</summary>
+    /// <param name="d1">First date.</param>
+    /// <param name="d2">Second date.</param>
+    /// <returns>
+    /// <see langword="true"/> if the first date is equal to or earlier than the second.
+    /// </returns>
     public static bool operator <=(Date d1, Date d2) => d1.date <= d2.date;
-    /// <inheritdoc/>
+    /// <summary>Checks if the first date comes later the second.</summary>
+    /// <param name="d1">First date.</param>
+    /// <param name="d2">Second date.</param>
+    /// <returns><see langword="true"/> if <paramref name="d2"/>> is the earliest date.</returns>
     public static bool operator >(Date d1, Date d2) => d1.date > d2.date;
-    /// <inheritdoc/>
+    /// <summary>Checks if the first date is equal or comes before the second.</summary>
+    /// <param name="d1">First date.</param>
+    /// <param name="d2">Second date.</param>
+    /// <returns>
+    /// <see langword="true"/> if the second date is equal to or earlier than the first.
+    /// </returns>
     public static bool operator >=(Date d1, Date d2) => d1.date >= d2.date;
 
     /// <summary>Increments a date by a day.</summary>
+    /// <param name="d">The date to be incremented.</param>
+    /// <returns>The next day.</returns>
     public static Date operator ++(Date d) => new(d.date + 1);
     /// <summary>Decrements a date by a day.</summary>
+    /// <param name="d">The date to be decremented.</param>
+    /// <returns>The previous day.</returns>
     public static Date operator --(Date d) => new(d.date - 1);
 
     /// <summary>Converts a date into a date and time.</summary>
+    /// <param name="d">The date to convert.</param>
+    /// <returns>The date and time representation of this date.</returns>
     public static explicit operator DateTime(Date d) => new(d.date * TicksPerDay);
     /// <summary>Converts a date and time into a date.</summary>
+    /// <param name="d">The date-time to convert.</param>
+    /// <returns>The date part of the date and time.</returns>
     public static explicit operator Date(DateTime d) => new((uint)(d.Ticks / TicksPerDay));
     /// <summary>Converts a date to an unsigned integer.</summary>
+    /// <param name="d">The date to convert.</param>
+    /// <returns>The unsigned number representing the date.</returns>
     public static explicit operator uint(Date d) => d.date;
 
     /// <summary>Gets the maximum of two dates.</summary>
+    /// <param name="d1">First date.</param>
+    /// <param name="d2">Second date.</param>
+    /// <returns>The maximum of the two dates.</returns>
     public static Date Max(Date d1, Date d2) => d1.date >= d2.date ? d1 : d2;
     /// <summary>Gets the minimum of two dates.</summary>
+    /// <param name="d1">First date.</param>
+    /// <param name="d2">Second date.</param>
+    /// <returns>The minimum of the two dates.</returns>
     public static Date Min(Date d1, Date d2) => d1.date <= d2.date ? d1 : d2;
 
     /// <summary>Gets a textual representation of this date.</summary>
@@ -350,17 +389,24 @@ public readonly struct Date :
     public static Date Today => (Date)DateTime.Today;
 }
 
-/// <summary>Handles dates as integer values in JSON.</summary>
+/// <summary>Handles dates as integer values in JSON, to save space.</summary>
 public class Date2JsonConverter : JsonConverter<Date>
 {
-    /// <inheritdoc/>
+    /// <summary>Reads an unsigned number from JSON and converts it to a date</summary>
+    /// <param name="reader">The JSON reader.</param>
+    /// <param name="typeToConvert">The type of the object to convert.</param>
+    /// <param name="options">JSON options.</param>
+    /// <returns>A triangular matrix with the values read from JSON.</returns>
     public override Date Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options) =>
         new(reader.GetUInt32());
 
-    /// <inheritdoc/>
+    /// <summary>Converts this date to JSON as an unsigned number.</summary>
+    /// <param name="writer">The JSON writer.</param>
+    /// <param name="value">The date to serialize.</param>
+    /// <param name="options">JSON options.</param>    
     public override void Write(
         Utf8JsonWriter writer,
         Date value,

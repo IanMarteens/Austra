@@ -1,6 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Calculates statistics by adding samples.</summary>
+/// <remarks>This class supports hardware-acceleration.</remarks>
 public sealed class Accumulator
 {
     /// <summary>Minimum value.</summary>
@@ -92,6 +93,7 @@ public sealed class Accumulator
     }
 
     /// <summary>Adds samples from a memory zone to this accumulator.</summary>
+    /// <remarks>This method supports hardware-acceleration.</remarks>
     /// <param name="samples">The new samples.</param>
     /// <param name="size">The number of samples.</param>
     public unsafe void Add(double* samples, int size)
@@ -228,6 +230,7 @@ public sealed class Accumulator
     /// <summary>
     /// Gets a short hint string describing the contents of this accumulator.
     /// </summary>
+    /// <returns>The most important properties in tabular format.</returns>
     public string Hint => new StringBuilder(256)
         .Append("Count:\t").Append(Count).AppendLine()
         .Append("Min:\t").Append(Minimum.ToString("G6")).AppendLine()
@@ -237,7 +240,8 @@ public sealed class Accumulator
         .Append("StdDv:\t").Append(StandardDeviation.ToString("G6"))
         .ToString();
 
-    /// <inheritdoc/>
+    /// <summary>Gets a textual respresentation of the accumulator.</summary>
+    /// <returns>The most important properties in tabular format.</returns>
     public override string ToString() => new StringBuilder(512)
         .Append("Count: ").Append(Count).AppendLine()
         .Append("Min  : ").Append(Minimum).AppendLine()

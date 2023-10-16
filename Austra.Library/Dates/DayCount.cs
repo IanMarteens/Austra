@@ -41,6 +41,7 @@ public static class DayCount
     /// <param name="isStub">Is this interval a stub.</param>
     /// <param name="isFront">Is this an initial stub.</param>
     /// <param name="isShort">Is this a short stub.</param>
+    /// <returns>The year fraction.</returns>
     public static double GetAccrualActICMA(
         Date from,
         Date to,
@@ -68,6 +69,7 @@ public static class DayCount
     /// <summary>Implements the ACT/ACT day count convention.</summary>
     /// <param name="from">First date of the period.</param>
     /// <param name="to">Second date of the period.</param>
+    /// <returns>The year fraction.</returns>
     public static double GetAccrualActual(Date from, Date to)
     {
         int y1 = from.Year, y2 = to.Year;
@@ -103,6 +105,7 @@ public static class DayCount
     /// <summary>Implements the 30/360 day count convention.</summary>
     /// <param name="from">First date of the period.</param>
     /// <param name="to">Second date of the period.</param>
+    /// <returns>The year fraction.</returns>
     public static double GetAccrual30_360(Date from, Date to)
     {
         var (y1, m1, day1) = from;
@@ -117,6 +120,7 @@ public static class DayCount
     /// <summary>Implements the 30E/360 day count convention.</summary>
     /// <param name="from">First date of the period.</param>
     /// <param name="to">Second date of the period.</param>
+    /// <returns>The year fraction.</returns>
     public static double GetAccrual30E360(Date from, Date to)
     {
         var (y1, m1, day1) = from;
@@ -132,6 +136,7 @@ public static class DayCount
     /// <param name="from">First date of the period.</param>
     /// <param name="to">Second date of the period.</param>
     /// <param name="isLast">Is this the last period of the schedule?</param>
+    /// <returns>The year fraction.</returns>
     public static double GetAccrual30E360ISDA(Date from, Date to, bool isLast)
     {
         var (y1, m1, day1) = from;

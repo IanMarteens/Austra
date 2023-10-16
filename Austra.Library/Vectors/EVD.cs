@@ -1051,6 +1051,7 @@ public readonly struct EVD : IFormattable
     /// Gets the absolute value of determinant of the square matrix 
     /// for which the EVD was computed.
     /// </summary>
+    /// <returns>The product of the magnitudes of eigenvalues.</returns>
     public double Determinant()
     {
         Complex det = Complex.One;
@@ -1074,7 +1075,8 @@ public readonly struct EVD : IFormattable
         return rank;
     }
 
-    /// <inheritdoc/>
+    /// <summary>Gets a textual representation of this factorization.</summary>
+    /// <returns>The diagonal eigenvalues matrix plus the eigenvectors matrix.</returns>
     public override string ToString() =>
         "Eigenvalues:" + Environment.NewLine +
         D.ToString() + Environment.NewLine +
@@ -1084,7 +1086,7 @@ public readonly struct EVD : IFormattable
     /// <summary>Gets a textual representation of this factorization.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
-    /// <returns>Space-separated components.</returns>
+    /// <returns>The diagonal eigenvalues matrix plus the eigenvectors matrix.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         "Eigenvalues:" + Environment.NewLine +
         D.ToString(format, provider) + Environment.NewLine +

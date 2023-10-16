@@ -46,9 +46,13 @@ public abstract class FftModel
     /// <summary>
     /// Gets a short string describing the kind of FFT and the length of the spectrum.
     /// </summary>
+    /// <returns>
+    /// Number of items in the original vector, and number of items in the spectrum.
+    /// </returns>
     public abstract string ToShortString();
 
     /// <summary>Gets a string representation of the FFT.</summary>
+    /// <returns>A string representation of the <see cref="Amplitudes"/> vector.</returns>
     override public string ToString() => Amplitudes.ToString();
 }
 
@@ -96,7 +100,10 @@ public sealed class FftRModel : FftModel
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>A short description of the model's content.</summary>
+    /// <returns>
+    /// Number of items in the original vector, and number of items in the spectrum.
+    /// </returns>
     public override string ToShortString() =>
         $"FFT : ℝ({Spectrum.Length}) ⊢ ℂ({Length})";
 
@@ -123,7 +130,10 @@ public sealed class FftCModel : FftModel
         Phases = Spectrum.Phases();
     }
 
-    /// <inheritdoc/>
+    /// <summary>A short description of the model's content.</summary>
+    /// <returns>
+    /// Number of items in the original vector, and number of items in the spectrum.
+    /// </returns>
     public override string ToShortString() =>
         $"FFT : ℂ({Spectrum.Length}) ⊢ ℂ({Length})";
 

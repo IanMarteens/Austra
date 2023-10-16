@@ -173,16 +173,21 @@ public static partial class F
     }
 
     /// <summary>Computes the Beta function.</summary>
+    /// <returns>
+    /// The value of the Euler's Beta, computed from the <see cref="Gamma"/> function.
+    /// </returns>
     public static double Beta(double p, double q) =>
         Gamma(p) * Gamma(q) / Gamma(p + q);
 
     /// <summary>
     /// Generates a random number from a uniform distribution in the interval [0, 1).
     /// </summary>
+    /// <returns>A random number from a uniform distribution in the interval [0, 1).</returns>
     public static double Random() => System.Random.Shared.NextDouble();
 
     /// <summary>
     /// Generates a random number from a normal distribution with mean 0 and standard deviation 1.
     /// </summary>
+    /// <returns>A random number, that can be either positive or negative.</returns>
     public static double NRandom() => NormalRandom.Shared.NextDouble();
 }

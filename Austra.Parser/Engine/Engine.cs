@@ -110,6 +110,7 @@ public interface IAustraEngine
     byte[] Serialize();
 
     /// <summary>Serializes the datasource into an UTF-8 file.</summary>
+    /// <param name="fileName">The name of the output file.</param>
     public void Serialize(string fileName) =>
         File.WriteAllBytes(fileName, Serialize());
 
@@ -293,9 +294,9 @@ public partial class AustraEngine : IAustraEngine
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
     /// <param name="text">Class name to check.</param>
     /// <returns><see langword="true"/> if the text is a valid class name.</returns>
-    public bool IsClass(string text) => text.ToUpperInvariant() switch
+    public bool IsClass(string text) => text.ToLower() switch
     {
-        "COMPLEXVECTOR" or "MATRIX" or "MATH" or "MODEL" or "SERIES" or "VECTOR" or "SPLINE" => true,
+        "complexvector" or "matrix" or "math" or "model" or "series" or "vector" or "spline" => true,
         _ => false,
     };
 
@@ -339,14 +340,25 @@ public partial class AustraEngine : IAustraEngine
     public double? CompileTime { get; private set; }
 
     /// <summary>DTO for serializing a definition.</summary>
+    /// <param name="Name">The name of the definition.</param>
+    /// <param name="Text">The formula of the definition.</param>
+    /// <param name="Description">A textual description.</param>
     protected sealed record DataDef(string Name, string Text, string Description);
 
     /// <summary>DTO for serializing a series.</summary>
+    /// <param name="Name">A name for the series.</param>
+    /// <param name="Ticker">Optional external name of the series.</param>
+    /// <param name="Type">Type of the series.</param>
+    /// <param name="Frequency">Sampling frequency.</param>
+    /// <param name="Dates">Date arguments for the abscissa.</param>
+    /// <param name="Values">Numerical arguments for the coordinates.</param>
     protected sealed record DataSeries(
         string Name, string? Ticker, int Type, int Frequency,
         Date[] Dates, double[] Values);
 
-    /// <summary>DTO for serializing a datasource.</summary>
+    /// <summary>DTO for serializing a whole datasource.</summary>
+    /// <param name="Definitions">A list of definitions.</param>
+    /// <param name="Series">A list of series.</param>
     protected sealed record DataObject(List<DataDef> Definitions, List<DataSeries> Series);
 
     /// <summary>Gets a regex for the DEFINE clause.</summary>

@@ -163,6 +163,7 @@ public readonly struct ComplexVector :
 
     /// <summary>Explicit conversion from vector to array.</summary>
     /// <param name="v">The original vector.</param>
+    /// <returns>An array of <see cref="Complex"/> numbers.</returns>
     public unsafe static explicit operator Complex[](ComplexVector v)
     {
         Complex[] result = new Complex[v.Length];
@@ -613,10 +614,16 @@ public readonly struct ComplexVector :
         v * (1.0 / d);
 
     /// <summary>Multiplies a complex scalar value by a vector.</summary>
+    /// <param name="c">A complex scalar multiplier.</param>
+    /// <param name="v">Vector to be multiplied.</param>
+    /// <returns>The multiplication of the vector by the complex scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComplexVector operator *(Complex c, ComplexVector v) => v * c;
 
     /// <summary>Multiplies a real scalar value by a vector.</summary>
+    /// <param name="d">A real scalar multiplier.</param>
+    /// <param name="v">Vector to be multiplied.</param>
+    /// <returns>The multiplication of the vector by the real scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComplexVector operator *(double d, ComplexVector v) => v * d;
 
@@ -677,6 +684,7 @@ public readonly struct ComplexVector :
     }
 
     /// <summary>Gets maximum absolute magnitude in the vector.</summary>
+    /// <remarks>This operation can be hardware-accelerated.</remarks>
     /// <returns>The value in the cell with the highest amplitude.</returns>
     public unsafe double AbsMax()
     {
@@ -707,6 +715,7 @@ public readonly struct ComplexVector :
     /// <summary>
     /// Gets a vector containing the phases of the complex numbers in this vector.
     /// </summary>
+    /// <remarks>This operation can be hardware-accelerated.</remarks>
     /// <param name="n">The number of phases to be returned.</param>
     /// <returns>A new vector with phases.</returns>
     internal unsafe Vector Phases(int n)
@@ -727,6 +736,7 @@ public readonly struct ComplexVector :
     /// <summary>
     /// Gets a vector containing the phases of the complex numbers in this vector.
     /// </summary>
+    /// <remarks>This operation can be hardware-accelerated.</remarks>
     /// <returns>A new vector with phases.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector Phases()
@@ -882,25 +892,36 @@ public readonly struct ComplexVector :
         $"ans ∊ ℂ({Length})" + Environment.NewLine +
         CommonMatrix.ToString((Complex[])this, v => v.ToString(format, provider));
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a vector with the same values.</summary>
+    /// <param name="other">The vector to be compared.</param>
+    /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
     public bool Equals(ComplexVector other) =>
         new Vector(re).Equals(other.re) && new Vector(im).Equals(other.im);
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a complex vector with the same values.</summary>
+    /// <param name="obj">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a vector with the same items.</returns>
     public override bool Equals(object? obj) =>
         obj is ComplexVector vector && Equals(vector);
 
-    /// <inheritdoc/>
+    /// <summary>Returns the hashcode for this complex vector.</summary>
+    /// <returns>A hashcode summarizing the content of the vector.</returns>
     public override int GetHashCode() =>
         HashCode.Combine(
             ((IStructuralEquatable)re).GetHashCode(EqualityComparer<double>.Default),
             ((IStructuralEquatable)im).GetHashCode(EqualityComparer<double>.Default));
 
-    /// <inheritdoc/>
+    /// <summary>Compares two complex vectors for equality. </summary>
+    /// <param name="left">First vector operand.</param>
+    /// <param name="right">Second vector operand.</param>
+    /// <returns><see langword="true"/> if all corresponding items are equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(ComplexVector left, ComplexVector right) => left.Equals(right);
 
-    /// <inheritdoc/>
+    /// <summary>Compares two complex vectors for inequality. </summary>
+    /// <param name="left">First vector operand.</param>
+    /// <param name="right">Second vector operand.</param>
+    /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(ComplexVector left, ComplexVector right) => !(left == right);
 }

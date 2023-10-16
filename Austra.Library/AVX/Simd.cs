@@ -156,6 +156,12 @@ public static class Simd
             : Avx.Subtract(minuend, Avx.Multiply(Avx.LoadVector256(multiplicand), multiplier));
 
     /// <summary>Calculates <c>c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <param name="x">The real variable used for evaluation.</param>
+    /// <param name="c0">The constant term.</param>
+    /// <param name="c1">The linear term.</param>
+    /// <param name="c2">The quadratic term.</param>
+    /// <param name="c3">The cubic term.</param>
+    /// <param name="c4">The quartic term.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector256<double> Poly4(this Vector256<double> x,
         double c0, double c1, double c2, double c3, double c4) =>
@@ -167,6 +173,13 @@ public static class Simd
             Vector256.Create(c0));
 
     /// <summary>Calculates <c>x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <param name="x">The real variable used for evaluation.</param>
+    /// <param name="c0">The constant term.</param>
+    /// <param name="c1">The linear term.</param>
+    /// <param name="c2">The quadratic term.</param>
+    /// <param name="c3">The cubic term.</param>
+    /// <param name="c4">The quartic term.</param>
+    /// <remarks>It is assumed that the quintic term is one.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector256<double> Poly5n(this Vector256<double> x,
         double c0, double c1, double c2, double c3, double c4) =>
@@ -178,6 +191,13 @@ public static class Simd
             x, Vector256.Create(c0));
 
     /// <summary>Calculates <c>c₅x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <param name="x">The real variable used for evaluation.</param>
+    /// <param name="c0">The constant term.</param>
+    /// <param name="c1">The linear term.</param>
+    /// <param name="c2">The quadratic term.</param>
+    /// <param name="c3">The cubic term.</param>
+    /// <param name="c4">The quartic term.</param>
+    /// <param name="c5">The quintic term.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector256<double> Poly5(this Vector256<double> x,
         double c0, double c1, double c2, double c3, double c4, double c5) =>

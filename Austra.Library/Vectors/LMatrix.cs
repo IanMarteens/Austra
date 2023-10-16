@@ -844,38 +844,61 @@ public readonly struct LMatrix :
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => CommonMatrix.DiagonalProduct(values);
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
+    /// <param name="other">The matrix to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
     public bool Equals(LMatrix other) => (Matrix)this == other;
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
+    /// <param name="obj">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
     public override bool Equals(object? obj) =>
         obj is LMatrix matrix && Equals(matrix);
 
-    /// <inheritdoc/>
+    /// <summary>Returns the hashcode for this matrix.</summary>
+    /// <returns>A hashcode summarizing the content of the matrix.</returns>
     public override int GetHashCode() =>
         ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First matrix to compare.</param>
+    /// <param name="right">Second matrix to compare.</param>
+    /// <returns><see langword="true"/>When all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, LMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First lower-triangular matrix to compare.</param>
+    /// <param name="right">Second upper-triangular matrix to compare.</param>
+    /// <returns><see langword="true"/>When all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, RMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First lower-triangular matrix to compare.</param>
+    /// <param name="right">Second rectangular matrix to compare.</param>
+    /// <returns><see langword="true"/>When all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, Matrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for inequality.</summary>
+    /// <param name="left">First lower-triangular matrix to compare.</param>
+    /// <param name="right">Second lower-triangular matrix to compare.</param>
+    /// <returns><see langword="true"/>When a pair of cells exists with different values.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, LMatrix right) => (Matrix)left != right;
 
     /// <summary>Checks two matrices for inequality.</summary>
+    /// <param name="left">First lower-triangular matrix to compare.</param>
+    /// <param name="right">Right lower-triangular matrix to compare.</param>
+    /// <returns><see langword="true"/>When a pair of cells exists with different values.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, RMatrix right) => !(left == right);
 
     /// <summary>Checks two matrices for inequality.</summary>
+    /// <param name="left">First lower-triangular matrix to compare.</param>
+    /// <param name="right">Second rectangular matrix to compare.</param>
+    /// <returns><see langword="true"/>When a pair of cells exists with different values.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, Matrix right) => (Matrix)left != right;
 
@@ -895,7 +918,11 @@ public readonly struct LMatrix :
 /// <summary>JSON converter for triangular matrices.</summary>
 public class LMatrixJsonConverter : JsonConverter<LMatrix>
 {
-    /// <inheritdoc/>
+    /// <summary>Reads and convert JSON to a <see cref="LMatrix"/> instance.</summary>
+    /// <param name="reader">The JSON reader.</param>
+    /// <param name="typeToConvert">The type of the object to convert.</param>
+    /// <param name="options">JSON options.</param>
+    /// <returns>A triangular matrix with the values read from JSON.</returns>
     public unsafe override LMatrix Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
@@ -937,7 +964,10 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
         return new(values!);
     }
 
-    /// <inheritdoc/>
+    /// <summary>Converts a lower-triangular matrix to JSON.</summary>
+    /// <param name="writer">The JSON writer.</param>
+    /// <param name="value">The matrix to serialize.</param>
+    /// <param name="options">JSON options.</param>    
     public unsafe override void Write(
         Utf8JsonWriter writer,
         LMatrix value,

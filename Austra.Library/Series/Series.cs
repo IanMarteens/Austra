@@ -174,7 +174,7 @@ public sealed class Series : Series<Date>,
     /// <returns>A normally distributed time series.</returns>
     public unsafe Series Random()
     {
-        NormalRandom rnd = new(Mean(), StandardDeviation());
+        NormalRandom rnd = new(Mean, StandardDeviation);
         double[] newValues = GC.AllocateUninitializedArray<double>(Count);
         fixed (double* p = newValues)
             for (int i = 0; i < newValues.Length; i++)
@@ -223,6 +223,7 @@ public sealed class Series : Series<Date>,
     }
 
     /// <summary>Gets the moving return of a one month window.</summary>
+    /// <returns>A new series with the moving return statistics.</returns>
     public Series MovingRet()
     {
         if (Type == SeriesType.Mixed || Type == SeriesType.MixedRets)
@@ -387,7 +388,7 @@ public sealed class Series : Series<Date>,
     /// <summary>Creates a new series by adding values from the operands.</summary>
     /// <param name="s1">First operand.</param>
     /// <param name="s2">Second operand.</param>
-    /// <returns>A new series.</returns>
+    /// <returns>The sum of the two time series.</returns>
     public static Series operator +(Series s1, Series s2)
     {
         if (s1.Freq != s2.Freq)
@@ -399,7 +400,7 @@ public sealed class Series : Series<Date>,
     /// <summary>Creates a new series by subtracting values from the operands.</summary>
     /// <param name="s1">First operand.</param>
     /// <param name="s2">Second operand.</param>
-    /// <returns>A new series.</returns>
+    /// <returns>The difference between the two time series.</returns>
     public static Series operator -(Series s1, Series s2)
     {
         if (s1.Freq != s2.Freq)
@@ -411,20 +412,28 @@ public sealed class Series : Series<Date>,
     /// <summary>Adds a scalar to a series.</summary>
     /// <param name="s">The series.</param>
     /// <param name="d">A scalar value.</param>
+    /// <returns>A new series with increased values.</returns>
     public static Series operator +(Series s, double d) =>
         new(s.Name, s.Ticker, (double[])(s.GetValues() + d), s);
 
     /// <summary>Adds a scalar to a series.</summary>
     /// <param name="d">A scalar value.</param>
     /// <param name="s">The series.</param>
+    /// <returns>A new series with increased values.</returns>
     public static Series operator +(double d, Series s) =>
         new(s.Name, s.Ticker, (double[])(s.GetValues() + d), s);
 
     /// <summary>Subtracts a fixed scalar value from a series.</summary>
+    /// <param name="s">The series.</param>
+    /// <param name="d">A scalar value.</param>
+    /// <returns>A new series with decreased values.</returns>
     public static Series operator -(Series s, double d) =>
         new(s.Name, s.Ticker, (double[])(s.GetValues() - d), s);
 
     /// <summary>Subtracts series from a fixed scalar value.</summary>
+    /// <param name="d">A scalar value.</param>
+    /// <param name="s">The series.</param>
+    /// <returns>A new series negated and then increased values.</returns>
     public static Series operator -(double d, Series s) =>
         new(s.Name, s.Ticker, (double[])(d - s.GetValues()), s);
 
@@ -615,9 +624,9 @@ public sealed class Series : Series<Date>,
 
     /// <summary>Gets a textual representation of the series.</summary>
     /// <returns>A text containing the name and the point count.</returns>
-    public override string ToString() => $"{Name}: Series/{Type}/{freq2str[(int)Freq]}[{Count}]";
+    public override string ToString() => $"{Name}: Series/{Type}/{Freq2Str[(int)Freq]}[{Count}]";
 
-    private static readonly string[] freq2str =
+    private static ReadOnlySpan<string> Freq2Str => new string[]
     {
         "1D", "1W", "2W", "1M", "2M", "3M", "6M", "1Y", ""
     };

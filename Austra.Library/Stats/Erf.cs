@@ -8,6 +8,11 @@ public partial class F
     private static readonly double InvSqrt2 = 1.0 / Sqrt(2.0);
 
     /// <summary>The normal cumulative distribution function.</summary>
+    /// <param name="value">An arbitrary real number.</param>
+    /// <returns>
+    /// The probability that a sample drafted from a normal distribution
+    /// be lesser or equal to <paramref name="value"/>.
+    /// </returns>
     public static double NCdf(double value) =>
         0.5 * (1 + Erf(value * InvSqrt2));
 

@@ -338,6 +338,7 @@ public static class CommonMatrix
     /// <param name="data">An array from a vector.</param>
     /// <param name="formatter">A formatter for items.</param>
     /// <returns>A text representation of the vector.</returns>
+    /// <typeparam name="T">The type of the items to format.</typeparam>
     public static string ToString<T>(T[] data, Func<T, string> formatter)
         where T : struct
     {

@@ -167,10 +167,12 @@ public readonly struct LU : IFormattable
 
     /// <summary>Gets the storage for the LU parts.</summary>
     /// <param name="lu">The LU decomposition.</param>
+    /// <returns>The composite matrix containing the lower and upper parts.</returns>
     public static explicit operator double[,](LU lu) => lu.values;
 
     /// <summary>Gets the storage for the permutation part.</summary>
     /// <param name="lu">The LU decomposition.</param>
+    /// <returns>An array containing permutations.</returns>
     public static explicit operator int[](LU lu) => lu.perm;
 
     /// <summary>Gets the value at a single cell.</summary>

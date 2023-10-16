@@ -11,7 +11,7 @@ public interface IMatrix
 }
 
 /// <summary>Defines a type with a pointwise multiplication operation.</summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">The type that implements this interface.</typeparam>
 public interface IPointwiseOperators<T>
 {
     /// <summary>Item by item multiplication of two data structures.</summary>

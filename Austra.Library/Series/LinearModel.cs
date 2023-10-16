@@ -1,6 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents the result of a linear regression.</summary>
+/// <typeparam name="T">The type of the data source.</typeparam>
 public abstract class LinearModelBase<T>: IFormattable
 {
     /// <summary>Initializes and computes a linear regression model.</summary>
@@ -43,7 +44,9 @@ public abstract class LinearModelBase<T>: IFormattable
         return (c.Solve(x * rightSide), c);
     }
 
-    /// <inheritdoc/>
+    /// <summary>Gets a textual representation of the model.
+    /// </summary>
+    /// <returns>The calculated lineal combination, and the R² statistics.</returns>
     public sealed override string ToString() => ToString("G6", null);
 
     /// <summary>Gets the string representation of the autoregressive model.</summary>

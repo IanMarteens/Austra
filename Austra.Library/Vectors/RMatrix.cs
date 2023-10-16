@@ -226,6 +226,9 @@ public readonly struct RMatrix :
     }
 
     /// <summary>Adds a scalar value to an upper triangular matrix.</summary>
+    /// <param name="d">The scalar summand.</param>
+    /// <param name="m">The matrix summand.</param>
+    /// <returns>The pointwise sum of the matrix and the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RMatrix operator +(double d, RMatrix m) => m + d;
 
@@ -259,6 +262,9 @@ public readonly struct RMatrix :
     }
 
     /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
+    /// <param name="m1">The upper-triangular summand.</param>
+    /// <param name="m2">The lower-triangular summand.</param>
+    /// <returns>The sum of these two matrices.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix operator +(RMatrix m1, LMatrix m2) => new Matrix(m1.values) + m2;
 
@@ -454,14 +460,19 @@ public readonly struct RMatrix :
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => CommonMatrix.DiagonalProduct(values);
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
+    /// <param name="other">The matrix to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
     public bool Equals(RMatrix other) => (Matrix)this == other;
 
-    /// <inheritdoc/>
+    /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
+    /// <param name="obj">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
     public override bool Equals(object? obj) =>
         obj is RMatrix matrix && Equals(matrix);
 
-    /// <inheritdoc/>
+    /// <summary>Returns the hashcode for this matrix.</summary>
+    /// <returns>A hashcode summarizing the content of the matrix.</returns>
     public override int GetHashCode() =>
         ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
 

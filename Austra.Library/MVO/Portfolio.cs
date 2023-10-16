@@ -82,7 +82,6 @@ public sealed class InterpolatedPortfolio : Portfolio
     /// <param name="interpolationFactor">The interpolation factor.</param>
     /// <param name="lowIndex">Lowest source index.</param>
     /// <param name="highIndex">Highest source index.</param>
-    /// <returns></returns>
     internal static InterpolatedPortfolio Interpolate(
         Portfolio[] frontier,
         Matrix sigma,
