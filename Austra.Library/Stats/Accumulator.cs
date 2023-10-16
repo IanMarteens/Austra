@@ -240,7 +240,7 @@ public sealed class Accumulator
         .Append("StdDv:\t").Append(StandardDeviation.ToString("G6"))
         .ToString();
 
-    /// <summary>Gets a textual respresentation of the accumulator.</summary>
+    /// <summary>Gets a textual representation of the accumulator.</summary>
     /// <returns>The most important properties in tabular format.</returns>
     public override string ToString() => new StringBuilder(512)
         .Append("Count: ").Append(Count).AppendLine()

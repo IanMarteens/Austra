@@ -52,6 +52,7 @@ public abstract class LinearModelBase<T>: IFormattable
     /// <summary>Gets the string representation of the autoregressive model.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
+    /// <returns>The calculated lineal combination, and the R² statistics.</returns>
     public string ToString(string? format, IFormatProvider? provider)
     {
         const double ε = 1E-15;

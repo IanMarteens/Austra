@@ -20,5 +20,6 @@ public static partial class F
     };
 
     /// <summary>Retrieves a random haiku.</summary>
+    /// <returns>A random haiku.</returns>
     public static string Austra() => haikus[System.Random.Shared.Next(haikus.Length)];
 }

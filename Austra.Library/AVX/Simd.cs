@@ -162,6 +162,7 @@ public static class Simd
     /// <param name="c2">The quadratic term.</param>
     /// <param name="c3">The cubic term.</param>
     /// <param name="c4">The quartic term.</param>
+    /// <returns>The evaluation of the polynomial at the given point.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector256<double> Poly4(this Vector256<double> x,
         double c0, double c1, double c2, double c3, double c4) =>
@@ -180,6 +181,7 @@ public static class Simd
     /// <param name="c3">The cubic term.</param>
     /// <param name="c4">The quartic term.</param>
     /// <remarks>It is assumed that the quintic term is one.</remarks>
+    /// <returns>The evaluation of the polynomial at the given point.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector256<double> Poly5n(this Vector256<double> x,
         double c0, double c1, double c2, double c3, double c4) =>
@@ -198,6 +200,7 @@ public static class Simd
     /// <param name="c3">The cubic term.</param>
     /// <param name="c4">The quartic term.</param>
     /// <param name="c5">The quintic term.</param>
+    /// <returns>The evaluation of the polynomial at the given point.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector256<double> Poly5(this Vector256<double> x,
         double c0, double c1, double c2, double c3, double c4, double c5) =>

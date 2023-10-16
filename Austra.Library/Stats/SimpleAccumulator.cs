@@ -170,7 +170,7 @@ public sealed class SimpleAccumulator
         };
     }
 
-    /// <summary>Gets a textual respresentation of the accumulator.</summary>
+    /// <summary>Gets a textual representation of the accumulator.</summary>
     /// <returns>The most important properties in tabular format.</returns>
 
     public override string ToString() => new StringBuilder(512)

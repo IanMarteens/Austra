@@ -319,6 +319,7 @@ public readonly struct Matrix :
     /// Implicit conversion from a bidimensional array to a matrix.
     /// </summary>
     /// <param name="values">A bidimensional array.</param>
+    /// <returns>A rectangular matrix representing the converted data.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Matrix(double[,] values) => new(values);
 
@@ -650,6 +651,7 @@ public readonly struct Matrix :
     /// <summary>Subtracts an upper-triangular matrix from a full matrix.</summary>
     /// <param name="m1">Full matrix minuend.</param>
     /// <param name="rm2">Upper-triangular matrix subtrahend.</param>
+    /// <returns>The difference of the two matrices.</returns>
     public static Matrix operator -(Matrix m1, RMatrix rm2) =>
         m1 - new Matrix((double[,])rm2);
 

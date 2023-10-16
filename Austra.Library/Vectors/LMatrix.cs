@@ -129,6 +129,7 @@ public readonly struct LMatrix :
     /// Implicit conversion from a bidimensional array to a matrix.
     /// </summary>
     /// <param name="values">A bidimensional array.</param>
+    /// <returns>A new matrix representing the array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator LMatrix(double[,] values) => new(values);
 
@@ -136,6 +137,7 @@ public readonly struct LMatrix :
     /// Implicit conversion from a rectangular to a lower triangular matrix.
     /// </summary>
     /// <param name="m">A rectangular matrix.</param>
+    /// <returns>A new lower-triangular matrix.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator LMatrix(Matrix m) => new((double[,])m);
 
@@ -146,12 +148,15 @@ public readonly struct LMatrix :
     /// Use carefully: it returns the underlying bidimensional array.
     /// </remarks>
     /// <param name="m">The original matrix.</param>
+    /// <returns>The underlying bidimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator double[,](LMatrix m) => m.values;
 
     /// <summary>
     /// Explicit conversion from a triangular matrix to a rectangular one.
     /// </summary>
+    /// <param name="m">A lower-triangular matrix.</param>
+    /// <returns>A new rectangular matrix.</returns>
     public static explicit operator Matrix(LMatrix m) => new(m.values);
 
     /// <summary>Has the matrix been properly initialized?</summary>
@@ -296,7 +301,10 @@ public readonly struct LMatrix :
         return result;
     }
 
-    /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
+    /// <summary>Adds a lower-triangular matrix and an upper-triangular one.</summary>
+    /// <param name="m1">First matrix operand.</param>
+    /// <param name="m2">Second matrix operand.</param>
+    /// <returns>The sum of the two operands.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix operator +(LMatrix m1, RMatrix m2) => new Matrix(m1.values) + m2;
 
@@ -671,8 +679,10 @@ public readonly struct LMatrix :
     }
 
     /// <summary>Gets the cell with the maximum value.</summary>
+    /// <returns>The maximum value in the triangular matrix.</returns>
     public double Maximum() => new Matrix((double[,])this).Maximum();
     /// <summary>Gets the cell with the minimum value.</summary>
+    /// <returns>The minimum value in the triangular matrix.</returns>
     public double Minimum() => new Matrix((double[,])this).Minimum();
 
     /// <summary>Multiplies this matrix by the transposed argument.</summary>
@@ -863,42 +873,42 @@ public readonly struct LMatrix :
     /// <summary>Checks two matrices for equality.</summary>
     /// <param name="left">First matrix to compare.</param>
     /// <param name="right">Second matrix to compare.</param>
-    /// <returns><see langword="true"/>When all corresponding cells are equals.</returns>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, LMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
     /// <param name="left">First lower-triangular matrix to compare.</param>
     /// <param name="right">Second upper-triangular matrix to compare.</param>
-    /// <returns><see langword="true"/>When all corresponding cells are equals.</returns>
+    /// <returns><see langword="true"/>w hen all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, RMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
     /// <param name="left">First lower-triangular matrix to compare.</param>
     /// <param name="right">Second rectangular matrix to compare.</param>
-    /// <returns><see langword="true"/>When all corresponding cells are equals.</returns>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LMatrix left, Matrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for inequality.</summary>
     /// <param name="left">First lower-triangular matrix to compare.</param>
     /// <param name="right">Second lower-triangular matrix to compare.</param>
-    /// <returns><see langword="true"/>When a pair of cells exists with different values.</returns>
+    /// <returns><see langword="true"/> when a pair of cells exists with different values.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, LMatrix right) => (Matrix)left != right;
 
     /// <summary>Checks two matrices for inequality.</summary>
     /// <param name="left">First lower-triangular matrix to compare.</param>
     /// <param name="right">Right lower-triangular matrix to compare.</param>
-    /// <returns><see langword="true"/>When a pair of cells exists with different values.</returns>
+    /// <returns><see langword="true"/> when a pair of cells exists with different values.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, RMatrix right) => !(left == right);
 
     /// <summary>Checks two matrices for inequality.</summary>
     /// <param name="left">First lower-triangular matrix to compare.</param>
     /// <param name="right">Second rectangular matrix to compare.</param>
-    /// <returns><see langword="true"/>When a pair of cells exists with different values.</returns>
+    /// <returns><see langword="true"/> when a pair of cells exists with different values.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(LMatrix left, Matrix right) => (Matrix)left != right;
 

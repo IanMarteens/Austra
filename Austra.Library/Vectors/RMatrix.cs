@@ -87,6 +87,7 @@ public readonly struct RMatrix :
     /// Implicit conversion from a bidimensional array to a matrix.
     /// </summary>
     /// <param name="values">A bidimensional array.</param>
+    /// <returns>A new upper-triangular matrix.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator RMatrix(double[,] values) => new(values);
 
@@ -94,6 +95,7 @@ public readonly struct RMatrix :
     /// Implicit conversion from a rectangular to an upper triangular matrix.
     /// </summary>
     /// <param name="m">A rectangular matrix.</param>
+    /// <returns>A new upper-triangular matrix.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator RMatrix(Matrix m) => new((double[,])m);
 
@@ -104,6 +106,7 @@ public readonly struct RMatrix :
     /// Use carefully: it returns the underlying bidimensional array.
     /// </remarks>
     /// <param name="m">The original matrix.</param>
+    /// <returns>The underlying bidimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator double[,](RMatrix m) => m.values;
 
@@ -477,26 +480,44 @@ public readonly struct RMatrix :
         ((IStructuralEquatable)values).GetHashCode(EqualityComparer<double>.Default);
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First matrix operand.</param>
+    /// <param name="right">First matrix operand.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(RMatrix left, RMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First matrix operand.</param>
+    /// <param name="right">First matrix operand.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(RMatrix left, LMatrix right) => (Matrix)left == right;
 
     /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First matrix operand.</param>
+    /// <param name="right">First matrix operand.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(RMatrix left, Matrix right) => right == left;
 
-    /// <summary>Checks two matrices for inequality.</summary>
+    /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First matrix operand.</param>
+    /// <param name="right">First matrix operand.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(RMatrix left, RMatrix right) => !(left == right);
 
-    /// <summary>Checks two matrices for inequality.</summary>
+    /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First matrix operand.</param>
+    /// <param name="right">First matrix operand.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(RMatrix left, LMatrix right) => !(left == right);
 
-    /// <summary>Checks two matrices for inequality.</summary>
+    /// <summary>Checks two matrices for equality.</summary>
+    /// <param name="left">First matrix operand.</param>
+    /// <param name="right">First matrix operand.</param>
+    /// <returns><see langword="true"/> when all corresponding cells are equals.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(RMatrix left, Matrix right) => !(left == right);
 

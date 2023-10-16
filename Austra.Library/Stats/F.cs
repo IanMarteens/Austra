@@ -173,6 +173,8 @@ public static partial class F
     }
 
     /// <summary>Computes the Beta function.</summary>
+    /// <param name="p">The first argument of the beta function.</param>
+    /// <param name="q">The second argument of the beta function.</param>
     /// <returns>
     /// The value of the Euler's Beta, computed from the <see cref="Gamma"/> function.
     /// </returns>
