@@ -4,8 +4,6 @@ public class ParserBenchmark : BenchmarkControl
 {
     private readonly IDataSource dataSource;
     private readonly IAustraEngine engine;
-    private readonly double erfArg = 0.5;
-    private readonly double gammaArg = 7.0;
 
     public ParserBenchmark()
     {
@@ -41,10 +39,4 @@ public class ParserBenchmark : BenchmarkControl
     [Benchmark]
     public double AustraEvalFunctionCall() =>
         (double)engine.Eval("sin(1) + cos(2)").Value;
-
-    [Benchmark]
-    public double AustraErf() => F.Erf(erfArg);
-
-    [Benchmark]
-    public double AustraGamma() => F.Gamma(gammaArg);
 }

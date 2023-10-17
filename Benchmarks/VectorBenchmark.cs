@@ -21,34 +21,37 @@ public class VectorBenchmark : BenchmarkControl
         cxv = new(cv);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorSum() => cv4 + cv5;
 
-    [Benchmark]
+   // [Benchmark]
+    public Vector AustraVectorSub() => cv4 - cv5;
+
+    //[Benchmark]
     public Vector AustraVectorScale() => 2d * cv4;
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraDotProduct() => cv1 * cv2;
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraVectorEqualsFalse() => cv1 == cv2;
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraVectorEqualsTrue() => cv1 == cv3;
 
-    [Benchmark]
+    //[Benchmark]
     public ComplexVector AustraComplexVectorCtor() => new(cv);
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraComplexVectorMagnitudes() => cxv.Magnitudes();
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraComplexVectorPhases() => cxv.Phases();
 
-    [Benchmark]
+    //[Benchmark]
     public ComplexVector AustraComplexVectorMap() => cxv.Map(c => new(c.Imaginary, c.Real));
 
-    [Benchmark]
+    //[Benchmark]
     public ComplexVector AustraComplexVectorFilter() => cxv.Filter(c => c.Real > c.Imaginary);
 
     [Benchmark]
@@ -58,5 +61,8 @@ public class VectorBenchmark : BenchmarkControl
     public Vector AustraCombineLineal() => Vector.Combine2(2, 3, cv4, cv5);
 
     [Benchmark]
+    public Vector AustraNegate() => -cv4;
+
+    //[Benchmark]
     public Vector AustraRandomVector() => new(size, NormalRandom.Shared);
 }

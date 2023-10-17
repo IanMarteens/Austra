@@ -465,7 +465,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <param name="value">The value to check.</param>
     /// <returns>NCDF of the value according to the estimated mean and variance.</returns>
     public double NCdf(double value) =>
-        0.5 * (1 + F.Erf((value - Mean) / (StandardDeviation * Simd.SQRT2)));
+        0.5 * (1 + Functions.Erf((value - Mean) / (StandardDeviation * Simd.SQRT2)));
 
     /// <summary>The normal cumulative distribution function of the most recent value.</summary>
     /// <returns>NCDF of the value according to the estimated mean and variance.</returns>

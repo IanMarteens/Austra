@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
-/// <summary>Contains statistical functions.</summary>
-public static partial class F
+/// <summary>Contains statistical and other useful math functions.</summary>
+public static partial class Functions
 {
     private static readonly string[] haikus = new string[]
     {

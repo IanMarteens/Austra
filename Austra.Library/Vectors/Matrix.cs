@@ -1221,7 +1221,7 @@ public readonly struct Matrix :
     /// <returns>this * multiplicand + add.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector MultiplyAdd(Vector multiplicand, Vector add, double[] result) =>
-        add.Add(Multiply(multiplicand, result), result);
+        add.AddV(Multiply(multiplicand, result), result);
 
     /// <summary>Transforms a vector and adds an offset.</summary>
     /// <param name="multiplicand">Vector to transform.</param>
@@ -1237,7 +1237,7 @@ public readonly struct Matrix :
     /// <returns>this * multiplicand + add.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector MultiplySubtract(Vector multiplicand, Vector sub, double[] result) =>
-        new Vector(Multiply(multiplicand, result)).Sub(sub, result);
+        new Vector(Multiply(multiplicand, result)).SubV(sub, result);
 
     /// <summary>Transforms a vector and subtracts an offset.</summary>
     /// <param name="multiplicand">Vector to transform.</param>

@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
-/// <summary>Contains statistical functions.</summary>
-public static partial class F
+/// <summary>Contains statistical and other useful math functions.</summary>
+public static partial class Functions
 {
     /// <summary>
     /// Compute the inverse of the standard normal cumulative distribution function.
@@ -29,8 +29,8 @@ public static partial class F
         {
             // P CLOSE TO 1/2
             double s = 0.180625 - q * q;
-            double num = ((((((s * 2.5090809287301226727E3 + 3.3430575583588128105E4) * s + 6.7265770927008700853E4) * s + 4.5921953931549871457E4) * s + 1.3731693765509461125E4) * s + 1.9715909503065514427E3) * s + 1.3314166789178437745E2) * s + 3.3871328727963666080E0;
-            double den = ((((((s * 5.2264952788528545610E3 + 2.8729085735721942674E4) * s + 3.9307895800092710610E4) * s + 2.1213794301586595867E4) * s + 5.3941960214247511077E3) * s + 6.8718700749205790830E2) * s + 4.2313330701600911252E1) * s + 1.0;
+            double num = FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(s, 2.5090809287301226727E3, 3.3430575583588128105E4), s, 6.7265770927008700853E4), s , 4.5921953931549871457E4), s, 1.3731693765509461125E4), s, 1.9715909503065514427E3), s, 1.3314166789178437745E2), s, 3.3871328727963666080E0);
+            double den = FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(s, 5.2264952788528545610E3, 2.8729085735721942674E4), s, 3.9307895800092710610E4), s, 2.1213794301586595867E4), s, 5.3941960214247511077E3), s, 6.8718700749205790830E2), s, 4.2313330701600911252E1), s, 1.0);
             return q * num / den;
         }
 
@@ -40,16 +40,16 @@ public static partial class F
         {
             // P NEITHER CLOSE TO 1/2 NOR 0 OR 1
             r -= 1.6;
-            double num = ((((((r * 7.74545014278341407640E-4 + 2.27238449892691845833E-2) * r + 2.41780725177450611770E-1) * r + 1.27045825245236838258E0) * r + 3.64784832476320460504E0) * r + 5.76949722146069140550E0) * r + 4.63033784615654529590E0) * r + 1.42343711074968357734E0;
-            double den = ((((((r * 1.05075007164441684324E-9 + 5.47593808499534494600E-4) * r + 1.51986665636164571966E-2) * r + 1.48103976427480074590E-1) * r + 6.89767334985100004550E-1) * r + 1.67638483018380384940E0) * r + 2.05319162663775882187E0) * r + 1.0;
+            double num = FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(r, 7.74545014278341407640E-4, 2.27238449892691845833E-2), r, 2.41780725177450611770E-1), r, 1.27045825245236838258E0), r, 3.64784832476320460504E0), r, 5.76949722146069140550E0), r, 4.63033784615654529590E0), r, 1.42343711074968357734E0);
+            double den = FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(r, 1.05075007164441684324E-9, 5.47593808499534494600E-4), r, 1.51986665636164571966E-2), r, 1.48103976427480074590E-1), r, 6.89767334985100004550E-1), r, 1.67638483018380384940E0), r, 2.05319162663775882187E0), r, 1.0);
             ppnd16 = num / den;
         }
         else
         {
             // COEFFICIENTS FOR P NEAR 0 OR 1
             r -= 5.0;
-            double num = ((((((r * 2.01033439929228813265E-7 + 2.71155556874348757815E-5) * r + 1.24266094738807843860E-3) * r + 2.65321895265761230930E-2) * r + 2.96560571828504891230E-1) * r + 1.78482653991729133580E0) * r + 5.46378491116411436990E0) * r + 6.65790464350110377720E0;
-            double den = ((((((r * 2.04426310338993978564E-15 + 1.42151175831644588870E-7) * r + 1.84631831751005468180E-5) * r + 7.86869131145613259100E-4) * r + 1.48753612908506148525E-2) * r + 1.36929880922735805310E-1) * r + 5.99832206555887937690E-1) * r + 1.0;
+            double num = FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(r, 2.01033439929228813265E-7, 2.71155556874348757815E-5), r, 1.24266094738807843860E-3), r, 2.65321895265761230930E-2), r, 2.96560571828504891230E-1), r, 1.78482653991729133580E0), r, 5.46378491116411436990E0), r, 6.65790464350110377720E0);
+            double den = FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(FusedMultiplyAdd(r, 2.04426310338993978564E-15, 1.42151175831644588870E-7), r, 1.84631831751005468180E-5), r, 7.86869131145613259100E-4), r, 1.48753612908506148525E-2), r, 1.36929880922735805310E-1), r, 5.99832206555887937690E-1), r, 1.0);
             ppnd16 = num / den;
         }
         return q < 0.0 ? -ppnd16 : ppnd16;
@@ -130,9 +130,9 @@ public static partial class F
     /// <returns>The logarithm of the gamma function.</returns>
     public static double GammaLn(double z)
     {
+        double s = GammaDk[0];
         if (z < 0.5)
         {
-            double s = GammaDk[0];
             for (int i = 1; i <= GammaN; i++)
             {
                 s += GammaDk[i] / (i - z);
@@ -142,7 +142,6 @@ public static partial class F
         }
         else
         {
-            double s = GammaDk[0];
             for (int i = 1; i <= GammaN; i++)
                 s += GammaDk[i] / (z + i - 1.0);
             return Log(s) + LogTwoSqrtEOverPi
@@ -178,6 +177,7 @@ public static partial class F
     /// <returns>
     /// The value of the Euler's Beta, computed from the <see cref="Gamma"/> function.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Beta(double p, double q) =>
         Gamma(p) * Gamma(q) / Gamma(p + q);
 

@@ -343,7 +343,7 @@ public sealed class Series : Series<Date>,
             acc2 += v * v;
             double mean = acc / (i + 1);
             double std = Sqrt(2 * (acc2 - acc * mean) / i);
-            newValues[c - i] = std == 0.0 ? 0.5 : 0.5 * (1 + F.Erf((v - mean) / std));
+            newValues[c - i] = std == 0.0 ? 0.5 : 0.5 * (1 + Functions.Erf((v - mean) / std));
         }
         double inv = 1.0 / points;
         double inv1 = 2.0 / (points - 1);
@@ -356,7 +356,7 @@ public sealed class Series : Series<Date>,
             acc2 += (newV + oldV) * (newV - oldV);
             double mean = acc * inv;
             double std = Sqrt((acc2 - acc * mean) * inv1);
-            newValues[c - i] = 0.5 * (1 + F.Erf((newV - mean) / std));
+            newValues[c - i] = 0.5 * (1 + Functions.Erf((newV - mean) / std));
         }
         return new(Name + ".MOVINGNCDF", Ticker, newValues, this);
     }

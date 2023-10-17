@@ -1,6 +1,12 @@
 ﻿namespace Austra.Library;
 
+using static Unsafe;
+
 /// <summary>Represents a dense vector of arbitrary size.</summary>
+/// <remarks>
+/// <see cref="Vector"/> provides a thin wrapper around a single array.
+/// Most method operations are non destructive, and return a new vector.
+/// </remarks>
 public readonly struct Vector :
     IFormattable,
     IEnumerable<double>,
@@ -68,9 +74,9 @@ public readonly struct Vector :
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         int i = 0;
         for (int t = size & ~1; i < t; i += 2)
-            rnd.NextDoubles(ref Unsafe.Add(ref p, i));
+            rnd.NextDoubles(ref Add(ref p, i));
         if (i < size)
-            Unsafe.Add(ref p, i) = rnd.NextDouble();
+            Add(ref p, i) = rnd.NextDouble();
     }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>
@@ -199,7 +205,7 @@ public readonly struct Vector :
     public double SafeThis(int index) =>
         (uint)index >= values.Length
         ? 0.0
-        : Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(values), index);
+        : Add(ref MemoryMarshal.GetArrayDataReference(values), index);
 
     /// <summary>Gets the first value in the vector.</summary>
     public double First => values[0];
@@ -279,13 +285,13 @@ public readonly struct Vector :
     /// <returns>The component by component sum.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector operator +(Vector v1, Vector v2) =>
-        v1.Add(v2, GC.AllocateUninitializedArray<double>(v1.Length));
+        v1.AddV(v2, GC.AllocateUninitializedArray<double>(v1.Length));
 
     /// <summary>Adds a vector to this vector.</summary>
     /// <param name="v">Second vector operand.</param>
     /// <param name="result">Preallocated buffer for the result.</param>
     /// <returns>The component by component sum.</returns>
-    public unsafe double[] Add(Vector v, double[] result)
+    internal double[] AddV(Vector v, double[] result)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -293,16 +299,24 @@ public readonly struct Vector :
             throw new VectorLengthException();
         Contract.Requires(result.Length == Length);
 
-        fixed (double* pA = values, pB = v.values, pC = result)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(v.values);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        int len = values.Length;
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Add(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] + pB[i];
+            int t = len - Vector256<double>.Count;
+            for (int i = 0; i < t; i += 4)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i)) + Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) + Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
         }
+        else
+            for (int i = 0; i < len; i++)
+                Add(ref c, i) = Add(ref a, i) + Add(ref b, i);
         return result;
     }
 
@@ -312,13 +326,13 @@ public readonly struct Vector :
     /// <returns>The component by component subtraction.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector operator -(Vector v1, Vector v2) =>
-        v1.Sub(v2, GC.AllocateUninitializedArray<double>(v1.Length));
+        v1.SubV(v2, GC.AllocateUninitializedArray<double>(v1.Length));
 
     /// <summary>subtracts a vector from this vector.</summary>
     /// <param name="v">Second vector operand.</param>
     /// <param name="result">Preallocated buffer for the result.</param>
     /// <returns>The component by component subtraction.</returns>
-    public unsafe double[] Sub(Vector v, double[] result)
+    internal double[] SubV(Vector v, double[] result)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -326,40 +340,51 @@ public readonly struct Vector :
             throw new VectorLengthException();
         Contract.Requires(result.Length == Length);
 
-        fixed (double* pA = values, pB = v.values, pC = result)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(v.values);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        int len = values.Length;
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Subtract(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] - pB[i];
+            int t = len - Vector256<double>.Count;
+            for (int i = 0; i < t; i += 4)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i)) - Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) - Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
         }
+        else
+            for (int i = 0; i < len; i++)
+                Add(ref c, i) = Add(ref a, i) - Add(ref b, i);
         return result;
     }
 
     /// <summary>Negates a vector.</summary>
     /// <param name="v">The vector operand.</param>
     /// <returns>The component by component negation.</returns>
-    public static unsafe Vector operator -(Vector v)
+    public static Vector operator -(Vector v)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        fixed (double* p = v.values, q = result)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(v.values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        int len = v.values.Length;
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = v.values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> z = Vector256<double>.Zero;
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(q + i, Avx.Subtract(z, Avx.LoadVector256(p + i)));
-            }
-            for (; i < len; i++)
-                q[i] = -p[i];
+            int t = len - Vector<double>.Count;
+            for (int i = 0; i < t; i += 4)
+                Vector256.StoreUnsafe(
+                    -Vector256.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                -Vector256.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
         }
+        else
+            for (int i = 0; i < len; i++)
+                Add(ref q, i) = -Add(ref p, i);
         return result;
     }
 
@@ -541,24 +566,30 @@ public readonly struct Vector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <param name="d">A scalar multiplier.</param>
     /// <returns>The multiplication of the vector by the scalar.</returns>
-    public static unsafe Vector operator *(Vector v, double d)
+    public static Vector operator *(Vector v, double d)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        fixed (double* p = v.values, q = result)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(v.values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        int len = v.values.Length;
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = v.values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> vec = Vector256.Create(d);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(q + i, Avx.Multiply(Avx.LoadVector256(p + i), vec));
-            }
-            for (; i < len; i++)
-                q[i] = p[i] * d;
+            Vector256<double> vec = Vector256.Create(d);
+            int t = len - Vector<double>.Count;
+            for (int i = 0; i < t; i += 4)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref p, i)) * vec,
+                    ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref p, t)) * vec,
+                ref Add(ref q, t));
         }
+        else
+            for (int i = 0; i < len; i++)
+                Add(ref q, i) = Add(ref p, i) * d;
         return result;
     }
 
@@ -629,25 +660,33 @@ public readonly struct Vector :
     /// <param name="multiplier">The multiplier scalar.</param>
     /// <param name="summand">The vector to be added to the scalar multiplication.</param>
     /// <returns><code>this * multiplier + summand</code></returns>
-    public unsafe Vector MultiplyAdd(double multiplier, Vector summand)
+    public Vector MultiplyAdd(double multiplier, Vector summand)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(summand.IsInitialized);
         Contract.Requires(Length == summand.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        fixed (double* p = values, r = summand.values, s = result)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double r = ref MemoryMarshal.GetArrayDataReference(summand.values);
+        ref double s = ref MemoryMarshal.GetArrayDataReference(result);
+        int len = values.Length;
+        if (Fma.IsSupported)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> vq = Vector256.Create(multiplier);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(s + i, Avx.LoadVector256(r + i).MultiplyAdd(p + i, vq));
-            }
-            for (; i < len; i++)
-                s[i] = FusedMultiplyAdd(p[i], multiplier, r[i]);
+            Vector256<double> vq = Vector256.Create(multiplier);
+            int t = len - Vector256<double>.Count;
+            for (int i = 0; i < t; i += 4)
+                Vector256.StoreUnsafe(
+                    Fma.MultiplyAdd(Vector256.LoadUnsafe(ref Add(ref p, i)), vq,
+                        Vector256.LoadUnsafe(ref Add(ref r, i))),
+                    ref Add(ref s, i));
+            Vector256.StoreUnsafe(
+                Fma.MultiplyAdd(Vector256.LoadUnsafe(ref Add(ref p, t)), vq,
+                    Vector256.LoadUnsafe(ref Add(ref r, t))),
+                ref Add(ref s, t));
         }
+        for (int i = 0; i < len; i++)
+            Add(ref s, i) = FusedMultiplyAdd(Add(ref p, i), multiplier, Add(ref r, i));
         return result;
     }
 
@@ -756,24 +795,36 @@ public readonly struct Vector :
     /// <param name="v1">First vector in the linear combination.</param>
     /// <param name="v2">Second vector in the linear combination.</param>
     /// <returns><c>w1 * v1 + w2 * v2</c></returns>
-    public static unsafe Vector Combine2(double w1, double w2, Vector v1, Vector v2)
+    public static Vector Combine2(double w1, double w2, Vector v1, Vector v2)
     {
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         double[] values = GC.AllocateUninitializedArray<double>(v1.Length);
-        fixed (double* p = values, pa = v1.values, pb = v2.values)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(v1.values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(v2.values);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(values);
+        int size = values.Length;
+        if (Fma.IsSupported)
         {
-            int j = 0, size = values.Length;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> vw1 = Vector256.Create(w1), vw2 = Vector256.Create(w2);
-                for (int top = size & Simd.AVX_MASK; j < top; j += 4)
-                    Avx.Store(p + j,
-                        Avx.Multiply(Avx.LoadVector256(pa + j), vw1).MultiplyAdd(pb + j, vw2));
-            }
-            for (; j < size; j++)
-                p[j] = FusedMultiplyAdd(pb[j], w2, pa[j] * w1);
+            Vector256<double> vw1 = Vector256.Create(w1), vw2 = Vector256.Create(w2);
+            int t = size - Vector256<double>.Count;
+            for (int i = 0; i < t; i += 4)
+                Vector256.StoreUnsafe(
+                    Fma.MultiplyAdd(
+                        Vector256.LoadUnsafe(ref Add(ref a, i)),
+                        vw1,
+                        Vector256.LoadUnsafe(ref Add(ref b, i)) * vw2),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Fma.MultiplyAdd(
+                    Vector256.LoadUnsafe(ref Add(ref a, t)),
+                    vw1,
+                    Vector256.LoadUnsafe(ref Add(ref b, t)) * vw2),
+                ref Add(ref c, t));
         }
+        else
+            for (int i = 0; i < size; i++)
+                Add(ref c, i) = FusedMultiplyAdd(Add(ref b, i), w2, Add(ref a, i) * w1);
         return values;
     }
 

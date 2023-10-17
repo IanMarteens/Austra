@@ -295,7 +295,7 @@ public readonly struct EVD : IFormattable
                     // Compute implicit shift.
                     double g = d[l], el = e[l];
                     double p = (d[l + 1] - g) / (el + el);
-                    double rad = F.Hypotenuse(p);
+                    double rad = Functions.Hypotenuse(p);
                     if (p < 0)
                         rad = -rad;
                     d[l] = el / (p + rad);
@@ -323,7 +323,7 @@ public readonly struct EVD : IFormattable
                         c3 = c2; c2 = c; s2 = s;
                         g = c * e[i];
                         h = c * p;
-                        rad = F.Hypotenuse(p, e[i]);
+                        rad = Functions.Hypotenuse(p, e[i]);
                         e[i + 1] = s * rad;
                         s = e[i] / rad;
                         c = p / rad;

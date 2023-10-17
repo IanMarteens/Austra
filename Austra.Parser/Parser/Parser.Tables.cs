@@ -308,7 +308,7 @@ internal sealed partial class Parser
             typeof(Math).MD(nameof(Math.Atan2), DoubleDoubleArg),
             typeof(Complex).MD(nameof(Complex.Atan), ComplexArg)),
         ["math.beta"] = new(
-            typeof(F).MD(nameof(F.Beta), DoubleDoubleArg)),
+            typeof(Functions).MD(nameof(Functions.Beta), DoubleDoubleArg)),
         ["math.cbrt"] = new(
             typeof(Math).MD(nameof(Math.Cbrt), DoubleArg)),
         ["math.cos"] = new(
@@ -318,14 +318,14 @@ internal sealed partial class Parser
             typeof(Math).MD(nameof(Math.Cosh), DoubleArg),
             typeof(Complex).MD(nameof(Complex.Cosh), ComplexArg)),
         ["math.erf"] = new(
-            typeof(F).MD(nameof(F.Erf), DoubleArg)),
+            typeof(Functions).MD(nameof(Functions.Erf), DoubleArg)),
         ["math.exp"] = new(
             typeof(Math).MD(nameof(Math.Exp), DoubleArg),
             typeof(Complex).MD(nameof(Complex.Exp), ComplexArg)),
         ["math.gamma"] = new(
-            typeof(F).MD(nameof(F.Gamma), DoubleArg)),
+            typeof(Functions).MD(nameof(Functions.Gamma), DoubleArg)),
         ["math.lngamma"] = new(
-            typeof(F).MD(nameof(F.GammaLn), DoubleArg)),
+            typeof(Functions).MD(nameof(Functions.GammaLn), DoubleArg)),
         ["math.log"] = new(
             typeof(Math).MD(nameof(Math.Log), DoubleArg),
             typeof(Complex).MD(nameof(Complex.Log), ComplexArg)),
@@ -333,9 +333,9 @@ internal sealed partial class Parser
             typeof(Math).MD(nameof(Math.Log10), DoubleArg),
             typeof(Complex).MD(nameof(Complex.Log10), ComplexArg)),
         ["math.ncdf"] = new(
-            typeof(F).MD(nameof(F.NCdf), DoubleArg)),
+            typeof(Functions).MD(nameof(Functions.NCdf), DoubleArg)),
         ["math.probit"] = new(
-            typeof(F).MD(nameof(F.Probit), DoubleArg)),
+            typeof(Functions).MD(nameof(Functions.Probit), DoubleArg)),
         ["math.sign"] = new(
             typeof(Math).MD(nameof(Math.Sign), IntArg),
             typeof(Math).MD(nameof(Math.Sign), DoubleArg)),
