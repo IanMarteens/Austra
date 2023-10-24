@@ -1,6 +1,10 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents a dense complex vector of arbitrary size.</summary>
+/// <remarks>
+/// For the sake of acceleration, the vector's components are stored in two separate arrays.
+/// Most operations are non-destructive.
+/// </remarks>
 public readonly struct ComplexVector :
     IFormattable,
     IEnumerable<Complex>,
@@ -157,6 +161,7 @@ public readonly struct ComplexVector :
     public void Deconstruct(out Vector re, out Vector im) => (re, im) = (this.re, this.im);
 
     /// <summary>Creates an identical vector.</summary>
+    /// <remarks>A new copy of the original storage is created.</remarks>
     /// <returns>A deep clone of the instance.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ComplexVector Clone() => new((double[])re.Clone(), (double[])im.Clone());

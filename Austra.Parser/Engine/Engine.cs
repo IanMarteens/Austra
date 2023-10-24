@@ -133,6 +133,11 @@ public partial class AustraEngine : IAustraEngine
         new("spline::", "Allows access to spline constructors"),
         new("vector::", "Allows access to vector constructors"),
         new("math::", "Allows access to mathematical functions"),
+        /*new("complexvector(", "Default complex vector constructor"),
+        new("matrix(", "Default matrix constructor"),
+        new("series(", "Default series constructor"),
+        new("spline(", "Default spline constructor"),
+        new("vector(", "Default vector constructor"),*/
     };
 
     private static readonly Member[] globalFunctions = new Member[]
@@ -294,11 +299,7 @@ public partial class AustraEngine : IAustraEngine
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
     /// <param name="text">Class name to check.</param>
     /// <returns><see langword="true"/> if the text is a valid class name.</returns>
-    public bool IsClass(string text) => text.ToLower() switch
-    {
-        "complexvector" or "matrix" or "math" or "model" or "series" or "vector" or "spline" => true,
-        _ => false,
-    };
+    public bool IsClass(string text) => Parser.IsClassName(text);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>

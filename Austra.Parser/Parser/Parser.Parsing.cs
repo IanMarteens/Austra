@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Austra.Parser;
 
@@ -601,7 +602,18 @@ internal sealed partial class Parser
                 }
                 break;
             case Token.Functor:
-                e = ParseFunction();
+                if (classNames.Contains(id))
+                {
+                    string className = id.ToLower();
+                    SkipFunctor();
+                    e = !classMethods.TryGetValue(className + ".new", out MethodList info)
+                        ? throw Error($"Invalid class method name: {className}::new")
+                        : info.Methods.Length == 1
+                        ? ParseClassSingleMethod(info.Methods[0])
+                        : ParseClassMultiMethod(info);
+                }
+                else
+                    e = ParseFunction();
                 break;
             case Token.LBra:
                 e = ParseVectorLiteral();

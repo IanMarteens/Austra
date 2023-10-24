@@ -40,6 +40,14 @@ internal sealed partial class Parser
     private static readonly MethodInfo MatrixTransposeMultiply =
         typeof(Matrix).Get(nameof(Matrix.TransposeMultiply));
 
+    private static readonly HashSet<string> classNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "complexvector", "matrix", "math", "model", "series", "vector", "spline"
+    };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsClassName(string identifier) => classNames.Contains(identifier);
+
     /// <summary>Allowed series methods.</summary>
     private static readonly Dictionary<Type, Dictionary<string, MethodInfo>> methods =
         new()
@@ -218,6 +226,7 @@ internal sealed partial class Parser
         ["series.new"] = new(
             typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))),
         ["spline.new"] = new(
+            typeof(DateSpline).MD(typeof(Series)),
             typeof(VectorSpline).MD(VectorVectorArg),
             typeof(VectorSpline).MD(
                 typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))),
@@ -451,7 +460,6 @@ internal sealed partial class Parser
                 ["ncdf"] = typeof(Series).GetMethod(nameof(Series.NCdf), Type.EmptyTypes)!,
                 ["fit"] = typeof(Series).Get(nameof(Series.Fit)),
                 ["linearfit"] = typeof(Series).Get(nameof(Series.LinearFit)),
-                ["spline"] = typeof(Series).Get(nameof(Series.Spline)),
                 ["acf"] = typeof(Series).Get(nameof(Series.ACF)),
             },
             [typeof(Series<int>)] = new(StringComparer.OrdinalIgnoreCase)
@@ -697,7 +705,6 @@ internal sealed partial class Parser
             new("indexof(", "Returns the index where a value is stored"),
             new("ar(", "Calculates the autoregression coefficients"),
             new("arModel(", "Creates an AR(p) model"),
-            new("spline", "Creates a cubic interpolator"),
             new("acf", "AutoCorrelation Function"),
         },
         [typeof(Series<int>)] = new Member[]
@@ -941,7 +948,7 @@ internal sealed partial class Parser
             },
             ["spline"] = new Member[]
             {
-                new("new(", "Creates a new interpolator from two vectors or from a function"),
+                new("new(", "Creates a new interpolator either from two vectors, a series, or from a function"),
             },
             ["model"] = new Member[]
             {
