@@ -6,6 +6,14 @@
     [CompilerGenerated()] class NamespaceDoc { }
 }
 
+namespace Austra.Library.Dates
+{
+    /// <summary>
+    /// Contains an efficient date-only struct, day count conventions and holiday calendars.
+    /// </summary>
+    [CompilerGenerated()] class NamespaceDoc { }
+}
+
 namespace Austra.Library.MVO
 {
     /// <summary>
