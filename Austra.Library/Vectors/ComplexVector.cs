@@ -491,7 +491,7 @@ public readonly struct ComplexVector :
     }
 
     /// <summary>Dot product of two vectors.</summary>
-    /// <remarks>The values from the second vector are conjugated.</remarks>
+    /// <remarks>The values from the second vector are automatically conjugated.</remarks>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The dot product of the operands.</returns>
@@ -607,27 +607,7 @@ public readonly struct ComplexVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
-        double[] re = new double[v.Length], im = new double[v.Length];
-        fixed (double* pr = v.re, pi = v.im, qr = re, qi = im)
-        {
-            int len = v.Length;
-            int i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> vd = Vector256.Create(d);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Avx.Store(qr + i, Avx.Multiply(Avx.LoadVector256(pr + i), vd));
-                    Avx.Store(qi + i, Avx.Multiply(Avx.LoadVector256(pi + i), vd));
-                }
-            }
-            for (; i < len; i++)
-            {
-                qr[i] = pr[i] * d;
-                qi[i] = pi[i] * d;
-            }
-        }
-        return new(re, im);
+        return new(new Vector(v.re) * d, new Vector(v.im) * d);
     }
 
     /// <summary>Divides a complex vector by a complex value.</summary>

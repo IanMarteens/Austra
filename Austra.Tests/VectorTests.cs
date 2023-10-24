@@ -159,6 +159,17 @@ public class VectorTests
     }
 
     [Test]
+    public void CheckComplexVectorScale()
+    {
+        ComplexVector v = new(510, NormalRandom.Shared);
+        double scale = Random.Shared.NextDouble() + 0.5;
+        ComplexVector w = v * scale;
+        Assert.That(w, Has.Length.EqualTo(v.Length));
+        for (int i = 0; i < w.Length; i++)
+            Assert.That((w[i] - scale * v[i]).Magnitude, Is.LessThan(1E-15));
+    }
+
+    [Test]
     public void CheckComplexVectorPointMult()
     {
         ComplexVector v = new(510, NormalRandom.Shared);
