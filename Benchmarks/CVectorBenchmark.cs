@@ -4,26 +4,31 @@ public class CVectorBenchmark : BenchmarkControl
 {
     private readonly Complex[] cv = (Complex[])new ComplexVector(1023, new Random());
     private readonly ComplexVector cxv = new(1023, new Random());
+    private readonly ComplexVector cyv = new(1023, new Random());
+    private readonly int size = 1023;
 
     public CVectorBenchmark()
     {
     }
 
-    [Benchmark]
+    //[Benchmark]
     public ComplexVector AustraComplexVectorCtor() => new(cv);
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraComplexVectorMagnitudes() => cxv.Magnitudes();
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraComplexVectorPhases() => cxv.Phases();
 
-    [Benchmark]
+    //[Benchmark]
     public ComplexVector AustraComplexVectorMap() => cxv.Map(c => new(c.Imaginary, c.Real));
 
-    [Benchmark]
+    //[Benchmark]
     public ComplexVector AustraComplexVectorFilter() => cxv.Filter(c => c.Real > c.Imaginary);
 
+    //[Benchmark]
+    public ComplexVector AustraRandomComplexVector() => new(size, NormalRandom.Shared);
+
     [Benchmark]
-    public ComplexVector AustraRandomComplexVector() => new(1024, NormalRandom.Shared);
+    public ComplexVector AustraPointwiseMultComplexVector() => cxv.PointwiseMultiply(cyv);
 }

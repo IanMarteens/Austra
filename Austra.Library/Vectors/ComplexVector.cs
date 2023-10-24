@@ -412,7 +412,7 @@ public readonly struct ComplexVector :
     /// <summary>Pointwise multiplication.</summary>
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component product.</returns>
-    public unsafe ComplexVector PointwiseMultiply(ComplexVector other)
+    public ComplexVector PointwiseMultiply(ComplexVector other)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(other.IsInitialized);
@@ -420,27 +420,38 @@ public readonly struct ComplexVector :
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        int len = Length;
-        double[] r = new double[len], m = new double[len];
-        fixed (double* pr = re, pi = im, qr = other.re, qi = other.im, vr = r, vm = m)
+        double[] r = new double[Length], m = new double[Length];
+        ref double pr = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double pi = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double qr = ref MemoryMarshal.GetArrayDataReference(other.re);
+        ref double qi = ref MemoryMarshal.GetArrayDataReference(other.im);
+        ref double vr = ref MemoryMarshal.GetArrayDataReference(r);
+        ref double vm = ref MemoryMarshal.GetArrayDataReference(m);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> vpr = Avx.LoadVector256(pr + i);
-                    Vector256<double> vpi = Avx.LoadVector256(pi + i);
-                    Vector256<double> vqr = Avx.LoadVector256(qr + i);
-                    Vector256<double> vqi = Avx.LoadVector256(qi + i);
-                    Avx.Store(vr + i, Avx.Multiply(vpr, vqr).MultiplyAddNeg(vpi, vqi));
-                    Avx.Store(vm + i, Avx.Multiply(vpr, vqi).MultiplyAdd(vpi, vqr));
-                }
-            for (; i < len; i++)
+            int t = r.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
             {
-                r[i] = pr[i] * qr[i] - pi[i] * qi[i];
-                m[i] = pr[i] * qi[i] + pi[i] * qr[i];
+                Vector256<double> vpr = Vector256.LoadUnsafe(ref Add(ref pr, i));
+                Vector256<double> vpi = Vector256.LoadUnsafe(ref Add(ref pi, i));
+                Vector256<double> vqr = Vector256.LoadUnsafe(ref Add(ref qr, i));
+                Vector256<double> vqi = Vector256.LoadUnsafe(ref Add(ref qi, i));
+                Vector256.StoreUnsafe((vpr * vqr).MultiplyAddNeg(vpi, vqi), ref Add(ref vr, i));
+                Vector256.StoreUnsafe((vpr * vqi).MultiplyAdd(vpi, vqr), ref Add(ref vm, i));
             }
+            Vector256<double> wpr = Vector256.LoadUnsafe(ref Add(ref pr, t));
+            Vector256<double> wpi = Vector256.LoadUnsafe(ref Add(ref pi, t));
+            Vector256<double> wqr = Vector256.LoadUnsafe(ref Add(ref qr, t));
+            Vector256<double> wqi = Vector256.LoadUnsafe(ref Add(ref qi, t));
+            Vector256.StoreUnsafe((wpr * wqr).MultiplyAddNeg(wpi, wqi), ref Add(ref vr, t));
+            Vector256.StoreUnsafe((wpr * wqi).MultiplyAdd(wpi, wqr), ref Add(ref vm, t));
         }
+        else
+            for (int i = 0; i < r.Length; i++)
+            {
+                Add(ref vr, i) = Add(ref pr, i) * Add(ref qr, i) - Add(ref pi, i) * Add(ref qi, i);
+                Add(ref vm, i) = Add(ref pr, i) * Add(ref qi, i) + Add(ref pi, i) * Add(ref qr, i);
+            }
         return new(r, m);
     }
 

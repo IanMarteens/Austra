@@ -157,4 +157,15 @@ public class VectorTests
         for (int i = 0; i < values.Length; i++)
             Assert.That(v[i], Is.EqualTo(values[i]));
     }
+
+    [Test]
+    public void CheckComplexVectorPointMult()
+    {
+        ComplexVector v = new(510, NormalRandom.Shared);
+        ComplexVector w = new(510, NormalRandom.Shared);
+        ComplexVector z = v.PointwiseMultiply(w);
+        Assert.That(z, Has.Length.EqualTo(v.Length));
+        for (int i = 0; i < v.Length; i++)
+            Assert.That((z[i] - v[i] * w[i]).Magnitude, Is.LessThan(1E-14));
+    }
 }
