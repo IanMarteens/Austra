@@ -1,5 +1,7 @@
 ﻿namespace Austra.Library;
 
+using static Unsafe;
+
 /// <summary>Represents a dense complex vector of arbitrary size.</summary>
 /// <remarks>
 /// For the sake of acceleration, the vector's components are stored in two separate arrays.
@@ -92,21 +94,27 @@ public readonly struct ComplexVector :
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
-    public unsafe ComplexVector(int size, Random rnd) : this(size)
+    public ComplexVector(int size, Random rnd)
     {
-        fixed (double* p = re, q = im)
-            for (int i = 0; i < size; i++)
-                (p[i], q[i]) = (rnd.NextDouble(), rnd.NextDouble());
+        re = GC.AllocateUninitializedArray<double>(size);
+        im = GC.AllocateUninitializedArray<double>(size);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        for (int i = 0; i < size; i++)
+            (Add(ref p, i), Add(ref q, i)) = (rnd.NextDouble(), rnd.NextDouble());
     }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A normal random number generator.</param>
-    public unsafe ComplexVector(int size, NormalRandom rnd) : this(size)
+    public ComplexVector(int size, NormalRandom rnd)
     {
-        fixed (double* p = re, q = im)
-            for (int i = 0; i < size; i++)
-                (p[i], q[i]) = rnd.NextDoubles();
+        re = GC.AllocateUninitializedArray<double>(size);
+        im = GC.AllocateUninitializedArray<double>(size);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        for (int i = 0; i < size; i++)
+            (Add(ref p, i), Add(ref q, i)) = rnd.NextDoubles();
     }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>
@@ -131,30 +139,39 @@ public readonly struct ComplexVector :
 
     /// <summary>Initializes a complex vector from a complex array.</summary>
     /// <param name="values">The complex components of the vector.</param>
-    public unsafe ComplexVector(Complex[] values) : this(values.Length)
+    public ComplexVector(Complex[] values) : this(values.Length)
     {
-        fixed (double* p = re, q = im)
-        fixed (Complex* r = values)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int i = 0;
-            if (Avx2.IsSupported)
+            ref double r = ref As<Complex, double>(ref MemoryMarshal.GetArrayDataReference(values));
+            int t = values.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
             {
-                for (int top = values.Length & ~7; i < top; i += 4)
-                {
-                    Vector256<double> v1 = Avx.LoadVector256((double*)(r + i));
-                    Vector256<double> v2 = Avx.LoadVector256((double*)(r + i + 2));
-                    Avx.Store(p + i, Avx2.Permute4x64(Avx.UnpackLow(v1, v2), 0b11011000));
-                    Avx.Store(q + i, Avx2.Permute4x64(Avx.UnpackHigh(v1, v2), 0b11011000));
-                }
+                Vector256<double> v1 = Vector256.LoadUnsafe(ref Add(ref r, 2 * i));
+                Vector256<double> v2 = Vector256.LoadUnsafe(ref Add(ref r, 2 * i + 4));
+                Vector256.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackLow(v1, v2), 0b11011000),
+                    ref Add(ref p, i));
+                Vector256.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackHigh(v1, v2), 0b11011000),
+                    ref Add(ref q, i));
             }
-            for (; i < values.Length; i++)
-                (p[i], q[i]) = r[i];
+            Vector256<double> v3 = Vector256.LoadUnsafe(ref Add(ref r, 2 * t));
+            Vector256<double> v4 = Vector256.LoadUnsafe(ref Add(ref r, 2 * t + 4));
+            Vector256.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackLow(v3, v4), 0b11011000),
+                ref Add(ref p, t));
+            Vector256.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackHigh(v3, v4), 0b11011000),
+                ref Add(ref q, t));
+        }
+        else
+        {
+            ref Complex r = ref MemoryMarshal.GetArrayDataReference(values);
+            for (int i = 0; i < values.Length; i++)
+                (Add(ref p, i), Add(ref q, i)) = Add(ref r, i);
         }
     }
 
-    /// <summary>
-    /// Deconstructs the vector into a tuple of real and imaginary vectors.
-    /// </summary>
+    /// <summary>Deconstructs the vector into a tuple of real and imaginary vectors.</summary>
     /// <param name="re">The real vector.</param>
     /// <param name="im">The imaginary vector.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -449,7 +466,7 @@ public readonly struct ComplexVector :
                     Vector256<double> vpr = Avx.LoadVector256(pr + i);
                     Vector256<double> vpi = Avx.LoadVector256(pi + i);
                     Vector256<double> vqr = Avx.LoadVector256(qr + i);
-                    Vector256<double>    vqi = Avx.LoadVector256(qi + i);
+                    Vector256<double> vqi = Avx.LoadVector256(qi + i);
                     Vector256<double> quotient = Avx.Multiply(vqr, vqr).MultiplyAdd(vqi, vqi);
                     Avx.Store(vr + i,
                         Avx.Divide(Avx.Multiply(vpr, vqr).MultiplyAdd(vpi, vqi), quotient));

@@ -105,9 +105,7 @@ public partial class MainWindow : Window
             {
                 string? text = completionWindow.CompletionList.SelectedItem?.Text;
                 if (e.Text[0] == '(' && text?.EndsWith("::") == true)
-                {
                     completionWindow.CompletionList.SelectItem(text[..^2] + "(");
-                }
                 if (!char.IsLetterOrDigit(e.Text[0]))
                 {
                     // Avoid inserting the same text twice!
