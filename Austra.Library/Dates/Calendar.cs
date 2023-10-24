@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Dates;
 
 /// <summary>Implements a business days calendar and date calculator.</summary>
 public sealed class Calendar

@@ -31,6 +31,7 @@
 
 	<ItemGroup>
 		<Using Include="Austra.Library" />
+		<Using Include="Austra.Library.Dates" />
 		<Using Include="System" />
 		<Using Include="System.Collections.Generic" />
 		<Using Include="System.Diagnostics" />

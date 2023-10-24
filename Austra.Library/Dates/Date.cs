@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Dates;
 
 /// <summary>Represents a date with efficient operations.</summary>
 [JsonConverter(typeof(Date2JsonConverter))]

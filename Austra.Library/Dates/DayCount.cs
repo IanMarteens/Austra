@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Dates;
 
 /// <summary>Implements algorithms for calculating year fractions.</summary>
 public static class DayCount
