@@ -925,49 +925,56 @@ public readonly struct Vector :
 
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <returns>The sum of all vector's items.</returns>
-    public unsafe double Sum()
+    public double Sum()
     {
         Contract.Requires(IsInitialized);
 
-        double result = 0;
-        fixed (double* p = values)
+        double result = 0d;
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref Add(ref p, values.Length);
+        if (Vector256.IsHardwareAccelerated && Length > Vector256<double>.Count)
         {
-            int i = 0;
-            if (Avx.IsSupported)
+            ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
+            Vector256<double> sum = Vector256<double>.Zero;
+            do
             {
-                Vector256<double> sum = Vector256<double>.Zero;
-                for (int top = values.Length & Simd.AVX_MASK; i < top; i += 4)
-                    sum = Avx.Add(Avx.LoadVector256(p + i), sum);
-                result = sum.Sum();
+                sum += Vector256.LoadUnsafe(ref p);
+                p = ref Add(ref p, Vector256<double>.Count);
             }
-            for (; i < values.Length; i++)
-                result += p[i];
+            while (IsAddressLessThan(ref p, ref last));
+            result = sum.Sum();
         }
+        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
+            result += p;
         return result;
     }
 
     /// <summary>Calculates the product of the vector's items.</summary>
     /// <returns>The product of all vector's items.</returns>
-    public unsafe double Product()
+    public double Product()
     {
         Contract.Requires(IsInitialized);
 
         double result = 1d;
-        fixed (double* p = values)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref Add(ref p, values.Length);
+        if (Vector256.IsHardwareAccelerated && Length > Vector256<double>.Count)
         {
-            int i = 0;
-            if (Avx.IsSupported)
+            ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
+            Vector256<double> prod = Vector256.Create(1d);
+            do
             {
-                Vector256<double> prod = Vector256.Create(1d);
-                for (int top = values.Length & Simd.AVX_MASK; i < top; i += 4)
-                    prod = Avx.Multiply(Avx.LoadVector256(p + i), prod);
-                result = prod.Product();
+                prod *= Vector256.LoadUnsafe(ref p);
+                p = ref Add(ref p, Vector256<double>.Count);
             }
-            for (; i < values.Length; i++)
-                result *= p[i];
+            while (IsAddressLessThan(ref p, ref last));
+            result = prod.Product();
         }
+        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
+            result *= p;
         return result;
     }
+
     /// <summary>Computes the mean of the vector's items.</summary>
     /// <returns><code>this.Sum() / this.Length</code></returns>
     public double Mean() => Sum() / Length;
