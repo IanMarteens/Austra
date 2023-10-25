@@ -481,7 +481,7 @@ public readonly struct Vector :
     /// <summary>Pointwise multiplication.</summary>
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component product.</returns>
-    public unsafe Vector PointwiseMultiply(Vector other)
+    public Vector PointwiseMultiply(Vector other)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(other.IsInitialized);
@@ -490,23 +490,31 @@ public readonly struct Vector :
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        fixed (double* pA = values, pB = other.values, pC = result)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(other.values);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Multiply(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] * pB[i];
+            int t = values.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i))
+                        * Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) * Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
         }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) * Add(ref b, i);
         return result;
     }
 
     /// <summary>Pointwise division.</summary>
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component quotient.</returns>
-    public unsafe Vector PointwiseDivide(Vector other)
+    public Vector PointwiseDivide(Vector other)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(other.IsInitialized);
@@ -515,16 +523,24 @@ public readonly struct Vector :
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        fixed (double* pA = values, pB = other.values, pC = result)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(other.values);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Divide(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] / pB[i];
+            int t = values.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i))
+                        / Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) / Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
         }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) / Add(ref b, i);
         return result;
     }
 
@@ -642,7 +658,7 @@ public readonly struct Vector :
     /// <param name="multiplier">The multiplier vector.</param>
     /// <param name="summand">The vector to be added to the pointwise multiplication.</param>
     /// <returns><code>this .* multiplier + summand</code></returns>
-    public unsafe Vector MultiplyAdd(Vector multiplier, Vector summand)
+    public Vector MultiplyAdd(Vector multiplier, Vector summand)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(multiplier.IsInitialized);
@@ -651,15 +667,28 @@ public readonly struct Vector :
         Contract.Requires(Length == summand.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        fixed (double* p = values, q = multiplier.values, r = summand.values, s = result)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(multiplier.values);
+        ref double r = ref MemoryMarshal.GetArrayDataReference(summand.values);
+        ref double s = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(s + i, Avx.LoadVector256(r + i).MultiplyAdd(p + i, q + i));
-            for (; i < len; i++)
-                s[i] = FusedMultiplyAdd(p[i], q[i], r[i]);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref r, i)).MultiplyAdd(
+                        Vector256.LoadUnsafe(ref Add(ref p, i)),
+                        Vector256.LoadUnsafe(ref Add(ref q, i))),
+                    ref Add(ref s, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref r, t)).MultiplyAdd(
+                    Vector256.LoadUnsafe(ref Add(ref p, t)),
+                    Vector256.LoadUnsafe(ref Add(ref q, t))),
+                ref Add(ref s, t));
         }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = FusedMultiplyAdd(Add(ref p, i), Add(ref q, i), Add(ref r, i));
         return result;
     }
 
@@ -698,11 +727,14 @@ public readonly struct Vector :
     }
 
     /// <summary>Optimized vector multiplication and subtraction.</summary>
-    /// <remarks>The current vector is the multiplicand.</remarks>
+    /// <remarks>
+    /// <para>The current vector is the multiplicand.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
     /// <param name="multiplier">The multiplier vector.</param>
     /// <param name="subtrahend">The vector to be subtracted from the multiplication.</param>
     /// <returns><code>this .* multiplier - subtrahend</code></returns>
-    public unsafe Vector MultiplySubtract(Vector multiplier, Vector subtrahend)
+    public Vector MultiplySubtract(Vector multiplier, Vector subtrahend)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(multiplier.IsInitialized);
@@ -711,45 +743,65 @@ public readonly struct Vector :
         Contract.Requires(Length == subtrahend.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        fixed (double* p = values, q = multiplier.values, r = subtrahend.values, s = result)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(multiplier.values);
+        ref double r = ref MemoryMarshal.GetArrayDataReference(subtrahend.values);
+        ref double s = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(s + i,
-                        Avx.LoadVector256(r + i).MultiplySub(
-                            Avx.LoadVector256(p + i), Avx.LoadVector256(q + i)));
-            for (; i < len; i++)
-                s[i] = p[i] * q[i] - r[i];
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref r, i)).MultiplySub(
+                        Vector256.LoadUnsafe(ref Add(ref p, i)),
+                        Vector256.LoadUnsafe(ref Add(ref q, i))),
+                    ref Add(ref s, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref r, t)).MultiplySub(
+                    Vector256.LoadUnsafe(ref Add(ref p, t)),
+                    Vector256.LoadUnsafe(ref Add(ref q, t))),
+                ref Add(ref s, t));
         }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = Add(ref p, i) * Add(ref q, i) - Add(ref r, i);
         return result;
     }
 
-    /// <summary>Optimized vector multiplication and subtraction.</summary>
-    /// <remarks>The current vector is the multiplicand.</remarks>
+    /// <summary>Optimized vector scaling and subtraction.</summary>
+    /// <remarks>
+    /// <para>The current vector is the multiplicand.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
     /// <param name="multiplier">The multiplier scalar.</param>
     /// <param name="subtrahend">The vector to be subtracted from the multiplication.</param>
     /// <returns><code>this * multiplier - subtrahend</code></returns>
-    public unsafe Vector MultiplySubtract(double multiplier, Vector subtrahend)
+    public Vector MultiplySubtract(double multiplier, Vector subtrahend)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(subtrahend.IsInitialized);
         Contract.Requires(Length == subtrahend.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        fixed (double* p = values, r = subtrahend.values, s = result)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double r = ref MemoryMarshal.GetArrayDataReference(subtrahend.values);
+        ref double s = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Fma.IsSupported)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> vq = Vector256.Create(multiplier);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(s + i,
-                        Avx.LoadVector256(r + i).MultiplySub(Avx.LoadVector256(p + i), vq));
-            }
-            for (; i < len; i++)
-                s[i] = p[i] * multiplier - r[i];
+            Vector256<double> vq = Vector256.Create(multiplier);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += 4)
+                Vector256.StoreUnsafe(
+                    Fma.MultiplySubtract(Vector256.LoadUnsafe(ref Add(ref p, i)), vq,
+                        Vector256.LoadUnsafe(ref Add(ref r, i))),
+                    ref Add(ref s, i));
+            Vector256.StoreUnsafe(
+                Fma.MultiplySubtract(Vector256.LoadUnsafe(ref Add(ref p, t)), vq,
+                    Vector256.LoadUnsafe(ref Add(ref r, t))),
+                ref Add(ref s, t));
         }
+        for (int i = 0; i < result.Length; i++)
+            Add(ref s, i) = Add(ref p, i) * multiplier - Add(ref r, i);
         return result;
     }
 
