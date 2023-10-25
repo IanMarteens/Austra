@@ -1,5 +1,4 @@
 ﻿namespace Austra.Library;
-
 using static Unsafe;
 
 /// <summary>Represents a dense complex vector of arbitrary size.</summary>

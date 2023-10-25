@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-
-namespace Austra.Tests;
+﻿namespace Austra.Tests;
 
 [TestFixture]
 public class VectorTests

@@ -1,8 +1,4 @@
 ﻿namespace Austra.Library;
-
-using System.Drawing;
-using System.Security.Principal;
-using System.Windows.Markup;
 using static Unsafe;
 
 /// <summary>Represents a dense vector of arbitrary size.</summary>
@@ -994,7 +990,7 @@ public readonly struct Vector :
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
                 Vector256.StoreUnsafe(
-                    Vector256.Sqrt(Vector256.LoadUnsafe(ref Add(ref p, i))), 
+                    Vector256.Sqrt(Vector256.LoadUnsafe(ref Add(ref p, i))),
                     ref Add(ref q, i));
             Vector256.StoreUnsafe(
                 Vector256.Sqrt(Vector256.LoadUnsafe(ref Add(ref p, t))),
