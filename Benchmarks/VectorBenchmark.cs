@@ -8,7 +8,7 @@ public class VectorBenchmark : BenchmarkControl
     public VectorBenchmark()
     {
         size = Configure();
-        var rnd = new Random();
+        var rnd = new Random(133);
         cv1 = new Vector(size, rnd);
         cv2 = new Vector(size, rnd);
         cv3 = cv1.Clone();
@@ -17,42 +17,45 @@ public class VectorBenchmark : BenchmarkControl
         cv6 = new Vector(1024, rnd);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorSum() => cv4 + cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorSub() => cv4 - cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorScale() => 2d * cv4;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorAddScalar() => cv4 + 2d;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorPointMult() => cv4.PointwiseMultiply(cv5);
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorPointMultAdd() => cv4.MultiplyAdd(cv5, cv6);
 
     [Benchmark]
     public double AustraDotProduct() => cv1 * cv2;
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraVectorEqualsFalse() => cv1 == cv2;
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraVectorEqualsTrue() => cv1 == cv3;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraRawLineal() => 2 * cv4 + 3 * cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraCombineLineal() => Vector.Combine2(2, 3, cv4, cv5);
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraNegate() => -cv4;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraRandomVector() => new(size, NormalRandom.Shared);
+
+    //[Benchmark]
+    public double AustraSquareVector() => cv4.Squared();
 }

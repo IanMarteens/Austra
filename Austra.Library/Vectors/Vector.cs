@@ -1,5 +1,8 @@
 ﻿namespace Austra.Library;
 
+using System.Drawing;
+using System.Security.Principal;
+using System.Windows.Markup;
 using static Unsafe;
 
 /// <summary>Represents a dense vector of arbitrary size.</summary>
@@ -548,7 +551,7 @@ public readonly struct Vector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The dot product of the operands.</returns>
-    public static unsafe double operator *(Vector v1, Vector v2)
+    public static double operator *(Vector v1, Vector v2)
     {
         Contract.Requires(v1.IsInitialized);
         Contract.Requires(v2.IsInitialized);
@@ -556,34 +559,49 @@ public readonly struct Vector :
             throw new VectorLengthException();
         Contract.EndContractBlock();
 
-        fixed (double* p = v1.values, q = v2.values)
-            return CommonMatrix.DotProduct(p, q, v1.Length);
+        double sum = 0;
+        int i = 0;
+        ref double p = ref MemoryMarshal.GetArrayDataReference(v1.values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(v2.values);
+        if (Vector256.IsHardwareAccelerated)
+        {
+            Vector256<double> acc = Vector256<double>.Zero;
+            for (int top = v1.values.Length & Simd.AVX_MASK; i < top; i += Vector256<double>.Count)
+                acc = acc.MultiplyAdd(
+                    Vector256.LoadUnsafe(ref Add(ref p, i)),
+                    Vector256.LoadUnsafe(ref Add(ref q, i)));
+            sum = acc.Sum();
+        }
+        for (; i < v1.values.Length; i++)
+            sum = FusedMultiplyAdd(Add(ref p, i), Add(ref q, i), sum);
+        return sum;
     }
 
     /// <summary>Gets the squared norm of this vector.</summary>
     /// <returns>The dot product with itself.</returns>
-    public unsafe double Squared()
+    public double Squared()
     {
         Contract.Requires(IsInitialized);
 
-        fixed (double* p = values)
+        double sum = 0d;
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref Add(ref p, values.Length);
+        if (Vector256.IsHardwareAccelerated && Length > Vector256<double>.Count)
         {
-            double sum = 0;
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
+            ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
+            Vector256<double> acc = Vector256<double>.Zero;
+            do
             {
-                Vector256<double> acc = Vector256<double>.Zero;
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> vec = Avx.LoadVector256(p + i);
-                    acc = acc.MultiplyAdd(vec, vec);
-                }
-                sum = acc.Sum();
+                Vector256<double> v = Vector256.LoadUnsafe(ref p);
+                acc = acc.MultiplyAdd(v, v);
+                p = ref Add(ref p, Vector256<double>.Count);
             }
-            for (; i < len; i++)
-                sum += p[i] * p[i];
-            return sum;
+            while (IsAddressLessThan(ref p, ref last));
+            sum = acc.Sum();
         }
+        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
+            sum = FusedMultiplyAdd(p, p, sum);
+        return sum;
     }
 
     /// <summary>Multiplies a vector by a scalar value.</summary>

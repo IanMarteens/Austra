@@ -18,6 +18,13 @@ public class VectorTests
         Assert.That(v.Norm(), Is.EqualTo(Math.Sqrt(size)).Within(1E-16));
     }
 
+    [Test]
+    public void VectorSquared([Values(12, 256, 1023)] int size)
+    {
+        Vector v = new(size, Random.Shared);
+        Assert.That(v.Squared(), Is.EqualTo(v * v).Within(1E-16));
+    }
+
     /// <summary>
     /// Check that vector subtraction yields a true zero vector.
     /// </summary>
