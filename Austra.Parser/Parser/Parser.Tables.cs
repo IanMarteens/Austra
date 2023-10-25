@@ -507,6 +507,9 @@ internal sealed partial class Parser
                 ["min"] = typeof(Matrix).Get(nameof(Matrix.Minimum)),
                 ["diag"] = typeof(Matrix).Get(nameof(Matrix.Diagonal)),
                 ["inverse"] = typeof(Matrix).Get(nameof(Matrix.Inverse)),
+                ["issym"] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
+                ["sym"] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
+                ["issymmetric"] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
             },
             [typeof(LMatrix)] = new(StringComparer.OrdinalIgnoreCase)
             {
@@ -752,6 +755,7 @@ internal sealed partial class Parser
             new("inverse", "Calculates the inverse of a square matrix"),
             new("getRow(", "Extracts a row as a vector"),
             new("getCol(", "Extracts a column as a vector"),
+            new("isSymmetric", "Checks if a matrix is symmetric"),
             new("map(x => ", "Pointwise transformation of matrix cells"),
             new("any(x => ", "Existential operator"),
             new("all(x => ", "Universal operator"),

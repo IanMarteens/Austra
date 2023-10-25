@@ -1,4 +1,6 @@
-﻿namespace Austra.Tests;
+﻿using Newtonsoft.Json.Linq;
+
+namespace Austra.Tests;
 
 [TestFixture]
 public class VectorTests
@@ -141,6 +143,26 @@ public class VectorTests
         Vector d = x * y - z;
         Vector e = x.MultiplySubtract(y, z);
         Assert.That((d - e).AMax(), Is.LessThan(1E-14));
+    }
+
+    [Test]
+    public void CheckVectorSqrt([Values(12, 256, 1023)] int size)
+    {
+        Vector x = new(size, Random.Shared);
+        Vector y = x.Sqrt();
+        Assert.That(x, Has.Length.EqualTo(y.Length));
+        for (int i = 0; i < x.Length; i++)
+            Assert.That(y[i], Is.EqualTo(Math.Sqrt(x[i])));
+    }
+
+    [Test]
+    public void CheckVectorAbs([Values(12, 256, 1023)] int size)
+    {
+        Vector x = new Vector(size, NormalRandom.Shared) * 2;
+        Vector y = x.Abs();
+        Assert.That(x, Has.Length.EqualTo(y.Length));
+        for (int i = 0; i < x.Length; i++)
+            Assert.That(y[i], Is.EqualTo(Math.Abs(x[i])));
     }
 
     [Test]

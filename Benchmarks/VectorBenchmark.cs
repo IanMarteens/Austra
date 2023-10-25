@@ -3,7 +3,7 @@
 public class VectorBenchmark : BenchmarkControl
 {
     private readonly int size;
-    private readonly Vector cv1, cv2, cv3, cv4, cv5, cv6;
+    private readonly Vector cv1, cv2, cv3, cv4, cv5, cv6, cv7;
 
     public VectorBenchmark()
     {
@@ -15,6 +15,7 @@ public class VectorBenchmark : BenchmarkControl
         cv4 = new Vector(1024, rnd);
         cv5 = new Vector(1024, rnd, 0.6, 1);
         cv6 = new Vector(1024, rnd);
+        cv7 = new Vector(1024, new NormalRandom(rnd));
     }
 
     [Benchmark]
@@ -64,4 +65,10 @@ public class VectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public double AustraSquareVector() => cv4.Squared();
+
+    [Benchmark]
+    public Vector AustraVectorSqrt() => cv4.Sqrt();
+
+    [Benchmark]
+    public Vector AustraVectorAbs() => cv7.Abs();
 }

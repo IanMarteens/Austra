@@ -981,44 +981,55 @@ public readonly struct Vector :
 
     /// <summary>Pointwise squared root.</summary>
     /// <returns>A new vector with the square root of the original items.</returns>
-    public unsafe Vector Sqrt()
+    public Vector Sqrt()
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        double[] result = GC.AllocateUninitializedArray<double>(values.Length);
-        fixed (double* p = values, q = result)
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(q + i, Avx.Sqrt(Avx.LoadVector256(p + i)));
-            for (; i < len; i++)
-                q[i] = Math.Sqrt(p[i]);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.Sqrt(Vector256.LoadUnsafe(ref Add(ref p, i))), 
+                    ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                Vector256.Sqrt(Vector256.LoadUnsafe(ref Add(ref p, t))),
+                ref Add(ref q, t));
         }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref q, i) = Math.Sqrt(Add(ref p, i));
         return result;
     }
 
     /// <summary>Gets the absolute values of the vector's items.</summary>
     /// <returns>A new vector with non-negative items.</returns>
-    public unsafe Vector Abs()
+    public Vector Abs()
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        double[] result = GC.AllocateUninitializedArray<double>(values.Length);
-        fixed (double* p = values, q = result)
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> mask = Vector256.Create(-0d);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(q + i, Avx.AndNot(mask, Avx.LoadVector256(p + i)));
-            }
-            for (; i < len; i++)
-                q[i] = Math.Abs(p[i]);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.Abs(Vector256.LoadUnsafe(ref Add(ref p, i))),
+                    ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                Vector256.Abs(Vector256.LoadUnsafe(ref Add(ref p, t))),
+                ref Add(ref q, t));
         }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref q, i) = Math.Abs(Add(ref p, i));
         return result;
     }
 
