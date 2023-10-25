@@ -7,42 +7,6 @@ namespace Austra;
 /// <summary>Interaction logic for MainWindow.xaml</summary>
 public partial class MainWindow : Window
 {
-    private static readonly Dictionary<Key, char> tmgLo = new()
-    {
-        [Key.A] = 'α',
-        [Key.B] = 'β',
-        [Key.C] = 'ψ',
-        [Key.D] = 'δ',
-        [Key.E] = 'ε',
-        [Key.F] = 'φ',
-        [Key.G] = 'γ',
-        [Key.H] = 'η',
-        [Key.J] = 'ξ',
-        [Key.L] = 'λ',
-        [Key.M] = 'μ',
-        [Key.N] = 'ν',
-        [Key.O] = 'ω',
-        [Key.P] = 'π',
-        [Key.R] = 'ρ',
-        [Key.S] = 'σ',
-        [Key.T] = 'τ',
-        [Key.U] = 'Θ',
-        [Key.Z] = 'ζ',
-    };
-    private static readonly Dictionary<Key, char> tmgUp = new()
-    {
-        [Key.C] = 'Ψ',
-        [Key.D] = 'Δ',
-        [Key.G] = 'Γ',
-        [Key.F] = 'Φ',
-        [Key.J] = 'Ξ',
-        [Key.L] = 'Λ',
-        [Key.O] = 'Ω',
-        [Key.P] = 'Π',
-        [Key.S] = 'Σ',
-        [Key.U] = 'θ',
-    };
-
     private CompletionWindow? completionWindow;
     private bool gMode;
 
@@ -208,8 +172,7 @@ public partial class MainWindow : Window
         }
         else if (gMode && e.Key != Key.LeftShift & e.Key != Key.RightShift)
         {
-            if (Keyboard.Modifiers == ModifierKeys.None && tmgLo.TryGetValue(e.Key, out char ch)
-                || Keyboard.Modifiers == ModifierKeys.Shift && tmgUp.TryGetValue(e.Key, out ch))
+            if (GreekSymbols.TryTransform(e.Key, out char ch))
             {
                 avalon.SelectedText = "";
                 avalon.Document.Insert(avalon.CaretOffset, ch.ToString());

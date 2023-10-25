@@ -11,7 +11,7 @@ public class MatrixTests
     {
         Matrix m = new(32, 28, Random.Shared);
         Matrix m1 = m.Clone();
-        Assert.That(m == m1);
+        Assert.That(m, Is.EqualTo(m1));
     }
 
     /// <summary>
