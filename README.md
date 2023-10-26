@@ -46,7 +46,7 @@ We have plans to create a full online help for Visual Studio using Sandcastle so
 
 * The lexical scanner has been rewritten. Most of the index checking is gone now. It is also a lot faster, as a consequence.
 * Overload resolution has been enhanced. The parser is now shorter, easier to read and faster.
-* Ostara has been added as the main application for using the language. It is a WPF application, running on .NET Core 7/8.
+* AUSTRA has been added as the main application for using the language. It is a WPF application, running on .NET Core 7/8.
 
 ## Next steps
 
