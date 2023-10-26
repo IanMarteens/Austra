@@ -10,7 +10,9 @@ public class CholeskyBenchmark : BenchmarkControl
     {
         int size = Configure();
         var rnd = new Random();
-        var lm = new LMatrix(size, size, rnd, 0.41);
+        var lm = new LMatrix(size, size, rnd, 0.51);
+        for (int i = 0; i < size; i++)
+            ((double[,])lm)[i, i] += rnd.NextDouble() * 0.5;
         cm1 = lm.MultiplyTranspose(lm);
         cid = Matrix.Identity(size);
         cv1 = new Vector(size, rnd);
