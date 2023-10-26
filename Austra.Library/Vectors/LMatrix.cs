@@ -2,7 +2,9 @@
 
 /// <summary>Represents a lower triangular matrix.</summary>
 /// <remarks>
-/// Triangular matrices may have a different number of rows and columns.
+/// <para>Having a separate type for lower-triangular matrices is not a matter of storage,
+/// but of semantics.</para>
+/// <para>Triangular matrices may have a different number of rows and columns.</para>
 /// </remarks>
 [JsonConverter(typeof(LMatrixJsonConverter))]
 public readonly struct LMatrix :

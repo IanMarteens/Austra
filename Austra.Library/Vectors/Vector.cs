@@ -480,6 +480,7 @@ public readonly struct Vector :
     /// <summary>Pointwise multiplication.</summary>
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component product.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
     public Vector PointwiseMultiply(Vector other)
     {
         Contract.Requires(IsInitialized);
@@ -513,6 +514,7 @@ public readonly struct Vector :
     /// <summary>Pointwise division.</summary>
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component quotient.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
     public Vector PointwiseDivide(Vector other)
     {
         Contract.Requires(IsInitialized);
@@ -547,6 +549,7 @@ public readonly struct Vector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The dot product of the operands.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
     public static double operator *(Vector v1, Vector v2)
     {
         Contract.Requires(v1.IsInitialized);
@@ -574,6 +577,10 @@ public readonly struct Vector :
     }
 
     /// <summary>Gets the squared norm of this vector.</summary>
+    /// <remarks>
+    /// It avoids duplicated memory accesses, and it is faster than the normal dot product.
+    /// It also skips the runtime check for equal lengths.
+    /// </remarks>
     /// <returns>The dot product with itself.</returns>
     public double Squared()
     {
@@ -863,11 +870,15 @@ public readonly struct Vector :
     }
 
     /// <summary>Low-level method to linearly combine two vectors with weights.</summary>
+    /// <remarks>
+    /// This method is a frequent special case of the more general
+    /// <see cref="Combine(Vector, Vector[])"/>.
+    /// </remarks>
     /// <param name="w1">Weight for the first vector.</param>
     /// <param name="w2">Weight for the second vector.</param>
     /// <param name="v1">First vector in the linear combination.</param>
     /// <param name="v2">Second vector in the linear combination.</param>
-    /// <returns><c>w1 * v1 + w2 * v2</c></returns>
+    /// <returns>Returns the linear combination <c>w1 * v1 + w2 * v2</c>.</returns>
     public static Vector Combine2(double w1, double w2, Vector v1, Vector v2)
     {
         if (v1.Length != v2.Length)

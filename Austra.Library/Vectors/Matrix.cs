@@ -1181,6 +1181,9 @@ public readonly struct Matrix :
     }
 
     /// <summary>Transforms a vector using the transpose of this matrix.</summary>
+    /// <remarks>
+    /// This method calcutes <c>this' * v</c>, or, equivalently, <c>v * this</c>.
+    /// </remarks>
     /// <param name="v">The vector to transform.</param>
     /// <returns>The transformed vector.</returns>
     public unsafe Vector TransposeMultiply(Vector v)

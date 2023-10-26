@@ -297,6 +297,13 @@ internal sealed partial class Parser
         }
     }
 
+    /// <summary>
+    /// Parses expressions which combine addition, subtraction, multiplication, and division.
+    /// </summary>
+    /// <remarks>
+    /// Most algebraic optimizations are performed by this method.
+    /// </remarks>
+    /// <returns>The expression tree corresponding to the text.</returns>
     private Expression ParseAdditiveMultiplicative()
     {
         (Token opAdd, int opAPos) = (default, default);
