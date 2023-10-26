@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
-using Austra.Library.Stats;
 using static Unsafe;
+using Austra.Library.Stats;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
@@ -1355,14 +1355,11 @@ public readonly struct Matrix :
     /// <summary>Computes the maximum difference between cells.</summary>
     /// <param name="m">The reference matrix.</param>
     /// <returns>The max-norm of the matrix difference.</returns>
-    public unsafe double Distance(Matrix m)
+    public double Distance(Matrix m)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
-
-        fixed (double* p = values, q = m.values)
-            return CommonMatrix.Distance(
-                p, q, Min(values.Length, m.values.Length));
+        return CommonMatrix.Distance(values, m.values);
     }
 
     /// <summary>Gets the cell with the maximum absolute value.</summary>
@@ -1387,22 +1384,18 @@ public readonly struct Matrix :
 
     /// <summary>Gets the cell with the maximum value.</summary>
     /// <returns>The cell with the maximum value.</returns>
-    public unsafe double Maximum()
+    public double Maximum()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = values)
-            return CommonMatrix.Maximum(p, values.Length);
+        return CommonMatrix.Maximum(values);
     }
 
     /// <summary>Gets the cell with the minimum value.</summary>
     /// <returns>The cell with the minimum value.</returns>
-    public unsafe double Minimum()
+    public double Minimum()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = values)
-            return CommonMatrix.Minimum(p, values.Length);
+        return CommonMatrix.Minimum(values);
     }
 
     /// <summary>Applies a function to each cell of the matrix.</summary>

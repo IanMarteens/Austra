@@ -1,5 +1,7 @@
 ﻿namespace Austra.Library;
 
+using static Unsafe;
+
 /// <summary>Common matrix operations.</summary>
 public static class CommonMatrix
 {
@@ -17,26 +19,27 @@ public static class CommonMatrix
     /// <summary>Creates an identity matrix given its size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
-    public unsafe static double[] CreateIdentity(int size)
+    public static double[] CreateIdentity(int size)
     {
         double[] values = new double[size * size];
         int r = size + 1;
-        fixed (double* pA = values)
-            for (double* p = pA; size-- > 0; p += r)
-                *p = 1.0;
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        for (; size-- > 0; a = ref Add(ref a, r))
+            a = 1.0;
         return values;
     }
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     /// <returns>An array with its main diagonal initialized.</returns>
-    public unsafe static double[] CreateDiagonal(Vector diagonal)
+    public static double[] CreateDiagonal(Vector diagonal)
     {
         int size = diagonal.Length, r = size + 1; ;
         double[] values = new double[size * size];
-        fixed (double* pA = values, pB = (double[])diagonal)
-            for (double* p = pA, q = pB; size-- > 0; p += r)
-                *p = *q++;
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference((double[])diagonal);
+        for (; size-- > 0; a = ref Add(ref a, r), b = ref Add(ref b, 1))
+            a = b;
         return values;
     }
 
@@ -45,15 +48,16 @@ public static class CommonMatrix
     /// <param name="cols">Number of columns.</param>
     /// <param name="values">A 1D-array.</param>
     /// <returns>A vector containing values in the main diagonal.</returns>
-    public unsafe static Vector Diagonal(int rows, int cols, double[] values)
+    public static Vector Diagonal(int rows, int cols, double[] values)
     {
         ArgumentNullException.ThrowIfNull(values);
 
         int r = cols + 1, size = Min(rows, cols);
         double[] result = GC.AllocateUninitializedArray<double>(size);
-        fixed (double* pA = values, pB = result)
-            for (double* p = pA, q = pB; size-- > 0; p += r)
-                *q++ = *p;
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
+        for (; size-- > 0; a = ref Add(ref a, r), b = ref Add(ref b, 1))
+            b = a;
         return result;
     }
 
@@ -62,7 +66,7 @@ public static class CommonMatrix
     /// <param name="cols">Number of columns.</param>
     /// <param name="values">A 1D-array.</param>
     /// <returns>The sum of the cells in the main diagonal.</returns>
-    public unsafe static double Trace(int rows, int cols, double[] values)
+    public static double Trace(int rows, int cols, double[] values)
     {
         ArgumentNullException.ThrowIfNull(values);
 
@@ -72,9 +76,9 @@ public static class CommonMatrix
             for (int s = size; s-- > 0;)
                 trace += values[rows * s + s];
         else
-            fixed (double* pA = values)
-                for (double* p = pA; size-- > 0; p += r)
-                    trace += *p;
+            for (ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+                size-- > 0; p = ref Add(ref p, r))
+                trace += p;
         return trace;
     }
     /// <summary>Gets the product of the cells in the main diagonal.</summary>
@@ -82,36 +86,14 @@ public static class CommonMatrix
     /// <param name="cols">Number of columns.</param>
     /// <param name="values">A 1D-array.</param>
     /// <returns>The product of the main diagonal.</returns>
-    public unsafe static double DiagonalProduct(int rows, int cols, double[] values)
+    public static double DiagonalProduct(int rows, int cols, double[] values)
     {
         int r = cols + 1, size = Min(rows, cols);
         double product = 1.0;
-        fixed (double* pA = values)
-            for (double* p = pA; size-- > 0; p += r)
-                product *= *p;
+        for (ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+            size-- > 0; a = Add(ref a, r))
+            product *= a;
         return product;
-    }
-
-    /// <summary>Computes the dot product of two double arrays.</summary>
-    /// <param name="p">Pointer to the first array.</param>
-    /// <param name="q">Pointer to the second array.</param>
-    /// <param name="size">Number of items in each array.</param>
-    /// <returns>A sum of products.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe static double DotProduct(double* p, double* q, int size)
-    {
-        double sum = 0;
-        int i = 0;
-        if (Avx.IsSupported)
-        {
-            Vector256<double> acc = Vector256<double>.Zero;
-            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-                acc = acc.MultiplyAdd(p + i, q + i);
-            sum = acc.Sum();
-        }
-        for (; i < size; i++)
-            sum += p[i] * q[i];
-        return sum;
     }
 
     /// <summary>Gets the item in an array with the minimum absolute value.</summary>
@@ -170,54 +152,48 @@ public static class CommonMatrix
     }
 
     /// <summary>Gets the item with the maximum value in the array.</summary>
-    /// <param name="p">Pointer to the array.</param>
-    /// <param name="size">Number of items in the array.</param>
-    /// <returns>The item with the minimum value.</returns>
+    /// <param name="values">Array with data.</param>
+    /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe static double Maximum(double* p, int size)
+    public static double Maximum(double[] values)
     {
-        double max = double.MinValue;
-        int i = 0;
-        if (Avx.IsSupported && size >= 8)
+        if (Vector256.IsHardwareAccelerated && values.Length >= Vector256<double>.Count)
         {
-            Vector256<double> vm = Avx.LoadVector256(p);
-            i = 4;
-            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-                vm = Avx.Max(Avx.LoadVector256(p + i), vm);
-            max = vm.Max();
+            ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+            ref double last = ref Add(ref p, values.Length - Vector256<double>.Count);
+            Vector256<double> vm = Vector256.LoadUnsafe(ref p);
+            for (; IsAddressLessThan(ref p, ref last); p = ref Add(ref p, Vector256<double>.Count))
+                vm = Avx.Max(vm, Vector256.LoadUnsafe(ref p));
+            vm = Avx.Max(vm, Vector256.LoadUnsafe(ref last));
+            return vm.Max();
         }
-        for (; i < size; i++)
-        {
-            double v = p[i];
-            if (v > max)
-                max = v;
-        }
+        double max = double.MaxValue;
+        foreach (double d in values)
+            if (d > max)
+                max = d;
         return max;
     }
 
     /// <summary>Gets the item with the minimum value in the array.</summary>
-    /// <param name="p">Pointer to the array.</param>
-    /// <param name="size">Number of items in the array.</param>
+    /// <param name="values">Array with data.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe static double Minimum(double* p, int size)
+    public static double Minimum(double[] values)
     {
+        if (Vector256.IsHardwareAccelerated && values.Length >= Vector256<double>.Count)
+        {
+            ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+            ref double last = ref Add(ref p, values.Length - Vector256<double>.Count);
+            Vector256<double> vm = Vector256.LoadUnsafe(ref p);
+            for (; IsAddressLessThan(ref p, ref last); p = ref Add(ref p, Vector256<double>.Count))
+                vm = Avx.Min(vm, Vector256.LoadUnsafe(ref p));
+            vm = Avx.Min(vm, Vector256.LoadUnsafe(ref last));
+            return vm.Min();
+        }
         double min = double.MaxValue;
-        int i = 0;
-        if (Avx.IsSupported && size >= 8)
-        {
-            Vector256<double> vm = Avx.LoadVector256(p);
-            i = 4;
-            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-                vm = Avx.Min(Avx.LoadVector256(p + i), vm);
-            min = vm.Min();
-        }
-        for (; i < size; i++)
-        {
-            double v = p[i];
-            if (v < min)
-                min = v;
-        }
+        foreach (double d in values)
+            if (d < min)
+                min = d;
         return min;
     }
 
@@ -313,29 +289,31 @@ public static class CommonMatrix
     }
 
     /// <summary>Computes the maximum difference between two arrays.</summary>
-    /// <param name="p">First array.</param>
-    /// <param name="q">Second array.</param>
-    /// <param name="length">Common length of the arrays.</param>
+    /// <param name="first">First array.</param>
+    /// <param name="second">Second array.</param>
     /// <returns>The max-norm of the vector difference.</returns>
-    public unsafe static double Distance(double* p, double* q, int length)
+    public unsafe static double Distance(double[] first, double[] second)
     {
         double max = 0;
-        int i = 0;
-        if (Avx.IsSupported)
+        fixed (double* p = first, q = second)
         {
-            Vector256<double> z = Vector256<double>.Zero, vm = z;
-            for (int top = length & Simd.AVX_MASK; i < top; i += 4)
+            int i = 0, len = Min(first.Length, second.Length);
+            if (Avx.IsSupported)
             {
-                Vector256<double> v = Avx.LoadVector256(p + i);
-                vm = Avx.Max(Avx.Max(v, Avx.Subtract(z, v)), vm);
+                Vector256<double> z = Vector256<double>.Zero, vm = z;
+                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
+                {
+                    Vector256<double> v = Avx.LoadVector256(p + i);
+                    vm = Avx.Max(Avx.Max(v, Avx.Subtract(z, v)), vm);
+                }
+                max = vm.Max();
             }
-            max = vm.Max();
-        }
-        for (; i < length; i++)
-        {
-            double v = Abs(p[i] - q[i]);
-            if (v > max)
-                max = v;
+            for (; i < len; i++)
+            {
+                double v = Abs(p[i] - q[i]);
+                if (v > max)
+                    max = v;
+            }
         }
         return max;
     }

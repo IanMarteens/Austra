@@ -264,22 +264,18 @@ public readonly struct Vector :
 
     /// <summary>Gets the item with the maximum value.</summary>
     /// <returns>The item with the maximum value.</returns>
-    public unsafe double Maximum()
+    public double Maximum()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = values)
-            return CommonMatrix.Maximum(p, values.Length);
+        return CommonMatrix.Maximum(values);
     }
 
     /// <summary>Gets the item with the minimum value.</summary>
     /// <returns>The item with the minimum value.</returns>
-    public unsafe double Minimum()
+    public double Minimum()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = values)
-            return CommonMatrix.Minimum(p, values.Length);
+        return CommonMatrix.Minimum(values);
     }
 
     /// <summary>Adds two vectors.</summary>
@@ -907,15 +903,11 @@ public readonly struct Vector :
     /// <summary>Computes the maximum difference between cells.</summary>
     /// <param name="v">The reference vector.</param>
     /// <returns>The max-norm of the vector difference.</returns>
-    public unsafe double Distance(Vector v)
+    public double Distance(Vector v)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-
-        fixed (double* p = values, q = v.values)
-            return CommonMatrix.Distance(
-                p, q,
-                Min(values.Length, v.values.Length));
+        return CommonMatrix.Distance(values, v.values);
     }
 
     /// <summary>Calculates the sum of the vector's items.</summary>
