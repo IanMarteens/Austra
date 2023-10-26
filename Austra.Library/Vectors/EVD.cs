@@ -19,7 +19,7 @@ public readonly struct EVD : IFormattable
         if (isSymmetric)
         {
             Vectors = m.Clone();
-            fixed (double* pA = (double[,])Vectors, pd = d, pe = e)
+            fixed (double* pA = (double[])Vectors, pd = d, pe = e)
             {
                 Buffer.MemoryCopy(
                     source: pA + (r - 1) * r,
@@ -34,7 +34,7 @@ public readonly struct EVD : IFormattable
         else
         {
             Vectors = Matrix.Identity(r);
-            fixed (double* pA = (double[,])Vectors, pH = (double[,])m.Transpose(),
+            fixed (double* pA = (double[])Vectors, pH = (double[])m.Transpose(),
                 pd = d, pe = e)
             {
                 ReduceToHessenberg(pA, pH, pd, r);

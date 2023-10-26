@@ -206,14 +206,15 @@ public static class Polynomials
 
     private static ComplexVector SolveGeneral(ReadOnlySpan<double> c)
     {
-        double[,] companion = new double[c.Length - 1, c.Length - 1];
+        int n = c.Length - 1;
+        double[] companion = new double[n * n];
         double c0 = c[0];
-        companion[0, c.Length - 2] = -c[^1] / c0;
+        companion[c.Length - 2] = -c[^1] / c0;
         for (int i = 1; i < c.Length - 1; i++)
         {
-            companion[i, i - 1] = 1.0;
-            companion[i, c.Length - 2] = -c[^(i + 1)] / c0;
+            companion[i * n + i - 1] = 1.0;
+            companion[i * n + c.Length - 2] = -c[^(i + 1)] / c0;
         }
-        return new Matrix(companion).EVD(false).Values;
+        return new Matrix(n, n, companion).EVD(false).Values;
     }
 }

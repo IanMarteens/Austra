@@ -4,7 +4,7 @@
 public readonly struct LU : IFormattable
 {
     /// <summary>Storage for the L and the U parts.</summary>
-    private readonly double[,] values;
+    private readonly double[] values;
     /// <summary>Storage for the permutation matrix.</summary>
     private readonly int[] perm;
     /// <summary>Effective permutations.</summary>
@@ -18,16 +18,23 @@ public readonly struct LU : IFormattable
     /// <param name="m">The underlying matrix.</param>
     public LU(Matrix m)
     {
-        double[,] data = (double[,])m.Clone();
+        (Rows, Cols, values) = (m.Rows, m.Cols, (double[])m);
+        double[] data = (double[])m.Clone();
         values = data;
         perm = new int[m.Rows];
         for (int i = 0; i < perm.Length; i++)
             perm[i] = i;
         pivots = (int[])perm.Clone();
-        lowerMatrix = new(() => CreateLowerMatrix(data), true);
-        upperMatrix = new(() => CreateUpperMatrix(data), true);
+        lowerMatrix = new(() => CreateLowerMatrix(m.Rows, m.Cols, data), true);
+        upperMatrix = new(() => CreateUpperMatrix(m.Rows, m.Cols, data), true);
         CalculateDecomposition(m.Rows);
     }
+
+    /// <summary>Gets the number of rows.</summary>
+    public int Rows { get; }
+
+    /// <summary>Gets the number of columns.</summary>
+    public int Cols { get; }
 
     /// <summary>Materializes the effective permutation.</summary>
     [SkipLocalsInit]
@@ -133,33 +140,35 @@ public readonly struct LU : IFormattable
     }
 
     /// <summary>Extracts the lower triangle of a matrix.</summary>
+    /// <param name="rows">Number of rows.</param>
+    /// <param name="cols">Number of columns.</param>
     /// <param name="values">Packed matrix with L &amp; U parts.</param>
     /// <returns>The lower half, with ones in the diagonal.</returns>
-    private static LMatrix CreateLowerMatrix(double[,] values)
+    private static LMatrix CreateLowerMatrix(int rows, int cols, double[] values)
     {
-        int size = values.GetLength(0);
-        double[,] result = new double[size, size];
-        result[0, 0] = 1.0;
-        for (int row = 1; row < size; row++)
+        double[] result = new double[rows * cols];
+        result[0] = 1.0;
+        for (int row = 1; row < rows; row++)
         {
-            for (int col = 0; col < row; col++)
-                result[row, col] = values[row, col];
-            result[row, row] = 1.0;
+            for (int col = 0; col < cols; col++)
+                result[row * cols + col] = values[row * cols + col];
+            result[row * cols + row] = 1.0;
         }
-        return new(result);
+        return new(rows, cols, result);
     }
 
     /// <summary>Extracts the upper triangle of a matrix.</summary>
+    /// <param name="rows">Number of rows.</param>
+    /// <param name="cols">Number of columns.</param>
     /// <param name="values">Packed matrix with L &amp; U parts.</param>
     /// <returns>The upper half of the matrix.</returns>
-    private static RMatrix CreateUpperMatrix(double[,] values)
+    private static RMatrix CreateUpperMatrix(int rows, int cols, double[] values)
     {
-        int size = values.GetLength(0);
-        double[,] result = new double[size, size];
-        for (int row = 0; row < size; row++)
-            for (int col = row; col < size; col++)
-                result[row, col] = values[row, col];
-        return new(result);
+        double[] result = new double[rows * cols];
+        for (int row = 0; row < rows; row++)
+            for (int col = row; col < cols; col++)
+                result[row * cols + col] = values[row * cols + col];
+        return new(rows, cols, result);
     }
 
     /// <summary>Gets the dimension of the LU decomposition.</summary>
@@ -168,7 +177,7 @@ public readonly struct LU : IFormattable
     /// <summary>Gets the storage for the LU parts.</summary>
     /// <param name="lu">The LU decomposition.</param>
     /// <returns>The composite matrix containing the lower and upper parts.</returns>
-    public static explicit operator double[,](LU lu) => lu.values;
+    public static explicit operator double[](LU lu) => (double[])lu;
 
     /// <summary>Gets the storage for the permutation part.</summary>
     /// <param name="lu">The LU decomposition.</param>
@@ -182,7 +191,7 @@ public readonly struct LU : IFormattable
     public double this[int row, int column]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values[row, column];
+        get => values[row * Cols + column];
     }
 
     /// <summary>Gets the L part of the decomposition.</summary>
@@ -292,11 +301,11 @@ public readonly struct LU : IFormattable
         Contract.Ensures(output.Cols == input.Cols);
 
         int size = Size;
-        fixed (double* pA = values, pC = (double[,])output)
+        fixed (double* pA = values, pC = (double[])output)
         {
             int top = size & Simd.AVX_MASK;
             // Apply permutations to each column of the input.
-            fixed (double* pB = (double[,])input)
+            fixed (double* pB = (double[])input)
             fixed (int* pP = pivots)
                 for (int i = 0; i < size; i++)
                     Buffer.MemoryCopy(
@@ -367,12 +376,12 @@ public readonly struct LU : IFormattable
     /// <summary>Gets a textual representation of this decomposition.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
-        CommonMatrix.ToString(values, v => v.ToString("G6"), 0);
+        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString("G6"), 0);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
-        CommonMatrix.ToString(values, v => v.ToString(format, provider), 0);
+        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString(format, provider), 0);
 }

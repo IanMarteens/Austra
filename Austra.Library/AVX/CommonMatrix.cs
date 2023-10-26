@@ -17,9 +17,9 @@ public static class CommonMatrix
     /// <summary>Creates an identity matrix given its size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
-    public unsafe static double[,] CreateIdentity(int size)
+    public unsafe static double[] CreateIdentity(int size)
     {
-        double[,] values = new double[size, size];
+        double[] values = new double[size * size];
         int r = size + 1;
         fixed (double* pA = values)
             for (double* p = pA; size-- > 0; p += r)
@@ -29,23 +29,26 @@ public static class CommonMatrix
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
-    /// <returns>A 2D-array with its main diagonal initialized.</returns>
-    public unsafe static double[,] CreateDiagonal(Vector diagonal)
+    /// <returns>An array with its main diagonal initialized.</returns>
+    public unsafe static double[] CreateDiagonal(Vector diagonal)
     {
         int size = diagonal.Length, r = size + 1; ;
-        double[,] values = new double[size, size];
+        double[] values = new double[size * size];
         fixed (double* pA = values, pB = (double[])diagonal)
             for (double* p = pA, q = pB; size-- > 0; p += r)
                 *p = *q++;
         return values;
     }
 
-    /// <summary>Gets the main diagonal of a 2D-array.</summary>
-    /// <param name="values">A 2D-array.</param>
+    /// <summary>Gets the main diagonal of a 1D-array.</summary>
+    /// <param name="rows">Number of rows.</param>
+    /// <param name="cols">Number of columns.</param>
+    /// <param name="values">A 1D-array.</param>
     /// <returns>A vector containing values in the main diagonal.</returns>
-    public unsafe static Vector Diagonal(double[,] values)
+    public unsafe static Vector Diagonal(int rows, int cols, double[] values)
     {
-        int rows = values.GetLength(0), cols = values.GetLength(1);
+        ArgumentNullException.ThrowIfNull(values);
+
         int r = cols + 1, size = Min(rows, cols);
         double[] result = GC.AllocateUninitializedArray<double>(size);
         fixed (double* pA = values, pB = result)
@@ -54,32 +57,33 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Calculates the trace of a 2D-array.</summary>
-    /// <param name="values">A 2D-array.</param>
+    /// <summary>Calculates the trace of a 1D-array.</summary>
+    /// <param name="rows">Number of rows.</param>
+    /// <param name="cols">Number of columns.</param>
+    /// <param name="values">A 1D-array.</param>
     /// <returns>The sum of the cells in the main diagonal.</returns>
-    public unsafe static double Trace(double[,] values)
+    public unsafe static double Trace(int rows, int cols, double[] values)
     {
         ArgumentNullException.ThrowIfNull(values);
 
         double trace = 0;
-        int rows = values.GetLength(0), cols = values.GetLength(1);
         int r = cols + 1, size = Min(rows, cols);
         if (size <= 4)
             for (int s = size; s-- > 0;)
-                trace += values[s, s];
+                trace += values[rows * s + s];
         else
             fixed (double* pA = values)
                 for (double* p = pA; size-- > 0; p += r)
                     trace += *p;
         return trace;
     }
-
     /// <summary>Gets the product of the cells in the main diagonal.</summary>
-    /// <param name="values">A 2D-array.</param>
+    /// <param name="rows">Number of rows.</param>
+    /// <param name="cols">Number of columns.</param>
+    /// <param name="values">A 1D-array.</param>
     /// <returns>The product of the main diagonal.</returns>
-    public unsafe static double DiagonalProduct(double[,] values)
+    public unsafe static double DiagonalProduct(int rows, int cols, double[] values)
     {
-        int rows = values.GetLength(0), cols = values.GetLength(1);
         int r = cols + 1, size = Min(rows, cols);
         double product = 1.0;
         fixed (double* pA = values)
@@ -218,12 +222,14 @@ public static class CommonMatrix
     }
 
     /// <summary>In place transposition of a square matrix.</summary>
-    /// <param name="data">A 2D-array with data.</param>
-    public unsafe static void Transpose(double[,] data)
+    /// <param name="rows">Number of rows.</param>
+    /// <param name="cols">Number of columns.</param>
+    /// <param name="data">A 1D-array with data.</param>
+    public unsafe static void Transpose(int rows, int cols, double[] data)
     {
-        Contract.Requires(data.GetLength(0) == data.GetLength(1));
+        Contract.Requires(rows == cols);
         fixed (double* a = data)
-            Transpose(a, data.GetLength(0));
+            Transpose(a, rows);
     }
 
     /// <summary>In place transposition of a square matrix.</summary>
@@ -385,16 +391,17 @@ public static class CommonMatrix
         return sb.ToString();
     }
 
-    /// <summary>Gets a text representation of a 2D-array.</summary>
-    /// <param name="data">A 2D-array from a matrix.</param>
+    /// <summary>Gets a text representation of a matrix.</summary>
+    /// <param name="rowCount">Number of rows.</param>
+    /// <param name="colCount">Number of columns.</param>
+    /// <param name="data">A 1D-array from a matrix.</param>
     /// <param name="formatter">Converts items to text.</param>
     /// <param name="triangularity">Which part of the matrix is significative.</param>
     /// <returns>A text representation of the matrix.</returns>
-    public static string ToString(double[,] data, Func<double, string> formatter,
-        sbyte triangularity)
+    public static string ToString(int rowCount, int colCount, double[] data,
+        Func<double, string> formatter, sbyte triangularity)
     {
         const int upperRows = 8, lowerRows = 4, minLeftColumns = 5, rightColumns = 2;
-        int rowCount = data.GetLength(0), colCount = data.GetLength(1);
 
         int upper = rowCount <= upperRows ? rowCount : upperRows;
         int lower = rowCount <= upperRows
@@ -494,12 +501,11 @@ public static class CommonMatrix
             string[] c = new string[height];
             int index = 0;
             for (int row = 0; row < upper; row++)
-                c[index++] = Filter(data[row, column], row, column);
+                c[index++] = Filter(data[row * colCount + column], row, column);
             if (rowEllipsis)
                 c[index++] = "";
-            int rowCount = data.GetLength(0);
             for (int row = rowCount - lower; row < rowCount; row++)
-                c[index++] = Filter(data[row, column], row, column);
+                c[index++] = Filter(data[row * colCount + column], row, column);
             int w = c.Max(x => x.Length);
             if (rowEllipsis)
                 if (triangularity == 0 ||

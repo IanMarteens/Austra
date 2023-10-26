@@ -29,25 +29,30 @@ public readonly struct LMatrix :
     IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>
-    private readonly double[,] values;
+    private readonly double[] values;
 
     /// <summary>Creates an empty square matrix.</summary>
     /// <param name="size">Number of rows and columns.</param>
-    public LMatrix(int size) => values = new double[size, size];
+    public LMatrix(int size) => (Rows, Cols, values) = (size, size, new double[size * size]);
 
     /// <summary>Creates an empty rectangular matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    public LMatrix(int rows, int cols) => values = new double[rows, cols];
+    public LMatrix(int rows, int cols) => (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
 
-    /// <summary>Creates a matrix from a bidimensional array.</summary>
-    /// <param name="values">The array with cell values.</param>
-    public LMatrix(double[,] values) => this.values = values;
+    /// <summary>
+    /// Creates a matrix with a given number of rows and columns, and its internal array.
+    /// </summary>
+    /// <param name="rows">The number of rows.</param>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="values">Internal storage.</param>
+    public LMatrix(int rows, int columns, double[] values) =>
+        (Rows, Cols, this.values) = (rows, columns, values);
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     public LMatrix(Vector diagonal) =>
-        values = CommonMatrix.CreateDiagonal(diagonal);
+        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
 
     /// <summary>
     /// Creates a matrix filled with a uniform distribution generator.
@@ -61,10 +66,10 @@ public readonly struct LMatrix :
         int rows, int cols, Random random,
         double offset = 0.0, double width = 1.0)
     {
-        values = new double[rows, cols];
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         for (int r = 0; r < rows; r++)
             for (int c = 0, top = Min(cols, r + 1); c < top; c++)
-                values[r, c] = FusedMultiplyAdd(random.NextDouble(), width, offset);
+                values[r * Cols + c] = FusedMultiplyAdd(random.NextDouble(), width, offset);
     }
 
     /// <summary>
@@ -75,8 +80,8 @@ public readonly struct LMatrix :
     /// <param name="random">A random number generator.</param>
     public LMatrix(int rows, int cols, Random random)
     {
-        values = new double[rows, cols];
-        ref double cell = ref values[0, 0];
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
+        ref double cell = ref MemoryMarshal.GetArrayDataReference(values);
         for (int r = 0; r < rows; r++)
             for (int c = 0, top = Min(cols, r + 1); c < top; c++)
                 Unsafe.Add(ref cell, r * cols + c) = random.NextDouble();
@@ -88,8 +93,7 @@ public readonly struct LMatrix :
     /// <param name="size">Number of rows and columns.</param>
     /// <param name="random">A random number generator.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public LMatrix(int size, Random random) : this(size, size, random)
-    { }
+    public LMatrix(int size, Random random) : this(size, size, random) { }
 
     /// <summary>
     /// Creates a matrix filled with a standard normal distribution.
@@ -99,15 +103,15 @@ public readonly struct LMatrix :
     /// <param name="random">A random standard normal generator.</param>
     public LMatrix(int rows, int cols, NormalRandom random)
     {
-        values = new double[rows, cols];
-        ref double cell = ref values[0, 0];
-        for (int r = 0; r < rows; r++)
+        (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
+        ref double cell = ref MemoryMarshal.GetArrayDataReference(values);
+        // First row is special!
+        cell = random.NextDouble();
+        for (int r = 1; r < rows; r++)
         {
             int c = 0, top = Min(cols, r + 1);
             for (int t = top & ~1; c < t; c += 2)
-            {
                 random.NextDoubles(ref Unsafe.Add(ref cell, r * cols + c));
-            }
             if (c < top)
                 Unsafe.Add(ref cell, r * cols + c) = random.NextDouble();
         }
@@ -117,25 +121,17 @@ public readonly struct LMatrix :
     /// <param name="size">Number of rows and columns.</param>
     /// <param name="random">A random standard normal generator.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public LMatrix(int size, NormalRandom random) : this(size, size, random)
-    { }
+    public LMatrix(int size, NormalRandom random) : this(size, size, random) { }
 
     /// <summary>Creates an identity matrix given its size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
-    public static LMatrix Identity(int size) => CommonMatrix.CreateIdentity(size);
+    public static LMatrix Identity(int size) =>
+        new(size, size, CommonMatrix.CreateIdentity(size));
 
     /// <summary>Creates an identical lower triangular matrix.</summary>
     /// <returns>A deep clone of the instance.</returns>
-    public LMatrix Clone() => (double[,])values.Clone();
-
-    /// <summary>
-    /// Implicit conversion from a bidimensional array to a matrix.
-    /// </summary>
-    /// <param name="values">A bidimensional array.</param>
-    /// <returns>A new matrix representing the array.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator LMatrix(double[,] values) => new(values);
+    public LMatrix Clone() => new(Rows, Cols, (double[])values.Clone());
 
     /// <summary>
     /// Implicit conversion from a rectangular to a lower triangular matrix.
@@ -143,25 +139,25 @@ public readonly struct LMatrix :
     /// <param name="m">A rectangular matrix.</param>
     /// <returns>A new lower-triangular matrix.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator LMatrix(Matrix m) => new((double[,])m);
+    public static implicit operator LMatrix(Matrix m) => new(m.Rows, m.Cols, (double[])m);
 
     /// <summary>
-    /// Explicit conversion from a matrix to a bidimensional array.
+    /// Explicit conversion from a matrix to a onedimensional array.
     /// </summary>
     /// <remarks>
-    /// Use carefully: it returns the underlying bidimensional array.
+    /// Use carefully: it returns the underlying onedimensional array.
     /// </remarks>
     /// <param name="m">The original matrix.</param>
-    /// <returns>The underlying bidimensional array.</returns>
+    /// <returns>The underlying onedimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator double[,](LMatrix m) => m.values;
+    public static unsafe explicit operator double[](LMatrix m) => m.values;
 
     /// <summary>
     /// Explicit conversion from a triangular matrix to a rectangular one.
     /// </summary>
     /// <param name="m">A lower-triangular matrix.</param>
     /// <returns>A new rectangular matrix.</returns>
-    public static explicit operator Matrix(LMatrix m) => new(m.values);
+    public static explicit operator Matrix(LMatrix m) => new(m.Rows, m.Cols, m.values);
 
     /// <summary>Has the matrix been properly initialized?</summary>
     /// <remarks>
@@ -171,18 +167,10 @@ public readonly struct LMatrix :
     public bool IsInitialized => values != null;
 
     /// <summary>Gets the number of rows.</summary>
-    public int Rows
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values.GetLength(0);
-    }
+    public int Rows { get; }
 
     /// <summary>Gets the number of columns.</summary>
-    public int Cols
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values.GetLength(1);
-    }
+    public int Cols { get; }
 
     /// <summary>Checks if the matrix is a square one.</summary>
     public bool IsSquare => Rows == Cols;
@@ -195,13 +183,13 @@ public readonly struct LMatrix :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
 
-        return CommonMatrix.Diagonal(values);
+        return CommonMatrix.Diagonal(Rows, Cols, values);
     }
 
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Trace() => CommonMatrix.Trace(values);
+    public double Trace() => CommonMatrix.Trace(Rows, Cols, values);
 
     /// <summary>Gets the value at a single cell.</summary>
     /// <param name="row">The row number, between 0 and Rows - 1.</param>
@@ -210,7 +198,7 @@ public readonly struct LMatrix :
     public double this[int row, int column]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values[row, column];
+        get => values[row * Cols + column];
     }
 
     /// <summary>Transposes the matrix.</summary>
@@ -220,7 +208,7 @@ public readonly struct LMatrix :
         Contract.Requires(IsInitialized);
 
         int c = Cols, r = Rows;
-        double[,] result = new double[c, r];
+        double[] result = new double[c * r];
         fixed (double* pA = values, pB = result)
         {
             if (Avx.IsSupported && r == c && (r & 0b11) == 0)
@@ -258,7 +246,7 @@ public readonly struct LMatrix :
                     for (int col = 0, top = Min(row + 1, c); col < top; col++)
                         pB[col * r + row] = pA[row * c + col];
         }
-        return result;
+        return new(c, r, result);
     }
 
     /// <summary>Sums two lower matrices with the same size.</summary>
@@ -275,7 +263,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m1.Cols);
 
         int r = m1.Rows, c = m1.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         if (c < r)
             r = c;
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
@@ -302,7 +290,7 @@ public readonly struct LMatrix :
                     pC[i] = pA[i] + pB[i];
             }
         }
-        return result;
+        return new(m1.Rows, m1.Cols, result);
     }
 
     /// <summary>Adds a lower-triangular matrix and an upper-triangular one.</summary>
@@ -324,7 +312,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         if (c < r)
             r = c;
         fixed (double* pA = m.values, pC = result)
@@ -350,7 +338,7 @@ public readonly struct LMatrix :
                     pC[i] = pA[i] + d;
             }
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Adds a scalar value to a lower triangular matrix.</summary>
@@ -375,7 +363,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m1.Cols);
 
         int r = m1.Rows, c = m1.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         if (c < r)
             r = c;
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
@@ -408,7 +396,7 @@ public readonly struct LMatrix :
                     pC[i] = pA[i] - pB[i];
             }
         }
-        return result;
+        return new(m1.Rows, m1.Cols, result);
     }
 
     /// <summary>Subtracts an upper triangular matrix from a lower triangular one.</summary>
@@ -430,7 +418,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         if (c < r)
             r = c;
         fixed (double* pA = m.values, pC = result)
@@ -456,7 +444,7 @@ public readonly struct LMatrix :
                     pC[i] = pA[i] - d;
             }
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Negates a lower matrix.</summary>
@@ -469,7 +457,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         if (c < r)
             r = c;
         fixed (double* pA = m.values, pC = result)
@@ -506,7 +494,7 @@ public readonly struct LMatrix :
                     pC[i] = -pA[i];
             }
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Multiplies a lower triangular matrix by a scalar value.</summary>
@@ -520,7 +508,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         if (c < r)
             r = c;
         fixed (double* pA = m.values, pC = result)
@@ -546,7 +534,7 @@ public readonly struct LMatrix :
                     pC[i] = pA[i] * d;
             }
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Multiplies a lower triangular matrix by a scalar value.</summary>
@@ -576,9 +564,9 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
-        double[,] result = new double[m, p];
+        double[] result = new double[m * p];
         int lastBlockIndex = p & Simd.AVX_MASK;
-        fixed (double* pA = m1.values, pB = (double[,])m2, pC = result)
+        fixed (double* pA = m1.values, pB = (double[])m2, pC = result)
         {
             double* pAi = pA, pCi = pC;
             for (int i = 0; i < m; i++)
@@ -603,7 +591,7 @@ public readonly struct LMatrix :
                 pCi += n;
             }
         }
-        return result;
+        return new(m, p, result);
     }
 
     /// <summary>Multiplies a rectangular matrix by a lower triangular one.</summary>
@@ -619,8 +607,8 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
-        double[,] result = new double[m, p];
-        fixed (double* pA = (double[,])m1, pB = m2.values, pC = result)
+        double[] result = new double[m * p];
+        fixed (double* pA = (double[])m1, pB = m2.values, pC = result)
         {
             double* pAi = pA, pCi = pC;
             for (int i = 0; i < m; i++)
@@ -646,7 +634,7 @@ public readonly struct LMatrix :
                 pCi += n;
             }
         }
-        return result;
+        return new(m, p, result);
     }
 
     /// <summary>Multiplies a lower-triangular matrix with an upper-triangular one.</summary>
@@ -654,20 +642,18 @@ public readonly struct LMatrix :
     /// <param name="m2">Second matrix.</param>
     /// <returns>The product of the two operands.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix operator *(LMatrix m1, RMatrix m2) =>
-        m1 * new Matrix((double[,])m2);
+    public static Matrix operator *(LMatrix m1, RMatrix m2) => m1 * (Matrix)m2;
 
     /// <summary>Multiplies an upper-triangular matrix with a lower-triangular one.</summary>
     /// <param name="m1">First matrix.</param>
     /// <param name="m2">Second matrix.</param>
     /// <returns>The product of the two operands.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix operator *(RMatrix m1, LMatrix m2) =>
-        new Matrix((double[,])m1) * m2;
+    public static Matrix operator *(RMatrix m1, LMatrix m2) => (Matrix)m1 * m2;
 
     /// <summary>Gets the cell with the maximum absolute value.</summary>
     /// <returns>The max-norm of the matrix.</returns>
-    public double AMax() => new Matrix((double[,])this).AMax();
+    public double AMax() => new Matrix(Rows, Cols, values).AMax();
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
     /// <returns>The minimum absolute value in the triangular matrix.</returns>
@@ -677,7 +663,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<double>() >= 0);
 
         int r = Rows, c = Cols;
-        double min = Abs(values[0, 0]);
+        double min = Abs(values[0]);
         if (c < r)
             r = c;
         fixed (double* a = values)
@@ -697,10 +683,10 @@ public readonly struct LMatrix :
 
     /// <summary>Gets the cell with the maximum value.</summary>
     /// <returns>The maximum value in the triangular matrix.</returns>
-    public double Maximum() => new Matrix((double[,])this).Maximum();
+    public double Maximum() => new Matrix(Rows, Cols, values).Maximum();
     /// <summary>Gets the cell with the minimum value.</summary>
     /// <returns>The minimum value in the triangular matrix.</returns>
-    public double Minimum() => new Matrix((double[,])this).Minimum();
+    public double Minimum() => new Matrix(Rows, Cols, values).Minimum();
 
     /// <summary>Multiplies this matrix by the transposed argument.</summary>
     /// <param name="m">Second operand.</param>
@@ -714,7 +700,7 @@ public readonly struct LMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
         int r = Rows, n = Cols, c = m.Rows;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         fixed (double* pA = values, pB = m.values, pC = result)
         {
             double* pAi = pA, pCi = pC;
@@ -743,7 +729,7 @@ public readonly struct LMatrix :
                 pCi += r;
             }
         }
-        return result;
+        return new(r, c, result);
     }
 
     /// <summary>Transform a vector using a matrix.</summary>
@@ -846,7 +832,7 @@ public readonly struct LMatrix :
         {
             double* pA1 = pA, pB1 = pB, pC1 = pC;
             // First row is special.
-            *pB1++ = *pA1 * *pX + *pC1++;    
+            *pB1++ = *pA1 * *pX + *pC1++;
             pA1 += c;
             for (int i = 1; i < r; i++)
             {
@@ -970,7 +956,7 @@ public readonly struct LMatrix :
 
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
-    public double Determinant() => CommonMatrix.DiagonalProduct(values);
+    public double Determinant() => CommonMatrix.DiagonalProduct(Rows, Cols, values);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
@@ -1033,14 +1019,14 @@ public readonly struct LMatrix :
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
-        CommonMatrix.ToString(values, v => v.ToString("G6"), -1);
+        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString("G6"), -1);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
-        CommonMatrix.ToString(values, v => v.ToString(format, provider), -1);
+        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString(format, provider), -1);
 }
 
 /// <summary>JSON converter for triangular matrices.</summary>
@@ -1057,7 +1043,7 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
         JsonSerializerOptions options)
     {
         int rows = 0, cols = 0;
-        double[,]? values = null;
+        double[]? values = null;
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.PropertyName)
@@ -1075,7 +1061,7 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
             }
             else if (reader.TokenType == JsonTokenType.StartArray)
             {
-                values = new double[rows, cols];
+                values = new double[rows * cols];
                 fixed (double* p = values)
                 {
                     int total = rows * cols;
@@ -1089,7 +1075,7 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
                 }
             }
         }
-        return new(values!);
+        return new(rows, cols, values!);
     }
 
     /// <summary>Converts a lower-triangular matrix to JSON.</summary>
@@ -1105,7 +1091,7 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
         writer.WriteNumber(nameof(LMatrix.Rows), value.Rows);
         writer.WriteNumber(nameof(LMatrix.Cols), value.Cols);
         writer.WriteStartArray("values");
-        fixed (double* pV = (double[,])value)
+        fixed (double* pV = (double[])value)
         {
             double* pEnd = pV + value.Rows * value.Cols;
             for (double* p = pV; p < pEnd; p++)

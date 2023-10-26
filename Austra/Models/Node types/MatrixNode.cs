@@ -13,14 +13,14 @@ public class MatrixNode : VarNode<AMatrix>
     { }
 
     public MatrixNode(ClassNode? parent, string varName, string formula, LMatrix value) :
-        base(parent, varName, formula, "Matrix", (double[,])value) => triangularity = -1;
+        base(parent, varName, formula, "Matrix", (Matrix)value) => triangularity = -1;
 
     public MatrixNode(ClassNode? parent, string varName, LMatrix value) :
         this(parent, varName, varName, value)
     { }
 
     public MatrixNode(ClassNode? parent, string varName, string formula, RMatrix value) :
-        base(parent, varName, formula, "Matrix", (double[,])value) => triangularity = +1;
+        base(parent, varName, formula, "Matrix", (Matrix)value) => triangularity = +1;
 
     public MatrixNode(ClassNode? parent, string varName, RMatrix value) :
         this(parent, varName, varName, value)
@@ -35,5 +35,5 @@ public class MatrixNode : VarNode<AMatrix>
     public override void Show() =>
         RootModel.Instance.AppendResult(Formula,
             $"ans ∊ ℝ({Model.Rows}⨯{Model.Cols})" + Environment.NewLine +
-            CommonMatrix.ToString((double[,])Model, v => v.ToString("G6"), triangularity));
+            CommonMatrix.ToString(Model.Rows, Model.Cols, (double[])Model, v => v.ToString("G6"), triangularity));
 }

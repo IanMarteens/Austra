@@ -18,9 +18,8 @@ public readonly struct Cholesky : IFormattable
     internal unsafe static bool TryDecompose(Matrix matrix, out Cholesky cholesky)
     {
         int n = matrix.Rows;
-        double[,] dest = new double[n, n];
-        cholesky = new(dest);
-        fixed (double* pS = (double[,])matrix, pD = dest)
+        cholesky = new(new(n));
+        fixed (double* pS = (double[])matrix, pD = (double[])cholesky.L)
         {
             // Allocate a buffer.
             double* tmp = stackalloc double[n + n];
@@ -159,7 +158,7 @@ public readonly struct Cholesky : IFormattable
     /// <returns>Echoes the input vector.</returns>
     private unsafe Vector SolveInPlace(Vector v)
     {
-        fixed (double* pA = (double[,])L, pB = (double[])v)
+        fixed (double* pA = (double[])L, pB = (double[])v)
         {
             int size = L.Rows;
             double* pAi = pA;
@@ -205,7 +204,7 @@ public readonly struct Cholesky : IFormattable
     private unsafe Matrix SolveInPlace(Matrix m)
     {
         int size = L.Rows;
-        fixed (double* pA = (double[,])L, pB = (double[,])m)
+        fixed (double* pA = (double[])L, pB = (double[])m)
         {
             int top = size & Simd.AVX_MASK;
             for (int i = 0, isize = 0; i < size; i++, isize += size)

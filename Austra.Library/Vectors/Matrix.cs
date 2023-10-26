@@ -1,8 +1,13 @@
 ﻿namespace Austra.Library;
 
 using Austra.Library.Stats;
+using static Unsafe;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
+/// <remarks>
+/// <para>Values are stored in a one-dimensional array, in row-major order.
+/// Compatibility with bidimensional arrays, however, has been preserved.</para>
+/// </remarks>
 [JsonConverter(typeof(MatrixJsonConverter))]
 public readonly struct Matrix :
     IFormattable,
@@ -25,16 +30,18 @@ public readonly struct Matrix :
     IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>
-    private readonly double[,] values;
+    private readonly double[] values;
 
     /// <summary>Creates an empty square matrix.</summary>
     /// <param name="size">Number of rows and columns.</param>
-    public Matrix(int size) => values = new double[size, size];
+    public Matrix(int size) =>
+        (Rows, Cols, values) = (size, size, new double[size * size]);
 
     /// <summary>Creates an empty rectangular matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    public Matrix(int rows, int cols) => values = new double[rows, cols];
+    public Matrix(int rows, int cols) =>
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
 
     /// <summary>Creates a matrix using a formula to fill its cells.</summary>
     /// <param name="rows">Number of rows.</param>
@@ -42,7 +49,7 @@ public readonly struct Matrix :
     /// <param name="f">A function defining cell content.</param>
     public unsafe Matrix(int rows, int cols, Func<int, int, double> f)
     {
-        values = new double[rows, cols];
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         fixed (double* p = values)
         {
             int idx = 0;
@@ -55,8 +62,7 @@ public readonly struct Matrix :
     /// <summary>Creates a square matrix using a formula to fill its cells.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <param name="f">A function defining cell content.</param>
-    public Matrix(int size, Func<int, int, double> f) : this(size, size, f)
-    { }
+    public Matrix(int size, Func<int, int, double> f) : this(size, size, f) { }
 
     /// <summary>Creates a matrix given its rows.</summary>
     /// <param name="rows">The array of rows.</param>
@@ -64,39 +70,45 @@ public readonly struct Matrix :
     {
         if (rows == null || rows.Length == 0)
             throw new MatrixSizeException();
-        int cols = rows[0].Length;
-        if (cols == 0)
+        Rows = rows.Length;
+        Cols = rows[0].Length;
+        if (Cols == 0)
             throw new MatrixSizeException();
         for (int i = 1; i < rows.Length; i++)
-            if (rows[i].Length != cols)
+            if (rows[i].Length != Cols)
                 throw new MatrixSizeException();
-        values = new double[rows.Length, cols];
+        values = new double[Rows * Cols];
         fixed (double* pA = values)
         {
-            long rowSize = (long)cols * sizeof(double);
+            long rowSize = (long)Cols * sizeof(double);
             double* p = pA;
             foreach (Vector row in rows)
                 fixed (double* q = (double[])row)
                 {
                     Buffer.MemoryCopy(q, p, rowSize, rowSize);
-                    p += cols;
+                    p += Cols;
                 }
         }
     }
 
-    /// <summary>Creates a matrix from a bidimensional array.</summary>
-    /// <param name="values">The array with cell values.</param>
-    public Matrix(double[,] values) => this.values = values;
+    /// <summary>
+    /// Creates a matrix with a given number of rows and columns, and its internal array.
+    /// </summary>
+    /// <param name="rows">The number of rows.</param>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="values">Internal storage.</param>
+    public Matrix(int rows, int columns, double[] values) =>
+        (Rows, Cols, this.values) = (rows, columns, values);
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     public Matrix(Vector diagonal) =>
-        values = CommonMatrix.CreateDiagonal(diagonal);
+        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     public Matrix(double[] diagonal) =>
-        values = CommonMatrix.CreateDiagonal(diagonal);
+        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
     /// <param name="rows">Number of rows.</param>
@@ -108,7 +120,7 @@ public readonly struct Matrix :
         int rows, int cols, Random random,
         double offset = 0.0, double width = 1.0)
     {
-        values = new double[rows, cols];
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         fixed (double* pA = values)
         {
             int len = rows * cols;
@@ -121,10 +133,9 @@ public readonly struct Matrix :
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="random">A random number generator.</param>
-    public unsafe Matrix(
-        int rows, int cols, Random random)
+    public unsafe Matrix(int rows, int cols, Random random)
     {
-        values = new double[rows, cols];
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         fixed (double* pA = values)
         {
             int len = rows * cols;
@@ -138,53 +149,33 @@ public readonly struct Matrix :
     /// </summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <param name="random">A random number generator.</param>
-    public Matrix(int size, Random random) :
-        this(size, size, random)
-    { }
+    public Matrix(int size, Random random) : this(size, size, random) { }
 
     /// <summary>Creates a matrix filled with a standard normal distribution.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="random">A random standard normal generator.</param>
-    public unsafe Matrix(int rows, int cols, NormalRandom random)
+    public Matrix(int rows, int cols, NormalRandom random)
     {
-        values = new double[rows, cols];
-        fixed (double* p = values)
-        {
-            int i = 0, len = rows * cols;
-            for (int t = len & ~1; i < t; i += 2)
-                random.NextDoubles(p + i);
-            if (i < len)
-                p[i] = random.NextDouble();
-        }
+        int i = 0, len = rows * cols;
+        (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(len));
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        for (int t = len & ~1; i < t; i += 2)
+            random.NextDoubles(ref Add(ref p, i));
+        if (i < len)
+            Add(ref p, i) = random.NextDouble();
     }
 
     /// <summary>Creates a squared matrix filled with a standard normal distribution.</summary>
     /// <param name="size">Number of rows.</param>
     /// <param name="random">A random standard normal generator.</param>
-    public Matrix(int size, NormalRandom random) :
-        this(size, size, random)
-    { }
-
-    /// <summary>Creates a matrix from a linear array.</summary>
-    /// <param name="rows">Number of rows.</param>
-    /// <param name="columns">Number of columns.</param>
-    /// <param name="values">The linear array with values.</param>
-    public unsafe Matrix(int rows, int columns, double[] values)
-    {
-        this.values = new double[rows, columns];
-        fixed (double* pA = values, pB = this.values)
-        {
-            long size = (long)rows * columns * sizeof(double);
-            Buffer.MemoryCopy(pA, pB, size, size);
-        }
-    }
+    public Matrix(int size, NormalRandom random) : this(size, size, random) { }
 
     /// <summary>Creates an identity matrix given its size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
     public static Matrix Identity(int size) =>
-        CommonMatrix.CreateIdentity(size);
+        new(size, size, CommonMatrix.CreateIdentity(size));
 
     /// <summary>Creates a matrix given its columns.</summary>
     /// <param name="columns">The array of columns.</param>
@@ -201,7 +192,7 @@ public readonly struct Matrix :
         if (left.Rows != right.Rows)
             throw new MatrixSizeException();
         int w = left.Rows, c1 = left.Cols, c2 = right.Cols, c = c1 + c2;
-        double[,] newValues = new double[w, c];
+        double[] newValues = new double[w * c];
         fixed (double* l = left.values, r = right.values, t = newValues)
             for (int row = 0; row < w; row++)
             {
@@ -210,7 +201,7 @@ public readonly struct Matrix :
                 Buffer.MemoryCopy(r + row * c2, t + row * c + c1,
                     c2 * sizeof(double), c2 * sizeof(double));
             }
-        return new(newValues);
+        return new(w, c, newValues);
     }
 
     /// <summary>Horizontal concatenation of a matrix and a new column.</summary>
@@ -222,7 +213,7 @@ public readonly struct Matrix :
         if (left.Rows != newColumn.Length)
             throw new MatrixSizeException();
         int w = left.Rows, c1 = left.Cols, c = c1 + 1;
-        double[,] newValues = new double[w, c];
+        double[] newValues = new double[w * c];
         fixed (double* l = left.values, r = (double[])newColumn, t = newValues)
             for (int row = 0; row < w; row++)
             {
@@ -230,7 +221,7 @@ public readonly struct Matrix :
                     c1 * sizeof(double), c1 * sizeof(double));
                 t[row * c + c1] = r[row];
             }
-        return new(newValues);
+        return new(w, c, newValues);
     }
 
     /// <summary>Horizontal concatenation of a new column and a matrix.</summary>
@@ -242,7 +233,7 @@ public readonly struct Matrix :
         if (right.Rows != newColumn.Length)
             throw new MatrixSizeException();
         int w = right.Rows, c1 = right.Cols, c = c1 + 1;
-        double[,] newValues = new double[w, c];
+        double[] newValues = new double[w * c];
         fixed (double* l = right.values, r = (double[])newColumn, t = newValues)
             for (int row = 0; row < w; row++)
             {
@@ -250,7 +241,7 @@ public readonly struct Matrix :
                 Buffer.MemoryCopy(l + row * c1, t + row * c + 1,
                     c1 * sizeof(double), c1 * sizeof(double));
             }
-        return new(newValues);
+        return new(w, c, newValues);
     }
 
     /// <summary>Vertical concatenation of two matrices.</summary>
@@ -262,7 +253,7 @@ public readonly struct Matrix :
         if (upper.Cols != lower.Cols)
             throw new MatrixSizeException();
         int w1 = upper.Rows, c = upper.Cols, w2 = lower.Rows, w = w1 + w2;
-        double[,] newValues = new double[w, c];
+        double[] newValues = new double[w * c];
         fixed (double* u = upper.values, l = lower.values, t = newValues)
         {
             Buffer.MemoryCopy(u, t,
@@ -270,7 +261,7 @@ public readonly struct Matrix :
             Buffer.MemoryCopy(l, t + w1 * c,
                 w2 * c * sizeof(double), w2 * c * sizeof(double));
         }
-        return new(newValues);
+        return new(w, c, newValues);
     }
 
     /// <summary>Vertical concatenation of a matrix and a row vector.</summary>
@@ -282,7 +273,7 @@ public readonly struct Matrix :
         if (upper.Cols != lower.Length)
             throw new MatrixSizeException();
         int w1 = upper.Rows, c = upper.Cols, w = w1 + 1;
-        double[,] newValues = new double[w, c];
+        double[] newValues = new double[w * c];
         fixed (double* u = upper.values, l = (double[])lower, t = newValues)
         {
             Buffer.MemoryCopy(u, t,
@@ -290,7 +281,7 @@ public readonly struct Matrix :
             Buffer.MemoryCopy(l, t + w1 * c,
                 c * sizeof(double), c * sizeof(double));
         }
-        return new(newValues);
+        return new(w, c, newValues);
     }
 
     /// <summary>Vertical concatenation of a row vector and a matrix.</summary>
@@ -302,7 +293,7 @@ public readonly struct Matrix :
         if (upper.Length != lower.Cols)
             throw new MatrixSizeException();
         int w2 = lower.Rows, c = lower.Cols, w = w2 + 1;
-        double[,] newValues = new double[w, c];
+        double[] newValues = new double[w * c];
         fixed (double* u = (double[])upper, l = lower.values, t = newValues)
         {
             Buffer.MemoryCopy(l, t,
@@ -310,52 +301,56 @@ public readonly struct Matrix :
             Buffer.MemoryCopy(u, t + c,
                 w2 * c * sizeof(double), w2 * c * sizeof(double));
         }
-        return new(newValues);
+        return new(w, c, newValues);
     }
 
     /// <summary>Creates an identical rectangular matrix.</summary>
     /// <returns>A deep clone of the instance.</returns>
-    public Matrix Clone() => (double[,])values.Clone();
-
-    /// <summary>
-    /// Implicit conversion from a bidimensional array to a matrix.
-    /// </summary>
-    /// <param name="values">A bidimensional array.</param>
-    /// <returns>A rectangular matrix representing the converted data.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Matrix(double[,] values) => new(values);
+    public Matrix Clone() => new(Rows, Cols, (double[])values.Clone());
 
     /// <summary>
     /// Explicit conversion from a matrix to a bidimensional array.
     /// </summary>
     /// <remarks>
-    /// Use carefully: it returns the underlying bidimensional array.
+    /// The returned array is a copy of the original matrix storage.
     /// </remarks>
     /// <param name="m">The original matrix.</param>
     /// <returns>The underlying bidimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator double[,](Matrix m) => m.values;
+    public static unsafe explicit operator double[,](Matrix m)
+    {
+        double[,] result = new double[m.Rows, m.Cols];
+        fixed (double* source = m.values, target = result)
+        {
+            int size = m.Rows * m.Cols * sizeof(double);
+            Buffer.MemoryCopy(source, target, size, size);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Explicit conversion from a matrix to a one-dimensional array.
+    /// </summary>
+    /// <remarks>
+    /// Use carefully: it returns the underlying one-dimensional array.
+    /// </remarks>
+    /// <param name="m">The original matrix.</param>
+    /// <returns>The underlying bidimensional array.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe explicit operator double[](Matrix m) => m.values;
 
     /// <summary>Has the matrix been properly initialized?</summary>
     /// <remarks>
-    /// Since Matrix is a struct, its default constructor doesn't
+    /// Since <see cref="Matrix"/> is a struct, its default constructor doesn't
     /// initializes the underlying bidimensional array.
     /// </remarks>
     public bool IsInitialized => values != null;
 
     /// <summary>Gets the number of rows.</summary>
-    public int Rows
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values.GetLength(0);
-    }
+    public int Rows { get; }
 
     /// <summary>Gets the number of columns.</summary>
-    public int Cols
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values.GetLength(1);
-    }
+    public int Cols { get; }
 
     /// <summary>Checks if the matrix is a square one.</summary>
     public bool IsSquare => Rows == Cols;
@@ -387,13 +382,13 @@ public readonly struct Matrix :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
 
-        return CommonMatrix.Diagonal(values);
+        return CommonMatrix.Diagonal(Rows, Cols, values);
     }
 
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Trace() => CommonMatrix.Trace(values);
+    public double Trace() => CommonMatrix.Trace(Rows, Cols, values);
 
     /// <summary>Gets or sets the value of a single cell.</summary>
     /// <param name="row">The row number, between 0 and Rows - 1.</param>
@@ -402,9 +397,9 @@ public readonly struct Matrix :
     public double this[int row, int column]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values[row, column];
+        get => values[row * Cols + column];
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => values[row, column] = value;
+        set => values[row * Cols + column] = value;
     }
 
     /// <summary>Gets the value of a single cell using <see cref="Index"/>.</summary>
@@ -414,7 +409,7 @@ public readonly struct Matrix :
     public double this[Index row, Index column]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values[row.GetOffset(Rows), column.GetOffset(Cols)];
+        get => values[row.GetOffset(Rows) * Cols + column.GetOffset(Cols)];
     }
 
     /// <summary>Gets a range of rows and columns as a new matrix.</summary>
@@ -434,17 +429,17 @@ public readonly struct Matrix :
                 if (rLen > 0)
                 {
                     // The easiest case.
-                    double[,] newValues = new double[rLen, Cols];
+                    double[] newValues = new double[rLen * Cols];
                     fixed (double* p = values, q = newValues)
                         Buffer.MemoryCopy(p + rOff * Cols, q,
                             rLen * Cols * sizeof(double),
                             rLen * Cols * sizeof(double));
-                    return new(newValues);
+                    return new(rLen, Cols, newValues);
                 }
             }
             if (cLen > 0 && rLen > 0)
             {
-                double[,] newValues = new double[rLen, cLen];
+                double[] newValues = new double[rLen * cLen];
                 int size = cLen * sizeof(double);
                 fixed (double* p = values, q = newValues)
                 {
@@ -452,7 +447,7 @@ public readonly struct Matrix :
                     for (int row = 0; row < rLen; row++, source += Cols)
                         Buffer.MemoryCopy(source, q + row * cLen, size, size);
                 }
-                return new(newValues);
+                return new(rLen, cLen, newValues);
             }
             return new(0);
         }
@@ -507,7 +502,7 @@ public readonly struct Matrix :
     {
         double[] v = GC.AllocateUninitializedArray<double>(Cols);
         for (int c = 0; c < v.Length; c++)
-            v[c] = values[row, c];
+            v[c] = values[row * Cols + c];
         return v;
     }
 
@@ -524,7 +519,7 @@ public readonly struct Matrix :
     {
         double[] v = GC.AllocateUninitializedArray<double>(Rows);
         for (int r = 0; r < v.Length; r++)
-            v[r] = values[r, col];
+            v[r] = values[r * Cols + col];
         return v;
     }
 
@@ -541,7 +536,7 @@ public readonly struct Matrix :
         Contract.Requires(IsInitialized);
 
         int r = Rows, c = Cols;
-        double[,] result = new double[c, r];
+        double[] result = new double[c * r];
         fixed (double* pA = values, pB = result)
             if (Avx.IsSupported)
             {
@@ -612,70 +607,63 @@ public readonly struct Matrix :
                     pBrow++;
                 }
             }
-        return result;
+        return new(Cols, Rows, result);
     }
 
     /// <summary>Adds a full matrix to a lower triangular matrix.</summary>
     /// <param name="m1">Full matrix operand.</param>
     /// <param name="lm2">Lower-triangular matrix operand.</param>
     /// <returns>The sum of the two matrices.</returns>
-    public static Matrix operator +(Matrix m1, LMatrix lm2) =>
-        m1 + new Matrix((double[,])lm2);
+    public static Matrix operator +(Matrix m1, LMatrix lm2) => m1 + (Matrix)lm2;
 
     /// <summary>Adds a full matrix to an upper triangular matrix.</summary>
     /// <param name="m1">Full matrix operand.</param>
     /// <param name="rm2">Upper-triangular matrix operand.</param>
     /// <returns>The sum of the two matrices.</returns>
-    public static Matrix operator +(Matrix m1, RMatrix rm2) =>
-        m1 + new Matrix((double[,])rm2);
+    public static Matrix operator +(Matrix m1, RMatrix rm2) => m1 + (Matrix)rm2;
 
     /// <summary>Adds a lower triangular matrix to a full matrix.</summary>
     /// <param name="lm1">Lower-triangular matrix operand.</param>
     /// <param name="m2">Full matrix operand.</param>
     /// <returns>The sum of the two matrices.</returns>
-    public static Matrix operator +(LMatrix lm1, Matrix m2) =>
-        new Matrix((double[,])lm1) + m2;
+    public static Matrix operator +(LMatrix lm1, Matrix m2) => (Matrix)lm1 + m2;
 
     /// <summary>Adds an upper triangular matrix to a full matrix.</summary>
     /// <param name="rm1">Upper-triangular matrix operand.</param>
     /// <param name="m2">Full matrix operand.</param>
     /// <returns>The sum of the two matrices.</returns>
-    public static Matrix operator +(RMatrix rm1, Matrix m2) =>
-        new Matrix((double[,])rm1) + m2;
+    public static Matrix operator +(RMatrix rm1, Matrix m2) => (Matrix)rm1 + m2;
 
     /// <summary>Subtracts a lower-triangular matrix from a full matrix.</summary>
     /// <param name="m1">Full matrix minuend.</param>
     /// <param name="lm2">Lower-triangular matrix subtrahend.</param>
     /// <returns>The difference of the two matrices.</returns>
-    public static Matrix operator -(Matrix m1, LMatrix lm2) =>
-        m1 - new Matrix((double[,])lm2);
+    public static Matrix operator -(Matrix m1, LMatrix lm2) => m1 - (Matrix)lm2;
 
     /// <summary>Subtracts an upper-triangular matrix from a full matrix.</summary>
     /// <param name="m1">Full matrix minuend.</param>
     /// <param name="rm2">Upper-triangular matrix subtrahend.</param>
     /// <returns>The difference of the two matrices.</returns>
-    public static Matrix operator -(Matrix m1, RMatrix rm2) =>
-        m1 - new Matrix((double[,])rm2);
+    public static Matrix operator -(Matrix m1, RMatrix rm2) => m1 - (Matrix)rm2;
 
     /// <summary>Subtracts a full matrix from a lower-triangular matrix.</summary>
     /// <param name="lm1">Lower-triangular matrix minuend.</param>
     /// <param name="m2">Full matrix subtrahend.</param>
     /// <returns>The difference of the two matrices.</returns>
-    public static Matrix operator -(LMatrix lm1, Matrix m2) =>
-        new Matrix((double[,])lm1) - m2;
+    public static Matrix operator -(LMatrix lm1, Matrix m2) => (Matrix)lm1 - m2;
 
     /// <summary>Subtracts a full matrix from an upper-triangular matrix.</summary>
     /// <param name="rm1">Upper-triangular matrix minuend.</param>
     /// <param name="m2">Full matrix subtrahend.</param>
     /// <returns>The difference of the two matrices.</returns>
-    public static Matrix operator -(RMatrix rm1, Matrix m2) =>
-        new Matrix((double[,])rm1) - m2;
+    public static Matrix operator -(RMatrix rm1, Matrix m2) => (Matrix)rm1 - m2;
 
     /// <summary>Sums two matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
     /// <returns>The sum of the two operands.</returns>
-    public static unsafe Matrix operator +(Matrix m1, Matrix m2)
+    /// <exception cref="MatrixSizeException">When matrices have non-matching sizes.</exception>
+    public static Matrix operator +(Matrix m1, Matrix m2)
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
@@ -685,25 +673,33 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
 
-        double[,] result = new double[m1.Rows, m1.Cols];
-        fixed (double* pA = m1.values, pB = m2.values, pC = result)
+        double[] result = GC.AllocateUninitializedArray<double>(m1.Rows * m1.Cols);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(m1.values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(m2.values);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = m1.values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Add(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] + pB[i];
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i)) + Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) + Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
         }
-        return result;
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) + Add(ref b, i);
+        return new(m1.Rows, m1.Cols, result);
     }
 
     /// <summary>Subtracts two matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
     /// <returns>The subtraction of the two operands.</returns>
-    public static unsafe Matrix operator -(Matrix m1, Matrix m2)
+    /// <exception cref="MatrixSizeException">When matrices have non-matching sizes.</exception>
+    public static Matrix operator -(Matrix m1, Matrix m2)
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
@@ -713,18 +709,25 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
 
-        double[,] result = new double[m1.Rows, m1.Cols];
-        fixed (double* pA = m1.values, pB = m2.values, pC = result)
+        double[] result = GC.AllocateUninitializedArray<double>(m1.Rows * m1.Cols);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(m1.values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(m2.values);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated)
         {
-            int len = m1.values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Subtract(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] - pB[i];
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i)) - Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) - Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
         }
-        return result;
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) - Add(ref b, i);
+        return new(m1.Rows, m1.Cols, result);
     }
 
     /// <summary>Negates a matrix.</summary>
@@ -736,7 +739,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
 
-        double[,] result = new double[m.Rows, m.Cols];
+        double[] result = new double[m.values.Length];
         fixed (double* pA = m.values, pC = result)
         {
             int len = m.values.Length, i = 0;
@@ -749,7 +752,7 @@ public readonly struct Matrix :
             for (; i < len; i++)
                 pC[i] = -pA[i];
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Adds a scalar to a matrix.</summary>
@@ -762,7 +765,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
 
-        double[,] result = new double[m.Rows, m.Cols];
+        double[] result = new double[m.values.Length];
         fixed (double* pA = m.values, pC = result)
         {
             int len = m.values.Length, i = 0;
@@ -775,7 +778,7 @@ public readonly struct Matrix :
             for (; i < len; i++)
                 pC[i] = pA[i] + d;
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Adds a scalar to a matrix.</summary>
@@ -795,7 +798,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
 
-        double[,] result = new double[m.Rows, m.Cols];
+        double[] result = new double[m.values.Length];
         fixed (double* pA = m.values, pC = result)
         {
             int len = m.values.Length, i = 0;
@@ -808,7 +811,7 @@ public readonly struct Matrix :
             for (; i < len; i++)
                 pC[i] = pA[i] - d;
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Subtracts a scalar from a matrix.</summary>
@@ -821,7 +824,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
 
-        double[,] result = new double[m.Rows, m.Cols];
+        double[] result = new double[m.values.Length];
         fixed (double* pA = m.values, pC = result)
         {
             int len = m.values.Length, i = 0;
@@ -834,7 +837,7 @@ public readonly struct Matrix :
             for (; i < len; i++)
                 pC[i] = d - pA[i];
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Cell by cell product with a second matrix.</summary>
@@ -850,7 +853,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
 
-        double[,] result = new double[Rows, Cols];
+        double[] result = new double[values.Length];
         fixed (double* pA = values, pB = m.values, pC = result)
         {
             int len = values.Length, i = 0;
@@ -861,7 +864,7 @@ public readonly struct Matrix :
             for (; i < len; i++)
                 pC[i] = pA[i] * pB[i];
         }
-        return result;
+        return new(Rows, Cols, result);
     }
 
     /// <summary>Cell by cell division with a second matrix.</summary>
@@ -877,7 +880,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
 
-        double[,] result = new double[Rows, Cols];
+        double[] result = new double[values.Length];
         fixed (double* pA = values, pB = m.values, pC = result)
         {
             int len = values.Length, i = 0;
@@ -888,7 +891,7 @@ public readonly struct Matrix :
             for (; i < len; i++)
                 pC[i] = pA[i] / pB[i];
         }
-        return result;
+        return new(Rows, Cols, result);
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>
@@ -901,10 +904,10 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
 
-        double[,] result = new double[m.Rows, m.Cols];
+        double[] result = new double[m.values.Length];
         fixed (double* pA = m.values, pC = result)
         {
-            int len = m.values.Length, i = 0;
+            int len = result.Length, i = 0;
             if (Avx.IsSupported)
             {
                 Vector256<double> v = Vector256.Create(d);
@@ -914,7 +917,7 @@ public readonly struct Matrix :
             for (; i < len; i++)
                 pC[i] = pA[i] * d;
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>
@@ -950,7 +953,7 @@ public readonly struct Matrix :
         int m = m1.Rows;
         int n = m1.Cols;
         int p = m2.Cols;
-        double[,] result = new double[m, p];
+        double[] result = new double[m * p];
         fixed (double* a = m1.values, b = m2.values, c = result)
             if (size < MINSIZE)
                 NonBlocking(m, n, p, a, b, c);
@@ -958,7 +961,7 @@ public readonly struct Matrix :
                 Blocking128(m, n, p, a, b, c);
             else
                 Blocking256(m, n, p, a, b, c);
-        return result;
+        return new(m, p, result);
 
         static void NonBlocking(int m, int n, int p, double* a, double* b, double* c)
         {
@@ -1091,7 +1094,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
         int r = Rows, n = Cols, c = m.Rows;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         fixed (double* pA = values, pB = m.values, pC = result)
         {
             int top = n & Simd.AVX_MASK;
@@ -1119,14 +1122,17 @@ public readonly struct Matrix :
                 pCi += c;
             }
         }
-        return result;
+        return new(r, c, result);
     }
 
     /// <summary>Transform a vector using a matrix.</summary>
     /// <param name="m">The transformation matrix.</param>
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    public unsafe static Vector operator *(Matrix m, Vector v)
+    /// <exception cref="MatrixSizeException">
+    /// When the matrix and vector have non-matching sizes.
+    /// </exception>
+    public static Vector operator *(Matrix m, Vector v)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -1135,24 +1141,24 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
 
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        fixed (double* pA = m.values, pX = (double[])v, pB = result)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(m.values);
+        ref double x = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
+        for (int i = 0; i < r; i++, a = ref Add(ref a, c), b = ref Add(ref b, 1))
         {
-            double* pA1 = pA, pB1 = pB;
-            for (int i = 0; i < r; i++, pA1 += c)
+            int j = 0;
+            double d = 0;
+            if (Vector256.IsHardwareAccelerated)
             {
-                int j = 0;
-                double d = 0;
-                if (Avx.IsSupported)
-                {
-                    Vector256<double> vec = Vector256<double>.Zero;
-                    for (; j < top; j += 4)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    d = vec.Sum();
-                }
-                for (; j < c; j++)
-                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                *pB1++ = d;
+                Vector256<double> vec = Vector256<double>.Zero;
+                for (; j < top; j += Vector256<double>.Count)
+                    vec = vec.MultiplyAdd(Vector256.LoadUnsafe(ref Add(ref a, j)),
+                        Vector256.LoadUnsafe(ref Add(ref x, j)));
+                d = vec.Sum();
             }
+            for (; j < c; j++)
+                d = FusedMultiplyAdd(Add(ref a, j), Add(ref x, j), d);
+            b = d;
         }
         return result;
     }
@@ -1404,14 +1410,14 @@ public readonly struct Matrix :
     /// <returns>A new matrix with transformed cells.</returns>
     public unsafe Matrix Map(Func<double, double> mapper)
     {
-        double[,] newValues = new double[Rows, Cols];
+        double[] newValues = new double[values.Length];
         fixed (double* pA = values, pB = newValues)
         {
             int len = newValues.Length;
             for (int i = 0; i < len; i++)
                 pB[i] = mapper(pA[i]);
         }
-        return newValues;
+        return new(Rows, Cols, newValues);
     }
 
     /// <summary>Checks whether the predicate is satified by all cells.</summary>
@@ -1509,7 +1515,7 @@ public readonly struct Matrix :
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
         $"ans ∊ ℝ({Rows}⨯{Cols})" + Environment.NewLine +
-        CommonMatrix.ToString(values, v => v.ToString("G6"), 0);
+        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString("G6"), 0);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
@@ -1517,7 +1523,7 @@ public readonly struct Matrix :
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℝ({Rows}⨯{Cols})" + Environment.NewLine +
-        CommonMatrix.ToString(values, v => v.ToString(format, provider), 0);
+        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString(format, provider), 0);
 }
 
 /// <summary>JSON converter for rectangular matrices.</summary>
@@ -1534,7 +1540,7 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
         JsonSerializerOptions options)
     {
         int rows = 0, cols = 0;
-        double[,]? values = null;
+        double[]? values = null;
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.PropertyName)
@@ -1552,7 +1558,7 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
             }
             else if (reader.TokenType == JsonTokenType.StartArray)
             {
-                values = new double[rows, cols];
+                values = new double[rows * cols];
                 fixed (double* p = values)
                 {
                     int total = rows * cols;
@@ -1566,7 +1572,7 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
                 }
             }
         }
-        return new(values!);
+        return new(rows, cols, values!);
     }
 
     /// <summary>Converts a rectangular matrix to JSON.</summary>
@@ -1582,7 +1588,7 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
         writer.WriteNumber(nameof(Matrix.Rows), value.Rows);
         writer.WriteNumber(nameof(Matrix.Cols), value.Cols);
         writer.WriteStartArray("values");
-        fixed (double* pV = (double[,])value)
+        fixed (double* pV = (double[])value)
         {
             double* pEnd = pV + value.Rows * value.Cols;
             for (double* p = pV; p < pEnd; p++)

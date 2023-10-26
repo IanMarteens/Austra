@@ -394,17 +394,18 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <returns>A symmetric real matrix.</returns>
     public static Matrix CovarianceMatrix(params Series<T>[] series)
     {
-        double[,] result = new double[series.Length, series.Length];
+        int n = series.Length;
+        double[] result = new double[n * n];
         for (int row = 0; row < series.Length; row++)
         {
-            result[row, row] = series[row].Variance;
+            result[row * n + row] = series[row].Variance;
             for (int col = row + 1; col < series.Length; col++)
             {
                 double cov = series[row].Covariance(series[col]);
-                result[row, col] = result[col, row] = cov;
+                result[row * n + col] = result[col * n + row] = cov;
             }
         }
-        return result;
+        return new(n, n, result);
     }
 
     /// <summary>Computes the correlation matrix for a group of series.</summary>
@@ -412,17 +413,18 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <returns>A symmetric real matrix.</returns>
     public static Matrix CorrelationMatrix(params Series<T>[] series)
     {
-        double[,] result = new double[series.Length, series.Length];
+        int n = series.Length;
+        double[] result = new double[n * n];
         for (int row = 0; row < series.Length; row++)
         {
-            result[row, row] = 1.0;
+            result[row * n + row] = 1.0;
             for (int col = row + 1; col < series.Length; col++)
             {
                 double cov = series[row].Correlation(series[col]);
-                result[row, col] = result[col, row] = cov;
+                result[row * n + col] = result[col * n + row] = cov;
             }
         }
-        return result;
+        return new(n, n, result);
     }
 
     /// <summary>Computes the autocorrelation for a fixed lag.</summary>

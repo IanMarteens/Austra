@@ -23,25 +23,32 @@ public readonly struct RMatrix :
     IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>
-    private readonly double[,] values;
+    private readonly double[] values;
 
     /// <summary>Creates an empty square matrix.</summary>
     /// <param name="size">Number of rows and columns.</param>
-    public RMatrix(int size) => values = new double[size, size];
+    public RMatrix(int size) =>
+        (Rows, Cols, values) = (size, size, new double[size * size]);
 
     /// <summary>Creates an empty rectangular matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    public RMatrix(int rows, int cols) => values = new double[rows, cols];
+    public RMatrix(int rows, int cols) =>
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
+
+    /// <summary>
+    /// Creates a matrix with a given number of rows and columns, and its internal array.
+    /// </summary>
+    /// <param name="rows">The number of rows.</param>
+    /// <param name="columns">The number of columns.</param>
+    /// <param name="values">Internal storage.</param>
+    public RMatrix(int rows, int columns, double[] values) =>
+        (Rows, Cols, this.values) = (rows, columns, values);
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     public RMatrix(Vector diagonal) =>
-        values = CommonMatrix.CreateDiagonal(diagonal);
-
-    /// <summary>Creates a matrix from a bidimensional array.</summary>
-    /// <param name="values">The array with cell values.</param>
-    public RMatrix(double[,] values) => this.values = values;
+        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
 
     /// <summary>
     /// Creates a matrix filled with a uniform distribution generator.
@@ -55,10 +62,10 @@ public readonly struct RMatrix :
         int rows, int cols, Random random,
         double offset = 0.0, double width = 1.0)
     {
-        values = new double[rows, cols];
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         for (int r = 0; r < rows; r++)
             for (int c = r; c < cols; c++)
-                values[r, c] = random.NextDouble() * width + offset;
+                values[r * Cols + c] = random.NextDouble() * width + offset;
     }
 
     /// <summary>
@@ -69,29 +76,21 @@ public readonly struct RMatrix :
     /// <param name="random">A random standard normal generator.</param>
     public RMatrix(int rows, int cols, NormalRandom random)
     {
-        values = new double[rows, cols];
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         for (int r = 0; r < rows; r++)
             for (int c = r; c < cols; c++)
-                values[r, c] = random.NextDouble();
+                values[r * Cols + c] = random.NextDouble();
     }
 
     /// <summary>Creates an identity matrix given its size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
     public static RMatrix Identity(int size) =>
-        CommonMatrix.CreateIdentity(size);
+        new(size, size, CommonMatrix.CreateIdentity(size));
 
     /// <summary>Creates an identical lower triangular matrix.</summary>
     /// <returns>A deep clone of the instance.</returns>
-    public RMatrix Clone() => (double[,])values.Clone();
-
-    /// <summary>
-    /// Implicit conversion from a bidimensional array to a matrix.
-    /// </summary>
-    /// <param name="values">A bidimensional array.</param>
-    /// <returns>A new upper-triangular matrix.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator RMatrix(double[,] values) => new(values);
+    public RMatrix Clone() => new(Rows, Cols, (double[])values.Clone());
 
     /// <summary>
     /// Implicit conversion from a rectangular to an upper triangular matrix.
@@ -99,25 +98,14 @@ public readonly struct RMatrix :
     /// <param name="m">A rectangular matrix.</param>
     /// <returns>A new upper-triangular matrix.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator RMatrix(Matrix m) => new((double[,])m);
-
-    /// <summary>
-    /// Explicit conversion from a matrix to a bidimensional array.
-    /// </summary>
-    /// <remarks>
-    /// Use carefully: it returns the underlying bidimensional array.
-    /// </remarks>
-    /// <param name="m">The original upper-triangular matrix.</param>
-    /// <returns>The underlying bidimensional array.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator double[,](RMatrix m) => m.values;
+    public static implicit operator RMatrix(Matrix m) => new(m.Rows, m.Cols, (double[])m);
 
     /// <summary>
     /// Explicit conversion from a triangular matrix to a rectangular one.
     /// </summary>
     /// <param name="m">The original upper-triangular matrix.</param>
     /// <returns>A new rectangular matrix.</returns>
-    public static explicit operator Matrix(RMatrix m) => new(m.values);
+    public static explicit operator Matrix(RMatrix m) => new(m.Rows, m.Cols, m.values);
 
     /// <summary>Has the matrix been properly initialized?</summary>
     /// <remarks>
@@ -127,9 +115,9 @@ public readonly struct RMatrix :
     public bool IsInitialized => values != null;
 
     /// <summary>Gets the number of rows.</summary>
-    public int Rows => values.GetLength(0);
+    public int Rows { get; }
     /// <summary>Gets the number of columns.</summary>
-    public int Cols => values.GetLength(1);
+    public int Cols { get; }
     /// <summary>Checks if the matrix is a square one.</summary>
     public bool IsSquare => Rows == Cols;
 
@@ -141,13 +129,13 @@ public readonly struct RMatrix :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
 
-        return CommonMatrix.Diagonal(values);
+        return CommonMatrix.Diagonal(Rows, Cols, values);
     }
 
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Trace() => CommonMatrix.Trace(values);
+    public double Trace() => CommonMatrix.Trace(Rows, Cols, values);
 
     /// <summary>Gets the value at a single cell.</summary>
     /// <param name="row">The row number, between 0 and Rows - 1.</param>
@@ -156,7 +144,7 @@ public readonly struct RMatrix :
     public double this[int row, int column]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => values[row, column];
+        get => values[row * Cols + column];
     }
 
     /// <summary>Transposes the matrix.</summary>
@@ -166,12 +154,12 @@ public readonly struct RMatrix :
         Contract.Requires(IsInitialized);
 
         int c = Cols, r = Rows;
-        double[,] result = new double[c, r];
+        double[] result = new double[c * r];
         fixed (double* pA = values, pB = result)
             for (int row = 0; row < r; row++)
                 for (int col = row; col < c; col++)
                     pB[col * r + row] = pA[row * c + col];
-        return result;
+        return new(c, r, result);
     }
 
     /// <summary>Sums two upper matrices with the same size.</summary>
@@ -188,7 +176,7 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<RMatrix>().Cols == m1.Cols);
 
         int r = m1.Rows, c = m1.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
             for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
@@ -200,7 +188,7 @@ public readonly struct RMatrix :
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] + pB[k];
             }
-        return result;
+        return new(m1.Rows, m1.Cols, result);
     }
 
     /// <summary>Adds a scalar value to an upper triangular matrix.</summary>
@@ -215,7 +203,7 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         fixed (double* pA = m.values, pC = result)
         {
             Vector256<double> vec = Vector256.Create(d);
@@ -229,7 +217,7 @@ public readonly struct RMatrix :
                     pC[k] = pA[k] + d;
             }
         }
-        return result;
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Adds a scalar value to an upper triangular matrix.</summary>
@@ -251,7 +239,7 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         fixed (double* pA = m.values, pC = result)
         {
             Vector256<double> vec = Vector256.Create(d);
@@ -265,7 +253,7 @@ public readonly struct RMatrix :
                     pC[k] = pA[k] - d;
             }
         }
-        return result;
+        return new(r, c, result);
     }
 
     /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
@@ -273,7 +261,8 @@ public readonly struct RMatrix :
     /// <param name="m2">The lower-triangular summand.</param>
     /// <returns>The sum of these two matrices.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix operator +(RMatrix m1, LMatrix m2) => new Matrix(m1.values) + m2;
+    public static Matrix operator +(RMatrix m1, LMatrix m2) =>
+        new Matrix(m1.Rows, m1.Cols, m1.values) + m2;
 
     /// <summary>Subtracts two upper matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
@@ -289,7 +278,7 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<RMatrix>().Cols == m1.Cols);
 
         int r = m1.Rows, c = m1.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         fixed (double* pA = m1.values, pB = m2.values, pC = result)
             for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
@@ -301,7 +290,7 @@ public readonly struct RMatrix :
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] - pB[k];
             }
-        return result;
+        return new(r, c, result);
     }
 
     /// <summary>Negates an upper right matrix.</summary>
@@ -314,7 +303,7 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<RMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         fixed (double* pA = m.values, pC = result)
         {
             Vector256<double> z = Vector256<double>.Zero;
@@ -328,7 +317,7 @@ public readonly struct RMatrix :
                     pC[k] = -pA[k];
             }
         }
-        return result;
+        return new(r, c, result);
     }
 
     /// <summary>Multiplies a rectangular matrix by an upper triangular one.</summary>
@@ -344,8 +333,8 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
-        double[,] result = new double[m, p];
-        fixed (double* pA = (double[,])m1, pB = m2.values, pC = result)
+        double[] result = new double[m * p];
+        fixed (double* pA = (double[])m1, pB = m2.values, pC = result)
         {
             double* pAi = pA, pCi = pC;
             for (int i = 0; i < m; i++)
@@ -370,7 +359,7 @@ public readonly struct RMatrix :
                 pCi += n;
             }
         }
-        return result;
+        return new(m, p, result);
     }
 
     /// <summary>Multiplies an upper triangular matrix by a scalar value.</summary>
@@ -384,7 +373,7 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[,] result = new double[r, c];
+        double[] result = new double[r * c];
         fixed (double* pA = m.values, pC = result)
         {
             Vector256<double> vec = Vector256.Create(d);
@@ -398,7 +387,7 @@ public readonly struct RMatrix :
                     pC[k] = pA[k] * d;
             }
         }
-        return result;
+        return new(r, c, result);
     }
 
     /// <summary>Multiplies an upper triangular matrix by a scalar value.</summary>
@@ -465,7 +454,7 @@ public readonly struct RMatrix :
 
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
-    public double Determinant() => CommonMatrix.DiagonalProduct(values);
+    public double Determinant() => CommonMatrix.DiagonalProduct(Rows, Cols, values);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
@@ -528,12 +517,12 @@ public readonly struct RMatrix :
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
-        CommonMatrix.ToString(values, v => v.ToString("G6"), 1);
+        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString("G6"), 1);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
-        CommonMatrix.ToString(values, v => v.ToString(format, provider), 1);
+        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString(format, provider), 1);
 }

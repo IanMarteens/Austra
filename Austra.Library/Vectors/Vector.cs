@@ -286,6 +286,7 @@ public readonly struct Vector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component sum.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
     public static Vector operator +(Vector v1, Vector v2)
     {
         Contract.Requires(v1.IsInitialized);
@@ -650,7 +651,7 @@ public readonly struct Vector :
         Contract.Ensures(Contract.Result<Matrix>().Cols == v2.Length);
 
         int rows = v1.Length, cols = v2.Length;
-        double[,] result = new double[rows, cols];
+        double[] result = new double[rows * cols];
         fixed (double* pA = result, pV1 = v1.values, pV2 = v2.values)
             for (int i = 0, idx = 0; i < rows; i++)
             {
@@ -658,7 +659,7 @@ public readonly struct Vector :
                 for (int j = 0; j < cols; j++)
                     pA[idx++] = pV2[j] * d;
             }
-        return result;
+        return new(rows, cols, result);
     }
 
     /// <summary>Optimized vector multiplication and addition.</summary>
