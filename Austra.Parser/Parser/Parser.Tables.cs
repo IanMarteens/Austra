@@ -39,6 +39,10 @@ internal sealed partial class Parser
     /// <summary>Method for multiplying a vector by a transposed matrix.</summary>
     private static readonly MethodInfo MatrixTransposeMultiply =
         typeof(Matrix).Get(nameof(Matrix.TransposeMultiply));
+    /// <summary>Method for linear vector combinations.</summary>
+    private static readonly MethodInfo VectorCombine2 =
+        typeof(Vector).GetMethod(nameof(Vector.Combine2),
+            new[] { typeof(double), typeof(double), typeof(Vector), typeof(Vector)})!;
 
     private static readonly HashSet<string> classNames = new(StringComparer.OrdinalIgnoreCase)
     {

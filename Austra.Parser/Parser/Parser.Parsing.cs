@@ -390,13 +390,12 @@ internal sealed partial class Parser
                             : nameof(Vector.MultiplySubtract);
                         if (e1 is BinaryExpression { NodeType: ExpressionType.Multiply } be1)
                         {
+                            // any * v ± v
                             if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } be2
                                 && be1.Left.Type == typeof(double)
                                 && be2.Left.Type == typeof(double))
-                                e1 = Expression.Call(
-                                        typeof(Vector).GetMethod(nameof(Vector.Combine2),
-                                        new[] { typeof(double), typeof(double),
-                                                typeof(Vector), typeof(Vector)})!,
+                                // d1 * v1 + d2 * v2
+                                e1 = Expression.Call(VectorCombine2,
                                     be1.Left,
                                     opAdd == Token.Plus ? be2.Left : Expression.Negate(be2.Left),
                                     be1.Right, be2.Right);
@@ -420,6 +419,7 @@ internal sealed partial class Parser
                         else if (opAdd == Token.Plus &&
                             e2 is BinaryExpression { NodeType: ExpressionType.Multiply } be2)
                         {
+                            // v + any * v
                             e1 = be2.Right.Type == typeof(double)
                                 ? Expression.Call(be2.Left,
                                     typeof(Vector).GetMethod(method, DoubleVectorArg)!,
