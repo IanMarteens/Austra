@@ -32,6 +32,7 @@
 	<ItemGroup>
 		<Using Include="Austra.Library" />
 		<Using Include="Austra.Library.Dates" />
+		<Using Include="Austra.Library.Stats" />
 		<Using Include="System" />
 		<Using Include="System.Collections.Generic" />
 		<Using Include="System.Diagnostics" />
@@ -42,7 +43,7 @@
 		<Using Include="System.Runtime.CompilerServices" />
 		<Using Include="System.Text" />
 		<Using Include="System.Text.RegularExpressions" />
-		<Using Include="Austra.Library.Accumulator" Alias="Acc" />
+		<Using Include="Austra.Library.Stats.Accumulator" Alias="Acc" />
 		<Using Include="System.Numerics.Complex" Alias="Complex" />
 		<Using Include="System.Numerics.BitOperations" Static="true"/>
 	</ItemGroup>

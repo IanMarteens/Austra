@@ -1,5 +1,7 @@
 ﻿namespace Austra.Library;
 
+using Austra.Library.Stats;
+
 /// <summary>Eigenvalue decomposition.</summary>
 public readonly struct EVD : IFormattable
 {

@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Stats;
 
 /// <summary>Generates a normal multivariate distribution.</summary>
 public sealed class MultivariateNormalRandom

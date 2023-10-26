@@ -19,7 +19,15 @@ namespace Austra.Library.MVO
     /// <summary>
     /// Contains classes for the Mean-Variance Optimization algorithm.
     /// </summary>
-    [CompilerGeneratedAttribute()] class NamespaceDoc { }
+    [CompilerGenerated()] class NamespaceDoc { }
+}
+
+namespace Austra.Library.Stats
+{
+    /// <summary>
+    /// Contains running statistics, random generators and other useful math functions.
+    /// </summary>
+    [CompilerGenerated()] class NamespaceDoc { }
 }
 
 namespace Austra.Parser
@@ -27,6 +35,6 @@ namespace Austra.Parser
     /// <summary>
     /// Contains classes that implement the AUSTRA formula language.
     /// </summary>
-    [CompilerGeneratedAttribute()] class NamespaceDoc { }
+    [CompilerGenerated()] class NamespaceDoc { }
 }
 

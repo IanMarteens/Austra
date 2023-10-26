@@ -1,5 +1,7 @@
 ﻿namespace Austra.Library;
 
+using Austra.Library.Stats;
+
 /// <summary>Represents a lower triangular matrix.</summary>
 /// <remarks>
 /// <para>Having a separate type for lower-triangular matrices is not a matter of storage,
@@ -748,9 +750,39 @@ public readonly struct LMatrix :
     /// <param name="m">The transformation matrix.</param>
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator *(LMatrix m, Vector v) =>
-        m.Multiply(v, GC.AllocateUninitializedArray<double>(m.Rows));
+    public static unsafe Vector operator *(LMatrix m, Vector v)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        Contract.Requires(m.Cols == v.Length);
+
+        int r = m.Rows, c = m.Cols;
+        double[] result = GC.AllocateUninitializedArray<double>(r);
+        fixed (double* pA = m.values, pX = (double[])v, pB = result)
+        {
+            double* pA1 = pA, pB1 = pB;
+            // First row is special.
+            *pB1++ = *pA1 * *pX;
+            pA1 += c;
+            for (int i = 1; i < r; i++)
+            {
+                double d = 0;
+                int j = 0, top = Min(i + 1, c);
+                if (Avx.IsSupported)
+                {
+                    Vector256<double> vec = Vector256<double>.Zero;
+                    for (int last = top & Simd.AVX_MASK; j < last; j += 4)
+                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
+                    d = vec.Sum();
+                }
+                for (; j < top; j++)
+                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
+                *pB1++ = d;
+                pA1 += c;
+            }
+        }
+        return result;
+    }
 
     /// <summary>Transforms a vector using this matrix.</summary>
     /// <param name="v">Vector to transform.</param>
@@ -798,6 +830,93 @@ public readonly struct LMatrix :
         }
         return result;
     }
+
+    /// <summary>Transforms a vector and adds an offset.</summary>
+    /// <remarks>
+    /// This overload is used by the <see cref="MultivariateNormalRandom"/> class.
+    /// </remarks>
+    /// <param name="v">Vector to transform.</param>
+    /// <param name="add">Vector to add.</param>
+    /// <param name="result">Preallocated buffer for the result.</param>
+    /// <returns><c>this * multiplicand + add</c>.</returns>
+    public unsafe Vector MultiplyAdd(Vector v, Vector add, double[] result)
+    {
+        int r = Rows, c = Cols;
+        fixed (double* pA = values, pX = (double[])v, pB = result, pC = (double[])add)
+        {
+            double* pA1 = pA, pB1 = pB, pC1 = pC;
+            // First row is special.
+            *pB1++ = *pA1 * *pX + *pC1++;    
+            pA1 += c;
+            for (int i = 1; i < r; i++)
+            {
+                double d = 0;
+                int j = 0, top = Min(i + 1, c);
+                if (Avx.IsSupported)
+                {
+                    Vector256<double> vec = Vector256<double>.Zero;
+                    for (int last = top & Simd.AVX_MASK; j < last; j += 4)
+                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
+                    d = vec.Sum();
+                }
+                for (; j < top; j++)
+                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
+                *pB1++ = d + *pC1++;
+                pA1 += c;
+            }
+        }
+        return result;
+    }
+
+    /// <summary>Transforms a vector and adds an offset.</summary>
+    /// <param name="v">Vector to transform.</param>
+    /// <param name="add">Vector to add.</param>
+    /// <returns><c>this * multiplicand + add</c>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Vector MultiplyAdd(Vector v, Vector add) =>
+        MultiplyAdd(v, add, GC.AllocateUninitializedArray<double>(Rows));
+
+    /// <summary>Transforms a vector and subtracts an offset.</summary>
+    /// <param name="v">Vector to transform.</param>
+    /// <param name="sub">Vector to subtract.</param>
+    /// <param name="result">Preallocated buffer for the result.</param>
+    /// <returns><c>this * multiplicand - sub</c>.</returns>
+    public unsafe Vector MultiplySubtract(Vector v, Vector sub, double[] result)
+    {
+        int r = Rows, c = Cols;
+        fixed (double* pA = values, pX = (double[])v, pB = result, pC = (double[])sub)
+        {
+            double* pA1 = pA, pB1 = pB, pC1 = pC;
+            // First row is special.
+            *pB1++ = *pA1 * *pX - *pC1++;
+            pA1 += c;
+            for (int i = 1; i < r; i++)
+            {
+                double d = 0;
+                int j = 0, top = Min(i + 1, c);
+                if (Avx.IsSupported)
+                {
+                    Vector256<double> vec = Vector256<double>.Zero;
+                    for (int last = top & Simd.AVX_MASK; j < last; j += 4)
+                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
+                    d = vec.Sum();
+                }
+                for (; j < top; j++)
+                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
+                *pB1++ = d - *pC1++;
+                pA1 += c;
+            }
+        }
+        return result;
+    }
+
+    /// <summary>Transforms a vector and subtracts an offset.</summary>
+    /// <param name="v">Vector to transform.</param>
+    /// <param name="sub">Vector to subtract.</param>
+    /// <returns><c>this * multiplicand - sub</c>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Vector MultiplySubtract(Vector v, Vector sub) =>
+        MultiplySubtract(v, sub, GC.AllocateUninitializedArray<double>(Rows));
 
     /// <summary>Solves the equation Ax = b for x.</summary>
     /// <param name="v">The right side of the equation.</param>
@@ -848,22 +967,6 @@ public readonly struct LMatrix :
             }
         }
     }
-
-    /// <summary>Transforms a vector and adds an offset.</summary>
-    /// <param name="multiplicand">Vector to transform.</param>
-    /// <param name="add">Vector to add.</param>
-    /// <param name="result">Preallocated buffer for the result.</param>
-    /// <returns>this * multiplicand + add.</returns>
-    public Vector MultiplyAdd(Vector multiplicand, Vector add, double[] result) =>
-        add.AddV(Multiply(multiplicand, result), result);
-
-    /// <summary>Transforms a vector and subtracts an offset.</summary>
-    /// <param name="multiplicand">Vector to transform.</param>
-    /// <param name="sub">Vector to subtract.</param>
-    /// <param name="result">Preallocated buffer for the result.</param>
-    /// <returns>this * multiplicand + add.</returns>
-    public Vector MultiplySubtract(Vector multiplicand, Vector sub, double[] result) =>
-        new Vector(Multiply(multiplicand, result)).SubV(sub, result);
 
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>

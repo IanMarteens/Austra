@@ -1,5 +1,7 @@
 ﻿namespace Austra.Library;
 
+using Austra.Library.Stats;
+
 /// <summary>Simple taxonomy for series.</summary>
 public enum SeriesType
 {

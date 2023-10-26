@@ -1,5 +1,7 @@
 ﻿namespace Austra.Library;
+
 using static Unsafe;
+using Austra.Library.Stats;
 
 /// <summary>Represents a dense vector of arbitrary size.</summary>
 /// <remarks>
@@ -284,24 +286,16 @@ public readonly struct Vector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component sum.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator +(Vector v1, Vector v2) =>
-        v1.AddV(v2, GC.AllocateUninitializedArray<double>(v1.Length));
-
-    /// <summary>Adds a vector to this vector.</summary>
-    /// <param name="v">Second vector operand.</param>
-    /// <param name="result">Preallocated buffer for the result.</param>
-    /// <returns>The component by component sum.</returns>
-    internal double[] AddV(Vector v, double[] result)
+    public static Vector operator +(Vector v1, Vector v2)
     {
-        Contract.Requires(IsInitialized);
-        Contract.Requires(v.IsInitialized);
-        if (Length != v.Length)
+        Contract.Requires(v1.IsInitialized);
+        Contract.Requires(v2.IsInitialized);
+        if (v1.Length != v2.Length)
             throw new VectorLengthException();
-        Contract.Requires(result.Length == Length);
 
-        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(v.values);
+        double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(v1.values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(v2.values);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
         if (Vector256.IsHardwareAccelerated)
         {
@@ -325,23 +319,16 @@ public readonly struct Vector :
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component subtraction.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator -(Vector v1, Vector v2) =>
-        v1.SubV(v2, GC.AllocateUninitializedArray<double>(v1.Length));
-
-    /// <summary>subtracts a vector from this vector.</summary>
-    /// <param name="v">Second vector operand.</param>
-    /// <param name="result">Preallocated buffer for the result.</param>
-    /// <returns>The component by component subtraction.</returns>
-    internal double[] SubV(Vector v, double[] result)
+    public static Vector operator -(Vector v1, Vector v2)
     {
-        Contract.Requires(IsInitialized);
-        Contract.Requires(v.IsInitialized);
-        if (Length != v.Length)
+        Contract.Requires(v1.IsInitialized);
+        Contract.Requires(v2.IsInitialized);
+        if (v1.Length != v2.Length)
             throw new VectorLengthException();
-        Contract.Requires(result.Length == Length);
 
-        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(v.values);
+        double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(v1.values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(v2.values);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
         if (Vector256.IsHardwareAccelerated)
         {

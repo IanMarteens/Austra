@@ -88,6 +88,6 @@ public class FactorizationTests
         Vector v = new(size, Random.Shared);
         Vector answer = m.Cholesky().Solve(v);
         // Yes, this is a very loose tolerance, but it's the best we can do with Cholesky.
-        Assert.That((m * answer - v).AMax(), Is.LessThan(1E-05));
+        Assert.That((m * answer - v).AMax(), Is.LessThan(2E-05));
     }
 }

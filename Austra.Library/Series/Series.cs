@@ -1,6 +1,7 @@
 ﻿namespace Austra.Library;
 
 using Austra.Library.Dates;
+using Austra.Library.Stats;
 
 /// <summary>Most common sampling sequences.</summary>
 public enum Frequency

@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Stats;
 
 /// <summary>Generates values from the standard normal distribution.</summary>
 public sealed class NormalRandom

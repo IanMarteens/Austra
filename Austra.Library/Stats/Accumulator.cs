@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Stats;
 
 /// <summary>Calculates statistics by adding samples.</summary>
 /// <remarks>This class supports hardware-acceleration.</remarks>

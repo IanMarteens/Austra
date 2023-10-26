@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Stats;
 
 /// <summary>Contains statistical and other useful math functions.</summary>
 public static partial class Functions

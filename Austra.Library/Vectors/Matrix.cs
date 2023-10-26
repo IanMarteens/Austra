@@ -1,5 +1,7 @@
 ﻿namespace Austra.Library;
 
+using Austra.Library.Stats;
+
 /// <summary>Represents a dense rectangular matrix.</summary>
 [JsonConverter(typeof(MatrixJsonConverter))]
 public readonly struct Matrix :
@@ -1124,61 +1126,47 @@ public readonly struct Matrix :
     /// <param name="m">The transformation matrix.</param>
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator *(Matrix m, Vector v) =>
-        m.Multiply(v, GC.AllocateUninitializedArray<double>(m.Rows));
+    public unsafe static Vector operator *(Matrix m, Vector v)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        int r = m.Rows, c = m.Cols, top = c & Simd.AVX_MASK;
+        if (c != v.Length)
+            throw new MatrixSizeException();
+
+        double[] result = GC.AllocateUninitializedArray<double>(r);
+        fixed (double* pA = m.values, pX = (double[])v, pB = result)
+        {
+            double* pA1 = pA, pB1 = pB;
+            for (int i = 0; i < r; i++, pA1 += c)
+            {
+                int j = 0;
+                double d = 0;
+                if (Avx.IsSupported)
+                {
+                    Vector256<double> vec = Vector256<double>.Zero;
+                    for (; j < top; j += 4)
+                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
+                    d = vec.Sum();
+                }
+                for (; j < c; j++)
+                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
+                *pB1++ = d;
+            }
+        }
+        return result;
+    }
 
     /// <summary>Transform a vector using the transposed matrix.</summary>
+    /// <remarks>
+    /// This operator is equivalent to the method <see cref="TransposeMultiply(Vector)"/>.
+    /// </remarks>
     /// <param name="v">Vector to transform.</param>
     /// <param name="m">The transformation matrix.</param>
     /// <returns>The transformed vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector operator *(Vector v, Matrix m) =>
         m.TransposeMultiply(v);
-
-    /// <summary>Transforms a vector using this matrix.</summary>
-    /// <param name="v">Vector to transform.</param>
-    /// <param name="result">Preallocated buffer for the transformed vector.</param>
-    /// <returns>The transformed vector.</returns>
-    public unsafe double[] Multiply(Vector v, double[] result)
-    {
-        Contract.Requires(IsInitialized);
-        Contract.Requires(v.IsInitialized);
-        if (Cols != v.Length)
-            throw new MatrixSizeException();
-        Contract.Requires(result.Length == Rows);
-
-        int r = Rows, c = Cols, top = c & Simd.AVX_MASK;
-        fixed (double* pA = values, pX = (double[])v, pB = result)
-        {
-            double* pA1 = pA, pB1 = pB;
-            if (c >= 8 && Avx.IsSupported)
-                for (int i = 0; i < r; i++, pA1 += c)
-                {
-                    int j = 0;
-                    Vector256<double> vec = Vector256<double>.Zero;
-                    for (; j < top; j += 4)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    double d = vec.Sum();
-                    for (; j < c; j++)
-                        d += pA1[j] * pX[j];
-                    *pB1++ = d;
-                }
-            else
-                for (int i = 0; i < r; i++, pA1 += c)
-                {
-                    int j = 0;
-                    double d = 0;
-                    for (; j < top; j += 4)
-                        d += (pA1[j] * pX[j]) + (pA1[j + 1] * pX[j + 1]) +
-                            (pA1[j + 2] * pX[j + 2]) + (pA1[j + 3] * pX[j + 3]);
-                    for (; j < c; j++)
-                        d += pA1[j] * pX[j];
-                    *pB1++ = d;
-                }
-        }
-        return result;
-    }
 
     /// <summary>Transforms a vector using the transpose of this matrix.</summary>
     /// <remarks>
@@ -1218,36 +1206,74 @@ public readonly struct Matrix :
     }
 
     /// <summary>Transforms a vector and adds an offset.</summary>
-    /// <param name="multiplicand">Vector to transform.</param>
+    /// <param name="v">Vector to transform.</param>
     /// <param name="add">Vector to add.</param>
-    /// <param name="result">Preallocated buffer for the result.</param>
-    /// <returns>this * multiplicand + add.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector MultiplyAdd(Vector multiplicand, Vector add, double[] result) =>
-        add.AddV(Multiply(multiplicand, result), result);
+    /// <returns><c>this * v + add</c>.</returns>
+    public unsafe Vector MultiplyAdd(Vector v, Vector add)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        int r = Rows, c = Cols, top = c & Simd.AVX_MASK;
+        if (c != v.Length)
+            throw new MatrixSizeException();
 
-    /// <summary>Transforms a vector and adds an offset.</summary>
-    /// <param name="multiplicand">Vector to transform.</param>
-    /// <param name="add">Vector to add.</param>
-    /// <returns>this * multiplicand + add.</returns>
-    public Vector MultiplyAdd(Vector multiplicand, Vector add) =>
-        MultiplyAdd(multiplicand, add, new double[add.Length]);
+        double[] result = GC.AllocateUninitializedArray<double>(r);
+        fixed (double* pA = values, pX = (double[])v, pB = result, pC = (double[])add)
+        {
+            double* pA1 = pA, pB1 = pB, pC1 = pC;
+            for (int i = 0; i < r; i++, pA1 += c)
+            {
+                int j = 0;
+                double d = 0;
+                if (Avx.IsSupported)
+                {
+                    Vector256<double> vec = Vector256<double>.Zero;
+                    for (; j < top; j += 4)
+                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
+                    d = vec.Sum();
+                }
+                for (; j < c; j++)
+                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
+                *pB1++ = d + *pC1++;
+            }
+        }
+        return result;
+    }
 
     /// <summary>Transforms a vector and subtracts an offset.</summary>
-    /// <param name="multiplicand">Vector to transform.</param>
+    /// <param name="v">Vector to transform.</param>
     /// <param name="sub">Vector to subtract.</param>
-    /// <param name="result">Preallocated buffer for the result.</param>
-    /// <returns>this * multiplicand + add.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector MultiplySubtract(Vector multiplicand, Vector sub, double[] result) =>
-        new Vector(Multiply(multiplicand, result)).SubV(sub, result);
+    /// <returns><c>this * multiplicand - sub</c>.</returns>
+    public unsafe Vector MultiplySubtract(Vector v, Vector sub)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        int r = Rows, c = Cols, top = c & Simd.AVX_MASK;
+        if (c != v.Length)
+            throw new MatrixSizeException();
 
-    /// <summary>Transforms a vector and subtracts an offset.</summary>
-    /// <param name="multiplicand">Vector to transform.</param>
-    /// <param name="sub">Vector to subtract.</param>
-    /// <returns>this * multiplicand + add.</returns>
-    public Vector MultiplySubtract(Vector multiplicand, Vector sub) =>
-        MultiplySubtract(multiplicand, sub, new double[sub.Length]);
+        double[] result = GC.AllocateUninitializedArray<double>(r);
+        fixed (double* pA = values, pX = (double[])v, pB = result, pC = (double[])sub)
+        {
+            double* pA1 = pA, pB1 = pB, pC1 = pC;
+            for (int i = 0; i < r; i++, pA1 += c)
+            {
+                int j = 0;
+                double d = 0;
+                if (Avx.IsSupported)
+                {
+                    Vector256<double> vec = Vector256<double>.Zero;
+                    for (; j < top; j += 4)
+                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
+                    d = vec.Sum();
+                }
+                for (; j < c; j++)
+                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
+                *pB1++ = d - *pC1++;
+            }
+        }
+        return result;
+    }
 
     /// <summary>Computes the Cholesky decomposition of this matrix.</summary>
     /// <returns>A Cholesky decomposition.</returns>

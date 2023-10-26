@@ -1,5 +1,7 @@
 ﻿namespace Austra.Library;
 
+using Austra.Library.Stats;
+
 /// <summary>Represents an upper triangular matrix.</summary>
 /// <remarks>
 /// Triangular matrices may have a different number of rows and columns.

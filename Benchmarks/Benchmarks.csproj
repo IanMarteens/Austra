@@ -18,6 +18,7 @@
 	<ItemGroup>
 		<Using Include="Austra.Library" />
 		<Using Include="Austra.Library.Dates" />
+		<Using Include="Austra.Library.Stats"/>
 		<Using Include="Austra.Parser" />
 		<Using Include="Benchmarks" />
 		<Using Include="BenchmarkDotNet.Attributes" />
