@@ -39,6 +39,7 @@
   </ItemGroup>
 
 	<ItemGroup>
+		<Using Include="Austra.Library.Stats"/>
 		<Using Include="System" />
 		<Using Include="System.Math" Static="true" />
 		<Using Include="System.Collections" />
@@ -53,6 +54,7 @@
 		<Using Include="System.Text" />
 		<Using Include="System.Text.Json" />
 		<Using Include="System.Text.Json.Serialization" />
+		<Using Include="System.Runtime.CompilerServices.Unsafe" Static="true" />
 	</ItemGroup>
 
 	<ItemGroup>

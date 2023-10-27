@@ -1,8 +1,5 @@
 ﻿namespace Austra.Library;
 
-using static Unsafe;
-using Austra.Library.Stats;
-
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
 /// <para>Values are stored in a one-dimensional array, in row-major order.
@@ -47,16 +44,13 @@ public readonly struct Matrix :
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="f">A function defining cell content.</param>
-    public unsafe Matrix(int rows, int cols, Func<int, int, double> f)
+    public Matrix(int rows, int cols, Func<int, int, double> f)
     {
-        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        fixed (double* p = values)
-        {
-            int idx = 0;
-            for (int i = 0; i < rows; i++)
-                for (int j = 0; j < cols; j++)
-                    p[idx++] = f(i, j);
-        }
+        (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        for (int i = 0; i < rows; i++)
+            for (int j = 0; j < cols; j++, p = ref Add(ref p, 1))
+                p = f(i, j);
     }
 
     /// <summary>Creates a square matrix using a formula to fill its cells.</summary>
@@ -66,6 +60,9 @@ public readonly struct Matrix :
 
     /// <summary>Creates a matrix given its rows.</summary>
     /// <param name="rows">The array of rows.</param>
+    /// <exception cref="MatrixSizeException">
+    /// When there are not enough rows or there is a column size mismatch.
+    /// </exception>
     public unsafe Matrix(params Vector[] rows)
     {
         if (rows == null || rows.Length == 0)
@@ -107,7 +104,7 @@ public readonly struct Matrix :
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
-    public Matrix(double[] diagonal) =>
+    public Matrix(params double[] diagonal) =>
         (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
@@ -116,32 +113,24 @@ public readonly struct Matrix :
     /// <param name="random">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public unsafe Matrix(
+    public Matrix(
         int rows, int cols, Random random,
         double offset = 0.0, double width = 1.0)
     {
-        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        fixed (double* pA = values)
-        {
-            int len = rows * cols;
-            for (int i = 0; i < len; i++)
-                pA[i] = FusedMultiplyAdd(random.NextDouble(), width, offset);
-        }
+        (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
+        for (int i = 0; i < values.Length; i++)
+            values[i] = FusedMultiplyAdd(random.NextDouble(), width, offset);
     }
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="random">A random number generator.</param>
-    public unsafe Matrix(int rows, int cols, Random random)
+    public Matrix(int rows, int cols, Random random)
     {
-        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        fixed (double* pA = values)
-        {
-            int len = rows * cols;
-            for (int i = 0; i < len; i++)
-                pA[i] = random.NextDouble();
-        }
+        (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
+        for (int i = 0; i < values.Length; i++)
+            values[i] = random.NextDouble();
     }
 
     /// <summary>
@@ -337,7 +326,7 @@ public readonly struct Matrix :
     /// <param name="m">The original matrix.</param>
     /// <returns>The underlying bidimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe explicit operator double[](Matrix m) => m.values;
+    public static explicit operator double[](Matrix m) => m.values;
 
     /// <summary>Has the matrix been properly initialized?</summary>
     /// <remarks>
@@ -363,14 +352,16 @@ public readonly struct Matrix :
             return false;
         int size = Rows;
         fixed (double* p = values)
-            for (int row = 0; row < Rows; row++)
+        {
+            double* q = p;
+            for (int row = 0; row < size; row++, q += size)
             {
-                double* q = p + row * size;
                 double* r = q + size + row;
                 for (int col = row + 1; col < Cols; col++, r += size)
                     if (q[col] != *r)
                         return false;
             }
+        }
         return true;
     }
 
@@ -672,26 +663,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
-
-        double[] result = GC.AllocateUninitializedArray<double>(m1.Rows * m1.Cols);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(m1.values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(m2.values);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i)) + Vector256.LoadUnsafe(ref Add(ref b, i)),
-                    ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) + Vector256.LoadUnsafe(ref Add(ref b, t)),
-                ref Add(ref c, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref c, i) = Add(ref a, i) + Add(ref b, i);
-        return new(m1.Rows, m1.Cols, result);
+        return new(m1.Rows, m1.Cols, CommonMatrix.AddV(m1.values, m2.values));
     }
 
     /// <summary>Subtracts two matrices with the same size.</summary>
@@ -708,77 +680,30 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
-
-        double[] result = GC.AllocateUninitializedArray<double>(m1.Rows * m1.Cols);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(m1.values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(m2.values);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i)) - Vector256.LoadUnsafe(ref Add(ref b, i)),
-                    ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) - Vector256.LoadUnsafe(ref Add(ref b, t)),
-                ref Add(ref c, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref c, i) = Add(ref a, i) - Add(ref b, i);
-        return new(m1.Rows, m1.Cols, result);
+        return new(m1.Rows, m1.Cols, CommonMatrix.SubV(m1.values, m2.values));
     }
 
     /// <summary>Negates a matrix.</summary>
     /// <param name="m">The matrix operand.</param>
     /// <returns>Cell-by-cell negation.</returns>
-    public static unsafe Matrix operator -(Matrix m)
+    public static Matrix operator -(Matrix m)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-
-        double[] result = new double[m.values.Length];
-        fixed (double* pA = m.values, pC = result)
-        {
-            int len = m.values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> z = Vector256<double>.Zero;
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i, Avx.Subtract(z, Avx.LoadVector256(pA + i)));
-            }
-            for (; i < len; i++)
-                pC[i] = -pA[i];
-        }
-        return new(m.Rows, m.Cols, result);
+        return new(m.Rows, m.Cols, CommonMatrix.NegV(m.values));
     }
 
     /// <summary>Adds a scalar to a matrix.</summary>
     /// <param name="m">The matrix.</param>
     /// <param name="d">A scalar summand.</param>
     /// <returns>The pointwise addition of the scalar.</returns>
-    public static unsafe Matrix operator +(Matrix m, double d)
+    public static Matrix operator +(Matrix m, double d)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-
-        double[] result = new double[m.values.Length];
-        fixed (double* pA = m.values, pC = result)
-        {
-            int len = m.values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> v = Vector256.Create(d);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i, Avx.Add(Avx.LoadVector256(pA + i), v));
-            }
-            for (; i < len; i++)
-                pC[i] = pA[i] + d;
-        }
-        return new(m.Rows, m.Cols, result);
+        return new(m.Rows, m.Cols, CommonMatrix.AddV(m.values, d));
     }
 
     /// <summary>Adds a scalar to a matrix.</summary>
@@ -789,61 +714,33 @@ public readonly struct Matrix :
     public static Matrix operator +(double d, Matrix m) => m + d;
 
     /// <summary>Subtracts a scalar from a matrix.</summary>
-    /// <param name="m">The matrix.</param>
-    /// <param name="d">The scalar.</param>
+    /// <param name="m">The matrix minuend.</param>
+    /// <param name="d">The scalar subtrahend.</param>
     /// <returns>The pointwise subtraction of the scalar.</returns>
-    public static unsafe Matrix operator -(Matrix m, double d)
+    public static Matrix operator -(Matrix m, double d)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-
-        double[] result = new double[m.values.Length];
-        fixed (double* pA = m.values, pC = result)
-        {
-            int len = m.values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> v = Vector256.Create(d);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i, Avx.Subtract(Avx.LoadVector256(pA + i), v));
-            }
-            for (; i < len; i++)
-                pC[i] = pA[i] - d;
-        }
-        return new(m.Rows, m.Cols, result);
+        return new(m.Rows, m.Cols, CommonMatrix.SubV(m.values, d));
     }
 
-    /// <summary>Subtracts a scalar from a matrix.</summary>
-    /// <param name="d">The scalar.</param>
-    /// <param name="m">The matrix.</param>
+    /// <summary>Subtracts a matrix from a scalar.</summary>
+    /// <param name="d">The scalar minuend.</param>
+    /// <param name="m">The matrix subtrahend.</param>
     /// <returns>The pointwise subtraction of the scalar.</returns>
-    public static unsafe Matrix operator -(double d, Matrix m)
+    public static Matrix operator -(double d, Matrix m)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-
-        double[] result = new double[m.values.Length];
-        fixed (double* pA = m.values, pC = result)
-        {
-            int len = m.values.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> v = Vector256.Create(d);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i, Avx.Subtract(v, Avx.LoadVector256(pA + i)));
-            }
-            for (; i < len; i++)
-                pC[i] = d - pA[i];
-        }
-        return new(m.Rows, m.Cols, result);
+        return new(m.Rows, m.Cols, CommonMatrix.SubV(d, m.values));
     }
 
     /// <summary>Cell by cell product with a second matrix.</summary>
     /// <param name="m">Second operand.</param>
     /// <returns>The pointwise product.</returns>
-    public unsafe Matrix PointwiseMultiply(Matrix m)
+    public Matrix PointwiseMultiply(Matrix m)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
@@ -852,25 +749,13 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
-
-        double[] result = new double[values.Length];
-        fixed (double* pA = values, pB = m.values, pC = result)
-        {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Multiply(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] * pB[i];
-        }
-        return new(Rows, Cols, result);
+        return new(Rows, Cols, CommonMatrix.MulV(values, m.values));
     }
 
     /// <summary>Cell by cell division with a second matrix.</summary>
-    /// <param name="m">Second operand.</param>
+    /// <param name="m">The matrix divisor.</param>
     /// <returns>The pointwise quotient.</returns>
-    public unsafe Matrix PointwiseDivide(Matrix m)
+    public Matrix PointwiseDivide(Matrix m)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
@@ -879,45 +764,19 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
-
-        double[] result = new double[values.Length];
-        fixed (double* pA = values, pB = m.values, pC = result)
-        {
-            int len = values.Length, i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Divide(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] / pB[i];
-        }
-        return new(Rows, Cols, result);
+        return new(Rows, Cols, CommonMatrix.DivV(values, m.values));
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>
     /// <param name="m">Matrix to be multiplied.</param>
     /// <param name="d">A scalar multiplicand.</param>
     /// <returns>The multiplication of the matrix by the scalar.</returns>
-    public static unsafe Matrix operator *(Matrix m, double d)
+    public static Matrix operator *(Matrix m, double d)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-
-        double[] result = new double[m.values.Length];
-        fixed (double* pA = m.values, pC = result)
-        {
-            int len = result.Length, i = 0;
-            if (Avx.IsSupported)
-            {
-                Vector256<double> v = Vector256.Create(d);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i, Avx.Multiply(Avx.LoadVector256(pA + i), v));
-            }
-            for (; i < len; i++)
-                pC[i] = pA[i] * d;
-        }
-        return new(m.Rows, m.Cols, result);
+        return new(m.Rows, m.Cols, CommonMatrix.MulV(m.values, d));
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>
@@ -1352,6 +1211,11 @@ public readonly struct Matrix :
     /// <returns>Eigenvectors and eigenvalues.</returns>
     public EVD SymEVD() => new(this, true);
 
+    /// <summary>Gets statistics on the matrix cells.</summary>
+    /// <returns>Matrix statistics.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Accumulator Stats() => new(values);
+
     /// <summary>Computes the maximum difference between cells.</summary>
     /// <param name="m">The reference matrix.</param>
     /// <returns>The max-norm of the matrix difference.</returns>
@@ -1364,22 +1228,18 @@ public readonly struct Matrix :
 
     /// <summary>Gets the cell with the maximum absolute value.</summary>
     /// <returns>The max-norm of the matrix.</returns>
-    public unsafe double AMax()
+    public double AMax()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = values)
-            return CommonMatrix.AbsoluteMaximum(p, values.Length);
+        return CommonMatrix.AbsoluteMaximum(values);
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
     /// <returns>The minimum absolute value in the matrix.</returns>
-    public unsafe double AMin()
+    public double AMin()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = values)
-            return CommonMatrix.AbsoluteMinimum(p, values.Length);
+        return CommonMatrix.AbsoluteMinimum(values);
     }
 
     /// <summary>Gets the cell with the maximum value.</summary>

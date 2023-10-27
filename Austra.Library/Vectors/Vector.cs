@@ -1,8 +1,5 @@
 ﻿namespace Austra.Library;
 
-using static Unsafe;
-using Austra.Library.Stats;
-
 /// <summary>Represents a dense vector of arbitrary size.</summary>
 /// <remarks>
 /// <see cref="Vector"/> provides a thin wrapper around a single array.
@@ -244,22 +241,18 @@ public readonly struct Vector :
 
     /// <summary>Gets the cell with the maximum absolute value.</summary>
     /// <returns>The max-norm of the vector.</returns>
-    public unsafe double AMax()
+    public double AMax()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = values)
-            return CommonMatrix.AbsoluteMaximum(p, values.Length);
+        return CommonMatrix.AbsoluteMaximum(values);
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
     /// <returns>The minimum absolute of the vector.</returns>
-    public unsafe double AMin()
+    public double AMin()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = values)
-            return CommonMatrix.AbsoluteMinimum(p, values.Length);
+        return CommonMatrix.AbsoluteMinimum(values);
     }
 
     /// <summary>Gets the item with the maximum value.</summary>
@@ -289,26 +282,7 @@ public readonly struct Vector :
         Contract.Requires(v2.IsInitialized);
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
-
-        double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(v1.values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(v2.values);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i)) + Vector256.LoadUnsafe(ref Add(ref b, i)),
-                    ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) + Vector256.LoadUnsafe(ref Add(ref b, t)),
-                ref Add(ref c, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref c, i) = Add(ref a, i) + Add(ref b, i);
-        return result;
+        return CommonMatrix.AddV(v1.values, v2.values);
     }
 
     /// <summary>Subtracts two vectors.</summary>
@@ -322,26 +296,7 @@ public readonly struct Vector :
         Contract.Requires(v2.IsInitialized);
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
-
-        double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(v1.values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(v2.values);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i)) - Vector256.LoadUnsafe(ref Add(ref b, i)),
-                    ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) - Vector256.LoadUnsafe(ref Add(ref b, t)),
-                ref Add(ref c, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref c, i) = Add(ref a, i) - Add(ref b, i);
-        return result;
+        return CommonMatrix.SubV(v1.values, v2.values);
     }
 
     /// <summary>Negates a vector.</summary>
@@ -351,23 +306,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(v.values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    -Vector256.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                -Vector256.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref q, i) = -Add(ref p, i);
-        return result;
+        return CommonMatrix.NegV(v.values);
     }
 
     /// <summary>Adds a scalar to a vector.</summary>
@@ -378,24 +317,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(v.values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            Vector256<double> vec = Vector256.Create(d);
-            int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref p, i)) + vec, ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref p, t)) + vec, ref Add(ref q, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref q, i) = Add(ref p, i) + d;
-        return result;
+        return CommonMatrix.AddV(v.values, d);
     }
 
     /// <summary>Adds a scalar to a vector.</summary>
@@ -413,24 +335,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(v.values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            Vector256<double> vec = Vector256.Create(d);
-            int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref p, i)) - vec, ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref p, t)) - vec, ref Add(ref q, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref q, i) = Add(ref p, i) - d;
-        return result;
+        return CommonMatrix.SubV(v.values, d);
     }
 
     /// <summary>Subtracts a vector from a scalar.</summary>
@@ -441,24 +346,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(v.values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            Vector256<double> vec = Vector256.Create(d);
-            int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    vec - Vector256.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                vec - Vector256.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref q, i) = Add(ref p, i) - d;
-        return result;
+        return CommonMatrix.SubV(d, v.values);
     }
 
     /// <summary>Pointwise multiplication.</summary>
@@ -472,27 +360,7 @@ public readonly struct Vector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(other.values);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            int t = values.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i))
-                        * Vector256.LoadUnsafe(ref Add(ref b, i)),
-                    ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) * Vector256.LoadUnsafe(ref Add(ref b, t)),
-                ref Add(ref c, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref c, i) = Add(ref a, i) * Add(ref b, i);
-        return result;
+        return CommonMatrix.MulV(values, other.values);
     }
 
     /// <summary>Pointwise division.</summary>
@@ -506,27 +374,7 @@ public readonly struct Vector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(other.values);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
-        {
-            int t = values.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i))
-                        / Vector256.LoadUnsafe(ref Add(ref b, i)),
-                    ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) / Vector256.LoadUnsafe(ref Add(ref b, t)),
-                ref Add(ref c, t));
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref c, i) = Add(ref a, i) / Add(ref b, i);
-        return result;
+        return CommonMatrix.DivV(values, other.values);
     }
 
     /// <summary>Dot product of two vectors.</summary>
@@ -599,27 +447,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-
-        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(v.values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        int len = v.values.Length;
-        if (Vector256.IsHardwareAccelerated)
-        {
-            Vector256<double> vec = Vector256.Create(d);
-            int t = len - Vector256<double>.Count;
-            for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref p, i)) * vec,
-                    ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref p, t)) * vec,
-                ref Add(ref q, t));
-        }
-        else
-            for (int i = 0; i < len; i++)
-                Add(ref q, i) = Add(ref p, i) * d;
-        return result;
+        return CommonMatrix.MulV(v.values, d);
     }
 
     /// <summary>Multiplies a vector by a scalar value.</summary>

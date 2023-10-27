@@ -1,7 +1,5 @@
 ﻿namespace Austra.Library;
 
-using static Unsafe;
-
 /// <summary>Common matrix operations.</summary>
 public static class CommonMatrix
 {
@@ -96,31 +94,52 @@ public static class CommonMatrix
         return product;
     }
 
-    /// <summary>Gets the item in an array with the minimum absolute value.</summary>
-    /// <param name="p">Pointer to the array.</param>
-    /// <param name="size">Number of items in the array.</param>
-    /// <returns>The minimum absolute value in the samples.</returns>
-    public unsafe static double AbsoluteMaximum(double* p, int size)
+    /// <summary>Gets the item in an array with the maximum absolute value.</summary>
+    /// <param name="array">The data array.</param>
+    /// <returns>The maximum absolute value in the samples.</returns>
+    public static double AbsoluteMaximum(double[] array)
     {
-        double max = 0;
-        int i = 0;
-        if (Avx.IsSupported && size >= 8)
+        if (Vector256.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
         {
-            Vector256<double> z = Vector256<double>.Zero, vm = z;
-            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-            {
-                Vector256<double> v = Avx.LoadVector256(p + i);
-                vm = Avx.Max(Avx.Max(v, Avx.Subtract(z, v)), vm);
-            }
-            max = vm.Max();
+            ref double p = ref MemoryMarshal.GetArrayDataReference(array);
+            ref double last = ref Add(ref p, array.Length - Vector256<double>.Count);
+            Vector256<double> vm = Vector256.Abs(Vector256.LoadUnsafe(ref p));
+            for (; IsAddressLessThan(ref p, ref last); p = ref Add(ref p, Vector256<double>.Count))
+                vm = Vector256.Max(vm, Vector256.Abs(Vector256.LoadUnsafe(ref p)));
+            return Vector256.Max(vm, Vector256.Abs(Vector256.LoadUnsafe(ref last))).Max();
         }
-        for (; i < size; i++)
+        double max = 0;
+        for (int i = 0; i < array.Length; i++)
         {
-            double v = Abs(p[i]);
+            double v = Abs(array[i]);
             if (v > max)
                 max = v;
         }
         return max;
+    }
+
+    /// <summary>Gets the item in an array with the minimum absolute value.</summary>
+    /// <param name="array">The data array.</param>
+    /// <returns>The minimum absolute value in the samples.</returns>
+    public static double AbsoluteMinimum(double[] array)
+    {
+        if (Vector256.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
+        {
+            ref double p = ref MemoryMarshal.GetArrayDataReference(array);
+            ref double last = ref Add(ref p, array.Length - Vector256<double>.Count);
+            Vector256<double> vm = Vector256.Abs(Vector256.LoadUnsafe(ref p));
+            for (; IsAddressLessThan(ref p, ref last); p = ref Add(ref p, Vector256<double>.Count))
+                vm = Vector256.Min(vm, Vector256.Abs(Vector256.LoadUnsafe(ref p)));
+            return Vector256.Min(vm, Vector256.Abs(Vector256.LoadUnsafe(ref last))).Min();
+        }
+        double min = 0;
+        for (int i = 0; i < array.Length; i++)
+        {
+            double v = Abs(array[i]);
+            if (v < min)
+                min = v;
+        }
+        return min;
     }
 
     /// <summary>Gets the item in an array with the maximum absolute value.</summary>
@@ -197,7 +216,240 @@ public static class CommonMatrix
         return min;
     }
 
-    /// <summary>In place transposition of a square matrix.</summary>
+    /// <summary>Pointwise sum of two equally sized arrays.</summary>
+    /// <param name="array1">First summand.</param>
+    /// <param name="array2">Second summand.</param>
+    /// <returns>The pointwise sum of the two arguments.</returns>
+    public static double[] AddV(double[] array1, double[] array2)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i)) + Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) + Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) + Add(ref b, i);
+        return result;
+    }
+
+    /// <summary>Pointwise subtraction of two equally sized arrays.</summary>
+    /// <param name="array1">Minuend.</param>
+    /// <param name="array2">Subtrahend.</param>
+    /// <returns>The pointwise subtraction of the two arguments.</returns>
+    public static double[] SubV(double[] array1, double[] array2)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i)) - Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) - Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) - Add(ref b, i);
+        return result;
+    }
+
+    /// <summary>Pointwise addition of a scalar to an array.</summary>
+    /// <param name="array">Array summand.</param>
+    /// <param name="scalar">Scalar summand.</param>
+    /// <returns>The pointwise sum of the two arguments.</returns>
+    public static double[] AddV(double[] array, double scalar)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            Vector256<double> vec = Vector256.Create(scalar);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref p, i)) + vec, ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref p, t)) + vec, ref Add(ref q, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref q, i) = Add(ref p, i) + scalar;
+        return result;
+    }
+
+    /// <summary>Pointwise subtraction of a scalar from an array.</summary>
+    /// <param name="array">Array minuend.</param>
+    /// <param name="scalar">Scalar subtrahend.</param>
+    /// <returns>The pointwise subtraction of the two arguments.</returns>
+    public static double[] SubV(double[] array, double scalar)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            Vector256<double> vec = Vector256.Create(scalar);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref p, i)) - vec, ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref p, t)) - vec, ref Add(ref q, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref q, i) = Add(ref p, i) - scalar;
+        return result;
+    }
+
+    /// <summary>Pointwise subtraction of an array from a scalar.</summary>
+    /// <param name="scalar">Scalar minuend.</param>
+    /// <param name="array">Array subtrahend.</param>
+    /// <returns>The pointwise subtraction of the two arguments.</returns>
+    public static double[] SubV(double scalar, double[] array)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            Vector256<double> vec = Vector256.Create(scalar);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    vec - Vector256.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                vec - Vector256.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref q, i) = scalar - Add(ref p, i);
+        return result;
+    }
+
+    /// <summary>Pointwise negation of an array.</summary>
+    /// <param name="array">Array to negate.</param>
+    /// <returns>The pointwise negation of the argument.</returns>
+    public static double[] NegV(double[] array)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    -Vector256.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                -Vector256.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref q, i) = -Add(ref p, i);
+        return result;
+    }
+
+    /// <summary>Pointwise multiplication of two equally sized arrays.</summary>
+    /// <param name="array1">Array multiplicand.</param>
+    /// <param name="array2">Array multiplier.</param>
+    /// <returns>The pointwise multiplication of the two arguments.</returns>
+    public static double[] MulV(double[] array1, double[] array2)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i)) * Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) * Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) * Add(ref b, i);
+        return result;
+    }
+
+    /// <summary>Pointwise multiplication of an array and a scalar.</summary>
+    /// <param name="array">Array multiplicand.</param>
+    /// <param name="scalar">Scalar multiplier.</param>
+    /// <returns>The pointwise multiplication of the two arguments.</returns>
+    public static double[] MulV(double[] array, double scalar)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            Vector256<double> vec = Vector256.Create(scalar);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref p, i)) * vec,
+                    ref Add(ref q, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref p, t)) * vec,
+                ref Add(ref q, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref q, i) = Add(ref p, i) * scalar;
+        return result;
+    }
+
+    /// <summary>Pointwise division of two equally sized arrays.</summary>
+    /// <param name="array1">Array dividend.</param>
+    /// <param name="array2">Array divisor.</param>
+    /// <returns>The pointwise quotient of the two arguments.</returns>
+    public static double[] DivV(double[] array1, double[] array2)
+    {
+        double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
+        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        {
+            int t = array1.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                Vector256.StoreUnsafe(
+                    Vector256.LoadUnsafe(ref Add(ref a, i)) / Vector256.LoadUnsafe(ref Add(ref b, i)),
+                    ref Add(ref c, i));
+            Vector256.StoreUnsafe(
+                Vector256.LoadUnsafe(ref Add(ref a, t)) / Vector256.LoadUnsafe(ref Add(ref b, t)),
+                ref Add(ref c, t));
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) / Add(ref b, i);
+        return result;
+    }
+
+    /// <summary>In-place transposition of a square matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="data">A 1D-array with data.</param>

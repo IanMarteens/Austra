@@ -514,6 +514,7 @@ internal sealed partial class Parser
                 ["issym"] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
                 ["sym"] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
                 ["issymmetric"] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
+                ["stats"] = typeof(Matrix).Get(nameof(Matrix.Stats)),
             },
             [typeof(LMatrix)] = new(StringComparer.OrdinalIgnoreCase)
             {
@@ -760,6 +761,7 @@ internal sealed partial class Parser
             new("getRow(", "Extracts a row as a vector"),
             new("getCol(", "Extracts a column as a vector"),
             new("isSymmetric", "Checks if a matrix is symmetric"),
+            new("stats", "Calculates statistics on the cells"),
             new("map(x => ", "Pointwise transformation of matrix cells"),
             new("any(x => ", "Existential operator"),
             new("all(x => ", "Universal operator"),

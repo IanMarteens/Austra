@@ -1,8 +1,5 @@
 ﻿namespace Austra.Library;
 
-using Austra.Library.Stats;
-using static Unsafe;
-
 /// <summary>Represents a dense complex vector of arbitrary size.</summary>
 /// <remarks>
 /// For the sake of acceleration, the vector's components are stored in two separate arrays.
