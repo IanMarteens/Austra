@@ -78,6 +78,7 @@
 	<ItemGroup>
 		<Using Include="Austra.Library" />
 		<Using Include="Austra.Library.Dates" />
+		<Using Include="Austra.Library.Helpers" />
 		<Using Include="Austra.Library.MVO" />
 		<Using Include="Austra.Library.Stats" />
 		<Using Include="Austra.Library.Matrix" Alias="AMatrix" />

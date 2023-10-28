@@ -14,6 +14,14 @@ namespace Austra.Library.Dates
     [CompilerGenerated()] class NamespaceDoc { }
 }
 
+namespace Austra.Library.Helpers
+{
+    /// <summary>
+    /// Contains helping code for SIMD and other low-level operations.
+    /// </summary>
+    [CompilerGenerated()] class NamespaceDoc { }
+}
+
 namespace Austra.Library.MVO
 {
     /// <summary>

@@ -101,15 +101,15 @@ public sealed class Accumulator
         int i = 0;
         if (Avx.IsSupported && size >= 16)
         {
-            var vMin = Vector256.Create(double.PositiveInfinity);
-            var vMax = Vector256.Create(double.NegativeInfinity);
+            var vMin = V4.Create(double.PositiveInfinity);
+            var vMax = V4.Create(double.NegativeInfinity);
             var μ1 = Vector256<double>.Zero;
             var μ2 = Vector256<double>.Zero;
             var μ3 = Vector256<double>.Zero;
             var μ4 = Vector256<double>.Zero;
-            var v3 = Vector256.Create(3.0);
-            var v4 = Vector256.Create(4.0);
-            var v6 = Vector256.Create(6.0);
+            var v3 = V4.Create(3.0);
+            var v4 = V4.Create(4.0);
+            var v6 = V4.Create(6.0);
             long c = 0;
             for (int top = size & Simd.AVX_MASK; i < top; i += 4)
             {
@@ -118,16 +118,16 @@ public sealed class Accumulator
                 vMin = Avx.Min(vMin, vSample);
                 vMax = Avx.Max(vMax, vSample);
                 var vd = Avx.Subtract(vSample, μ1);
-                var vs = Avx.Divide(vd, Vector256.Create((double)c));
+                var vs = Avx.Divide(vd, V4.Create((double)c));
                 var vt = Avx.Multiply(Avx.Multiply(vd, vs),
-                    Vector256.Create((double)(c - 1)));
+                    V4.Create((double)(c - 1)));
                 μ1 = Avx.Add(μ1, vs);
                 var t1 = Avx.Multiply(Avx.Multiply(vt, vs),
-                    Vector256.Create((double)(c * (c - 3) + 3)));
+                    V4.Create((double)(c * (c - 3) + 3)));
                 var t2 = Avx.Multiply(Avx.Multiply(vs, μ2), v6);
                 var t3 = Avx.Multiply(v4, μ3);
                 μ4 = μ4.MultiplyAdd(Avx.Subtract(Avx.Add(t1, t2), t3), vs);
-                t1 = Avx.Multiply(vt, Vector256.Create((double)(c - 2)));
+                t1 = Avx.Multiply(vt, V4.Create((double)(c - 2)));
                 t2 = Avx.Multiply(μ2, v3);
                 μ3 = μ3.MultiplyAdd(Avx.Subtract(t1, t2), vs);
                 μ2 = Avx.Add(μ2, vt);

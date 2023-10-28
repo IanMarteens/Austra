@@ -449,6 +449,34 @@ public static class CommonMatrix
         return result;
     }
 
+    /// <summary>Checks two arrays for equality.</summary>
+    /// <param name="array1">First array operand.</param>
+    /// <param name="array2">Second array operand.</param>
+    /// <returns><see langword="true"/> if both array has the same items.</returns>
+    public static bool EqualsV(double[] array1, double[] array2)
+    {
+        if (array1.Length != array2.Length)
+            return false;
+        ref double p = ref MemoryMarshal.GetArrayDataReference(array1);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(array2);
+        if (V4.IsHardwareAccelerated && array1.Length >= Vector256<double>.Count)
+        {
+            ref double lastp = ref Add(ref p, array1.Length - Vector256<double>.Count);
+            ref double lastq = ref Add(ref q, array1.Length - Vector256<double>.Count);
+            for (; IsAddressLessThan(ref p, ref lastp); p = ref Add(ref p, Vector256<double>.Count),
+                q = ref Add(ref q, Vector256<double>.Count))
+                if (Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q))) != 0xF)
+                    return false;
+            if (Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref lastp), V4.LoadUnsafe(ref lastq))) != 0xF)
+                return false;
+        }
+        else
+            for (int i = 0; i < array1.Length; i++)
+                if (Add(ref p, i) != Add(ref q, i))
+                    return false;
+        return true;
+    }
+
     /// <summary>In-place transposition of a square matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>

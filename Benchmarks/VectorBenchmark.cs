@@ -18,10 +18,10 @@ public class VectorBenchmark : BenchmarkControl
         cv7 = new Vector(1024, new NormalRandom(rnd));
     }
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorSum() => cv4 + cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorSub() => cv4 - cv5;
 
     //[Benchmark]
@@ -45,10 +45,10 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public double AustraVectorSumItems() => cv5.Sum();
 
-    //[Benchmark]
+    [Benchmark]
     public bool AustraVectorEqualsFalse() => cv1 == cv2;
 
-    //[Benchmark]
+    [Benchmark]
     public bool AustraVectorEqualsTrue() => cv1 == cv3;
 
     //[Benchmark]
@@ -71,4 +71,7 @@ public class VectorBenchmark : BenchmarkControl
 
     //[Benchmark]
     public Vector AustraVectorAbs() => cv7.Abs();
+
+    //[Benchmark]
+    public Vector AustraVectorMap() => cv7.Map(Math.Abs);
 }

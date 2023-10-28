@@ -214,17 +214,12 @@ public readonly struct Vector :
     /// <summary>Copies the content of this vector into an existing one.</summary>
     /// <remarks>This operation does not share the internal storage.</remarks>
     /// <param name="dest">The destination vector.</param>
-    internal unsafe void CopyTo(Vector dest)
+    internal void CopyTo(Vector dest)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(dest.IsInitialized);
         Contract.Requires(Length == dest.Length);
-
-        fixed (double* p = values, q = dest.values)
-        {
-            int size = values.Length * sizeof(double);
-            Buffer.MemoryCopy(p, q, size, size);
-        }
+        Array.Copy(values, dest.values, Length);
     }
 
     /// <summary>Extracts a slice from the vector.</summary>
@@ -831,7 +826,7 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
@@ -852,13 +847,13 @@ public readonly struct Vector :
     /// Creates a new vector by transforming each item with the given function.
     /// </summary>
     /// <param name="mapper">The mapping function.</param>
-    /// <returns>A new vector with transformed content.</returns>
-    public unsafe Vector Map(Func<double, double> mapper)
+    /// <returns>A new vector with the transformed content.</returns>
+    public Vector Map(Func<double, double> mapper)
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
-        fixed (double* p = values)
-            for (int i = 0; i < newValues.Length; i++)
-                newValues[i] = mapper(p[i]);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        for (int i = 0; i < newValues.Length; i++)
+            newValues[i] = mapper(Add(ref p, i));
         return newValues;
     }
 
@@ -914,13 +909,15 @@ public readonly struct Vector :
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
-    public unsafe Vector Zip(Vector other, Func<double, double, double> zipper)
+    public Vector Zip(Vector other, Func<double, double, double> zipper)
     {
         int len = Min(Length, other.Length);
         double[] newValues = GC.AllocateUninitializedArray<double>(len);
-        fixed (double* p = values, q = other.values, r = newValues)
-            for (int i = 0; i < len; i++)
-                r[i] = zipper(p[i], q[i]);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(other.values);
+        ref double r = ref MemoryMarshal.GetArrayDataReference(newValues);
+        for (int i = 0; i < len; i++)
+            Add(ref r, i) = zipper(Add(ref p, i), Add(ref q, i));
         return newValues;
     }
 
@@ -1217,7 +1214,7 @@ public readonly struct Vector :
     /// <param name="v1">First vector to compare.</param>
     /// <param name="v2">Second vector to compare.</param>
     /// <param name="epsilon">The tolerance.</param>
-    /// <returns>True if each pair of components is inside the tolerance.</returns>
+    /// <returns>True if each pair of components is inside the tolerance range.</returns>
     public static bool Equals(Vector v1, Vector v2, double epsilon)
     {
         if (v1.Length != v2.Length)
@@ -1255,24 +1252,7 @@ public readonly struct Vector :
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>
     /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
-    public unsafe bool Equals(Vector other)
-    {
-        if (other.Length != Length)
-            return false;
-        fixed (double* p = values, q = other.values)
-        {
-            int i = 0, size = Length;
-            if (Avx.IsSupported)
-                for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-                    if (Avx.MoveMask(Avx.CompareEqual(
-                        Avx.LoadVector256(p + i), Avx.LoadVector256(q + i))) != 0xF)
-                        return false;
-            for (; i < size; i++)
-                if (p[i] != q[i])
-                    return false;
-        }
-        return true;
-    }
+    public bool Equals(Vector other) => CommonMatrix.EqualsV(values, other.values);
 
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>

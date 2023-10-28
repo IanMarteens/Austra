@@ -41,7 +41,7 @@ public sealed partial class RootModel : Entity
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
     {
-        Library.Helpers.CommonMatrix.TERMINAL_COLUMNS = 160;
+        CommonMatrix.TERMINAL_COLUMNS = 160;
         timer.Interval = new TimeSpan(0, 0, 15);
         timer.Tick += (e, a) =>
         {

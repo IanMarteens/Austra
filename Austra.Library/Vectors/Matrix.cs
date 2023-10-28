@@ -1296,26 +1296,11 @@ public readonly struct Matrix :
     }
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
-    /// <param name="other">The object to be compared.</param>
-    /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
-    public unsafe bool Equals(Matrix other)
-    {
-        if (other.Rows != Rows || other.Cols != Cols)
-            return false;
-        fixed (double* p = values, q = other.values)
-        {
-            int i = 0, size = values.Length;
-            if (Avx.IsSupported)
-                for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-                    if (Avx.MoveMask(Avx.CompareEqual(
-                        Avx.LoadVector256(p + i), Avx.LoadVector256(q + i))) != 0xF)
-                        return false;
-            for (; i < size; i++)
-                if (p[i] != q[i])
-                    return false;
-        }
-        return true;
-    }
+    /// <param name="other">The matrix to be compared.</param>
+    /// <returns><see langword="true"/> if the second matrix has the same values.</returns>
+    public unsafe bool Equals(Matrix other) => 
+        Rows == other.Rows && Cols == other.Cols &&
+        CommonMatrix.EqualsV(values, other.values);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>

@@ -32,7 +32,7 @@ public class MatrixTests
     {
         Matrix m = new(size, new NormalRandom());
         Matrix m1 = m.Transpose();
-        Library.Helpers.CommonMatrix.Transpose(m.Rows, m.Cols, (double[])m);
+        CommonMatrix.Transpose(m.Rows, m.Cols, (double[])m);
         Assert.That((m - m1).AMax(), Is.EqualTo(0));
     }
 
