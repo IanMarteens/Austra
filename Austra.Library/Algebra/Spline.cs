@@ -1,8 +1,5 @@
 ﻿namespace Austra.Library;
 
-using Austra.Library.Dates;
-using static Unsafe;
-
 /// <summary>Represents a set of splines for cubic interpolation.</summary>
 /// <typeparam name="ARG">The type of the abscissa.</typeparam>
 /// <remarks>

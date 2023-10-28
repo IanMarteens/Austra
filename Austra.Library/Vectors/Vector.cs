@@ -239,7 +239,7 @@ public readonly struct Vector :
     public double AMax()
     {
         Contract.Requires(IsInitialized);
-        return CommonMatrix.AbsoluteMaximum(values);
+        return values.AbsoluteMaximum();
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
@@ -247,7 +247,7 @@ public readonly struct Vector :
     public double AMin()
     {
         Contract.Requires(IsInitialized);
-        return CommonMatrix.AbsoluteMinimum(values);
+        return values.AbsoluteMinimum();
     }
 
     /// <summary>Gets the item with the maximum value.</summary>
@@ -255,7 +255,7 @@ public readonly struct Vector :
     public double Maximum()
     {
         Contract.Requires(IsInitialized);
-        return CommonMatrix.Maximum(values);
+        return values.Maximum();
     }
 
     /// <summary>Gets the item with the minimum value.</summary>
@@ -263,7 +263,7 @@ public readonly struct Vector :
     public double Minimum()
     {
         Contract.Requires(IsInitialized);
-        return CommonMatrix.Minimum(values);
+        return values.Minimum();
     }
 
     /// <summary>Adds two vectors.</summary>
@@ -277,7 +277,7 @@ public readonly struct Vector :
         Contract.Requires(v2.IsInitialized);
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
-        return CommonMatrix.AddV(v1.values, v2.values);
+        return v1.values.AddV(v2.values);
     }
 
     /// <summary>Subtracts two vectors.</summary>
@@ -291,7 +291,7 @@ public readonly struct Vector :
         Contract.Requires(v2.IsInitialized);
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
-        return CommonMatrix.SubV(v1.values, v2.values);
+        return v1.values.SubV(v2.values);
     }
 
     /// <summary>Negates a vector.</summary>
@@ -301,7 +301,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return CommonMatrix.NegV(v.values);
+        return v.values.NegV();
     }
 
     /// <summary>Adds a scalar to a vector.</summary>
@@ -312,7 +312,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return CommonMatrix.AddV(v.values, d);
+        return v.values.AddV(d);
     }
 
     /// <summary>Adds a scalar to a vector.</summary>
@@ -330,7 +330,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return CommonMatrix.SubV(v.values, d);
+        return v.values.SubV(d);
     }
 
     /// <summary>Subtracts a vector from a scalar.</summary>
@@ -355,7 +355,7 @@ public readonly struct Vector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
-        return CommonMatrix.MulV(values, other.values);
+        return values.MulV(other.values);
     }
 
     /// <summary>Pointwise division.</summary>
@@ -369,7 +369,7 @@ public readonly struct Vector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
-        return CommonMatrix.DivV(values, other.values);
+        return values.DivV(other.values);
     }
 
     /// <summary>Dot product of two vectors.</summary>
@@ -442,7 +442,7 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return CommonMatrix.MulV(v.values, d);
+        return v.values.MulV(d);
     }
 
     /// <summary>Multiplies a vector by a scalar value.</summary>
@@ -730,7 +730,7 @@ public readonly struct Vector :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-        return CommonMatrix.Distance(values, v.values);
+        return values.Distance(v.values);
     }
 
     /// <summary>Calculates the sum of the vector's items.</summary>
@@ -1229,7 +1229,7 @@ public readonly struct Vector :
     /// <returns>Space-separated components.</returns>
     public override string ToString() =>
         $"ans ∊ ℝ({Length})" + Environment.NewLine +
-        CommonMatrix.ToString(values, v => v.ToString("G6"));
+        values.ToString(v => v.ToString("G6"));
 
     /// <summary>Gets a textual representation of this vector.</summary>
     /// <param name="format">A format specifier.</param>
@@ -1237,7 +1237,7 @@ public readonly struct Vector :
     /// <returns>Space-separated components.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℝ({Length})" + Environment.NewLine +
-        CommonMatrix.ToString(values, v => v.ToString(format, provider));
+        values.ToString(v => v.ToString(format, provider));
 
     /// <summary>Retrieves an enumerator to iterate over components.</summary>
     /// <returns>The enumerator from the underlying array.</returns>
@@ -1252,13 +1252,12 @@ public readonly struct Vector :
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>
     /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
-    public bool Equals(Vector other) => CommonMatrix.EqualsV(values, other.values);
+    public bool Equals(Vector other) => values.EqualsV(other.values);
 
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a vector with the same items.</returns>
-    public override bool Equals(object? obj) =>
-        obj is Vector vector && Equals(vector);
+    public override bool Equals(object? obj) => obj is Vector vector && Equals(vector);
 
     /// <summary>Returns the hashcode for this vector.</summary>
     /// <returns>A hashcode summarizing the content of the vector.</returns>

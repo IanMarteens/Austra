@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Transforms;
 
 /// <summary>Represents a Fast Fourier Transform plan.</summary>
 public sealed partial class FftPlan

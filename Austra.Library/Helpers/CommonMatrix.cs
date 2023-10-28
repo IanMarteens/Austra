@@ -1,6 +1,6 @@
 ﻿namespace Austra.Library.Helpers;
 
-/// <summary>Common matrix operations.</summary>
+/// <summary>Implements common matrix and vector operations.</summary>
 public static class CommonMatrix
 {
     /// <summary>Number of characters in a line.</summary>
@@ -30,7 +30,7 @@ public static class CommonMatrix
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     /// <returns>An array with its main diagonal initialized.</returns>
-    public static double[] CreateDiagonal(Vector diagonal)
+    public static double[] CreateDiagonal(this Vector diagonal)
     {
         int size = diagonal.Length, r = size + 1; ;
         double[] values = new double[size * size];
@@ -42,11 +42,11 @@ public static class CommonMatrix
     }
 
     /// <summary>Gets the main diagonal of a 1D-array.</summary>
+    /// <param name="values">A 1D-array containing a matrix.</param>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    /// <param name="values">A 1D-array.</param>
     /// <returns>A vector containing values in the main diagonal.</returns>
-    public static Vector Diagonal(int rows, int cols, double[] values)
+    public static Vector Diagonal(this double[] values, int rows, int cols)
     {
         ArgumentNullException.ThrowIfNull(values);
 
@@ -60,11 +60,11 @@ public static class CommonMatrix
     }
 
     /// <summary>Calculates the trace of a 1D-array.</summary>
+    /// <param name="values">A 1D-array.</param>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    /// <param name="values">A 1D-array.</param>
     /// <returns>The sum of the cells in the main diagonal.</returns>
-    public static double Trace(int rows, int cols, double[] values)
+    public static double Trace(this double[] values, int rows, int cols)
     {
         if (values is null)
             return 0;
@@ -80,11 +80,11 @@ public static class CommonMatrix
         return trace;
     }
     /// <summary>Gets the product of the cells in the main diagonal.</summary>
+    /// <param name="values">A 1D-array.</param>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    /// <param name="values">A 1D-array.</param>
     /// <returns>The product of the main diagonal.</returns>
-    public static double DiagonalProduct(int rows, int cols, double[] values)
+    public static double DiagonalProduct(this double[] values, int rows, int cols)
     {
         int r = cols + 1, size = Min(rows, cols);
         double product = 1.0;
@@ -97,7 +97,7 @@ public static class CommonMatrix
     /// <summary>Gets the item in an array with the maximum absolute value.</summary>
     /// <param name="array">The data array.</param>
     /// <returns>The maximum absolute value in the samples.</returns>
-    public static double AbsoluteMaximum(double[] array)
+    public static double AbsoluteMaximum(this double[] array)
     {
         if (V4.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
         {
@@ -121,7 +121,7 @@ public static class CommonMatrix
     /// <summary>Gets the item in an array with the minimum absolute value.</summary>
     /// <param name="array">The data array.</param>
     /// <returns>The minimum absolute value in the samples.</returns>
-    public static double AbsoluteMinimum(double[] array)
+    public static double AbsoluteMinimum(this double[] array)
     {
         if (V4.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
         {
@@ -174,7 +174,7 @@ public static class CommonMatrix
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Maximum(double[] values)
+    public static double Maximum(this double[] values)
     {
         if (V4.IsHardwareAccelerated && values.Length >= Vector256<double>.Count)
         {
@@ -197,7 +197,7 @@ public static class CommonMatrix
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Minimum(double[] values)
+    public static double Minimum(this double[] values)
     {
         if (V4.IsHardwareAccelerated && values.Length >= Vector256<double>.Count)
         {
@@ -220,7 +220,7 @@ public static class CommonMatrix
     /// <param name="array1">First summand.</param>
     /// <param name="array2">Second summand.</param>
     /// <returns>The pointwise sum of the two arguments.</returns>
-    public static double[] AddV(double[] array1, double[] array2)
+    public static double[] AddV(this double[] array1, double[] array2)
     {
         double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
         ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
@@ -247,7 +247,7 @@ public static class CommonMatrix
     /// <param name="array1">Minuend.</param>
     /// <param name="array2">Subtrahend.</param>
     /// <returns>The pointwise subtraction of the two arguments.</returns>
-    public static double[] SubV(double[] array1, double[] array2)
+    public static double[] SubV(this double[] array1, double[] array2)
     {
         double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
         ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
@@ -274,7 +274,7 @@ public static class CommonMatrix
     /// <param name="array">Array summand.</param>
     /// <param name="scalar">Scalar summand.</param>
     /// <returns>The pointwise sum of the two arguments.</returns>
-    public static double[] AddV(double[] array, double scalar)
+    public static double[] AddV(this double[] array, double scalar)
     {
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
@@ -299,7 +299,7 @@ public static class CommonMatrix
     /// <param name="array">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
     /// <returns>The pointwise subtraction of the two arguments.</returns>
-    public static double[] SubV(double[] array, double scalar)
+    public static double[] SubV(this double[] array, double scalar)
     {
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
@@ -348,7 +348,7 @@ public static class CommonMatrix
     /// <summary>Pointwise negation of an array.</summary>
     /// <param name="array">Array to negate.</param>
     /// <returns>The pointwise negation of the argument.</returns>
-    public static double[] NegV(double[] array)
+    public static double[] NegV(this double[] array)
     {
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
@@ -372,7 +372,7 @@ public static class CommonMatrix
     /// <param name="array1">Array multiplicand.</param>
     /// <param name="array2">Array multiplier.</param>
     /// <returns>The pointwise multiplication of the two arguments.</returns>
-    public static double[] MulV(double[] array1, double[] array2)
+    public static double[] MulV(this double[] array1, double[] array2)
     {
         double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
         ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
@@ -399,7 +399,7 @@ public static class CommonMatrix
     /// <param name="array">Array multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
     /// <returns>The pointwise multiplication of the two arguments.</returns>
-    public static double[] MulV(double[] array, double scalar)
+    public static double[] MulV(this double[] array, double scalar)
     {
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
@@ -426,7 +426,7 @@ public static class CommonMatrix
     /// <param name="array1">Array dividend.</param>
     /// <param name="array2">Array divisor.</param>
     /// <returns>The pointwise quotient of the two arguments.</returns>
-    public static double[] DivV(double[] array1, double[] array2)
+    public static double[] DivV(this double[] array1, double[] array2)
     {
         double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
         ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
@@ -453,7 +453,7 @@ public static class CommonMatrix
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>
     /// <returns><see langword="true"/> if both array has the same items.</returns>
-    public static bool EqualsV(double[] array1, double[] array2)
+    public static bool EqualsV(this double[] array1, double[] array2)
     {
         if (array1.Length != array2.Length)
             return false;
@@ -573,7 +573,7 @@ public static class CommonMatrix
     /// <param name="first">First array.</param>
     /// <param name="second">Second array.</param>
     /// <returns>The max-norm of the vector difference.</returns>
-    public static double Distance(double[] first, double[] second)
+    public static double Distance(this double[] first, double[] second)
     {
         int len = Min(first.Length, second.Length);
         if (V4.IsHardwareAccelerated && len >= Vector256<double>.Count)
@@ -603,7 +603,7 @@ public static class CommonMatrix
     /// <param name="formatter">A formatter for items.</param>
     /// <returns>A text representation of the vector.</returns>
     /// <typeparam name="T">The type of the items to format.</typeparam>
-    public static string ToString<T>(T[] data, Func<T, string> formatter)
+    public static string ToString<T>(this T[] data, Func<T, string> formatter)
         where T : struct
     {
         if (data.Length == 0)
@@ -650,13 +650,13 @@ public static class CommonMatrix
     }
 
     /// <summary>Gets a text representation of a matrix.</summary>
+    /// <param name="data">A 1D-array from a matrix.</param>
     /// <param name="rowCount">Number of rows.</param>
     /// <param name="colCount">Number of columns.</param>
-    /// <param name="data">A 1D-array from a matrix.</param>
     /// <param name="formatter">Converts items to text.</param>
     /// <param name="triangularity">Which part of the matrix is significative.</param>
     /// <returns>A text representation of the matrix.</returns>
-    public static string ToString(int rowCount, int colCount, double[] data,
+    public static string ToString(this double[] data, int rowCount, int colCount,
         Func<double, string> formatter, sbyte triangularity)
     {
         const int upperRows = 8, lowerRows = 4, minLeftColumns = 5, rightColumns = 2;

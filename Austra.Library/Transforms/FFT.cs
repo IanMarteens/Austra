@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Transforms;
 
 /// <summary>Provides both complex and real Fast Fourier Transforms.</summary>
 public static class FFT

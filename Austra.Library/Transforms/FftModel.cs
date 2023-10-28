@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Transforms;
 
 /// <summary>Represents the result of a Fast Fourier Transform.</summary>
 public abstract class FftModel

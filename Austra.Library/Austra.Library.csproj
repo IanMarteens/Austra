@@ -39,7 +39,9 @@
   </ItemGroup>
 
 	<ItemGroup>
+		<Using Include="Austra.Library.Dates"/>
 		<Using Include="Austra.Library.Stats"/>
+		<Using Include="Austra.Library.Transforms"/>
 		<Using Include="Austra.Library.Helpers"/>
 		<Using Include="System" />
 		<Using Include="System.Math" Static="true" />

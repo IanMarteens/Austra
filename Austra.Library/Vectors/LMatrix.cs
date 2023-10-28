@@ -52,7 +52,7 @@ public readonly struct LMatrix :
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     public LMatrix(Vector diagonal) =>
-        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
+        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, diagonal.CreateDiagonal());
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
     /// <param name="rows">Number of rows.</param>
@@ -180,13 +180,13 @@ public readonly struct LMatrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
-        return CommonMatrix.Diagonal(Rows, Cols, values);
+        return values.Diagonal(Rows, Cols);
     }
 
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Trace() => CommonMatrix.Trace(Rows, Cols, values);
+    public double Trace() => values.Trace(Rows, Cols);
 
     /// <summary>Gets the value at a single cell.</summary>
     /// <param name="row">The row number, between 0 and Rows - 1.</param>
@@ -953,7 +953,7 @@ public readonly struct LMatrix :
 
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
-    public double Determinant() => CommonMatrix.DiagonalProduct(Rows, Cols, values);
+    public double Determinant() => values.DiagonalProduct(Rows, Cols);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
@@ -1016,14 +1016,14 @@ public readonly struct LMatrix :
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
-        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString("G6"), -1);
+        values.ToString(Rows, Cols, v => v.ToString("G6"), -1);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
-        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString(format, provider), -1);
+        values.ToString(Rows, Cols, v => v.ToString(format, provider), -1);
 }
 
 /// <summary>JSON converter for triangular matrices.</summary>

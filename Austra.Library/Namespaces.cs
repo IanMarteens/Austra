@@ -38,6 +38,14 @@ namespace Austra.Library.Stats
     [CompilerGenerated()] class NamespaceDoc { }
 }
 
+namespace Austra.Library.Transforms
+{
+    /// <summary>
+    /// Contains the implementation of the Fast Fourier Transform.
+    /// </summary>
+    [CompilerGenerated()] class NamespaceDoc { }
+}
+
 namespace Austra.Parser
 {
     /// <summary>

@@ -1,6 +1,6 @@
 ﻿namespace Austra.Library;
 
-/// <summary>A simple solver for a function f(x) = 0.</summary>
+/// <summary>A simple solver for equations of the form f(x) = 0.</summary>
 public static class Solver
 {
     /// <summary>Performs a Newton-Raphson iteration to find a root of f(x) = 0.</summary>

@@ -486,7 +486,7 @@ public readonly struct ComplexVector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The dot product of the operands.</returns>
-    public static unsafe Complex operator *(ComplexVector v1, ComplexVector v2)
+    public static Complex operator *(ComplexVector v1, ComplexVector v2)
     {
         Contract.Requires(v1.IsInitialized);
         Contract.Requires(v2.IsInitialized);
@@ -494,60 +494,59 @@ public readonly struct ComplexVector :
             throw new VectorLengthException();
         Contract.EndContractBlock();
 
-        fixed (double* pr = v1.re, pi = v1.im, qr = v2.re, qi = v2.im)
+        ref double pr = ref MemoryMarshal.GetArrayDataReference(v1.re);
+        ref double pi = ref MemoryMarshal.GetArrayDataReference(v1.im);
+        ref double qr = ref MemoryMarshal.GetArrayDataReference(v2.re);
+        ref double qi = ref MemoryMarshal.GetArrayDataReference(v2.im);
+        double sumRe = 0, sumIm = 0;
+        int i = 0, size = v1.Length;
+        if (Avx.IsSupported)
         {
-            double sumRe = 0, sumIm = 0;
-            int i = 0, size = v1.Length;
-            if (Avx.IsSupported)
+            Vector256<double> accRe = Vector256<double>.Zero;
+            Vector256<double> accIm = Vector256<double>.Zero;
+            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
             {
-                Vector256<double> accRe = Vector256<double>.Zero;
-                Vector256<double> accIm = Vector256<double>.Zero;
-                for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> vpr = Avx.LoadVector256(pr + i);
-                    Vector256<double> vpi = Avx.LoadVector256(pi + i);
-                    Vector256<double> vqr = Avx.LoadVector256(qr + i);
-                    Vector256<double> vqi = Avx.LoadVector256(qi + i);
-                    accRe = Avx.Add(accRe, Avx.Multiply(vpr, vqr).MultiplyAdd(vpi, vqi));
-                    accIm = Avx.Add(accIm, Avx.Multiply(vpi, vqr).MultiplySub(vpr, vqi));
-                }
-                sumRe = accRe.Sum();
-                sumIm = accIm.Sum();
+                Vector256<double> vpr = V4.LoadUnsafe(ref Add(ref pr, i));
+                Vector256<double> vpi = V4.LoadUnsafe(ref Add(ref pi, i));
+                Vector256<double> vqr = V4.LoadUnsafe(ref Add(ref qr, i));
+                Vector256<double> vqi = V4.LoadUnsafe(ref Add(ref qi, i));
+                accRe += (vpr * vqr).MultiplyAdd(vpi, vqi);
+                accIm += (vpi * vqr).MultiplySub(vpr, vqi);
             }
-            for (; i < size; i++)
-            {
-                sumRe += pr[i] * qr[i] + pi[i] * qi[i];
-                sumIm += pi[i] * qr[i] - pr[i] * qi[i];
-            }
-            return new(sumRe, sumIm);
+            sumRe = accRe.Sum();
+            sumIm = accIm.Sum();
         }
+        for (; i < size; i++)
+        {
+            sumRe += Add(ref pr, i) * Add(ref qr, i) + Add(ref pi, i) * Add(ref qi, i);
+            sumIm += Add(ref pi, i) * Add(ref qr, i) - Add(ref pr, i) * Add(ref qi, i);
+        }
+        return new(sumRe, sumIm);
     }
 
     /// <summary>Gets the squared norm of this vector.</summary>
     /// <returns>The dot product with itself.</returns>
-    public unsafe double Squared()
+    public double Squared()
     {
         Contract.Requires(IsInitialized);
-
-        fixed (double* p = re, q = im)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        double sum = 0;
+        int i = 0;
+        if (Avx.IsSupported)
         {
-            double sum = 0;
-            int i = 0;
-            if (Avx.IsSupported)
+            Vector256<double> acc = Vector256<double>.Zero;
+            for (int top = Length & Simd.AVX_MASK; i < top; i += 4)
             {
-                Vector256<double> acc = Vector256<double>.Zero;
-                for (int top = Length & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> v = Avx.LoadVector256(p + i);
-                    Vector256<double> w = Avx.LoadVector256(q + i);
-                    acc = Avx.Add(acc, Avx.Multiply(v, v).MultiplyAdd(w, w));
-                }
-                sum = acc.Sum();
+                Vector256<double> v = V4.LoadUnsafe(ref Add(ref p, i));
+                Vector256<double> w = V4.LoadUnsafe(ref Add(ref q, i));
+                acc += (v * v).MultiplyAdd(w, w);
             }
-            for (; i < Length; i++)
-                sum += re[i] * re[i] + im[i] * im[i];
-            return sum;
+            sum = acc.Sum();
         }
+        for (; i < Length; i++)
+            sum += Add(ref p, i) * Add(ref p, i) + Add(ref q, i) * Add(ref q, i);
+        return sum;
     }
 
     /// <summary>Gets the Euclidean norm of this vector.</summary>
@@ -597,7 +596,6 @@ public readonly struct ComplexVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-
         return new(new Vector(v.re) * d, new Vector(v.im) * d);
     }
 
@@ -636,7 +634,6 @@ public readonly struct ComplexVector :
     public Complex Sum()
     {
         Contract.Requires(IsInitialized);
-
         return new(new Vector(re).Sum(), new Vector(im).Sum());
     }
 
@@ -655,23 +652,23 @@ public readonly struct ComplexVector :
     /// </summary>
     /// <param name="n">The number of amplitudes to be returned.</param>
     /// <returns>A new vector with magnitudes.</returns>
-    internal unsafe Vector Magnitudes(int n)
+    internal Vector Magnitudes(int n)
     {
         double[] result = GC.AllocateUninitializedArray<double>(n);
-        fixed (double* p = re, q = im, r = result)
-        {
-            int i = 0;
-            if (Avx.IsSupported)
-                for (int top = n & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> v = Avx.LoadVector256(p + i);
-                    Vector256<double> w = Avx.LoadVector256(q + i);
-                    Avx.Store(r + i, Avx.Sqrt(Avx.Multiply(v, v).MultiplyAdd(w, w)));
-                }
-            for (; i < n; i++)
-                r[i] = Sqrt(re[i] * re[i] + im[i] * im[i]);
-            return result;
-        }
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double r = ref MemoryMarshal.GetArrayDataReference(result);
+        int i = 0;
+        if (Avx.IsSupported)
+            for (int top = n & Simd.AVX_MASK; i < top; i += 4)
+            {
+                Vector256<double> v = V4.LoadUnsafe(ref Add(ref p, i));
+                Vector256<double> w = V4.LoadUnsafe(ref Add(ref q, i));
+                V4.StoreUnsafe(Avx.Sqrt((v * v).MultiplyAdd(w, w)), ref Add(ref r, i));
+            }
+        for (; i < n; i++)
+            Add(ref r, i) = Sqrt(Add(ref p, i) * Add(ref p, i) + Add(ref q, i) * Add(ref q, i));
+        return result;
     }
 
     /// <summary>
@@ -683,7 +680,6 @@ public readonly struct ComplexVector :
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
-
         return Magnitudes(Length);
     }
 
@@ -706,7 +702,7 @@ public readonly struct ComplexVector :
                 {
                     Vector256<double> v = Avx.LoadVector256(p + i);
                     Vector256<double> w = Avx.LoadVector256(q + i);
-                    max = Avx.Max(max, Avx.Sqrt(Avx.Multiply(v, v).MultiplyAdd(w, w)));
+                    max = Avx.Max(max, Avx.Sqrt((v * v).MultiplyAdd(w, w)));
                 }
                 result = max.Max();
             }
@@ -747,7 +743,6 @@ public readonly struct ComplexVector :
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
-
         return Phases(Length);
     }
 
@@ -817,7 +812,7 @@ public readonly struct ComplexVector :
     }
 
     /// <summary>
-    /// Creates a new complex vector by filtering the items with the given predicate.
+    /// Creates a new complex vector by filtering this vector's items with the given predicate.
     /// </summary>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new vector with the filtered items.</returns>
@@ -886,7 +881,7 @@ public readonly struct ComplexVector :
     /// <returns>Space-separated components.</returns>
     public override string ToString() =>
         $"ans ∊ ℂ({Length})" + Environment.NewLine +
-        CommonMatrix.ToString((Complex[])this, v => v.ToString("G6"));
+        ((Complex[])this).ToString(v => v.ToString("G6"));
 
     /// <summary>Gets a textual representation of this vector.</summary>
     /// <param name="format">A format specifier.</param>
@@ -894,7 +889,7 @@ public readonly struct ComplexVector :
     /// <returns>Space-separated components.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℂ({Length})" + Environment.NewLine +
-        CommonMatrix.ToString((Complex[])this, v => v.ToString(format, provider));
+        ((Complex[])this).ToString(v => v.ToString(format, provider));
 
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>

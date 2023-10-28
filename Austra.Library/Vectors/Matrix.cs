@@ -100,7 +100,7 @@ public readonly struct Matrix :
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     public Matrix(Vector diagonal) =>
-        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
+        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, diagonal.CreateDiagonal());
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
@@ -373,13 +373,13 @@ public readonly struct Matrix :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
 
-        return CommonMatrix.Diagonal(Rows, Cols, values);
+        return values.Diagonal(Rows, Cols);
     }
 
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Trace() => CommonMatrix.Trace(Rows, Cols, values);
+    public double Trace() => values.Trace(Rows, Cols);
 
     /// <summary>Gets or sets the value of a single cell.</summary>
     /// <param name="row">The row number, between 0 and Rows - 1.</param>
@@ -663,7 +663,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
-        return new(m1.Rows, m1.Cols, CommonMatrix.AddV(m1.values, m2.values));
+        return new(m1.Rows, m1.Cols, m1.values.AddV(m2.values));
     }
 
     /// <summary>Subtracts two matrices with the same size.</summary>
@@ -680,7 +680,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
-        return new(m1.Rows, m1.Cols, CommonMatrix.SubV(m1.values, m2.values));
+        return new(m1.Rows, m1.Cols, m1.values.SubV(m2.values));
     }
 
     /// <summary>Negates a matrix.</summary>
@@ -691,7 +691,7 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, CommonMatrix.NegV(m.values));
+        return new(m.Rows, m.Cols, m.values.NegV());
     }
 
     /// <summary>Adds a scalar to a matrix.</summary>
@@ -703,7 +703,7 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, CommonMatrix.AddV(m.values, d));
+        return new(m.Rows, m.Cols, m.values.AddV(d));
     }
 
     /// <summary>Adds a scalar to a matrix.</summary>
@@ -722,7 +722,7 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, CommonMatrix.SubV(m.values, d));
+        return new(m.Rows, m.Cols, m.values.SubV(d));
     }
 
     /// <summary>Subtracts a matrix from a scalar.</summary>
@@ -749,7 +749,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
-        return new(Rows, Cols, CommonMatrix.MulV(values, m.values));
+        return new(Rows, Cols, values.MulV(m.values));
     }
 
     /// <summary>Cell by cell division with a second matrix.</summary>
@@ -764,7 +764,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
-        return new(Rows, Cols, CommonMatrix.DivV(values, m.values));
+        return new(Rows, Cols, values.DivV(m.values));
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>
@@ -776,7 +776,7 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, CommonMatrix.MulV(m.values, d));
+        return new(m.Rows, m.Cols, m.values.MulV(d));
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>
@@ -1223,7 +1223,7 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
-        return CommonMatrix.Distance(values, m.values);
+        return values.Distance(m.values);
     }
 
     /// <summary>Gets the cell with the maximum absolute value.</summary>
@@ -1231,7 +1231,7 @@ public readonly struct Matrix :
     public double AMax()
     {
         Contract.Requires(IsInitialized);
-        return CommonMatrix.AbsoluteMaximum(values);
+        return values.AbsoluteMaximum();
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
@@ -1239,7 +1239,7 @@ public readonly struct Matrix :
     public double AMin()
     {
         Contract.Requires(IsInitialized);
-        return CommonMatrix.AbsoluteMinimum(values);
+        return values.AbsoluteMinimum();
     }
 
     /// <summary>Gets the cell with the maximum value.</summary>
@@ -1247,7 +1247,7 @@ public readonly struct Matrix :
     public double Maximum()
     {
         Contract.Requires(IsInitialized);
-        return CommonMatrix.Maximum(values);
+        return values.Maximum();
     }
 
     /// <summary>Gets the cell with the minimum value.</summary>
@@ -1255,7 +1255,7 @@ public readonly struct Matrix :
     public double Minimum()
     {
         Contract.Requires(IsInitialized);
-        return CommonMatrix.Minimum(values);
+        return values.Minimum();
     }
 
     /// <summary>Applies a function to each cell of the matrix.</summary>
@@ -1299,8 +1299,7 @@ public readonly struct Matrix :
     /// <param name="other">The matrix to be compared.</param>
     /// <returns><see langword="true"/> if the second matrix has the same values.</returns>
     public unsafe bool Equals(Matrix other) => 
-        Rows == other.Rows && Cols == other.Cols &&
-        CommonMatrix.EqualsV(values, other.values);
+        Rows == other.Rows && Cols == other.Cols && values.EqualsV(other.values);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
@@ -1353,7 +1352,7 @@ public readonly struct Matrix :
     /// <returns>One line for each row, with space separated columns.</returns>
     public override string ToString() =>
         $"ans ∊ ℝ({Rows}⨯{Cols})" + Environment.NewLine +
-        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString("G6"), 0);
+        values.ToString(Rows, Cols, v => v.ToString("G6"), 0);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
@@ -1361,7 +1360,7 @@ public readonly struct Matrix :
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℝ({Rows}⨯{Cols})" + Environment.NewLine +
-        CommonMatrix.ToString(Rows, Cols, values, v => v.ToString(format, provider), 0);
+        values.ToString(Rows, Cols, v => v.ToString(format, provider), 0);
 }
 
 /// <summary>JSON converter for rectangular matrices.</summary>

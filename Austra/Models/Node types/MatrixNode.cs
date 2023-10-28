@@ -35,6 +35,6 @@ public class MatrixNode : VarNode<AMatrix>
     public override void Show() =>
         RootModel.Instance.AppendResult(Formula,
             $"ans ∊ ℝ({Model.Rows}⨯{Model.Cols})" + Environment.NewLine +
-            CommonMatrix.ToString(Model.Rows, Model.Cols,
-                (double[])Model, v => v.ToString("G6"), triangularity));
+            ((double[])Model).ToString(Model.Rows, Model.Cols,
+                v => v.ToString("G6"), triangularity));
 }

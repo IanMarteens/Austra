@@ -28,6 +28,7 @@
 		<Using Include="Austra.Library" />
 		<Using Include="Austra.Library.Dates"/>
 		<Using Include="Austra.Library.Stats"/>
+		<Using Include="Austra.Library.Transforms"/>
 		<Using Include="Austra.Library.Helpers"/>
 		<Using Include="System" />
 		<Using Include="NUnit.Framework" />
