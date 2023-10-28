@@ -394,13 +394,13 @@ public readonly struct Vector :
         int i = 0;
         ref double p = ref MemoryMarshal.GetArrayDataReference(v1.values);
         ref double q = ref MemoryMarshal.GetArrayDataReference(v2.values);
-        if (Vector256.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated)
         {
             Vector256<double> acc = Vector256<double>.Zero;
             for (int top = v1.values.Length & Simd.AVX_MASK; i < top; i += Vector256<double>.Count)
                 acc = acc.MultiplyAdd(
-                    Vector256.LoadUnsafe(ref Add(ref p, i)),
-                    Vector256.LoadUnsafe(ref Add(ref q, i)));
+                    V4.LoadUnsafe(ref Add(ref p, i)),
+                    V4.LoadUnsafe(ref Add(ref q, i)));
             sum = acc.Sum();
         }
         for (; i < v1.values.Length; i++)
@@ -421,13 +421,13 @@ public readonly struct Vector :
         double sum = 0d;
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double q = ref Add(ref p, values.Length);
-        if (Vector256.IsHardwareAccelerated && Length > Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && Length > Vector256<double>.Count)
         {
             ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
             Vector256<double> acc = Vector256<double>.Zero;
             do
             {
-                Vector256<double> v = Vector256.LoadUnsafe(ref p);
+                Vector256<double> v = V4.LoadUnsafe(ref p);
                 acc = acc.MultiplyAdd(v, v);
                 p = ref Add(ref p, Vector256<double>.Count);
             }
@@ -504,19 +504,19 @@ public readonly struct Vector :
         ref double q = ref MemoryMarshal.GetArrayDataReference(multiplier.values);
         ref double r = ref MemoryMarshal.GetArrayDataReference(summand.values);
         ref double s = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref r, i)).MultiplyAdd(
-                        Vector256.LoadUnsafe(ref Add(ref p, i)),
-                        Vector256.LoadUnsafe(ref Add(ref q, i))),
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref r, i)).MultiplyAdd(
+                        V4.LoadUnsafe(ref Add(ref p, i)),
+                        V4.LoadUnsafe(ref Add(ref q, i))),
                     ref Add(ref s, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref r, t)).MultiplyAdd(
-                    Vector256.LoadUnsafe(ref Add(ref p, t)),
-                    Vector256.LoadUnsafe(ref Add(ref q, t))),
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref r, t)).MultiplyAdd(
+                    V4.LoadUnsafe(ref Add(ref p, t)),
+                    V4.LoadUnsafe(ref Add(ref q, t))),
                 ref Add(ref s, t));
         }
         else
@@ -542,16 +542,16 @@ public readonly struct Vector :
         ref double s = ref MemoryMarshal.GetArrayDataReference(result);
         if (Fma.IsSupported)
         {
-            Vector256<double> vq = Vector256.Create(multiplier);
+            Vector256<double> vq = V4.Create(multiplier);
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += 4)
-                Vector256.StoreUnsafe(
-                    Fma.MultiplyAdd(Vector256.LoadUnsafe(ref Add(ref p, i)), vq,
-                        Vector256.LoadUnsafe(ref Add(ref r, i))),
+                V4.StoreUnsafe(
+                    Fma.MultiplyAdd(V4.LoadUnsafe(ref Add(ref p, i)), vq,
+                        V4.LoadUnsafe(ref Add(ref r, i))),
                     ref Add(ref s, i));
-            Vector256.StoreUnsafe(
-                Fma.MultiplyAdd(Vector256.LoadUnsafe(ref Add(ref p, t)), vq,
-                    Vector256.LoadUnsafe(ref Add(ref r, t))),
+            V4.StoreUnsafe(
+                Fma.MultiplyAdd(V4.LoadUnsafe(ref Add(ref p, t)), vq,
+                    V4.LoadUnsafe(ref Add(ref r, t))),
                 ref Add(ref s, t));
         }
         for (int i = 0; i < result.Length; i++)
@@ -580,19 +580,19 @@ public readonly struct Vector :
         ref double q = ref MemoryMarshal.GetArrayDataReference(multiplier.values);
         ref double r = ref MemoryMarshal.GetArrayDataReference(subtrahend.values);
         ref double s = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref r, i)).MultiplySub(
-                        Vector256.LoadUnsafe(ref Add(ref p, i)),
-                        Vector256.LoadUnsafe(ref Add(ref q, i))),
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref r, i)).MultiplySub(
+                        V4.LoadUnsafe(ref Add(ref p, i)),
+                        V4.LoadUnsafe(ref Add(ref q, i))),
                     ref Add(ref s, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref r, t)).MultiplySub(
-                    Vector256.LoadUnsafe(ref Add(ref p, t)),
-                    Vector256.LoadUnsafe(ref Add(ref q, t))),
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref r, t)).MultiplySub(
+                    V4.LoadUnsafe(ref Add(ref p, t)),
+                    V4.LoadUnsafe(ref Add(ref q, t))),
                 ref Add(ref s, t));
         }
         else
@@ -621,16 +621,16 @@ public readonly struct Vector :
         ref double s = ref MemoryMarshal.GetArrayDataReference(result);
         if (Fma.IsSupported)
         {
-            Vector256<double> vq = Vector256.Create(multiplier);
+            Vector256<double> vq = V4.Create(multiplier);
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += 4)
-                Vector256.StoreUnsafe(
-                    Fma.MultiplySubtract(Vector256.LoadUnsafe(ref Add(ref p, i)), vq,
-                        Vector256.LoadUnsafe(ref Add(ref r, i))),
+                V4.StoreUnsafe(
+                    Fma.MultiplySubtract(V4.LoadUnsafe(ref Add(ref p, i)), vq,
+                        V4.LoadUnsafe(ref Add(ref r, i))),
                     ref Add(ref s, i));
-            Vector256.StoreUnsafe(
-                Fma.MultiplySubtract(Vector256.LoadUnsafe(ref Add(ref p, t)), vq,
-                    Vector256.LoadUnsafe(ref Add(ref r, t))),
+            V4.StoreUnsafe(
+                Fma.MultiplySubtract(V4.LoadUnsafe(ref Add(ref p, t)), vq,
+                    V4.LoadUnsafe(ref Add(ref r, t))),
                 ref Add(ref s, t));
         }
         for (int i = 0; i < result.Length; i++)
@@ -669,7 +669,7 @@ public readonly struct Vector :
                     double w = weights[firstW + i];
                     if (Avx.IsSupported)
                     {
-                        Vector256<double> vec = Vector256.Create(w);
+                        Vector256<double> vec = V4.Create(w);
                         for (int top = size & Simd.AVX_MASK; j < top; j += 4)
                             Avx.Store(p + j, Avx.LoadVector256(p + j).MultiplyAdd(pa + j, vec));
                     }
@@ -701,20 +701,20 @@ public readonly struct Vector :
         ref double c = ref MemoryMarshal.GetArrayDataReference(values);
         if (Fma.IsSupported)
         {
-            Vector256<double> vw1 = Vector256.Create(w1), vw2 = Vector256.Create(w2);
+            Vector256<double> vw1 = V4.Create(w1), vw2 = V4.Create(w2);
             int t = values.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += 4)
-                Vector256.StoreUnsafe(
+                V4.StoreUnsafe(
                     Fma.MultiplyAdd(
-                        Vector256.LoadUnsafe(ref Add(ref a, i)),
+                        V4.LoadUnsafe(ref Add(ref a, i)),
                         vw1,
-                        Vector256.LoadUnsafe(ref Add(ref b, i)) * vw2),
+                        V4.LoadUnsafe(ref Add(ref b, i)) * vw2),
                     ref Add(ref c, i));
-            Vector256.StoreUnsafe(
+            V4.StoreUnsafe(
                 Fma.MultiplyAdd(
-                    Vector256.LoadUnsafe(ref Add(ref a, t)),
+                    V4.LoadUnsafe(ref Add(ref a, t)),
                     vw1,
-                    Vector256.LoadUnsafe(ref Add(ref b, t)) * vw2),
+                    V4.LoadUnsafe(ref Add(ref b, t)) * vw2),
                 ref Add(ref c, t));
         }
         else
@@ -747,13 +747,13 @@ public readonly struct Vector :
         double result = 0d;
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double q = ref Add(ref p, values.Length);
-        if (Vector256.IsHardwareAccelerated && Length > Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && Length > Vector256<double>.Count)
         {
             ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
             Vector256<double> sum = Vector256<double>.Zero;
             do
             {
-                sum += Vector256.LoadUnsafe(ref p);
+                sum += V4.LoadUnsafe(ref p);
                 p = ref Add(ref p, Vector256<double>.Count);
             }
             while (IsAddressLessThan(ref p, ref last));
@@ -773,13 +773,13 @@ public readonly struct Vector :
         double result = 1d;
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double q = ref Add(ref p, values.Length);
-        if (Vector256.IsHardwareAccelerated && Length > Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && Length > Vector256<double>.Count)
         {
             ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
-            Vector256<double> prod = Vector256.Create(1d);
+            Vector256<double> prod = V4.Create(1d);
             do
             {
-                prod *= Vector256.LoadUnsafe(ref p);
+                prod *= V4.LoadUnsafe(ref p);
                 p = ref Add(ref p, Vector256<double>.Count);
             }
             while (IsAddressLessThan(ref p, ref last));
@@ -804,15 +804,15 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.Sqrt(Vector256.LoadUnsafe(ref Add(ref p, i))),
+                V4.StoreUnsafe(
+                    V4.Sqrt(V4.LoadUnsafe(ref Add(ref p, i))),
                     ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                Vector256.Sqrt(Vector256.LoadUnsafe(ref Add(ref p, t))),
+            V4.StoreUnsafe(
+                V4.Sqrt(V4.LoadUnsafe(ref Add(ref p, t))),
                 ref Add(ref q, t));
         }
         else
@@ -831,15 +831,15 @@ public readonly struct Vector :
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.Abs(Vector256.LoadUnsafe(ref Add(ref p, i))),
+                V4.StoreUnsafe(
+                    V4.Abs(V4.LoadUnsafe(ref Add(ref p, i))),
                     ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                Vector256.Abs(Vector256.LoadUnsafe(ref Add(ref p, t))),
+            V4.StoreUnsafe(
+                V4.Abs(V4.LoadUnsafe(ref Add(ref p, t))),
                 ref Add(ref q, t));
         }
         else
@@ -938,7 +938,7 @@ public readonly struct Vector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                Vector256<double> avg = Vector256.Create(average);
+                Vector256<double> avg = V4.Create(average);
                 Vector256<double> vex = Vector256<double>.Zero;
                 Vector256<double> vey = Vector256<double>.Zero;
                 Vector256<double> vexx = Vector256<double>.Zero;
@@ -1198,7 +1198,7 @@ public readonly struct Vector :
             double* q = p + from;
             if (Avx.IsSupported)
             {
-                Vector256<double> v = Vector256.Create(value);
+                Vector256<double> v = V4.Create(value);
                 for (int top = size & Simd.AVX_MASK; i < top; i += 4)
                 {
                     int mask = Avx.MoveMask(Avx.CompareEqual(Avx.LoadVector256(q + i), v));

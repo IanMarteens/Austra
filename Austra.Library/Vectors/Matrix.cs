@@ -835,7 +835,7 @@ public readonly struct Matrix :
                     double d = pa[k];
                     int j = 0;
                     if (Avx.IsSupported)
-                        for (Vector256<double> vd = Vector256.Create(d); j < top; j += 4)
+                        for (Vector256<double> vd = V4.Create(d); j < top; j += 4)
                             Avx.Store(pc + j,
                                 Avx.LoadVector256(pc + j).MultiplyAdd(pb + j, vd));
                     for (; j < p; j++)
@@ -869,7 +869,7 @@ public readonly struct Matrix :
                                 double d = pa[k];
                                 int j = jj;
                                 if (Avx.IsSupported)
-                                    for (var vd = Vector256.Create(d); j < top; j += 16)
+                                    for (var vd = V4.Create(d); j < top; j += 16)
                                     {
                                         Avx.Store(pc + j, Avx.LoadVector256(pc + j)
                                             .MultiplyAdd(pb + j, vd));
@@ -912,7 +912,7 @@ public readonly struct Matrix :
                                 double d = pa[k];
                                 int j = jj;
                                 if (Avx.IsSupported)
-                                    for (var vd = Vector256.Create(d); j < top; j += 16)
+                                    for (var vd = V4.Create(d); j < top; j += 16)
                                     {
                                         Avx.Store(pc + j, Avx.LoadVector256(pc + j)
                                             .MultiplyAdd(pb + j, vd));
@@ -1007,12 +1007,12 @@ public readonly struct Matrix :
         {
             int j = 0;
             double d = 0;
-            if (Vector256.IsHardwareAccelerated)
+            if (V4.IsHardwareAccelerated)
             {
                 Vector256<double> vec = Vector256<double>.Zero;
                 for (; j < top; j += Vector256<double>.Count)
-                    vec = vec.MultiplyAdd(Vector256.LoadUnsafe(ref Add(ref a, j)),
-                        Vector256.LoadUnsafe(ref Add(ref x, j)));
+                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
+                        V4.LoadUnsafe(ref Add(ref x, j)));
                 d = vec.Sum();
             }
             for (; j < c; j++)
@@ -1058,7 +1058,7 @@ public readonly struct Matrix :
                 int j = 0;
                 if (Avx.IsSupported)
                 {
-                    Vector256<double> vec = Vector256.Create(d);
+                    Vector256<double> vec = V4.Create(d);
                     for (int last = c & Simd.AVX_MASK; j < last; j += 4)
                         Avx.Store(pC + j, Avx.LoadVector256(pC + j).MultiplyAdd(pAk + j, vec));
                 }

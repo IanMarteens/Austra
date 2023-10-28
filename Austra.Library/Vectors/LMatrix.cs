@@ -54,9 +54,7 @@ public readonly struct LMatrix :
     public LMatrix(Vector diagonal) =>
         (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
 
-    /// <summary>
-    /// Creates a matrix filled with a uniform distribution generator.
-    /// </summary>
+    /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="random">A random number generator.</param>
@@ -84,7 +82,7 @@ public readonly struct LMatrix :
         ref double cell = ref MemoryMarshal.GetArrayDataReference(values);
         for (int r = 0; r < rows; r++)
             for (int c = 0, top = Min(cols, r + 1); c < top; c++)
-                Unsafe.Add(ref cell, r * cols + c) = random.NextDouble();
+                Add(ref cell, r * cols + c) = random.NextDouble();
     }
 
     /// <summary>
@@ -103,7 +101,7 @@ public readonly struct LMatrix :
     /// <param name="random">A random standard normal generator.</param>
     public LMatrix(int rows, int cols, NormalRandom random)
     {
-        (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         ref double cell = ref MemoryMarshal.GetArrayDataReference(values);
         // First row is special!
         cell = random.NextDouble();
@@ -111,9 +109,9 @@ public readonly struct LMatrix :
         {
             int c = 0, top = Min(cols, r + 1);
             for (int t = top & ~1; c < t; c += 2)
-                random.NextDoubles(ref Unsafe.Add(ref cell, r * cols + c));
+                random.NextDoubles(ref Add(ref cell, r * cols + c));
             if (c < top)
-                Unsafe.Add(ref cell, r * cols + c) = random.NextDouble();
+                Add(ref cell, r * cols + c) = random.NextDouble();
         }
     }
 
@@ -150,7 +148,7 @@ public readonly struct LMatrix :
     /// <param name="m">The original matrix.</param>
     /// <returns>The underlying onedimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe explicit operator double[](LMatrix m) => m.values;
+    public static explicit operator double[](LMatrix m) => m.values;
 
     /// <summary>
     /// Explicit conversion from a triangular matrix to a rectangular one.
@@ -182,7 +180,6 @@ public readonly struct LMatrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
-
         return CommonMatrix.Diagonal(Rows, Cols, values);
     }
 

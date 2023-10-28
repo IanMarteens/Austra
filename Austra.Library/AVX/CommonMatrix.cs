@@ -66,8 +66,8 @@ public static class CommonMatrix
     /// <returns>The sum of the cells in the main diagonal.</returns>
     public static double Trace(int rows, int cols, double[] values)
     {
-        ArgumentNullException.ThrowIfNull(values);
-
+        if (values is null)
+            return 0;
         double trace = 0;
         int r = cols + 1, size = Min(rows, cols);
         if (size <= 4)
@@ -99,14 +99,14 @@ public static class CommonMatrix
     /// <returns>The maximum absolute value in the samples.</returns>
     public static double AbsoluteMaximum(double[] array)
     {
-        if (Vector256.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
         {
             ref double p = ref MemoryMarshal.GetArrayDataReference(array);
             ref double last = ref Add(ref p, array.Length - Vector256<double>.Count);
-            Vector256<double> vm = Vector256.Abs(Vector256.LoadUnsafe(ref p));
+            Vector256<double> vm = V4.Abs(V4.LoadUnsafe(ref p));
             for (; IsAddressLessThan(ref p, ref last); p = ref Add(ref p, Vector256<double>.Count))
-                vm = Vector256.Max(vm, Vector256.Abs(Vector256.LoadUnsafe(ref p)));
-            return Vector256.Max(vm, Vector256.Abs(Vector256.LoadUnsafe(ref last))).Max();
+                vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p)));
+            return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref last))).Max();
         }
         double max = 0;
         for (int i = 0; i < array.Length; i++)
@@ -123,14 +123,14 @@ public static class CommonMatrix
     /// <returns>The minimum absolute value in the samples.</returns>
     public static double AbsoluteMinimum(double[] array)
     {
-        if (Vector256.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
         {
             ref double p = ref MemoryMarshal.GetArrayDataReference(array);
             ref double last = ref Add(ref p, array.Length - Vector256<double>.Count);
-            Vector256<double> vm = Vector256.Abs(Vector256.LoadUnsafe(ref p));
+            Vector256<double> vm = V4.Abs(V4.LoadUnsafe(ref p));
             for (; IsAddressLessThan(ref p, ref last); p = ref Add(ref p, Vector256<double>.Count))
-                vm = Vector256.Min(vm, Vector256.Abs(Vector256.LoadUnsafe(ref p)));
-            return Vector256.Min(vm, Vector256.Abs(Vector256.LoadUnsafe(ref last))).Min();
+                vm = V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref p)));
+            return V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref last))).Min();
         }
         double min = 0;
         for (int i = 0; i < array.Length; i++)
@@ -153,7 +153,7 @@ public static class CommonMatrix
         if (Avx.IsSupported && size >= 8)
         {
             Vector256<double> z = Vector256<double>.Zero;
-            Vector256<double> vm = Vector256.Create(min);
+            Vector256<double> vm = V4.Create(min);
             for (int top = size & Simd.AVX_MASK; i < top; i += 4)
             {
                 Vector256<double> v = Avx.LoadVector256(p + i);
@@ -176,14 +176,14 @@ public static class CommonMatrix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Maximum(double[] values)
     {
-        if (Vector256.IsHardwareAccelerated && values.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && values.Length >= Vector256<double>.Count)
         {
             ref double p = ref MemoryMarshal.GetArrayDataReference(values);
             ref double last = ref Add(ref p, values.Length - Vector256<double>.Count);
-            Vector256<double> vm = Vector256.LoadUnsafe(ref p);
+            Vector256<double> vm = V4.LoadUnsafe(ref p);
             for (; IsAddressLessThan(ref p, ref last); p = ref Add(ref p, Vector256<double>.Count))
-                vm = Avx.Max(vm, Vector256.LoadUnsafe(ref p));
-            vm = Avx.Max(vm, Vector256.LoadUnsafe(ref last));
+                vm = Avx.Max(vm, V4.LoadUnsafe(ref p));
+            vm = Avx.Max(vm, V4.LoadUnsafe(ref last));
             return vm.Max();
         }
         double max = double.MaxValue;
@@ -199,14 +199,14 @@ public static class CommonMatrix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Minimum(double[] values)
     {
-        if (Vector256.IsHardwareAccelerated && values.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && values.Length >= Vector256<double>.Count)
         {
             ref double p = ref MemoryMarshal.GetArrayDataReference(values);
             ref double last = ref Add(ref p, values.Length - Vector256<double>.Count);
-            Vector256<double> vm = Vector256.LoadUnsafe(ref p);
+            Vector256<double> vm = V4.LoadUnsafe(ref p);
             for (; IsAddressLessThan(ref p, ref last); p = ref Add(ref p, Vector256<double>.Count))
-                vm = Avx.Min(vm, Vector256.LoadUnsafe(ref p));
-            vm = Avx.Min(vm, Vector256.LoadUnsafe(ref last));
+                vm = Avx.Min(vm, V4.LoadUnsafe(ref p));
+            vm = Avx.Min(vm, V4.LoadUnsafe(ref last));
             return vm.Min();
         }
         double min = double.MaxValue;
@@ -226,15 +226,15 @@ public static class CommonMatrix
         ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
         ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i)) + Vector256.LoadUnsafe(ref Add(ref b, i)),
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref a, i)) + V4.LoadUnsafe(ref Add(ref b, i)),
                     ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) + Vector256.LoadUnsafe(ref Add(ref b, t)),
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref a, t)) + V4.LoadUnsafe(ref Add(ref b, t)),
                 ref Add(ref c, t));
         }
         else
@@ -253,15 +253,15 @@ public static class CommonMatrix
         ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
         ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i)) - Vector256.LoadUnsafe(ref Add(ref b, i)),
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref a, i)) - V4.LoadUnsafe(ref Add(ref b, i)),
                     ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) - Vector256.LoadUnsafe(ref Add(ref b, t)),
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref a, t)) - V4.LoadUnsafe(ref Add(ref b, t)),
                 ref Add(ref c, t));
         }
         else
@@ -279,15 +279,15 @@ public static class CommonMatrix
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
-            Vector256<double> vec = Vector256.Create(scalar);
+            Vector256<double> vec = V4.Create(scalar);
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref p, i)) + vec, ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref p, t)) + vec, ref Add(ref q, t));
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref p, i)) + vec, ref Add(ref q, i));
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref p, t)) + vec, ref Add(ref q, t));
         }
         else
             for (int i = 0; i < result.Length; i++)
@@ -304,15 +304,15 @@ public static class CommonMatrix
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
-            Vector256<double> vec = Vector256.Create(scalar);
+            Vector256<double> vec = V4.Create(scalar);
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref p, i)) - vec, ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref p, t)) - vec, ref Add(ref q, t));
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref p, i)) - vec, ref Add(ref q, i));
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref p, t)) - vec, ref Add(ref q, t));
         }
         else
             for (int i = 0; i < result.Length; i++)
@@ -329,15 +329,15 @@ public static class CommonMatrix
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
-            Vector256<double> vec = Vector256.Create(scalar);
+            Vector256<double> vec = V4.Create(scalar);
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    vec - Vector256.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                vec - Vector256.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
+                V4.StoreUnsafe(
+                    vec - V4.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
+            V4.StoreUnsafe(
+                vec - V4.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
         }
         else
             for (int i = 0; i < result.Length; i++)
@@ -353,14 +353,14 @@ public static class CommonMatrix
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    -Vector256.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                -Vector256.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
+                V4.StoreUnsafe(
+                    -V4.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
+            V4.StoreUnsafe(
+                -V4.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
         }
         else
             for (int i = 0; i < result.Length; i++)
@@ -378,15 +378,15 @@ public static class CommonMatrix
         ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
         ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i)) * Vector256.LoadUnsafe(ref Add(ref b, i)),
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref a, i)) * V4.LoadUnsafe(ref Add(ref b, i)),
                     ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) * Vector256.LoadUnsafe(ref Add(ref b, t)),
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref a, t)) * V4.LoadUnsafe(ref Add(ref b, t)),
                 ref Add(ref c, t));
         }
         else
@@ -404,16 +404,16 @@ public static class CommonMatrix
         double[] result = GC.AllocateUninitializedArray<double>(array.Length);
         ref double p = ref MemoryMarshal.GetArrayDataReference(array);
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
-            Vector256<double> vec = Vector256.Create(scalar);
+            Vector256<double> vec = V4.Create(scalar);
             int t = result.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref p, i)) * vec,
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref p, i)) * vec,
                     ref Add(ref q, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref p, t)) * vec,
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref p, t)) * vec,
                 ref Add(ref q, t));
         }
         else
@@ -432,15 +432,15 @@ public static class CommonMatrix
         ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
         ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Vector256.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
             int t = array1.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                Vector256.StoreUnsafe(
-                    Vector256.LoadUnsafe(ref Add(ref a, i)) / Vector256.LoadUnsafe(ref Add(ref b, i)),
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref a, i)) / V4.LoadUnsafe(ref Add(ref b, i)),
                     ref Add(ref c, i));
-            Vector256.StoreUnsafe(
-                Vector256.LoadUnsafe(ref Add(ref a, t)) / Vector256.LoadUnsafe(ref Add(ref b, t)),
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref a, t)) / V4.LoadUnsafe(ref Add(ref b, t)),
                 ref Add(ref c, t));
         }
         else
@@ -541,31 +541,31 @@ public static class CommonMatrix
     }
 
     /// <summary>Computes the maximum difference between two arrays.</summary>
+    /// <remarks>Arrays can be of different lengths.</remarks>
     /// <param name="first">First array.</param>
     /// <param name="second">Second array.</param>
     /// <returns>The max-norm of the vector difference.</returns>
-    public unsafe static double Distance(double[] first, double[] second)
+    public static double Distance(double[] first, double[] second)
     {
-        double max = 0;
-        fixed (double* p = first, q = second)
+        int len = Min(first.Length, second.Length);
+        if (V4.IsHardwareAccelerated && len >= Vector256<double>.Count)
         {
-            int i = 0, len = Min(first.Length, second.Length);
-            if (Avx.IsSupported)
-            {
-                Vector256<double> z = Vector256<double>.Zero, vm = z;
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> v = Avx.LoadVector256(p + i);
-                    vm = Avx.Max(Avx.Max(v, Avx.Subtract(z, v)), vm);
-                }
-                max = vm.Max();
-            }
-            for (; i < len; i++)
-            {
-                double v = Abs(p[i] - q[i]);
-                if (v > max)
-                    max = v;
-            }
+            ref double p = ref MemoryMarshal.GetArrayDataReference(first);
+            ref double q = ref MemoryMarshal.GetArrayDataReference(second);
+            ref double lastp = ref Add(ref p, len - Vector256<double>.Count);
+            ref double lastq = ref Add(ref q, len - Vector256<double>.Count);
+            Vector256<double> vm = Vector256<double>.Zero;
+            for (; IsAddressLessThan(ref p, ref lastp); p = ref Add(ref p, Vector256<double>.Count),
+                q = ref Add(ref q, Vector256<double>.Count))
+                vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p) - V4.LoadUnsafe(ref q)));
+            return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref lastp) - V4.LoadUnsafe(ref lastq))).Max();
+        }
+        double max = 0;
+        for (int i = 0; i < len; i++)
+        {
+            double v = Abs(first[i] - second[i]);
+            if (v > max)
+                max = v;
         }
         return max;
     }

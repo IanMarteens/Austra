@@ -55,6 +55,7 @@
 		<Using Include="System.Text.Json" />
 		<Using Include="System.Text.Json.Serialization" />
 		<Using Include="System.Runtime.CompilerServices.Unsafe" Static="true" />
+		<Using Include="System.Runtime.Intrinsics.Vector256" Alias="V4" />
 	</ItemGroup>
 
 	<ItemGroup>
