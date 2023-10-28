@@ -1,4 +1,4 @@
-﻿namespace Austra.Library;
+﻿namespace Austra.Library.Helpers;
 
 /// <summary>Common matrix operations.</summary>
 public static class CommonMatrix

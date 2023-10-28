@@ -141,24 +141,24 @@ public readonly struct ComplexVector :
     {
         ref double p = ref MemoryMarshal.GetArrayDataReference(re);
         ref double q = ref MemoryMarshal.GetArrayDataReference(im);
-        if (Vector256.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated)
         {
             ref double r = ref As<Complex, double>(ref MemoryMarshal.GetArrayDataReference(values));
             int t = values.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
             {
-                Vector256<double> v1 = Vector256.LoadUnsafe(ref Add(ref r, 2 * i));
-                Vector256<double> v2 = Vector256.LoadUnsafe(ref Add(ref r, 2 * i + 4));
-                Vector256.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackLow(v1, v2), 0b11011000),
+                Vector256<double> v1 = V4.LoadUnsafe(ref Add(ref r, 2 * i));
+                Vector256<double> v2 = V4.LoadUnsafe(ref Add(ref r, 2 * i + 4));
+                V4.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackLow(v1, v2), 0b11011000),
                     ref Add(ref p, i));
-                Vector256.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackHigh(v1, v2), 0b11011000),
+                V4.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackHigh(v1, v2), 0b11011000),
                     ref Add(ref q, i));
             }
-            Vector256<double> v3 = Vector256.LoadUnsafe(ref Add(ref r, 2 * t));
-            Vector256<double> v4 = Vector256.LoadUnsafe(ref Add(ref r, 2 * t + 4));
-            Vector256.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackLow(v3, v4), 0b11011000),
+            Vector256<double> v3 = V4.LoadUnsafe(ref Add(ref r, 2 * t));
+            Vector256<double> v4 = V4.LoadUnsafe(ref Add(ref r, 2 * t + 4));
+            V4.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackLow(v3, v4), 0b11011000),
                 ref Add(ref p, t));
-            Vector256.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackHigh(v3, v4), 0b11011000),
+            V4.StoreUnsafe(Avx2.Permute4x64(Avx.UnpackHigh(v3, v4), 0b11011000),
                 ref Add(ref q, t));
         }
         else
@@ -257,8 +257,8 @@ public readonly struct ComplexVector :
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (uint)index < (uint)re.Length
             ? new(
-                Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(re), index),
-                Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(im), index))
+                Add(ref MemoryMarshal.GetArrayDataReference(re), index),
+                Add(ref MemoryMarshal.GetArrayDataReference(im), index))
             : throw new IndexOutOfRangeException();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => (re[index], im[index]) = value;
@@ -290,8 +290,8 @@ public readonly struct ComplexVector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Complex SafeThis(int index) => (uint)index < (uint)Length
         ? new(
-            Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(re), index),
-            Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(im), index))
+            Add(ref MemoryMarshal.GetArrayDataReference(re), index),
+            Add(ref MemoryMarshal.GetArrayDataReference(im), index))
         : Complex.Zero;
 
     /// <summary>Adds two complex vectors.</summary>
@@ -310,56 +310,53 @@ public readonly struct ComplexVector :
         new Vector(v1.re) - new Vector(v2.re),
         new Vector(v1.im) - new Vector(v2.im));
 
-    /// <summary>Negates a vector.</summary>
+    /// <summary>Negates a complex vector.</summary>
     /// <param name="v">The vector operand.</param>
-    /// <returns>The item-wise negation.</returns>
+    /// <returns>The itemwise negation.</returns>
     public static ComplexVector operator -(ComplexVector v)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-
         return new(-new Vector(v.re), -new Vector(v.im));
     }
 
-    /// <summary>Adds a scalar to a vector.</summary>
+    /// <summary>Adds a complex scalar to a complex vector.</summary>
     /// <param name="v">A vector summand.</param>
-    /// <param name="c">A scalar summand.</param>
+    /// <param name="c">A complex scalar summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
     public static ComplexVector operator +(ComplexVector v, Complex c)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
-
         return new(new Vector(v.re) + c.Real, new Vector(v.im) + c.Imaginary);
     }
 
-    /// <summary>Adds a scalar to a vector.</summary>
+    /// <summary>Adds a double scalar to a complex vector.</summary>
     /// <param name="v">A vector summand.</param>
-    /// <param name="d">A scalar summand.</param>
+    /// <param name="d">A double scalar summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
     public static ComplexVector operator +(ComplexVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
-
         return new(new Vector(v.re) + d, new Vector(v.im));
     }
 
-    /// <summary>Adds a scalar to a vector.</summary>
-    /// <param name="c">A scalar summand.</param>
+    /// <summary>Adds a complex scalar to a complex vector.</summary>
+    /// <param name="c">A complex scalar summand.</param>
     /// <param name="v">A vector summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComplexVector operator +(Complex c, ComplexVector v) => v + c;
 
-    /// <summary>Adds a scalar to a vector.</summary>
+    /// <summary>Adds a double scalar to a complex vector.</summary>
     /// <param name="d">A scalar summand.</param>
     /// <param name="v">A vector summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComplexVector operator +(double d, ComplexVector v) => v + d;
 
-    /// <summary>Subtracts a scalar to a vector.</summary>
+    /// <summary>Subtracts a scalar from a complex vector.</summary>
     /// <param name="v">The vector minuend.</param>
     /// <param name="c">The scalar subtrahend.</param>
     /// <returns>The scalar is subtracted from each vector's item.</returns>
@@ -367,11 +364,10 @@ public readonly struct ComplexVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
-
         return new(new Vector(v.re) - c.Real, new Vector(v.im) - c.Imaginary);
     }
 
-    /// <summary>Subtracts a scalar to a vector.</summary>
+    /// <summary>Subtracts a scalar from a complex vector.</summary>
     /// <param name="v">The vector minuend.</param>
     /// <param name="d">The scalar subtrahend.</param>
     /// <returns>The scalar is subtracted from each vector's item.</returns>
@@ -379,7 +375,6 @@ public readonly struct ComplexVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
-
         return new(new Vector(v.re) - d, new Vector(v.im));
     }
 
@@ -391,7 +386,6 @@ public readonly struct ComplexVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
-
         return new(c.Real - new Vector(v.re), c.Imaginary - new Vector(v.im));
     }
 
@@ -403,7 +397,6 @@ public readonly struct ComplexVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
-
         return new(d - new Vector(v.re), -new Vector(v.im));
     }
 
@@ -425,24 +418,24 @@ public readonly struct ComplexVector :
         ref double qi = ref MemoryMarshal.GetArrayDataReference(other.im);
         ref double vr = ref MemoryMarshal.GetArrayDataReference(r);
         ref double vm = ref MemoryMarshal.GetArrayDataReference(m);
-        if (Vector256.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated)
         {
             int t = r.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
             {
-                Vector256<double> vpr = Vector256.LoadUnsafe(ref Add(ref pr, i));
-                Vector256<double> vpi = Vector256.LoadUnsafe(ref Add(ref pi, i));
-                Vector256<double> vqr = Vector256.LoadUnsafe(ref Add(ref qr, i));
-                Vector256<double> vqi = Vector256.LoadUnsafe(ref Add(ref qi, i));
-                Vector256.StoreUnsafe((vpr * vqr).MultiplyAddNeg(vpi, vqi), ref Add(ref vr, i));
-                Vector256.StoreUnsafe((vpr * vqi).MultiplyAdd(vpi, vqr), ref Add(ref vm, i));
+                Vector256<double> vpr = V4.LoadUnsafe(ref Add(ref pr, i));
+                Vector256<double> vpi = V4.LoadUnsafe(ref Add(ref pi, i));
+                Vector256<double> vqr = V4.LoadUnsafe(ref Add(ref qr, i));
+                Vector256<double> vqi = V4.LoadUnsafe(ref Add(ref qi, i));
+                V4.StoreUnsafe((vpr * vqr).MultiplyAddNeg(vpi, vqi), ref Add(ref vr, i));
+                V4.StoreUnsafe((vpr * vqi).MultiplyAdd(vpi, vqr), ref Add(ref vm, i));
             }
-            Vector256<double> wpr = Vector256.LoadUnsafe(ref Add(ref pr, t));
-            Vector256<double> wpi = Vector256.LoadUnsafe(ref Add(ref pi, t));
-            Vector256<double> wqr = Vector256.LoadUnsafe(ref Add(ref qr, t));
-            Vector256<double> wqi = Vector256.LoadUnsafe(ref Add(ref qi, t));
-            Vector256.StoreUnsafe((wpr * wqr).MultiplyAddNeg(wpi, wqi), ref Add(ref vr, t));
-            Vector256.StoreUnsafe((wpr * wqi).MultiplyAdd(wpi, wqr), ref Add(ref vm, t));
+            Vector256<double> wpr = V4.LoadUnsafe(ref Add(ref pr, t));
+            Vector256<double> wpi = V4.LoadUnsafe(ref Add(ref pi, t));
+            Vector256<double> wqr = V4.LoadUnsafe(ref Add(ref qr, t));
+            Vector256<double> wqi = V4.LoadUnsafe(ref Add(ref qi, t));
+            V4.StoreUnsafe((wpr * wqr).MultiplyAddNeg(wpi, wqi), ref Add(ref vr, t));
+            V4.StoreUnsafe((wpr * wqi).MultiplyAdd(wpi, wqr), ref Add(ref vm, t));
         }
         else
             for (int i = 0; i < r.Length; i++)
@@ -577,8 +570,8 @@ public readonly struct ComplexVector :
             int i = 0;
             if (Avx.IsSupported)
             {
-                Vector256<double> vr = Vector256.Create(c.Real);
-                Vector256<double> vi = Vector256.Create(c.Imaginary);
+                Vector256<double> vr = V4.Create(c.Real);
+                Vector256<double> vi = V4.Create(c.Imaginary);
                 for (int top = len & Simd.AVX_MASK; i < top; i += 4)
                 {
                     Vector256<double> vpr = Avx.LoadVector256(pr + i);

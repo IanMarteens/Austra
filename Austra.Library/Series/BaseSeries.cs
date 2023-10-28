@@ -352,8 +352,8 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
             int i = 0;
             if (Avx.IsSupported)
             {
-                var meanx = Vector256.Create(x0);
-                var meany = Vector256.Create(y0);
+                var meanx = V4.Create(x0);
+                var meany = V4.Create(y0);
                 var vex = Vector256<double>.Zero;
                 var vey = Vector256<double>.Zero;
                 var vexy = Vector256<double>.Zero;
@@ -612,7 +612,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
                     double w = weights[firstW + i];
                     if (Avx.IsSupported)
                     {
-                        var vec = Vector256.Create(w);
+                        var vec = V4.Create(w);
                         for (int top = size & Simd.AVX_MASK; j < top; j += 4)
                             Avx.Store(p + j, Avx.LoadVector256(p + j).MultiplyAdd(pa + j, vec));
                     }
