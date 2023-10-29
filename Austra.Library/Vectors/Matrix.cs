@@ -787,7 +787,7 @@ public readonly struct Matrix :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix operator /(Matrix m, double d) => m * (1.0 / d);
 
-    /// <summary>Multiplies two compatible matries.</summary>
+    /// <summary>Multiplies two compatible matrices.</summary>
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
     /// <returns>The algebraic multiplication of the two operands.</returns>
@@ -1289,7 +1289,7 @@ public readonly struct Matrix :
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
     /// <returns><see langword="true"/> if the second matrix has the same values.</returns>
-    public unsafe bool Equals(Matrix other) => 
+    public unsafe bool Equals(Matrix other) =>
         Rows == other.Rows && Cols == other.Cols && values.EqualsV(other.values);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>

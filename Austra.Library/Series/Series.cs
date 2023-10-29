@@ -3,7 +3,7 @@
 using Austra.Library.Dates;
 using Austra.Library.Stats;
 
-/// <summary>Most common sampling sequences.</summary>
+/// <summary>Most common sampling sequences for time series.</summary>
 public enum Frequency
 {
     /// <summary>Values are published for each day or business day.</summary>
