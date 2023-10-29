@@ -472,18 +472,13 @@ public readonly struct Matrix :
 
     /// <summary>Copies the content of this matrix into an existing one.</summary>
     /// <param name="dest">Destination matrix.</param>
-    internal unsafe void CopyTo(Matrix dest)
+    internal void CopyTo(Matrix dest)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(dest.IsInitialized);
         Contract.Requires(Rows == dest.Rows);
         Contract.Requires(Cols == dest.Cols);
-
-        fixed (double* p = values, q = dest.values)
-        {
-            int size = values.Length * sizeof(double);
-            Buffer.MemoryCopy(p, q, size, size);
-        }
+        Array.Copy(values, dest.values, values.Length);
     }
 
     /// <summary>Gets a copy of a row as a vector.</summary>
@@ -492,8 +487,7 @@ public readonly struct Matrix :
     public Vector GetRow(int row)
     {
         double[] v = GC.AllocateUninitializedArray<double>(Cols);
-        for (int c = 0; c < v.Length; c++)
-            v[c] = values[row * Cols + c];
+        Array.Copy(values, row * Cols, v, 0, Cols);
         return v;
     }
 
@@ -537,10 +531,10 @@ public readonly struct Matrix :
                 int r2 = r + r, c2 = c + c;
                 int r4 = r2 + r2, c4 = c2 + c2;
                 double* p = pA;
-                for (int row = 0; row < r1; row += 4)
+                for (int row = 0; row < r1; row += Vector256<double>.Count)
                 {
                     double* q = pB + row;
-                    for (int col = 0; col < c1; col += 4)
+                    for (int col = 0; col < c1; col += Vector256<double>.Count)
                     {
                         double* pp = p + col;
                         var row1 = Avx.LoadVector256(pp);
@@ -581,7 +575,7 @@ public readonly struct Matrix :
                 for (int row = 0; row < r; row++)
                 {
                     int idx = 0, col = 0;
-                    for (int top = c & Simd.AVX_MASK; col < top; col += 4)
+                    for (int top = c & Simd.AVX_MASK; col < top; col += Vector256<double>.Count)
                     {
                         pBrow[idx] = pArow[col];
                         pBrow[idx + r] = pArow[col + 1];
@@ -835,7 +829,7 @@ public readonly struct Matrix :
                     double d = pa[k];
                     int j = 0;
                     if (Avx.IsSupported)
-                        for (Vector256<double> vd = V4.Create(d); j < top; j += 4)
+                        for (Vector256<double> vd = V4.Create(d); j < top; j += Vector256<double>.Count)
                             Avx.Store(pc + j,
                                 Avx.LoadVector256(pc + j).MultiplyAdd(pb + j, vd));
                     for (; j < p; j++)
@@ -968,7 +962,7 @@ public readonly struct Matrix :
                     if (Avx.IsSupported)
                     {
                         Vector256<double> sum = Vector256<double>.Zero;
-                        for (; k < top; k += 4)
+                        for (; k < top; k += Vector256<double>.Count)
                             sum = sum.MultiplyAdd(pAi + k, pBj + k);
                         acc = sum.Sum();
                     }
@@ -1030,8 +1024,7 @@ public readonly struct Matrix :
     /// <param name="m">The transformation matrix.</param>
     /// <returns>The transformed vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator *(Vector v, Matrix m) =>
-        m.TransposeMultiply(v);
+    public static Vector operator *(Vector v, Matrix m) => m.TransposeMultiply(v);
 
     /// <summary>Transforms a vector using the transpose of this matrix.</summary>
     /// <remarks>
@@ -1059,7 +1052,7 @@ public readonly struct Matrix :
                 if (Avx.IsSupported)
                 {
                     Vector256<double> vec = V4.Create(d);
-                    for (int last = c & Simd.AVX_MASK; j < last; j += 4)
+                    for (int last = c & Simd.AVX_MASK; j < last; j += Vector256<double>.Count)
                         Avx.Store(pC + j, Avx.LoadVector256(pC + j).MultiplyAdd(pAk + j, vec));
                 }
                 for (; j < c; j++)
@@ -1093,7 +1086,7 @@ public readonly struct Matrix :
                 if (Avx.IsSupported)
                 {
                     Vector256<double> vec = Vector256<double>.Zero;
-                    for (; j < top; j += 4)
+                    for (; j < top; j += Vector256<double>.Count)
                         vec = vec.MultiplyAdd(pA1 + j, pX + j);
                     d = vec.Sum();
                 }
@@ -1128,7 +1121,7 @@ public readonly struct Matrix :
                 if (Avx.IsSupported)
                 {
                     Vector256<double> vec = Vector256<double>.Zero;
-                    for (; j < top; j += 4)
+                    for (; j < top; j += Vector256<double>.Count)
                         vec = vec.MultiplyAdd(pA1 + j, pX + j);
                     d = vec.Sum();
                 }
@@ -1162,7 +1155,6 @@ public readonly struct Matrix :
         Contract.Requires(IsInitialized);
         Contract.Requires(IsSquare);
         Contract.Requires(Rows > 0);
-
         return Library.Cholesky.TryDecompose(this, out cholesky);
     }
 
@@ -1175,7 +1167,6 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(IsSquare);
-
         return new(this);
     }
 

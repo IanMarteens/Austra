@@ -535,11 +535,12 @@ public readonly struct Vector :
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double r = ref MemoryMarshal.GetArrayDataReference(summand.values);
         ref double s = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Fma.IsSupported)
+        if (V4.IsHardwareAccelerated && Fma.IsSupported 
+            && result.Length >= Vector256<double>.Count)
         {
             Vector256<double> vq = V4.Create(multiplier);
             int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += 4)
+            for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(
                     Fma.MultiplyAdd(V4.LoadUnsafe(ref Add(ref p, i)), vq,
                         V4.LoadUnsafe(ref Add(ref r, i))),
@@ -614,11 +615,12 @@ public readonly struct Vector :
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double r = ref MemoryMarshal.GetArrayDataReference(subtrahend.values);
         ref double s = ref MemoryMarshal.GetArrayDataReference(result);
-        if (Fma.IsSupported)
+        if (V4.IsHardwareAccelerated && Fma.IsSupported
+            && result.Length >= Vector256<double>.Count)
         {
             Vector256<double> vq = V4.Create(multiplier);
             int t = result.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += 4)
+            for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(
                     Fma.MultiplySubtract(V4.LoadUnsafe(ref Add(ref p, i)), vq,
                         V4.LoadUnsafe(ref Add(ref r, i))),
@@ -665,7 +667,7 @@ public readonly struct Vector :
                     if (Avx.IsSupported)
                     {
                         Vector256<double> vec = V4.Create(w);
-                        for (int top = size & Simd.AVX_MASK; j < top; j += 4)
+                        for (int top = size & Simd.AVX_MASK; j < top; j += Vector256<double>.Count)
                             Avx.Store(p + j, Avx.LoadVector256(p + j).MultiplyAdd(pa + j, vec));
                     }
                     for (; j < size; j++)
@@ -694,11 +696,12 @@ public readonly struct Vector :
         ref double a = ref MemoryMarshal.GetArrayDataReference(v1.values);
         ref double b = ref MemoryMarshal.GetArrayDataReference(v2.values);
         ref double c = ref MemoryMarshal.GetArrayDataReference(values);
-        if (Fma.IsSupported)
+        if (V4.IsHardwareAccelerated && Fma.IsSupported &&
+            values.Length >= Vector256<double>.Count)
         {
             Vector256<double> vw1 = V4.Create(w1), vw2 = V4.Create(w2);
             int t = values.Length - Vector256<double>.Count;
-            for (int i = 0; i < t; i += 4)
+            for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(
                     Fma.MultiplyAdd(
                         V4.LoadUnsafe(ref Add(ref a, i)),
@@ -941,7 +944,7 @@ public readonly struct Vector :
                 Vector256<double> vexx = Vector256<double>.Zero;
                 Vector256<double> vexy = Vector256<double>.Zero;
                 Vector256<double> veyy = Vector256<double>.Zero;
-                for (int top = count & Simd.AVX_MASK; i < top; i += 4)
+                for (int top = count & Simd.AVX_MASK; i < top; i += Vector256<double>.Count)
                 {
                     Vector256<double> x = Avx.Subtract(Avx.LoadVector256(p + i), avg);
                     Vector256<double> y = Avx.Subtract(Avx.LoadVector256(q + i), avg);
@@ -1196,7 +1199,7 @@ public readonly struct Vector :
             if (Avx.IsSupported)
             {
                 Vector256<double> v = V4.Create(value);
-                for (int top = size & Simd.AVX_MASK; i < top; i += 4)
+                for (int top = size & Simd.AVX_MASK; i < top; i += Vector256<double>.Count)
                 {
                     int mask = Avx.MoveMask(Avx.CompareEqual(Avx.LoadVector256(q + i), v));
                     if (mask != 0)

@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.13.7" />
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.9" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -18,15 +18,15 @@
 	<ItemGroup>
 		<Using Include="Austra.Library" />
 		<Using Include="Austra.Library.Dates" />
-		<Using Include="Austra.Library.Stats"/>
-		<Using Include="Austra.Library.Transforms"/>
+		<Using Include="Austra.Library.Stats" />
+		<Using Include="Austra.Library.Transforms" />
 		<Using Include="Austra.Parser" />
 		<Using Include="Benchmarks" />
 		<Using Include="BenchmarkDotNet.Attributes" />
-		<Using Include="BenchmarkDotNet.Configs"/>
+		<Using Include="BenchmarkDotNet.Configs" />
 		<Using Include="BenchmarkDotNet.Running" />
 		<Using Include="System" />
-		<Using Include="System.Console" Static="true"/>
+		<Using Include="System.Console" Static="true" />
 		<Using Include="System.Linq" />
 		<Using Include="System.Numerics.Complex" Alias="Complex" />
 		<Using Include="System.Runtime.Intrinsics" />
