@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Topics>
+  <Topic id="9acf5b7b-21bb-4894-bfa5-a86c67852fd9" visible="True" isExpanded="true" apiParentMode="InsertAfter" title="Welcome to AUSTRA" tocTitle="Welcome to AUSTRA">
+    <Topic id="04ea4168-169f-488a-9250-41bdab54e5e6" visible="True" isSelected="true" title="The AUSTRA language" tocTitle="The AUSTRA language" />
+  </Topic>
+</Topics>
