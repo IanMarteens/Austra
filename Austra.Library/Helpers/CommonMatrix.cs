@@ -211,15 +211,15 @@ public static class CommonMatrix
         return min;
     }
 
-    /// <summary>Pointwise sum of two equally sized arrays.</summary>
-    /// <param name="array1">First summand.</param>
-    /// <param name="array2">Second summand.</param>
+    /// <summary>Pointwise sum of two equally sized spans.</summary>
+    /// <param name="span1">First summand.</param>
+    /// <param name="span2">Second summand.</param>
     /// <returns>The pointwise sum of the two arguments.</returns>
-    public static double[] AddV(this double[] array1, double[] array2)
+    public static double[] AddV(this Span<double> span1, Span<double> span2)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
+        double[] result = GC.AllocateUninitializedArray<double>(span1.Length);
+        ref double a = ref MemoryMarshal.GetReference(span1);
+        ref double b = ref MemoryMarshal.GetReference(span2);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
@@ -238,15 +238,15 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Pointwise subtraction of two equally sized arrays.</summary>
-    /// <param name="array1">Minuend.</param>
-    /// <param name="array2">Subtrahend.</param>
+    /// <summary>Pointwise subtraction of two equally sized spans.</summary>
+    /// <param name="span1">Minuend.</param>
+    /// <param name="span2">Subtrahend.</param>
     /// <returns>The pointwise subtraction of the two arguments.</returns>
-    public static double[] SubV(this double[] array1, double[] array2)
+    public static double[] SubV(this Span<double> span1, Span<double> span2)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
+        double[] result = GC.AllocateUninitializedArray<double>(span1.Length);
+        ref double a = ref MemoryMarshal.GetReference(span1);
+        ref double b = ref MemoryMarshal.GetReference(span2);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
@@ -355,15 +355,15 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Pointwise multiplication of two equally sized arrays.</summary>
-    /// <param name="array1">Array multiplicand.</param>
-    /// <param name="array2">Array multiplier.</param>
+    /// <summary>Pointwise multiplication of two equally sized spans.</summary>
+    /// <param name="span1">Span multiplicand.</param>
+    /// <param name="span2">Span multiplier.</param>
     /// <returns>The pointwise multiplication of the two arguments.</returns>
-    public static double[] MulV(this double[] array1, double[] array2)
+    public static double[] MulV(this Span<double> span1, Span<double> span2)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
+        double[] result = GC.AllocateUninitializedArray<double>(span1.Length);
+        ref double a = ref MemoryMarshal.GetReference(span1);
+        ref double b = ref MemoryMarshal.GetReference(span2);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
@@ -405,25 +405,23 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Pointwise division of two equally sized arrays.</summary>
-    /// <param name="array1">Array dividend.</param>
-    /// <param name="array2">Array divisor.</param>
+    /// <summary>Pointwise division of two equally sized spans.</summary>
+    /// <param name="span1">Span dividend.</param>
+    /// <param name="span2">Span divisor.</param>
     /// <returns>The pointwise quotient of the two arguments.</returns>
-    public static double[] DivV(this double[] array1, double[] array2)
+    public static double[] DivV(this Span<double> span1, Span<double> span2)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array1.Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(array1);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(array2);
+        double[] result = GC.AllocateUninitializedArray<double>(span1.Length);
+        ref double a = ref MemoryMarshal.GetReference(span1);
+        ref double b = ref MemoryMarshal.GetReference(span2);
         ref double c = ref MemoryMarshal.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
-            int t = array1.Length - Vector256<double>.Count;
+            int t = span1.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                V4.StoreUnsafe(
-                    V4.LoadUnsafe(ref Add(ref a, i)) / V4.LoadUnsafe(ref Add(ref b, i)),
+                V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref a, i)) / V4.LoadUnsafe(ref Add(ref b, i)),
                     ref Add(ref c, i));
-            V4.StoreUnsafe(
-                V4.LoadUnsafe(ref Add(ref a, t)) / V4.LoadUnsafe(ref Add(ref b, t)),
+            V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref a, t)) / V4.LoadUnsafe(ref Add(ref b, t)),
                 ref Add(ref c, t));
         }
         else

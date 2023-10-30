@@ -630,7 +630,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
-        return new(m1.Rows, m1.Cols, m1.values.AddV(m2.values));
+        return new(m1.Rows, m1.Cols, m1.values.AsSpan().AddV(m2.values));
     }
 
     /// <summary>Subtracts two matrices with the same size.</summary>
@@ -647,7 +647,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
-        return new(m1.Rows, m1.Cols, m1.values.SubV(m2.values));
+        return new(m1.Rows, m1.Cols, m1.values.AsSpan().SubV(m2.values));
     }
 
     /// <summary>Negates a matrix.</summary>
@@ -716,7 +716,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
-        return new(Rows, Cols, values.MulV(m.values));
+        return new(Rows, Cols, values.AsSpan().MulV(m.values));
     }
 
     /// <summary>Cell by cell division with a second matrix.</summary>
@@ -731,7 +731,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
-        return new(Rows, Cols, values.DivV(m.values));
+        return new(Rows, Cols, values.AsSpan().DivV(m.values));
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>
@@ -1037,6 +1037,9 @@ public readonly struct Matrix :
     }
 
     /// <summary>Transforms a vector and adds an offset.</summary>
+    /// <remarks>
+    /// This method avoids allocating a temporary vector for the multiplication.
+    /// </remarks>
     /// <param name="v">Vector to transform.</param>
     /// <param name="add">Vector to add.</param>
     /// <returns><c>this * v + add</c>.</returns>
@@ -1072,6 +1075,9 @@ public readonly struct Matrix :
     }
 
     /// <summary>Transforms a vector and subtracts an offset.</summary>
+    /// <remarks>
+    /// This method avoids allocating a temporary vector for the multiplication.
+    /// </remarks>
     /// <param name="v">Vector to transform.</param>
     /// <param name="sub">Vector to subtract.</param>
     /// <returns><c>this * multiplicand - sub</c>.</returns>

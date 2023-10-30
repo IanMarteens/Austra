@@ -492,22 +492,11 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <param name="s1">First series to add.</param>
     /// <param name="s2">Second series to add.</param>
     /// <returns>A tuple with the arguments, values and type of the new series.</returns>
-    protected static unsafe (T[], double[], SeriesType) Add(Series<T> s1, Series<T> s2)
+    protected static (T[], double[], SeriesType) Add(Series<T> s1, Series<T> s2)
     {
         int len = Min(s1.Count, s2.Count);
         T[] newArgs = s1.Count == len ? s1.args : s2.args;
-        double[] newValues = GC.AllocateUninitializedArray<double>(len);
-
-        fixed (double* pA = s1.values, pB = s2.values, pC = newValues)
-        {
-            int i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Add(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] + pB[i];
-        }
+        double[] newValues = s1.values.AsSpan(0, len).AddV(s2.values.AsSpan(0, len));
         return (newArgs, newValues, Combine(s1.Type, s2.Type));
     }
 
@@ -525,22 +514,11 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <param name="s1">The minuend.</param>
     /// <param name="s2">The subtrahend.</param>
     /// <returns>A tuple with the arguments, values and type of the new series.</returns>
-    protected static unsafe (T[], double[], SeriesType) Sub(Series<T> s1, Series<T> s2)
+    protected static (T[], double[], SeriesType) Sub(Series<T> s1, Series<T> s2)
     {
         int len = Min(s1.Count, s2.Count);
         T[] newArgs = s1.Count == len ? s1.args : s2.args;
-        double[] newValues = GC.AllocateUninitializedArray<double>(len);
-
-        fixed (double* pA = s1.values, pB = s2.values, pC = newValues)
-        {
-            int i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(pC + i,
-                        Avx.Subtract(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] - pB[i];
-        }
+        double[] newValues = s1.values.AsSpan(0, len).SubV(s2.values.AsSpan(0, len));
         return (newArgs, newValues, Combine(s1.Type, s2.Type));
     }
 

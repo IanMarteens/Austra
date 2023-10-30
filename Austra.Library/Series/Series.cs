@@ -443,7 +443,7 @@ public sealed class Series : Series<Date>,
     /// <summary>Negates values from a series.</summary>
     /// <param name="s">The series operand.</param>
     /// <returns>Pointwise negation.</returns>
-    public static unsafe Series operator -(Series s) =>
+    public static Series operator -(Series s) =>
         new("-" + s.Name, s.Ticker, (double[])-s.GetValues(), s);
 
     /// <summary>Scales values from a series.</summary>
@@ -471,25 +471,13 @@ public sealed class Series : Series<Date>,
     /// <remarks>This method corresponds to the .* operator in AUSTRA.</remarks>
     /// <param name="other">Second operand.</param>
     /// <returns>A new series with the pointwise product.</returns>
-    public unsafe Series PointwiseMultiply(Series other)
+    public Series PointwiseMultiply(Series other)
     {
         if (Freq != other.Freq)
             throw new Exception("Cannot mix series with different frequencies");
         int len = Min(Count, other.Count);
         Date[] newArgs = Count == len ? args : other.args;
-        double[] newValues = GC.AllocateUninitializedArray<double>(len);
-
-        fixed (double* pA = values, pB = other.values, pC = newValues)
-        {
-            int i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(
-                        pC + i,
-                        Avx.Multiply(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] * pB[i];
-        }
+        double[] newValues = values.AsSpan(0, len).MulV(other.values.AsSpan(0, len));
         return new(
             Name + ".*" + other.Name, Ticker,
             newArgs, newValues, Combine(Type, other.Type), other.Freq);
@@ -499,25 +487,13 @@ public sealed class Series : Series<Date>,
     /// <remarks>This method corresponds to the ./ operator in AUSTRA.</remarks>
     /// <param name="other">Second operand.</param>
     /// <returns>A new series with the pointwise quotient.</returns>
-    public unsafe Series PointwiseDivide(Series other)
+    public Series PointwiseDivide(Series other)
     {
         if (Freq != other.Freq)
             throw new Exception("Cannot mix series with different frequencies");
         int len = Min(Count, other.Count);
         Date[] newArgs = Count == len ? args : other.args;
-        double[] newValues = GC.AllocateUninitializedArray<double>(len);
-
-        fixed (double* pA = values, pB = other.values, pC = newValues)
-        {
-            int i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(
-                        pC + i,
-                        Avx.Divide(Avx.LoadVector256(pA + i), Avx.LoadVector256(pB + i)));
-            for (; i < len; i++)
-                pC[i] = pA[i] / pB[i];
-        }
+        double[] newValues = values.AsSpan(0, len).DivV(other.values.AsSpan(0, len));
         return new(
             Name + "./" + other.Name, Ticker,
             newArgs, newValues, Combine(Type, other.Type), other.Freq);

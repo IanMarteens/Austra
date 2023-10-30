@@ -37,4 +37,7 @@ public class SeriesBenchmark : BenchmarkControl
     [Benchmark]
     public Series AustraOptCombine() =>
         Series.Combine(weights, aapl, msft, dax);
+
+    [Benchmark]
+    public Series AustraPointMultSeries() => aapl.PointwiseMultiply(msft);
 }

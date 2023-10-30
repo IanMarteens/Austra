@@ -277,7 +277,7 @@ public readonly struct Vector :
         Contract.Requires(v2.IsInitialized);
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
-        return v1.values.AddV(v2.values);
+        return v1.values.AsSpan().AddV(v2.values);
     }
 
     /// <summary>Subtracts two vectors.</summary>
@@ -291,7 +291,7 @@ public readonly struct Vector :
         Contract.Requires(v2.IsInitialized);
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
-        return v1.values.SubV(v2.values);
+        return v1.values.AsSpan().SubV(v2.values);
     }
 
     /// <summary>Negates a vector.</summary>
@@ -355,7 +355,7 @@ public readonly struct Vector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
-        return values.MulV(other.values);
+        return values.AsSpan().MulV(other.values);
     }
 
     /// <summary>Pointwise division.</summary>
@@ -369,7 +369,7 @@ public readonly struct Vector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
-        return values.DivV(other.values);
+        return values.AsSpan().DivV(other.values);
     }
 
     /// <summary>Dot product of two vectors.</summary>
