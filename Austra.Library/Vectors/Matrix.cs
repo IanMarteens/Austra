@@ -171,20 +171,19 @@ public readonly struct Matrix :
     /// <param name="left">Left matrix.</param>
     /// <param name="right">Right matrix.</param>
     /// <returns>A new matrix with more columns.</returns>
-    public unsafe static Matrix HCat(Matrix left, Matrix right)
+    public static Matrix HCat(Matrix left, Matrix right)
     {
         if (left.Rows != right.Rows)
             throw new MatrixSizeException();
         int w = left.Rows, c1 = left.Cols, c2 = right.Cols, c = c1 + c2;
-        double[] newValues = new double[w * c];
-        fixed (double* l = left.values, r = right.values, t = newValues)
-            for (int row = 0; row < w; row++)
-            {
-                Buffer.MemoryCopy(l + row * c1, t + row * c,
-                    c1 * sizeof(double), c1 * sizeof(double));
-                Buffer.MemoryCopy(r + row * c2, t + row * c + c1,
-                    c2 * sizeof(double), c2 * sizeof(double));
-            }
+        double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
+        for (int row = 0, offset = 0; row < w; row++)
+        {
+            Array.Copy(left.values, row * c1, newValues, offset, c1);
+            offset += c1;
+            Array.Copy(right.values, row * c2, newValues, offset, c2);
+            offset += c2;
+        }
         return new(w, c, newValues);
     }
 
@@ -192,19 +191,18 @@ public readonly struct Matrix :
     /// <param name="left">Left matrix.</param>
     /// <param name="newColumn">New column, as a vector.</param>
     /// <returns>A new matrix with one more column.</returns>
-    public unsafe static Matrix HCat(Matrix left, Vector newColumn)
+    public static Matrix HCat(Matrix left, Vector newColumn)
     {
         if (left.Rows != newColumn.Length)
             throw new MatrixSizeException();
         int w = left.Rows, c1 = left.Cols, c = c1 + 1;
-        double[] newValues = new double[w * c];
-        fixed (double* l = left.values, r = (double[])newColumn, t = newValues)
-            for (int row = 0; row < w; row++)
-            {
-                Buffer.MemoryCopy(l + row * c1, t + row * c,
-                    c1 * sizeof(double), c1 * sizeof(double));
-                t[row * c + c1] = r[row];
-            }
+        double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
+        for (int row = 0, offset = 0; row < w; row++)
+        {
+            Array.Copy(left.values, row * c1, newValues, offset, c1);
+            offset += c1;
+            newValues[offset++] = newColumn[row];
+        }
         return new(w, c, newValues);
     }
 
@@ -212,19 +210,18 @@ public readonly struct Matrix :
     /// <param name="right">Left matrix.</param>
     /// <param name="newColumn">New column, as a vector.</param>
     /// <returns>A new matrix with one more column.</returns>
-    public unsafe static Matrix HCat(Vector newColumn, Matrix right)
+    public static Matrix HCat(Vector newColumn, Matrix right)
     {
         if (right.Rows != newColumn.Length)
             throw new MatrixSizeException();
         int w = right.Rows, c1 = right.Cols, c = c1 + 1;
-        double[] newValues = new double[w * c];
-        fixed (double* l = right.values, r = (double[])newColumn, t = newValues)
-            for (int row = 0; row < w; row++)
-            {
-                t[row * c] = r[row];
-                Buffer.MemoryCopy(l + row * c1, t + row * c + 1,
-                    c1 * sizeof(double), c1 * sizeof(double));
-            }
+        double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
+        for (int row = 0, offset = 0; row < w; row++)
+        {
+            newValues[offset++] = newColumn[row];
+            Array.Copy(right.values, row * c1, newValues, offset, c1);
+            offset += c1;
+        }
         return new(w, c, newValues);
     }
 
@@ -232,19 +229,14 @@ public readonly struct Matrix :
     /// <param name="upper">Upper matrix.</param>
     /// <param name="lower">Lower matrix.</param>
     /// <returns>A new matrix with more rows.</returns>
-    public unsafe static Matrix VCat(Matrix upper, Matrix lower)
+    public static Matrix VCat(Matrix upper, Matrix lower)
     {
         if (upper.Cols != lower.Cols)
             throw new MatrixSizeException();
         int w1 = upper.Rows, c = upper.Cols, w2 = lower.Rows, w = w1 + w2;
-        double[] newValues = new double[w * c];
-        fixed (double* u = upper.values, l = lower.values, t = newValues)
-        {
-            Buffer.MemoryCopy(u, t,
-                w1 * c * sizeof(double), w1 * c * sizeof(double));
-            Buffer.MemoryCopy(l, t + w1 * c,
-                w2 * c * sizeof(double), w2 * c * sizeof(double));
-        }
+        double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
+        Array.Copy(upper.values, newValues, upper.values.Length);
+        Array.Copy(lower.values, 0, newValues, upper.values.Length, lower.values.Length);
         return new(w, c, newValues);
     }
 
@@ -252,19 +244,14 @@ public readonly struct Matrix :
     /// <param name="upper">Upper matrix.</param>
     /// <param name="lower">Lower row vector.</param>
     /// <returns>A new matrix with one more row.</returns>
-    public unsafe static Matrix VCat(Matrix upper, Vector lower)
+    public static Matrix VCat(Matrix upper, Vector lower)
     {
         if (upper.Cols != lower.Length)
             throw new MatrixSizeException();
         int w1 = upper.Rows, c = upper.Cols, w = w1 + 1;
-        double[] newValues = new double[w * c];
-        fixed (double* u = upper.values, l = (double[])lower, t = newValues)
-        {
-            Buffer.MemoryCopy(u, t,
-                w1 * c * sizeof(double), w1 * c * sizeof(double));
-            Buffer.MemoryCopy(l, t + w1 * c,
-                c * sizeof(double), c * sizeof(double));
-        }
+        double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
+        Array.Copy(upper.values, newValues, upper.values.Length);
+        Array.Copy((double[])lower, 0, newValues, upper.values.Length, lower.Length);
         return new(w, c, newValues);
     }
 
@@ -272,19 +259,14 @@ public readonly struct Matrix :
     /// <param name="upper">Upper row vector.</param>
     /// <param name="lower">Lower matrix.</param>
     /// <returns>A new matrix with one more row.</returns>
-    public unsafe static Matrix VCat(Vector upper, Matrix lower)
+    public static Matrix VCat(Vector upper, Matrix lower)
     {
         if (upper.Length != lower.Cols)
             throw new MatrixSizeException();
         int w2 = lower.Rows, c = lower.Cols, w = w2 + 1;
-        double[] newValues = new double[w * c];
-        fixed (double* u = (double[])upper, l = lower.values, t = newValues)
-        {
-            Buffer.MemoryCopy(l, t,
-                c * sizeof(double), c * sizeof(double));
-            Buffer.MemoryCopy(u, t + c,
-                w2 * c * sizeof(double), w2 * c * sizeof(double));
-        }
+        double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
+        Array.Copy((double[])upper, newValues, upper.Length);
+        Array.Copy(lower.values, 0, newValues, upper.Length, lower.values.Length);
         return new(w, c, newValues);
     }
 
