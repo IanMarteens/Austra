@@ -63,7 +63,7 @@ public readonly struct Matrix :
     /// <exception cref="MatrixSizeException">
     /// When there are not enough rows or there is a column size mismatch.
     /// </exception>
-    public unsafe Matrix(params Vector[] rows)
+    public Matrix(params Vector[] rows)
     {
         if (rows == null || rows.Length == 0)
             throw new MatrixSizeException();
@@ -74,17 +74,12 @@ public readonly struct Matrix :
         for (int i = 1; i < rows.Length; i++)
             if (rows[i].Length != Cols)
                 throw new MatrixSizeException();
-        values = new double[Rows * Cols];
-        fixed (double* pA = values)
+        values = GC.AllocateUninitializedArray<double>(Rows * Cols);
+        int offset = 0;
+        foreach (Vector row in rows)
         {
-            long rowSize = (long)Cols * sizeof(double);
-            double* p = pA;
-            foreach (Vector row in rows)
-                fixed (double* q = (double[])row)
-                {
-                    Buffer.MemoryCopy(q, p, rowSize, rowSize);
-                    p += Cols;
-                }
+            Array.Copy((double[])row, 0, values, offset, Cols);
+            offset += Cols;
         }
     }
 
@@ -306,14 +301,10 @@ public readonly struct Matrix :
     /// <param name="m">The original matrix.</param>
     /// <returns>The underlying bidimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe explicit operator double[,](Matrix m)
+    public static explicit operator double[,](Matrix m)
     {
         double[,] result = new double[m.Rows, m.Cols];
-        fixed (double* source = m.values, target = result)
-        {
-            int size = m.Rows * m.Cols * sizeof(double);
-            Buffer.MemoryCopy(source, target, size, size);
-        }
+        Array.Copy(m.values, result, m.values.Length);
         return result;
     }
 
@@ -1252,15 +1243,13 @@ public readonly struct Matrix :
     /// <summary>Applies a function to each cell of the matrix.</summary>
     /// <param name="mapper">The transformation function.</param>
     /// <returns>A new matrix with transformed cells.</returns>
-    public unsafe Matrix Map(Func<double, double> mapper)
+    public Matrix Map(Func<double, double> mapper)
     {
-        double[] newValues = new double[values.Length];
-        fixed (double* pA = values, pB = newValues)
-        {
-            int len = newValues.Length;
-            for (int i = 0; i < len; i++)
-                pB[i] = mapper(pA[i]);
-        }
+        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(newValues);
+        for (int i = 0; i < newValues.Length; i++)
+            Add(ref q, i) = mapper(Add(ref p, i));
         return new(Rows, Cols, newValues);
     }
 
@@ -1289,14 +1278,13 @@ public readonly struct Matrix :
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
     /// <returns><see langword="true"/> if the second matrix has the same values.</returns>
-    public unsafe bool Equals(Matrix other) =>
+    public bool Equals(Matrix other) =>
         Rows == other.Rows && Cols == other.Cols && values.EqualsV(other.values);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
-    public override bool Equals(object? obj) =>
-        obj is Matrix matrix && Equals(matrix);
+    public override bool Equals(object? obj) => obj is Matrix matrix && Equals(matrix);
 
     /// <summary>Returns the hashcode for this matrix.</summary>
     /// <returns>A hashcode summarizing the content of the matrix.</returns>

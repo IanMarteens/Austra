@@ -18,31 +18,31 @@ public class VectorBenchmark : BenchmarkControl
         cv7 = new Vector(1024, new NormalRandom(rnd));
     }
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorSum() => cv4 + cv5;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorSub() => cv4 - cv5;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorScale() => 2d * cv4;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorAddScalar() => cv4 + 2d;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorPointMult() => cv4.PointwiseMultiply(cv5);
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorPointMultAdd() => cv4.MultiplyAdd(cv5, cv6);
 
-    //[Benchmark]
+    [Benchmark]
     public double AustraDotProduct() => cv1 * cv2;
 
-    //[Benchmark]
+    [Benchmark]
     public double AustraVectorProduct() => cv5.Product();
 
-    //[Benchmark]
+    [Benchmark]
     public double AustraVectorSumItems() => cv5.Sum();
 
     [Benchmark]
@@ -51,27 +51,39 @@ public class VectorBenchmark : BenchmarkControl
     [Benchmark]
     public bool AustraVectorEqualsTrue() => cv1 == cv3;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraRawLineal() => 2 * cv4 + 3 * cv5;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraCombineLineal() => Vector.Combine2(2, 3, cv4, cv5);
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraNegate() => -cv4;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraRandomVector() => new(size, NormalRandom.Shared);
 
-    //[Benchmark]
+    [Benchmark]
     public double AustraSquareVector() => cv4.Squared();
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorSqrt() => cv4.Sqrt();
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorAbs() => cv7.Abs();
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraVectorMap() => cv7.Map(Math.Abs);
+
+    [Benchmark]
+    public Matrix AustraExternalProduct() => cv1 ^ cv3;
+
+    [Benchmark]
+    public int AustraIndexOfMiddle() => cv7.IndexOf(cv7[cv7.Length / 2]);
+
+    [Benchmark]
+    public int AustraIndexOfLast() => cv7.IndexOf(cv7[^1]);
+
+    [Benchmark]
+    public double AustraAutocorrelation() => cv7.AutoCorrelation(4);
 }

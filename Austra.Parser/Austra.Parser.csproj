@@ -13,9 +13,9 @@
 		<LangVersion>latest</LangVersion>
 		<PackageReadmeFile>ReadMe.md</PackageReadmeFile>
 		<PackageOutputPath>D:\Source\Packages</PackageOutputPath>
-		<AssemblyVersion>1.5.0</AssemblyVersion>
-		<FileVersion>1.5.0</FileVersion>
-		<Version>1.5.0</Version>
+		<AssemblyVersion>1.5.5</AssemblyVersion>
+		<FileVersion>1.5.5</FileVersion>
+		<Version>1.5.5</Version>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Nullable>enable</Nullable>
 		<Description>Implements a compiler for the AUSTRA's formula language.</Description>

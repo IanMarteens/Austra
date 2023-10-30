@@ -462,7 +462,7 @@ public readonly struct Vector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>A matrix such that a[i, j] = v1[i] * v2[j].</returns>
-    public static unsafe Matrix operator ^(Vector v1, Vector v2)
+    public static Matrix operator ^(Vector v1, Vector v2)
     {
         Contract.Requires(v1.IsInitialized);
         Contract.Requires(v2.IsInitialized);
@@ -470,14 +470,16 @@ public readonly struct Vector :
         Contract.Ensures(Contract.Result<Matrix>().Cols == v2.Length);
 
         int rows = v1.Length, cols = v2.Length;
-        double[] result = new double[rows * cols];
-        fixed (double* pA = result, pV1 = v1.values, pV2 = v2.values)
-            for (int i = 0, idx = 0; i < rows; i++)
-            {
-                double d = pV1[i];
-                for (int j = 0; j < cols; j++)
-                    pA[idx++] = pV2[j] * d;
-            }
+        double[] result = GC.AllocateUninitializedArray<double>(rows * cols);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(v1.values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(v2.values);
+        ref double r = ref MemoryMarshal.GetArrayDataReference(result);
+        for (int i = 0; i < rows; i++, p = ref Add(ref p, 1))
+        {
+            double d = p;
+            for (int j = 0; j < cols; j++, r = ref Add(ref r, 1))
+                r = Add(ref q, j) * d;
+        }
         return new(rows, cols, result);
     }
 
@@ -535,7 +537,7 @@ public readonly struct Vector :
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double r = ref MemoryMarshal.GetArrayDataReference(summand.values);
         ref double s = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && Fma.IsSupported 
+        if (V4.IsHardwareAccelerated && Fma.IsSupported
             && result.Length >= Vector256<double>.Count)
         {
             Vector256<double> vq = V4.Create(multiplier);
@@ -643,7 +645,7 @@ public readonly struct Vector :
     /// When <paramref name="weights"/> has one more item than <paramref name="vectors"/>,
     /// that first item is used as the constant term.
     /// </remarks>
-    public static unsafe Vector Combine(Vector weights, Vector[] vectors)
+    public static Vector Combine(Vector weights, params Vector[] vectors)
     {
         if (weights.Length == 0 ||
             weights.Length != vectors.Length &&
@@ -651,29 +653,32 @@ public readonly struct Vector :
             throw new ArgumentException("Weights and vectors don't match");
         int size = vectors[0].Length;
         double[] values = new double[size];
-        fixed (double* p = values)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        int firstW = weights.Length == vectors.Length ? 0 : 1;
+        if (firstW > 0)
+            Array.Fill(values, weights[0]);
+        int t = size - Vector256<double>.Count;
+        for (int i = 0; i < vectors.Length; i++)
         {
-            int firstW = weights.Length == vectors.Length ? 0 : 1;
-            if (firstW > 0)
-                Array.Fill(values, weights[0]);
-            for (int i = 0; i < vectors.Length; i++)
+            if (vectors[i].Length != size)
+                throw new VectorLengthException();
+            ref double q = ref MemoryMarshal.GetArrayDataReference(vectors[i].values);
+            double w = weights[firstW + i];
+            if (V4.IsHardwareAccelerated && Fma.IsSupported
+                && size >= Vector256<double>.Count)
             {
-                if (vectors[i].Length != size)
-                    throw new VectorLengthException();
-                fixed (double* pa = vectors[i].values)
-                {
-                    int j = 0;
-                    double w = weights[firstW + i];
-                    if (Avx.IsSupported)
-                    {
-                        Vector256<double> vec = V4.Create(w);
-                        for (int top = size & Simd.AVX_MASK; j < top; j += Vector256<double>.Count)
-                            Avx.Store(p + j, Avx.LoadVector256(p + j).MultiplyAdd(pa + j, vec));
-                    }
-                    for (; j < size; j++)
-                        p[j] += pa[j] * w;
-                }
+                Vector256<double> vec = V4.Create(w);
+                for (int j = 0; j < t; j += Vector256<double>.Count)
+                    V4.StoreUnsafe(Fma.MultiplyAdd(
+                        V4.LoadUnsafe(ref Add(ref q, j)), vec, V4.LoadUnsafe(ref Add(ref p, j))),
+                        ref Add(ref p, j));
+                V4.StoreUnsafe(Fma.MultiplyAdd(
+                    V4.LoadUnsafe(ref Add(ref q, t)), vec, V4.LoadUnsafe(ref Add(ref p, t))),
+                    ref Add(ref p, t));
             }
+            else
+                for (int j = 0; j < size; j++)
+                    Add(ref p, j) = FusedMultiplyAdd(Add(ref q, j), w, Add(ref p, j));
         }
         return values;
     }
@@ -702,17 +707,11 @@ public readonly struct Vector :
             Vector256<double> vw1 = V4.Create(w1), vw2 = V4.Create(w2);
             int t = values.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
-                V4.StoreUnsafe(
-                    Fma.MultiplyAdd(
-                        V4.LoadUnsafe(ref Add(ref a, i)),
-                        vw1,
-                        V4.LoadUnsafe(ref Add(ref b, i)) * vw2),
+                V4.StoreUnsafe(Fma.MultiplyAdd(
+                    V4.LoadUnsafe(ref Add(ref a, i)), vw1, V4.LoadUnsafe(ref Add(ref b, i)) * vw2),
                     ref Add(ref c, i));
-            V4.StoreUnsafe(
-                Fma.MultiplyAdd(
-                    V4.LoadUnsafe(ref Add(ref a, t)),
-                    vw1,
-                    V4.LoadUnsafe(ref Add(ref b, t)) * vw2),
+            V4.StoreUnsafe(Fma.MultiplyAdd(
+                V4.LoadUnsafe(ref Add(ref a, t)), vw1, V4.LoadUnsafe(ref Add(ref b, t)) * vw2),
                 ref Add(ref c, t));
         }
         else
@@ -928,44 +927,41 @@ public readonly struct Vector :
     /// <param name="lag">Lag number in samples.</param>
     /// <param name="average">Estimated average for vector items.</param>
     /// <returns>The autocorrelation factor.</returns>
-    internal unsafe double AutoCorrelation(int lag, double average)
+    internal double AutoCorrelation(int lag, double average)
     {
-        int count = Length - lag;
         double ex = 0, ey = 0, exy = 0, exx = 0, eyy = 0;
-        fixed (double* p = values)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref Add(ref p, lag);
+        int i = 0, count = Length - lag;
+        if (Avx.IsSupported)
         {
-            double* q = p + lag;
-            int i = 0;
-            if (Avx.IsSupported)
+            Vector256<double> avg = V4.Create(average);
+            Vector256<double> vex = Vector256<double>.Zero;
+            Vector256<double> vey = Vector256<double>.Zero;
+            Vector256<double> vexx = Vector256<double>.Zero;
+            Vector256<double> vexy = Vector256<double>.Zero;
+            Vector256<double> veyy = Vector256<double>.Zero;
+            for (int top = count & Simd.AVX_MASK; i < top; i += Vector256<double>.Count)
             {
-                Vector256<double> avg = V4.Create(average);
-                Vector256<double> vex = Vector256<double>.Zero;
-                Vector256<double> vey = Vector256<double>.Zero;
-                Vector256<double> vexx = Vector256<double>.Zero;
-                Vector256<double> vexy = Vector256<double>.Zero;
-                Vector256<double> veyy = Vector256<double>.Zero;
-                for (int top = count & Simd.AVX_MASK; i < top; i += Vector256<double>.Count)
-                {
-                    Vector256<double> x = Avx.Subtract(Avx.LoadVector256(p + i), avg);
-                    Vector256<double> y = Avx.Subtract(Avx.LoadVector256(q + i), avg);
-                    vex = Avx.Add(vex, x);
-                    vey = Avx.Add(vey, y);
-                    vexx = vexx.MultiplyAdd(x, x);
-                    vexy = vexy.MultiplyAdd(x, y);
-                    veyy = veyy.MultiplyAdd(y, y);
-                }
-                ex = vex.Sum(); ey = vey.Sum();
-                exx = vexx.Sum(); exy = vexy.Sum(); eyy = veyy.Sum();
+                Vector256<double> x = V4.LoadUnsafe(ref Add(ref p, i)) - avg;
+                Vector256<double> y = V4.LoadUnsafe(ref Add(ref q, i)) - avg;
+                vex += x;
+                vey += y;
+                vexx = vexx.MultiplyAdd(x, x);
+                vexy = vexy.MultiplyAdd(x, y);
+                veyy = veyy.MultiplyAdd(y, y);
             }
-            for (; i < count; i++)
-            {
-                double x = p[i] - average, y = q[i] - average;
-                ex += x;
-                ey += y;
-                exy += x * y;
-                exx += x * x;
-                eyy += y * y;
-            }
+            ex = vex.Sum(); ey = vey.Sum();
+            exx = vexx.Sum(); exy = vexy.Sum(); eyy = veyy.Sum();
+        }
+        for (; i < count; i++)
+        {
+            double x = Add(ref p, i) - average, y = Add(ref q, i) - average;
+            ex += x;
+            ey += y;
+            exy += x * y;
+            exx += x * x;
+            eyy += y * y;
         }
         return (exy - ex * ey / count) /
             Math.Sqrt((exx - ex * ex / count) * (eyy - ey * ey / count));
@@ -1186,34 +1182,36 @@ public readonly struct Vector :
     /// <param name="value">The value to locate.</param>
     /// <param name="from">The zero-based starting index.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-    public unsafe int IndexOf(double value, int from)
+    public int IndexOf(double value, int from)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(from >= 0 && from < Length);
         Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
 
-        fixed (double* p = values)
+        ref double p = ref Add(ref MemoryMarshal.GetArrayDataReference(values), from);
+        int size = Length - from;
+        if (V4.IsHardwareAccelerated && size >= Vector256<double>.Count)
         {
-            int i = 0, size = Length - from;
-            double* q = p + from;
-            if (Avx.IsSupported)
+            Vector256<double> v = V4.Create(value);
+            int t = size - Vector256<double>.Count, mask;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
             {
-                Vector256<double> v = V4.Create(value);
-                for (int top = size & Simd.AVX_MASK; i < top; i += Vector256<double>.Count)
-                {
-                    int mask = Avx.MoveMask(Avx.CompareEqual(Avx.LoadVector256(q + i), v));
-                    if (mask != 0)
-                        return i + BitOperations.TrailingZeroCount(mask) + from;
-                }
+                mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref Add(ref p, i)), v));
+                if (mask != 0)
+                    return i + BitOperations.TrailingZeroCount(mask) + from;
             }
-            for (; i < size; i++)
-                if (q[i] == value)
-                    return i + from;
+            mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref Add(ref p, t)), v));
+            if (mask != 0)
+                return t + BitOperations.TrailingZeroCount(mask) + from;
         }
+        else
+            for (int i = 0; i < size; i++)
+                if (Add(ref p, i) == value)
+                    return i + from;
         return -1;
     }
 
-    /// <summary>Compares two vectors for equality withing a tolerance.</summary>
+    /// <summary>Compares two vectors for equality within a tolerance.</summary>
     /// <param name="v1">First vector to compare.</param>
     /// <param name="v2">Second vector to compare.</param>
     /// <param name="epsilon">The tolerance.</param>

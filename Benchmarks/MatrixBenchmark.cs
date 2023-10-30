@@ -17,42 +17,45 @@ public class MatrixBenchmark : BenchmarkControl
         cv2 = new Vector(size, rnd);
     }
 
-    //[Benchmark]
+    [Benchmark]
     public Matrix AustraAddMatrix() => cm1 + cm2;
 
-    //[Benchmark]
+    [Benchmark]
     public Matrix AustraSubMatrix() => cm1 - cm2;
 
-    //[Benchmark]
+    [Benchmark]
     public Matrix AustraMulMatrix() => cm1 * cm2;
 
-    //[Benchmark]
+    [Benchmark]
     public Matrix AustraTransMatrix() => cm1.Transpose();
 
-    //[Benchmark]
+    [Benchmark]
     public Matrix AustraMulTMatrix() => cm1.MultiplyTranspose(cm2);
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraTransMatrixVector() => cm1.TransposeMultiply(cv1);
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraMatrixVector() => cm1 * cv1;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraMatrixMultiplyAddRaw() => cm1 * cv1 + cv2;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraMatrixMultiplyAdd() => cm1.MultiplyAdd(cv1, cv2);
 
-    //[Benchmark]
+    [Benchmark]
     public LMatrix AustraLowerTriangular() => new(size, NormalRandom.Shared);
 
-    //[Benchmark]
+    [Benchmark]
     public Matrix AustraRandomMatrix() => new(size, Random.Shared);
 
-    //[Benchmark]
+    [Benchmark]
     public bool AustraSymmetricMatrix() => sym.IsSymmetric();
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraMatrixGetRow() => cm1.GetRow(size / 2);
+
+    [Benchmark]
+    public Matrix AustraMatrixMap() => cm1.Map(x => x * x);
 }

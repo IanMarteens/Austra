@@ -8,9 +8,7 @@ public class CVectorBenchmark : BenchmarkControl
     private readonly int size = 1023;
     private readonly double scale = Random.Shared.NextDouble() + 0.5;
 
-    public CVectorBenchmark()
-    {
-    }
+    public CVectorBenchmark() { }
 
     [Benchmark]
     public ComplexVector AustraComplexVectorCtor() => new(cv);
@@ -35,4 +33,7 @@ public class CVectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public ComplexVector AustraPointwiseMultComplexVector() => cxv.PointwiseMultiply(cyv);
+
+    [Benchmark]
+    public ComplexVector AustraRandomOffsetComplexVector() => new(size, Random.Shared, 0.5, 1.1);
 }

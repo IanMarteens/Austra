@@ -79,14 +79,16 @@ public readonly struct ComplexVector :
     /// <param name="rnd">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public unsafe ComplexVector(int size, Random rnd, double offset, double width) : this(size)
+    public ComplexVector(int size, Random rnd, double offset, double width)
     {
-        fixed (double* p = re, q = im)
-            for (int i = 0; i < size; i++)
-            {
-                p[i] = FusedMultiplyAdd(rnd.NextDouble(), width, offset);
-                q[i] = FusedMultiplyAdd(rnd.NextDouble(), width, offset);
-            }
+        re = GC.AllocateUninitializedArray<double>(size);
+        im = GC.AllocateUninitializedArray<double>(size);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        for (int i = 0; i < size; i++)
+            (Add(ref p, i), Add(ref q, i)) = (
+                FusedMultiplyAdd(rnd.NextDouble(), width, offset), 
+                FusedMultiplyAdd(rnd.NextDouble(), width, offset));
     }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
@@ -592,7 +594,7 @@ public readonly struct ComplexVector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <param name="d">A scalar multiplier.</param>
     /// <returns>The multiplication of the vector by the scalar.</returns>
-    public static unsafe ComplexVector operator *(ComplexVector v, double d)
+    public static ComplexVector operator *(ComplexVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
