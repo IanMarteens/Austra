@@ -912,7 +912,7 @@ public readonly struct Matrix :
     /// <remarks>Calculates <c>this * m'</c>.</remarks>
     /// <param name="m">Second operand.</param>
     /// <returns>The multiplication by the transposed argument.</returns>
-    public unsafe Matrix MultiplyTranspose(Matrix m)
+    public Matrix MultiplyTranspose(Matrix m)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
@@ -923,14 +923,16 @@ public readonly struct Matrix :
 
         int r = Rows, n = Cols, c = m.Rows;
         double[] result = new double[r * c];
-        fixed (double* pA = values, pB = m.values, pC = result)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(m.values);
+        ref double t = ref MemoryMarshal.GetArrayDataReference(result);
         {
             int top = n & Simd.AVX_MASK;
-            double* pAi = pA, pCi = pC;
+            ref double ai = ref a, ti = ref t;
             for (int i = 0; i < r; i++)
             {
-                double* pBj = pB;
-                for (int j = 0; j < c; j++)
+                ref double bj = ref b;
+                for (int j = 0; j < c; j++, bj = ref Add(ref bj, n))
                 {
                     int k = 0;
                     double acc = 0;
@@ -938,16 +940,16 @@ public readonly struct Matrix :
                     {
                         Vector256<double> sum = Vector256<double>.Zero;
                         for (; k < top; k += Vector256<double>.Count)
-                            sum = sum.MultiplyAdd(pAi + k, pBj + k);
+                            sum = sum.MultiplyAdd(
+                                V4.LoadUnsafe(ref Add(ref ai, k)), V4.LoadUnsafe(ref Add(ref bj, k)));
                         acc = sum.Sum();
                     }
                     for (; k < n; k++)
-                        acc = FusedMultiplyAdd(pAi[k], pBj[k], acc);
-                    pCi[j] = acc;
-                    pBj += n;
+                        acc = FusedMultiplyAdd(Add(ref ai, k), Add(ref bj, k), acc);
+                    Add(ref ti, j) = acc;
                 }
-                pAi += n;
-                pCi += c;
+                ai = ref Add(ref ai, n);
+                ti = ref Add(ref ti, c);
             }
         }
         return new(r, c, result);
@@ -1007,7 +1009,7 @@ public readonly struct Matrix :
     /// </remarks>
     /// <param name="v">The vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    public unsafe Vector TransposeMultiply(Vector v)
+    public Vector TransposeMultiply(Vector v)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -1017,23 +1019,23 @@ public readonly struct Matrix :
 
         int r = Rows, c = Cols;
         double[] result = new double[r];
-        fixed (double* pA = values, pB = (double[])v, pC = result)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double q = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        ref double t = ref MemoryMarshal.GetArrayDataReference(result);
+        for (int k = 0; k < r; k++, p = ref Add(ref p, c))
         {
-            double* pAk = pA;
-            for (int k = 0; k < r; k++)
+            double d = Add(ref q, k);
+            int j = 0;
+            if (Avx.IsSupported)
             {
-                double d = pB[k];
-                int j = 0;
-                if (Avx.IsSupported)
-                {
-                    Vector256<double> vec = V4.Create(d);
-                    for (int last = c & Simd.AVX_MASK; j < last; j += Vector256<double>.Count)
-                        Avx.Store(pC + j, Avx.LoadVector256(pC + j).MultiplyAdd(pAk + j, vec));
-                }
-                for (; j < c; j++)
-                    pC[j] += pAk[j] * d;
-                pAk += c;
+                Vector256<double> vec = V4.Create(d);
+                for (int last = c & Simd.AVX_MASK; j < last; j += Vector256<double>.Count)
+                    V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref t, j)).MultiplyAdd(
+                        V4.LoadUnsafe(ref Add(ref p, j)), vec),
+                        ref Add(ref t, j));
             }
+            for (; j < c; j++)
+                Add(ref t, j) += Add(ref p, j) * d;
         }
         return result;
     }
