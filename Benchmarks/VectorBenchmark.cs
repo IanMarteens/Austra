@@ -86,4 +86,7 @@ public class VectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public double AustraAutocorrelation() => cv7.AutoCorrelation(4);
+
+    [Benchmark]
+    public Vector AustraVectorReverse() => cv7.Reverse();
 }

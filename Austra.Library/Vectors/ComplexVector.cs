@@ -87,7 +87,7 @@ public readonly struct ComplexVector :
         ref double q = ref MemoryMarshal.GetArrayDataReference(im);
         for (int i = 0; i < size; i++)
             (Add(ref p, i), Add(ref q, i)) = (
-                FusedMultiplyAdd(rnd.NextDouble(), width, offset), 
+                FusedMultiplyAdd(rnd.NextDouble(), width, offset),
                 FusedMultiplyAdd(rnd.NextDouble(), width, offset));
     }
 
@@ -120,21 +120,23 @@ public readonly struct ComplexVector :
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
     /// <param name="f">A function defining item content.</param>
-    public unsafe ComplexVector(int size, Func<int, Complex> f) : this(size)
+    public ComplexVector(int size, Func<int, Complex> f) : this(size)
     {
-        fixed (double* p = re, q = im)
-            for (int i = 0; i < size; i++)
-                (p[i], q[i]) = f(i);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        for (int i = 0; i < size; i++)
+            (Add(ref p, i), Add(ref q, i)) = f(i);
     }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
     /// <param name="f">A function defining item content.</param>
-    public unsafe ComplexVector(int size, Func<int, ComplexVector, Complex> f) : this(size)
+    public ComplexVector(int size, Func<int, ComplexVector, Complex> f) : this(size)
     {
-        fixed (double* p = re, q = im)
-            for (int i = 0; i < size; i++)
-                (p[i], q[i]) = f(i, this);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        for (int i = 0; i < size; i++)
+            (Add(ref p, i), Add(ref q, i)) = f(i, this);
     }
 
     /// <summary>Initializes a complex vector from a complex array.</summary>
@@ -559,33 +561,33 @@ public readonly struct ComplexVector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <param name="c">A scalar multiplier.</param>
     /// <returns>The multiplication of the vector by the scalar.</returns>
-    public static unsafe ComplexVector operator *(ComplexVector v, Complex c)
+    public static ComplexVector operator *(ComplexVector v, Complex c)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
         double[] re = new double[v.Length], im = new double[v.Length];
-        fixed (double* pr = v.re, pi = v.im, qr = re, qi = im)
+        ref double pr = ref MemoryMarshal.GetArrayDataReference(v.re);
+        ref double pi = ref MemoryMarshal.GetArrayDataReference(v.im);
+        ref double qr = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double qi = ref MemoryMarshal.GetArrayDataReference(im);
+        int len = v.Length, i = 0;
+        if (Avx.IsSupported)
         {
-            int len = v.Length;
-            int i = 0;
-            if (Avx.IsSupported)
+            Vector256<double> vr = V4.Create(c.Real);
+            Vector256<double> vi = V4.Create(c.Imaginary);
+            for (int top = len & Simd.AVX_MASK; i < top; i += 4)
             {
-                Vector256<double> vr = V4.Create(c.Real);
-                Vector256<double> vi = V4.Create(c.Imaginary);
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> vpr = Avx.LoadVector256(pr + i);
-                    Vector256<double> vpi = Avx.LoadVector256(pi + i);
-                    Avx.Store(qr + i, Avx.Multiply(vpr, vr).MultiplyAddNeg(vpi, vi));
-                    Avx.Store(qi + i, Avx.Multiply(vpr, vi).MultiplyAdd(vpi, vr));
-                }
+                Vector256<double> vpr = V4.LoadUnsafe(ref Add(ref pr, i));
+                Vector256<double> vpi = V4.LoadUnsafe(ref Add(ref pi, i));
+                V4.StoreUnsafe(Avx.Multiply(vpr, vr).MultiplyAddNeg(vpi, vi), ref Add(ref qr, i));
+                V4.StoreUnsafe(Avx.Multiply(vpr, vi).MultiplyAdd(vpi, vr), ref Add(ref qi, i));
             }
-            for (; i < len; i++)
-            {
-                qr[i] = pr[i] * c.Real - pi[i] * c.Imaginary;
-                qi[i] = pr[i] * c.Imaginary + pi[i] * c.Real;
-            }
+        }
+        for (; i < len; i++)
+        {
+            Add(ref qr, i) = Add(ref pr, i) * c.Real - Add(ref pi, i) * c.Imaginary;
+            Add(ref qi, i) = Add(ref pr, i) * c.Imaginary + Add(ref pi, i) * c.Real;
         }
         return new(re, im);
     }
@@ -688,30 +690,29 @@ public readonly struct ComplexVector :
     /// <summary>Gets maximum absolute magnitude in the vector.</summary>
     /// <remarks>This operation can be hardware-accelerated.</remarks>
     /// <returns>The value in the cell with the highest amplitude.</returns>
-    public unsafe double AbsMax()
+    public double AbsMax()
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<double>() >= 0);
 
-        fixed (double* p = re, q = im)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        int i = 0;
+        double result = 0;
+        if (Avx.IsSupported)
         {
-            int i = 0;
-            double result = 0;
-            if (Avx.IsSupported)
+            Vector256<double> max = Vector256<double>.Zero;
+            for (int top = Length & Simd.AVX_MASK; i < top; i += 4)
             {
-                Vector256<double> max = Vector256<double>.Zero;
-                for (int top = Length & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> v = Avx.LoadVector256(p + i);
-                    Vector256<double> w = Avx.LoadVector256(q + i);
-                    max = Avx.Max(max, Avx.Sqrt((v * v).MultiplyAdd(w, w)));
-                }
-                result = max.Max();
+                Vector256<double> v = V4.LoadUnsafe(ref Add(ref p, i));
+                Vector256<double> w = V4.LoadUnsafe(ref Add(ref q, i));
+                max = Avx.Max(max, Avx.Sqrt((v * v).MultiplyAdd(w, w)));
             }
-            for (; i < Length; i++)
-                result = Max(result, Sqrt(re[i] * re[i] + im[i] * im[i]));
-            return result;
+            result = max.Max();
         }
+        for (; i < re.Length; i++)
+            result = Max(result, Sqrt(re[i] * re[i] + im[i] * im[i]));
+        return result;
     }
 
     /// <summary>
@@ -720,18 +721,26 @@ public readonly struct ComplexVector :
     /// <remarks>This operation can be hardware-accelerated.</remarks>
     /// <param name="n">The number of phases to be returned.</param>
     /// <returns>A new vector with phases.</returns>
-    internal unsafe Vector Phases(int n)
+    internal Vector Phases(int n)
     {
         double[] result = GC.AllocateUninitializedArray<double>(n);
-        fixed (double* p = re, q = im, r = result)
+        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double r = ref MemoryMarshal.GetArrayDataReference(result);
+        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
         {
-            int i = 0;
-            if (Avx2.IsSupported)
-                for (int top = n & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(r + i, Avx.LoadVector256(q + i).Atan2(Avx.LoadVector256(p + i)));
-            for (; i < n; i++)
-                r[i] = Atan2(im[i], re[i]);
+            int t = result.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref Add(ref q, i)).Atan2(V4.LoadUnsafe(ref Add(ref p, i))),
+                    ref Add(ref r, i));
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref Add(ref q, t)).Atan2(V4.LoadUnsafe(ref Add(ref p, t))),
+                ref Add(ref r, t));
         }
+        else
+            for (int i = 0; i < result.Length; i++)
+                result[i] = Atan2(im[i], re[i]);
         return result;
     }
 
@@ -851,8 +860,7 @@ public readonly struct ComplexVector :
     {
         int len = Min(Length, other.Length);
         double[] newRe = new double[len], newIm = new double[len];
-        fixed (double* p1r = re, p1i = im, p2r = other.re, p2i = other.im)
-        fixed (double* qr = newRe, qi = newIm)
+        fixed (double* p1r = re, p1i = im, p2r = other.re, p2i = other.im, qr = newRe, qi = newIm)
             for (int i = 0; i < len; i++)
                 (qr[i], qi[i]) = zipper(new(p1r[i], p1i[i]), new(p2r[i], p2i[i]));
         return new(newRe, newIm);
