@@ -286,7 +286,9 @@ public readonly struct Matrix :
     public static explicit operator double[,](Matrix m)
     {
         double[,] result = new double[m.Rows, m.Cols];
-        Array.Copy(m.values, result, m.values.Length);
+        ref byte source = ref As<double, byte>(ref MemoryMarshal.GetArrayDataReference(m.values));
+        ref byte target = ref As<double, byte>(ref result[0, 0]);
+        CopyBlockUnaligned(ref target, ref source, (uint)(m.values.Length * sizeof(double)));
         return result;
     }
 
