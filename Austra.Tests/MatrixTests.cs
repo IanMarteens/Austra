@@ -71,6 +71,7 @@ public class MatrixTests
         Matrix p2 = m1 * m2.Transpose();
         Assert.That((p1 - p2).AMax(), Is.LessThanOrEqualTo(1E-12));
     }
+
     /// <summary>
     /// Check that vector transformed by transposed is ok.
     /// </summary>
@@ -82,5 +83,27 @@ public class MatrixTests
         Vector r1 = m1.TransposeMultiply(v1);
         Vector r2 = m1.Transpose() * v1;
         Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-13));
+    }
+
+    [Test]
+    public void CheckMultiplyAdd([Values(32, 49, 61)] int size)
+    {
+        Matrix m1 = new(size, new NormalRandom());
+        Vector v1 = new(size, new NormalRandom());
+        Vector v2 = new(size, new NormalRandom());
+        Vector r1 = m1.MultiplyAdd(v1, v2);
+        Vector r2 = m1 * v1 + v2;
+        Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
+    }
+
+    [Test]
+    public void CheckMultiplySub([Values(32, 49, 61)] int size)
+    {
+        Matrix m1 = new(size, new NormalRandom());
+        Vector v1 = new(size, new NormalRandom());
+        Vector v2 = new(size, new NormalRandom());
+        Vector r1 = m1.MultiplySubtract(v1, v2);
+        Vector r2 = m1 * v1 - v2;
+        Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
     }
 }

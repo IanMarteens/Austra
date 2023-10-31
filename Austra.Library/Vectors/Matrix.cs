@@ -4,6 +4,14 @@
 /// <remarks>
 /// <para>Values are stored in a one-dimensional array, in row-major order.
 /// Compatibility with bidimensional arrays, however, has been preserved.</para>
+/// <para>
+/// Most methods respect immutability at the cost of extra allocations.
+/// Of course, there are special methods, like
+/// <see cref="MultiplyAdd(Vector, double, Vector)"/>
+/// for saving unneeded allocations. Also, most methods are hardware accelerated,
+/// either by using managed references, SIMD operations or both.
+/// Memory pinning has been reduced to the minimum.
+/// </para>
 /// </remarks>
 [JsonConverter(typeof(MatrixJsonConverter))]
 public readonly struct Matrix :
@@ -275,13 +283,13 @@ public readonly struct Matrix :
     public Matrix Clone() => new(Rows, Cols, (double[])values.Clone());
 
     /// <summary>
-    /// Explicit conversion from a matrix to a bidimensional array.
+    /// Explicit conversion from a matrix to a 2D-array.
     /// </summary>
     /// <remarks>
     /// The returned array is a copy of the original matrix storage.
     /// </remarks>
     /// <param name="m">The original matrix.</param>
-    /// <returns>The underlying bidimensional array.</returns>
+    /// <returns>A 2D-array representing the underlying storage.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator double[,](Matrix m)
     {
@@ -292,12 +300,8 @@ public readonly struct Matrix :
         return result;
     }
 
-    /// <summary>
-    /// Explicit conversion from a matrix to a one-dimensional array.
-    /// </summary>
-    /// <remarks>
-    /// Use carefully: it returns the underlying one-dimensional array.
-    /// </remarks>
+    /// <summary>Explicit conversion from a matrix to a 1D-array.</summary>
+    /// <remarks>Use carefully: it returns the underlying 1D-array.</remarks>
     /// <param name="m">The original matrix.</param>
     /// <returns>The underlying bidimensional array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -382,7 +386,7 @@ public readonly struct Matrix :
     /// <param name="rowRange">Row range.</param>
     /// <param name="columnRange">Column range.</param>
     /// <returns>A new matrix.</returns>
-    public unsafe Matrix this[Range rowRange, Range columnRange]
+    public Matrix this[Range rowRange, Range columnRange]
     {
         get
         {
@@ -395,24 +399,17 @@ public readonly struct Matrix :
                 if (rLen > 0)
                 {
                     // The easiest case.
-                    double[] newValues = new double[rLen * Cols];
-                    fixed (double* p = values, q = newValues)
-                        Buffer.MemoryCopy(p + rOff * Cols, q,
-                            rLen * Cols * sizeof(double),
-                            rLen * Cols * sizeof(double));
+                    double[] newValues = GC.AllocateUninitializedArray<double>(rLen * Cols);
+                    Array.Copy(values, rOff * Cols, newValues, 0, rLen * Cols);
                     return new(rLen, Cols, newValues);
                 }
             }
             if (cLen > 0 && rLen > 0)
             {
                 double[] newValues = new double[rLen * cLen];
-                int size = cLen * sizeof(double);
-                fixed (double* p = values, q = newValues)
-                {
-                    double* source = p + rOff * Cols + cOff;
-                    for (int row = 0; row < rLen; row++, source += Cols)
-                        Buffer.MemoryCopy(source, q + row * cLen, size, size);
-                }
+                int offset = rOff * Cols + cOff;
+                for (int row = 0; row < rLen; row++, offset += Cols)
+                    Array.Copy(values, offset, newValues, row * cLen, cLen);
                 return new(rLen, cLen, newValues);
             }
             return new(0);
@@ -778,9 +775,7 @@ public readonly struct Matrix :
         const long MINSIZE = 64L * 64L * 64L * 64L;
         const long MAXSIZE = 1024L * 1024L * 1024L * 1024L;
         long size = (long)m1.values.Length * m2.values.Length;
-        int m = m1.Rows;
-        int n = m1.Cols;
-        int p = m2.Cols;
+        int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
         fixed (double* a = m1.values, b = m2.values, c = result)
             if (size < MINSIZE)
@@ -793,10 +788,8 @@ public readonly struct Matrix :
 
         static void NonBlocking(int m, int n, int p, double* a, double* b, double* c)
         {
-            double* pa = a;
-            double* pc = c;
-            int top = p & Simd.AVX_MASK;
-            for (int i = 0; i < m; i++)
+            double* pa = a, pc = c;
+            for (int i = 0, top = p & Simd.AVX_MASK; i < m; i++)
             {
                 double* pb = b;
                 for (int k = 0; k < n; k++)
@@ -921,36 +914,33 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
-        int r = Rows, n = Cols, c = m.Rows;
+        int r = Rows, n = Cols, c = m.Rows, top = n & Simd.AVX_MASK;
         double[] result = new double[r * c];
         ref double a = ref MemoryMarshal.GetArrayDataReference(values);
         ref double b = ref MemoryMarshal.GetArrayDataReference(m.values);
         ref double t = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double ai = ref a, ti = ref t;
+        for (int i = 0; i < r; i++)
         {
-            int top = n & Simd.AVX_MASK;
-            ref double ai = ref a, ti = ref t;
-            for (int i = 0; i < r; i++)
+            ref double bj = ref b;
+            for (int j = 0; j < c; j++, bj = ref Add(ref bj, n))
             {
-                ref double bj = ref b;
-                for (int j = 0; j < c; j++, bj = ref Add(ref bj, n))
+                int k = 0;
+                double acc = 0;
+                if (Avx.IsSupported)
                 {
-                    int k = 0;
-                    double acc = 0;
-                    if (Avx.IsSupported)
-                    {
-                        Vector256<double> sum = Vector256<double>.Zero;
-                        for (; k < top; k += Vector256<double>.Count)
-                            sum = sum.MultiplyAdd(
-                                V4.LoadUnsafe(ref Add(ref ai, k)), V4.LoadUnsafe(ref Add(ref bj, k)));
-                        acc = sum.Sum();
-                    }
-                    for (; k < n; k++)
-                        acc = FusedMultiplyAdd(Add(ref ai, k), Add(ref bj, k), acc);
-                    Add(ref ti, j) = acc;
+                    Vector256<double> sum = Vector256<double>.Zero;
+                    for (; k < top; k += Vector256<double>.Count)
+                        sum = sum.MultiplyAdd(
+                            V4.LoadUnsafe(ref Add(ref ai, k)), V4.LoadUnsafe(ref Add(ref bj, k)));
+                    acc = sum.Sum();
                 }
-                ai = ref Add(ref ai, n);
-                ti = ref Add(ref ti, c);
+                for (; k < n; k++)
+                    acc = FusedMultiplyAdd(Add(ref ai, k), Add(ref bj, k), acc);
+                Add(ref ti, j) = acc;
             }
+            ai = ref Add(ref ai, n);
+            ti = ref Add(ref ti, c);
         }
         return new(r, c, result);
     }
@@ -1047,7 +1037,7 @@ public readonly struct Matrix :
     /// <param name="v">Vector to transform.</param>
     /// <param name="add">Vector to add.</param>
     /// <returns><c>this * v + add</c>.</returns>
-    public unsafe Vector MultiplyAdd(Vector v, Vector add)
+    public Vector MultiplyAdd(Vector v, Vector add)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -1056,24 +1046,67 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
 
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        fixed (double* pA = values, pX = (double[])v, pB = result, pC = (double[])add)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double x = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double ad = ref MemoryMarshal.GetArrayDataReference((double[])add);
+        for (int i = 0; i < r;
+            i++, a = ref Add(ref a, c), b = ref Add(ref b, 1), ad = ref Add(ref ad, 1))
         {
-            double* pA1 = pA, pB1 = pB, pC1 = pC;
-            for (int i = 0; i < r; i++, pA1 += c)
+            int j = 0;
+            double d = 0;
+            if (V4.IsHardwareAccelerated)
             {
-                int j = 0;
-                double d = 0;
-                if (Avx.IsSupported)
-                {
-                    Vector256<double> vec = Vector256<double>.Zero;
-                    for (; j < top; j += Vector256<double>.Count)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    d = vec.Sum();
-                }
-                for (; j < c; j++)
-                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                *pB1++ = d + *pC1++;
+                Vector256<double> vec = Vector256<double>.Zero;
+                for (; j < top; j += Vector256<double>.Count)
+                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
+                        V4.LoadUnsafe(ref Add(ref x, j)));
+                d = vec.Sum();
             }
+            for (; j < c; j++)
+                d = FusedMultiplyAdd(Add(ref a, j), Add(ref x, j), d);
+            b = d + ad;
+        }
+        return result;
+    }
+
+    /// <summary>Transforms a vector and adds an offset.</summary>
+    /// <remarks>
+    /// This method avoids allocating two temporary vectors.
+    /// </remarks>
+    /// <param name="v">Vector to transform.</param>
+    /// <param name="scale">A scale factor for the vector to add.</param>
+    /// <param name="add">Vector to add.</param>
+    /// <returns><c>this * v + scale * add</c>.</returns>
+    public Vector MultiplyAdd(Vector v, double scale, Vector add)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        int r = Rows, c = Cols, top = c & Simd.AVX_MASK;
+        if (c != v.Length)
+            throw new MatrixSizeException();
+
+        double[] result = GC.AllocateUninitializedArray<double>(r);
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double x = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double ad = ref MemoryMarshal.GetArrayDataReference((double[])add);
+        for (int i = 0; i < r;
+            i++, a = ref Add(ref a, c), b = ref Add(ref b, 1), ad = ref Add(ref ad, 1))
+        {
+            int j = 0;
+            double d = 0;
+            if (V4.IsHardwareAccelerated)
+            {
+                Vector256<double> vec = Vector256<double>.Zero;
+                for (; j < top; j += Vector256<double>.Count)
+                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
+                        V4.LoadUnsafe(ref Add(ref x, j)));
+                d = vec.Sum();
+            }
+            for (; j < c; j++)
+                d = FusedMultiplyAdd(Add(ref a, j), Add(ref x, j), d);
+            b = d + scale * ad;
         }
         return result;
     }
@@ -1085,7 +1118,7 @@ public readonly struct Matrix :
     /// <param name="v">Vector to transform.</param>
     /// <param name="sub">Vector to subtract.</param>
     /// <returns><c>this * multiplicand - sub</c>.</returns>
-    public unsafe Vector MultiplySubtract(Vector v, Vector sub)
+    public Vector MultiplySubtract(Vector v, Vector sub)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -1094,24 +1127,26 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
 
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        fixed (double* pA = values, pX = (double[])v, pB = result, pC = (double[])sub)
+        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double x = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double sb = ref MemoryMarshal.GetArrayDataReference((double[])sub);
+        for (int i = 0; i < r;
+            i++, a = ref Add(ref a, c), b = ref Add(ref b, 1), sb = ref Add(ref sb, 1))
         {
-            double* pA1 = pA, pB1 = pB, pC1 = pC;
-            for (int i = 0; i < r; i++, pA1 += c)
+            int j = 0;
+            double d = 0;
+            if (V4.IsHardwareAccelerated)
             {
-                int j = 0;
-                double d = 0;
-                if (Avx.IsSupported)
-                {
-                    Vector256<double> vec = Vector256<double>.Zero;
-                    for (; j < top; j += Vector256<double>.Count)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    d = vec.Sum();
-                }
-                for (; j < c; j++)
-                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                *pB1++ = d - *pC1++;
+                Vector256<double> vec = Vector256<double>.Zero;
+                for (; j < top; j += Vector256<double>.Count)
+                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
+                        V4.LoadUnsafe(ref Add(ref x, j)));
+                d = vec.Sum();
             }
+            for (; j < c; j++)
+                d = FusedMultiplyAdd(Add(ref a, j), Add(ref x, j), d);
+            b = d - sb;
         }
         return result;
     }
@@ -1337,12 +1372,12 @@ public readonly struct Matrix :
 /// <summary>JSON converter for rectangular matrices.</summary>
 public class MatrixJsonConverter : JsonConverter<Matrix>
 {
-    /// <summary>Reads and convert JSON to a <see cref="LMatrix"/> instance.</summary>
+    /// <summary>Reads and convert JSON to a <see cref="Matrix"/> instance.</summary>
     /// <param name="reader">The JSON reader.</param>
     /// <param name="typeToConvert">The type of the object to convert.</param>
     /// <param name="options">JSON options.</param>
     /// <returns>A triangular matrix with the values read from JSON.</returns>
-    public unsafe override Matrix Read(
+    public override Matrix Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
@@ -1367,16 +1402,14 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
             else if (reader.TokenType == JsonTokenType.StartArray)
             {
                 values = new double[rows * cols];
-                fixed (double* p = values)
+                ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+                int total = rows * cols;
+                reader.Read();
+                while (reader.TokenType == JsonTokenType.Number && total-- > 0)
                 {
-                    int total = rows * cols;
-                    double* pa = p;
+                    p = reader.GetDouble();
+                    p = ref Add(ref p, 1);
                     reader.Read();
-                    while (reader.TokenType == JsonTokenType.Number && total-- > 0)
-                    {
-                        *pa++ = reader.GetDouble();
-                        reader.Read();
-                    }
                 }
             }
         }
@@ -1387,7 +1420,7 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
     /// <param name="writer">The JSON writer.</param>
     /// <param name="value">The matrix to serialize.</param>
     /// <param name="options">JSON options.</param>    
-    public unsafe override void Write(
+    public override void Write(
         Utf8JsonWriter writer,
         Matrix value,
         JsonSerializerOptions options)
@@ -1396,12 +1429,8 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
         writer.WriteNumber(nameof(Matrix.Rows), value.Rows);
         writer.WriteNumber(nameof(Matrix.Cols), value.Cols);
         writer.WriteStartArray("values");
-        fixed (double* pV = (double[])value)
-        {
-            double* pEnd = pV + value.Rows * value.Cols;
-            for (double* p = pV; p < pEnd; p++)
-                writer.WriteNumberValue(*p);
-        }
+        foreach (double v in (double[])value)
+            writer.WriteNumberValue(v);
         writer.WriteEndArray();
         writer.WriteEndObject();
     }
