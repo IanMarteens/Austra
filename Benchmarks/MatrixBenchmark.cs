@@ -17,48 +17,48 @@ public class MatrixBenchmark : BenchmarkControl
         cv2 = new Vector(size, rnd);
     }
 
-    //[Benchmark]
-    //public Matrix AustraAddMatrix() => cm1 + cm2;
+    [Benchmark]
+    public Matrix AustraAddMatrix() => cm1 + cm2;
+    
+    [Benchmark]
+    public Matrix AustraSubMatrix() => cm1 - cm2;
 
-    //[Benchmark]
-    //public Matrix AustraSubMatrix() => cm1 - cm2;
-
-    //[Benchmark]
-    //public Matrix AustraMulMatrix() => cm1 * cm2;
+    [Benchmark]
+    public Matrix AustraMulMatrix() => cm1 * cm2;
 
     [Benchmark]
     public Matrix AustraTransMatrix() => cm1.Transpose();
 
-    //[Benchmark]
+    [Benchmark]
     public Matrix AustraMulTMatrix() => cm1.MultiplyTranspose(cm2);
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraTransMatrixVector() => cm1.TransposeMultiply(cv1);
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraMatrixVector() => cm1 * cv1;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraMatrixMultiplyAddRaw() => cm1 * cv1 + cv2;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraMatrixMultiplyAdd() => cm1.MultiplyAdd(cv1, cv2);
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraMatrixMultiplySub() => cm1.MultiplySubtract(cv1, cv2);
 
-    //[Benchmark]
-    //public LMatrix AustraLowerTriangular() => new(size, NormalRandom.Shared);
+    [Benchmark]
+    public LMatrix AustraLowerTriangular() => new(size, NormalRandom.Shared);
 
-    //[Benchmark]
-    //public Matrix AustraRandomMatrix() => new(size, Random.Shared);
+    [Benchmark]
+    public Matrix AustraRandomMatrix() => new(size, Random.Shared);
 
-    //[Benchmark]
-    //public bool AustraSymmetricMatrix() => sym.IsSymmetric();
+    [Benchmark]
+    public bool AustraSymmetricMatrix() => sym.IsSymmetric();
 
-    //[Benchmark]
-    //public Vector AustraMatrixGetRow() => cm1.GetRow(size / 2);
+    [Benchmark]
+    public Vector AustraMatrixGetRow() => cm1.GetRow(size / 2);
 
-    //[Benchmark]
-    //public Matrix AustraMatrixMap() => cm1.Map(x => x * x);
+    [Benchmark]
+    public Matrix AustraMatrixMap() => cm1.Map(x => x * x);
 }

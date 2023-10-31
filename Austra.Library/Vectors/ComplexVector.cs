@@ -188,28 +188,38 @@ public readonly struct ComplexVector :
     /// <summary>Explicit conversion from vector to array.</summary>
     /// <param name="v">The original vector.</param>
     /// <returns>An array of <see cref="Complex"/> numbers.</returns>
-    public unsafe static explicit operator Complex[](ComplexVector v)
+    public static explicit operator Complex[](ComplexVector v)
     {
-        Complex[] result = new Complex[v.Length];
-        fixed (double* p = v.re, q = v.im)
-        fixed (Complex* r = result)
+        Complex[] result = GC.AllocateUninitializedArray<Complex>(v.Length);
+        ref double p = ref MemoryMarshal.GetArrayDataReference(v.re);
+        ref double q = ref MemoryMarshal.GetArrayDataReference(v.im);
+        ref double rs = ref As<Complex, double>(ref MemoryMarshal.GetArrayDataReference(result));
+        if (V4.IsHardwareAccelerated && v.re.Length >= Vector256<double>.Count)
         {
-            int i = 0;
-            if (Avx2.IsSupported)
+            int t = v.re.Length - Vector256<double>.Count;
+            for (int i = 0, idx = 0; i < t; i += Vector256<double>.Count, idx += 8)
             {
-                for (int top = v.Length & ~3; i < top; i += 4)
-                {
-                    Vector256<double> vr = Avx.LoadVector256(p + i);
-                    Vector256<double> vi = Avx.LoadVector256(q + i);
-                    Avx.Store((double*)(r + i), Avx2.Permute4x64(Avx.Permute2x128(
-                        vr, vi, 0b0010_0000), 0b11_01_10_00));
-                    Avx.Store((double*)(r + i + 2), Avx2.Permute4x64(Avx.Permute2x128(
-                        vr, vi, 0b0011_0001), 0b11_01_10_00));
-                }
+                Vector256<double> vr = V4.LoadUnsafe(ref Add(ref p, i));
+                Vector256<double> vi = V4.LoadUnsafe(ref Add(ref q, i));
+                V4.StoreUnsafe(Avx2.Permute4x64(Avx.Permute2x128(
+                    vr, vi, 0b0010_0000), 0b11_01_10_00),
+                    ref Add(ref rs, idx));
+                V4.StoreUnsafe(Avx2.Permute4x64(Avx.Permute2x128(
+                    vr, vi, 0b0011_0001), 0b11_01_10_00),
+                    ref Add(ref rs, idx + Vector256<double>.Count));
             }
-            for (; i < result.Length; i++)
-                r[i] = new(p[i], q[i]);
+            Vector256<double> wr = V4.LoadUnsafe(ref Add(ref p, t));
+            Vector256<double> wi = V4.LoadUnsafe(ref Add(ref q, t));
+            V4.StoreUnsafe(Avx2.Permute4x64(Avx.Permute2x128(
+                wr, wi, 0b0010_0000), 0b11_01_10_00),
+                ref Add(ref rs, t + t));
+            V4.StoreUnsafe(Avx2.Permute4x64(Avx.Permute2x128(
+                wr, wi, 0b0011_0001), 0b11_01_10_00),
+                ref Add(ref rs, t + t + 4));
         }
+        else
+            for (int i = 0; i < result.Length; i++)
+                result[i] = new(Add(ref p, i), Add(ref q, i));
         return result;
     }
 

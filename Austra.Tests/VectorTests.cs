@@ -176,6 +176,17 @@ public class VectorTests
     }
 
     [Test]
+    public void CheckComplexVector2Array()
+    {
+        Complex[] values = new Complex[Random.Shared.Next(1023)];
+        for (int i = 0; i < values.Length; i++)
+            values[i] = new(Random.Shared.NextDouble(), Random.Shared.NextDouble());
+        ComplexVector v = new(values);
+        Complex[] w = (Complex[])v;
+        Assert.That(w, Is.EqualTo(values));
+    }
+
+    [Test]
     public void CheckComplexVector2ComplexArray()
     {
         ComplexVector v = new(515, Random.Shared);
