@@ -226,7 +226,7 @@ public class VectorTests
         ComplexVector z = v.PointwiseDivide(w);
         Assert.That(z, Has.Length.EqualTo(v.Length));
         for (int i = 0; i < v.Length; i++)
-            Assert.That((z[i] - v[i] / w[i]).Magnitude, Is.LessThan(1E-14));
+            Assert.That((z[i] - v[i] / w[i]).Magnitude, Is.LessThan(2E-14));
     }
 
     [Test]

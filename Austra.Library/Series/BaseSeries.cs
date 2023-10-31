@@ -496,7 +496,8 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     {
         int len = Min(s1.Count, s2.Count);
         T[] newArgs = s1.Count == len ? s1.args : s2.args;
-        double[] newValues = s1.values.AsSpan(0, len).AddV(s2.values.AsSpan(0, len));
+        double[] newValues = GC.AllocateUninitializedArray<double>(len);
+        s1.values.AsSpan(0, len).AddV(s2.values.AsSpan(0, len), newValues);
         return (newArgs, newValues, Combine(s1.Type, s2.Type));
     }
 
@@ -518,7 +519,8 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     {
         int len = Min(s1.Count, s2.Count);
         T[] newArgs = s1.Count == len ? s1.args : s2.args;
-        double[] newValues = s1.values.AsSpan(0, len).SubV(s2.values.AsSpan(0, len));
+        double[] newValues = GC.AllocateUninitializedArray<double>(len);
+        s1.values.AsSpan(0, len).SubV(s2.values.AsSpan(0, len), newValues);
         return (newArgs, newValues, Combine(s1.Type, s2.Type));
     }
 

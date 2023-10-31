@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using Austra.Library.Helpers;
+
+namespace Austra.Library;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
@@ -605,7 +607,9 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
-        return new(m1.Rows, m1.Cols, m1.values.AsSpan().AddV(m2.values));
+        double[] result = GC.AllocateUninitializedArray<double>(m1.values.Length);
+        m1.values.AsSpan().AddV(m2.values, result);
+        return new(m1.Rows, m1.Cols, result);
     }
 
     /// <summary>Subtracts two matrices with the same size.</summary>
@@ -622,7 +626,9 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
-        return new(m1.Rows, m1.Cols, m1.values.AsSpan().SubV(m2.values));
+        double[] result = GC.AllocateUninitializedArray<double>(m1.values.Length);
+        m1.values.AsSpan().SubV(m2.values, result);
+        return new(m1.Rows, m1.Cols, result);
     }
 
     /// <summary>Negates a matrix.</summary>
@@ -633,7 +639,9 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, m.values.NegV());
+        double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
+        m.values.AsSpan().NegV(result);
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Adds a scalar to a matrix.</summary>
@@ -645,7 +653,9 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, m.values.AddV(d));
+        double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
+        m.values.AsSpan().AddV(d, result);
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Adds a scalar to a matrix.</summary>
@@ -664,7 +674,9 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, m.values.SubV(d));
+        double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
+        m.values.AsSpan().SubV(d, result);
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Subtracts a matrix from a scalar.</summary>
@@ -718,7 +730,9 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, m.values.MulV(d));
+        double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
+        m.values.AsSpan().MulV(d, result);
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>

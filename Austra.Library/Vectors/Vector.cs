@@ -291,7 +291,9 @@ public readonly struct Vector :
         Contract.Requires(v2.IsInitialized);
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
-        return v1.values.AsSpan().AddV(v2.values);
+        double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
+        v1.values.AsSpan().AddV(v2.values, result);
+        return result;
     }
 
     /// <summary>Subtracts two vectors.</summary>
@@ -305,7 +307,9 @@ public readonly struct Vector :
         Contract.Requires(v2.IsInitialized);
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
-        return v1.values.AsSpan().SubV(v2.values);
+        double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
+        v1.values.AsSpan().SubV(v2.values, result);
+        return result;
     }
 
     /// <summary>Negates a vector.</summary>
@@ -315,7 +319,9 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return v.values.NegV();
+        double[] result = GC.AllocateUninitializedArray<double>(v.values.Length);
+        v.values.AsSpan().NegV(result);
+        return result;
     }
 
     /// <summary>Adds a scalar to a vector.</summary>
@@ -326,7 +332,9 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return v.values.AddV(d);
+        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
+        v.values.AsSpan().AddV(d, result);
+        return result;
     }
 
     /// <summary>Adds a scalar to a vector.</summary>
@@ -344,7 +352,9 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return v.values.SubV(d);
+        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
+        v.values.AsSpan().SubV(d, result);
+        return result;
     }
 
     /// <summary>Subtracts a vector from a scalar.</summary>
@@ -456,7 +466,9 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return v.values.MulV(d);
+        double[] result = GC.AllocateUninitializedArray<double>(v.values.Length);
+        v.values.AsSpan().MulV(d, result);
+        return result;
     }
 
     /// <summary>Multiplies a vector by a scalar value.</summary>

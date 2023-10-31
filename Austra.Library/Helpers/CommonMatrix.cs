@@ -178,16 +178,15 @@ public static class CommonMatrix
     /// <summary>Pointwise sum of two equally sized spans.</summary>
     /// <param name="span1">First summand.</param>
     /// <param name="span2">Second summand.</param>
-    /// <returns>The pointwise sum of the two arguments.</returns>
-    public static double[] AddV(this Span<double> span1, Span<double> span2)
+    /// <param name="target">The span to receive the sum of the first two argument.</param>
+    public static void AddV(this Span<double> span1, Span<double> span2, Span<double> target)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(span1.Length);
         ref double a = ref MemoryMarshal.GetReference(span1);
         ref double b = ref MemoryMarshal.GetReference(span2);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        ref double c = ref MemoryMarshal.GetReference(target);
+        if (V4.IsHardwareAccelerated && target.Length >= Vector256<double>.Count)
         {
-            int t = result.Length - Vector256<double>.Count;
+            int t = target.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(
                     V4.LoadUnsafe(ref Add(ref a, i)) + V4.LoadUnsafe(ref Add(ref b, i)),
@@ -197,24 +196,22 @@ public static class CommonMatrix
                 ref Add(ref c, t));
         }
         else
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < target.Length; i++)
                 Add(ref c, i) = Add(ref a, i) + Add(ref b, i);
-        return result;
     }
 
     /// <summary>Pointwise subtraction of two equally sized spans.</summary>
     /// <param name="span1">Minuend.</param>
     /// <param name="span2">Subtrahend.</param>
-    /// <returns>The pointwise subtraction of the two arguments.</returns>
-    public static double[] SubV(this Span<double> span1, Span<double> span2)
+    /// <param name="target">The span to receive the result.</param>
+    public static void SubV(this Span<double> span1, Span<double> span2, Span<double> target)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(span1.Length);
         ref double a = ref MemoryMarshal.GetReference(span1);
         ref double b = ref MemoryMarshal.GetReference(span2);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        ref double c = ref MemoryMarshal.GetReference(target);
+        if (V4.IsHardwareAccelerated && target.Length >= Vector256<double>.Count)
         {
-            int t = result.Length - Vector256<double>.Count;
+            int t = target.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(
                     V4.LoadUnsafe(ref Add(ref a, i)) - V4.LoadUnsafe(ref Add(ref b, i)),
@@ -224,55 +221,50 @@ public static class CommonMatrix
                 ref Add(ref c, t));
         }
         else
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < target.Length; i++)
                 Add(ref c, i) = Add(ref a, i) - Add(ref b, i);
-        return result;
     }
 
-    /// <summary>Pointwise addition of a scalar to an array.</summary>
-    /// <param name="array">Array summand.</param>
+    /// <summary>Pointwise addition of a scalar to a span.</summary>
+    /// <param name="span">Span summand.</param>
     /// <param name="scalar">Scalar summand.</param>
-    /// <returns>The pointwise sum of the two arguments.</returns>
-    public static double[] AddV(this double[] array, double scalar)
+    /// <param name="target">Target memory for the operation.</param>
+    public static void AddV(this Span<double> span, double scalar, Span<double> target)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        ref double p = ref MemoryMarshal.GetReference(span);
+        ref double q = ref MemoryMarshal.GetReference(target);
+        if (V4.IsHardwareAccelerated && target.Length >= Vector256<double>.Count)
         {
             Vector256<double> vec = V4.Create(scalar);
-            int t = result.Length - Vector256<double>.Count;
+            int t = target.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref p, i)) + vec, ref Add(ref q, i));
             V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref p, t)) + vec, ref Add(ref q, t));
         }
         else
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < target.Length; i++)
                 Add(ref q, i) = Add(ref p, i) + scalar;
-        return result;
     }
 
-    /// <summary>Pointwise subtraction of a scalar from an array.</summary>
-    /// <param name="array">Array minuend.</param>
+    /// <summary>Pointwise subtraction of a scalar from a span.</summary>
+    /// <param name="span">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
-    /// <returns>The pointwise subtraction of the two arguments.</returns>
-    public static double[] SubV(this double[] array, double scalar)
+    /// <param name="target">Target memory for the operation.</param>
+    public static void SubV(this Span<double> span, double scalar, Span<double> target)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        ref double p = ref MemoryMarshal.GetReference(span);
+        ref double q = ref MemoryMarshal.GetReference(target);
+        if (V4.IsHardwareAccelerated && target.Length >= Vector256<double>.Count)
         {
             Vector256<double> vec = V4.Create(scalar);
-            int t = result.Length - Vector256<double>.Count;
+            int t = target.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref p, i)) - vec, ref Add(ref q, i));
             V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref p, t)) - vec, ref Add(ref q, t));
         }
         else
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < target.Length; i++)
                 Add(ref q, i) = Add(ref p, i) - scalar;
-        return result;
     }
 
     /// <summary>Pointwise subtraction of an array from a scalar.</summary>
@@ -298,25 +290,23 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Pointwise negation of an array.</summary>
-    /// <param name="array">Array to negate.</param>
-    /// <returns>The pointwise negation of the argument.</returns>
-    public static double[] NegV(this double[] array)
+    /// <summary>Pointwise negation of a span.</summary>
+    /// <param name="span">Span to negate.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void NegV(this Span<double> span, Span<double> target)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        ref double p = ref MemoryMarshal.GetReference(span);
+        ref double q = ref MemoryMarshal.GetReference(target);
+        if (V4.IsHardwareAccelerated && target.Length >= Vector256<double>.Count)
         {
-            int t = result.Length - Vector256<double>.Count;
+            int t = target.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(-V4.LoadUnsafe(ref Add(ref p, i)), ref Add(ref q, i));
             V4.StoreUnsafe(-V4.LoadUnsafe(ref Add(ref p, t)), ref Add(ref q, t));
         }
         else
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < target.Length; i++)
                 Add(ref q, i) = -Add(ref p, i);
-        return result;
     }
 
     /// <summary>Pointwise multiplication of two equally sized spans.</summary>
@@ -346,27 +336,25 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Pointwise multiplication of an array and a scalar.</summary>
-    /// <param name="array">Array multiplicand.</param>
+    /// <summary>Pointwise multiplication of a span and a scalar.</summary>
+    /// <param name="span">Span multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
-    /// <returns>The pointwise multiplication of the two arguments.</returns>
-    public static double[] MulV(this double[] array, double scalar)
+    /// <param name="target">Target memory for the operation.</param>
+    public static void MulV(this Span<double> span, double scalar, Span<double> target)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= Vector256<double>.Count)
+        ref double p = ref MemoryMarshal.GetReference(span);
+        ref double q = ref MemoryMarshal.GetReference(target);
+        if (V4.IsHardwareAccelerated && target.Length >= Vector256<double>.Count)
         {
             Vector256<double> vec = V4.Create(scalar);
-            int t = result.Length - Vector256<double>.Count;
+            int t = target.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref p, i)) * vec, ref Add(ref q, i));
             V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref p, t)) * vec, ref Add(ref q, t));
         }
         else
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < target.Length; i++)
                 Add(ref q, i) = Add(ref p, i) * scalar;
-        return result;
     }
 
     /// <summary>Pointwise division of two equally sized spans.</summary>
