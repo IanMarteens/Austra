@@ -422,7 +422,7 @@ public readonly struct ComplexVector :
         ref double qi = ref MemoryMarshal.GetArrayDataReference(other.im);
         ref double vr = ref MemoryMarshal.GetArrayDataReference(r);
         ref double vm = ref MemoryMarshal.GetArrayDataReference(m);
-        if (V4.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated && r.Length >= Vector256<double>.Count)
         {
             int t = r.Length - Vector256<double>.Count;
             for (int i = 0; i < t; i += Vector256<double>.Count)
@@ -443,17 +443,16 @@ public readonly struct ComplexVector :
         }
         else
             for (int i = 0; i < r.Length; i++)
-            {
-                Add(ref vr, i) = Add(ref pr, i) * Add(ref qr, i) - Add(ref pi, i) * Add(ref qi, i);
-                Add(ref vm, i) = Add(ref pr, i) * Add(ref qi, i) + Add(ref pi, i) * Add(ref qr, i);
-            }
+                (Add(ref vr, i), Add(ref vm, i)) = (
+                    Add(ref pr, i) * Add(ref qr, i) - Add(ref pi, i) * Add(ref qi, i),
+                    Add(ref pr, i) * Add(ref qi, i) + Add(ref pi, i) * Add(ref qr, i));
         return new(r, m);
     }
 
     /// <summary>Pointwise division.</summary>
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component quotient.</returns>
-    public unsafe ComplexVector PointwiseDivide(ComplexVector other)
+    public ComplexVector PointwiseDivide(ComplexVector other)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(other.IsInitialized);
@@ -461,27 +460,39 @@ public readonly struct ComplexVector :
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
-        int len = Length;
-        double[] r = new double[len], m = new double[len];
-        fixed (double* pr = re, pi = im, qr = other.re, qi = other.im, vr = r, vm = m)
+        double[] r = GC.AllocateUninitializedArray<double>(Length);
+        double[] m = GC.AllocateUninitializedArray<double>(Length);
+        ref double pr = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double pi = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double qr = ref MemoryMarshal.GetArrayDataReference(other.re);
+        ref double qi = ref MemoryMarshal.GetArrayDataReference(other.im);
+        ref double vr = ref MemoryMarshal.GetArrayDataReference(r);
+        ref double vm = ref MemoryMarshal.GetArrayDataReference(m);
+        if (V4.IsHardwareAccelerated && r.Length >= Vector256<double>.Count)
         {
-            int i = 0;
-            if (Avx.IsSupported)
-                for (int top = len & Simd.AVX_MASK; i < top; i += 4)
-                {
-                    Vector256<double> vpr = Avx.LoadVector256(pr + i);
-                    Vector256<double> vpi = Avx.LoadVector256(pi + i);
-                    Vector256<double> vqr = Avx.LoadVector256(qr + i);
-                    Vector256<double> vqi = Avx.LoadVector256(qi + i);
-                    Vector256<double> quotient = Avx.Multiply(vqr, vqr).MultiplyAdd(vqi, vqi);
-                    Avx.Store(vr + i,
-                        Avx.Divide(Avx.Multiply(vpr, vqr).MultiplyAdd(vpi, vqi), quotient));
-                    Avx.Store(vm + i,
-                        Avx.Divide(Avx.Multiply(vpr, vqi).MultiplyAddNeg(vpi, vqr), quotient));
-                }
-            for (; i < len; i++)
-                (r[i], m[i]) = new Complex(pr[i], pi[i]) / new Complex(qr[i], qi[i]);
+            int t = r.Length - Vector256<double>.Count;
+            for (int i = 0; i < t; i += Vector256<double>.Count)
+            {
+                Vector256<double> vpr = V4.LoadUnsafe(ref Add(ref pr, i));
+                Vector256<double> vpi = V4.LoadUnsafe(ref Add(ref pi, i));
+                Vector256<double> vqr = V4.LoadUnsafe(ref Add(ref qr, i));
+                Vector256<double> vqi = V4.LoadUnsafe(ref Add(ref qi, i));
+                Vector256<double> quot = (vqr * vqr).MultiplyAdd(vqi, vqi);
+                V4.StoreUnsafe((vpr * vqr).MultiplyAdd(vpi, vqi) / quot, ref Add(ref vr, i));
+                V4.StoreUnsafe((vpi * vqr).MultiplyAddNeg(vpr, vqi) / quot, ref Add(ref vm, i));
+            }
+            Vector256<double> wpr = V4.LoadUnsafe(ref Add(ref pr, t));
+            Vector256<double> wpi = V4.LoadUnsafe(ref Add(ref pi, t));
+            Vector256<double> wqr = V4.LoadUnsafe(ref Add(ref qr, t));
+            Vector256<double> wqi = V4.LoadUnsafe(ref Add(ref qi, t));
+            Vector256<double> wquot = Avx.Multiply(wqr, wqr).MultiplyAdd(wqi, wqi);
+            V4.StoreUnsafe((wpr * wqr).MultiplyAdd(wpi, wqi) / wquot, ref Add(ref vr, t));
+            V4.StoreUnsafe((wpi * wqr).MultiplyAddNeg(wpr, wqi) / wquot, ref Add(ref vm, t));
         }
+        else
+            for (int i = 0; i < r.Length; i++)
+                (Add(ref vr, i), Add(ref vm, i)) = new Complex(Add(ref pr, i), Add(ref pi, i))
+                    / new Complex(Add(ref qr, i), Add(ref qi, i));
         return new(r, m);
     }
 

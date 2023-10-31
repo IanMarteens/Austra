@@ -206,4 +206,24 @@ public class VectorTests
         for (int i = 0; i < v.Length; i++)
             Assert.That((z[i] - v[i] * w[i]).Magnitude, Is.LessThan(1E-14));
     }
+
+    [Test]
+    public void CheckComplexVectorPointDiv()
+    {
+        ComplexVector v = new(510, NormalRandom.Shared);
+        ComplexVector w = new(510, NormalRandom.Shared);
+        ComplexVector z = v.PointwiseDivide(w);
+        Assert.That(z, Has.Length.EqualTo(v.Length));
+        for (int i = 0; i < v.Length; i++)
+            Assert.That((z[i] - v[i] / w[i]).Magnitude, Is.LessThan(1E-14));
+    }
+
+    [Test]
+    public void CheckPointwiseMultDiv()
+    {
+        ComplexVector x = new ComplexVector(510, Random.Shared) + 0.1;
+        ComplexVector y = new ComplexVector(510, Random.Shared) + 0.1;
+        ComplexVector t = x.PointwiseDivide(y).PointwiseMultiply(y) - x;
+        Assert.That(t.AbsMax(), Is.LessThan(1E-14));
+    }
 }
