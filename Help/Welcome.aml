@@ -24,27 +24,19 @@
         <autoOutline /> -->
         <para>Austra contains three main features:</para>
         <list class="ordered">
-        <listItem>The Austra library</listItem>
+        <listItem><link xlink:href="#Design">The Austra library</link>, written in C# and .NET Core 7/8.</listItem>
         <listItem><link xlink:href="04ea4168-169f-488a-9250-41bdab54e5e6">The Austra language</link>: a simple formula oriented language for testing and exploring the library.</listItem>
         <listItem>The Austra application: a desktop application, written in WPF for Windows, providing a code editor with syntax highlighting and code completion, for trying the language.</listItem>
         </list>
       </content>
-      <!-- If a section contains a sections element, its content creates
-           sub-sections.  These are not collapsible.
       <sections>
-          <section address="SubSection1">
-              <title>Sub-section 1</title>
+          <section address="Design">
+              <title>The design of the library</title>
               <content>
-                  <para>Sub-section content.</para>
+                  <para>The library has been designed as a set of mostly inmmutable types, for facilitating their concurrent use. Most of the methods are hardware-accelerated, either using managed references, SIMD operations or both. Memory pinning, and raw pointers, have been reduced to the minimum, in order to ease the garbage collector's work.</para>
               </content>
           </section>
-          <section address="SubSection2">
-              <title>Sub-section 2</title>
-              <content>
-                  <para>Sub-section content.</para>
-              </content>
-          </section>
-      </sections> -->
+      </sections>
     </section>
     <relatedTopics>
       <!-- One or more of the following:

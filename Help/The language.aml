@@ -15,13 +15,14 @@
           <section address="SubSection1">
               <title>Global variables</title>
               <content>
-                  <para>Global variables come in two flavors: persistent variables and session variables.</para>
+                  <para>Global variables come in two flavors: persistent variables and session variables. Persistent variables come mostly from an external source, like a JSON file, a database or an external service. In this AUSTRA version, those persisted variables are always time series, because they have a predictable serialization format. This design decision, of course, may change at some point of the evolution of the library.</para>
+                  <para>Session variables, as their name indicates, are defined inside a user session and die with the session.</para>
               </content>
           </section>
           <section address="SubSection2">
               <title>Class methods and class constants</title>
               <content>
-                  <para>Sub-section content.</para>
+                  <para>Class methods in AUSTRA correspond both to constructors and static methods in traditional OOP languages, like C#.</para>
               </content>
           </section>
       </sections>
