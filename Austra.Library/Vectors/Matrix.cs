@@ -488,7 +488,64 @@ public readonly struct Matrix :
 
     /// <summary>Transposes the matrix.</summary>
     /// <returns>A new matrix with swapped rows and cells.</returns>
-    public unsafe Matrix Transpose()
+    public Matrix Transpose()
+    {
+        Contract.Requires(IsInitialized);
+        int r = Rows, c = Cols;
+        double[] result = GC.AllocateUninitializedArray<double>(c * r);
+        if (Avx.IsSupported)
+        {
+            ref double a = ref MemoryMarshal.GetArrayDataReference(values);
+            ref double b = ref MemoryMarshal.GetArrayDataReference(result);
+            // Blocks are multiple of four.
+            int r1 = r & Simd.AVX_MASK, r2 = r + r, r4 = r2 + r2;
+            int c1 = c & Simd.AVX_MASK, c2 = c + c, c4 = c2 + c2;
+            ref double pA = ref a;
+            for (int row = 0; row < r1; row += Vector256<double>.Count)
+            {
+                ref double q = ref Add(ref b, row);
+                for (int col = 0; col < c1; col += Vector256<double>.Count)
+                {
+                    ref double pp = ref Add(ref pA, col);
+                    var row1 = V4.LoadUnsafe(ref pp);
+                    var row2 = V4.LoadUnsafe(ref Add(ref pp, c));
+                    var row3 = V4.LoadUnsafe(ref Add(ref pp, c2));
+                    var row4 = V4.LoadUnsafe(ref Add(ref pp, c2 + c));
+                    var t1 = Avx.Shuffle(row1, row2, 0b_0000);
+                    var t2 = Avx.Shuffle(row1, row2, 0b_1111);
+                    var t3 = Avx.Shuffle(row3, row4, 0b_0000);
+                    var t4 = Avx.Shuffle(row3, row4, 0b_1111);
+                    V4.StoreUnsafe(Avx.Permute2x128(t1, t3, 0b_0010_0000), ref q);
+                    V4.StoreUnsafe(Avx.Permute2x128(t2, t4, 0b_0010_0000), ref Add(ref q, r));
+                    V4.StoreUnsafe(Avx.Permute2x128(t1, t3, 0b_0011_0001), ref Add(ref q, r2));
+                    V4.StoreUnsafe(Avx.Permute2x128(t2, t4, 0b_0011_0001), ref Add(ref q, r2 + r));
+                    q = ref Add(ref q, r4);
+                }
+                pA = ref Add(ref pA, c4);
+            }
+            for (int row = r1; row < r; row++)
+            {
+                ref double src = ref Add(ref a, row * c);
+                for (int col = 0; col < c; col++)
+                    Add(ref b, col * r + row) = Add(ref src, col);
+            }
+            for (int col = c1; col < c; col++)
+            {
+                ref double dst = ref Add(ref b, col * r);
+                for (int row = 0; row < r1; row++)
+                    Add(ref dst, row) = Add(ref a, row * c + col);
+            }
+        }
+        else
+            for (int row = 0; row < r; row++)
+                for (int col = 0; col < c; col++)
+                    result[col * r + row] = values[row * c + col];
+        return new(Cols, Rows, result);
+    }
+
+    /// <summary>Transposes the matrix.</summary>
+    /// <returns>A new matrix with swapped rows and cells.</returns>
+    public unsafe Matrix Transpose1()
     {
         Contract.Requires(IsInitialized);
 
