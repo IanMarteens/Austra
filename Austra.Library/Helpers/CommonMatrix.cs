@@ -89,79 +89,43 @@ public static class CommonMatrix
         return product;
     }
 
-    /// <summary>Gets the item in an array with the maximum absolute value.</summary>
-    /// <param name="array">The data array.</param>
+    /// <summary>Gets the item in an span with the maximum absolute value.</summary>
+    /// <param name="span">The data span.</param>
     /// <returns>The maximum absolute value in the samples.</returns>
-    public static double AbsoluteMaximum(this double[] array)
+    public static double AbsoluteMaximum(this Span<double> span)
     {
-        if (V4.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && span.Length >= Vector256<double>.Count)
         {
-            ref double p = ref MemoryMarshal.GetArrayDataReference(array);
-            ref double t = ref Add(ref p, array.Length - Vector256<double>.Count);
+            ref double p = ref MemoryMarshal.GetReference(span);
+            ref double t = ref Add(ref p, span.Length - Vector256<double>.Count);
             Vector256<double> vm = V4.Abs(V4.LoadUnsafe(ref p));
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, Vector256<double>.Count))
                 vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p)));
             return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref t))).Max();
         }
-        double max = 0;
-        for (int i = 0; i < array.Length; i++)
-        {
-            double v = Abs(array[i]);
-            if (v > max)
-                max = v;
-        }
+        double max = Abs(span[0]);
+        for (int i = 1; i < span.Length; i++)
+            max = Max(max, Abs(span[i]));
         return max;
     }
 
-    /// <summary>Gets the item in an array with the minimum absolute value.</summary>
-    /// <param name="array">The data array.</param>
+    /// <summary>Gets the item in a span with the minimum absolute value.</summary>
+    /// <param name="span">The data span.</param>
     /// <returns>The minimum absolute value in the samples.</returns>
-    public static double AbsoluteMinimum(this double[] array)
+    public static double AbsoluteMinimum(this Span<double> span)
     {
-        if (V4.IsHardwareAccelerated && array.Length >= Vector256<double>.Count)
+        if (V4.IsHardwareAccelerated && span.Length >= Vector256<double>.Count)
         {
-            ref double p = ref MemoryMarshal.GetArrayDataReference(array);
-            ref double t = ref Add(ref p, array.Length - Vector256<double>.Count);
+            ref double p = ref MemoryMarshal.GetReference(span);
+            ref double t = ref Add(ref p, span.Length - Vector256<double>.Count);
             Vector256<double> vm = V4.Abs(V4.LoadUnsafe(ref p));
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, Vector256<double>.Count))
                 vm = V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref p)));
             return V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref t))).Min();
         }
-        double min = 0;
-        for (int i = 0; i < array.Length; i++)
-        {
-            double v = Abs(array[i]);
-            if (v < min)
-                min = v;
-        }
-        return min;
-    }
-
-    /// <summary>Gets the item in an array with the maximum absolute value.</summary>
-    /// <param name="p">Pointer to the array.</param>
-    /// <param name="size">Number of items in the array.</param>
-    /// <returns>The max-norm of the array segment.</returns>
-    public unsafe static double AbsoluteMinimum(double* p, int size)
-    {
-        double min = Abs(*p);
-        int i = 0;
-        if (Avx.IsSupported && size >= 8)
-        {
-            Vector256<double> z = Vector256<double>.Zero;
-            Vector256<double> vm = V4.Create(min);
-            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-            {
-                Vector256<double> v = Avx.LoadVector256(p + i);
-                vm = Avx.Min(Avx.Max(v, Avx.Subtract(z, v)), vm);
-            }
-            min = vm.Min();
-        }
-        for (; i < size; i++)
-        {
-            double v = Abs(p[i]);
-            if (v < min)
-                min = v;
-        }
+        double min = Abs(span[0]);
+        for (int i = 1; i < span.Length; i++)
+            min = Min(min, Abs(span[i]));
         return min;
     }
 

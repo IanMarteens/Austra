@@ -856,13 +856,19 @@ public readonly struct ComplexVector :
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
-    public unsafe ComplexVector Zip(ComplexVector other, Func<Complex, Complex, Complex> zipper)
+    public ComplexVector Zip(ComplexVector other, Func<Complex, Complex, Complex> zipper)
     {
         int len = Min(Length, other.Length);
         double[] newRe = new double[len], newIm = new double[len];
-        fixed (double* p1r = re, p1i = im, p2r = other.re, p2i = other.im, qr = newRe, qi = newIm)
-            for (int i = 0; i < len; i++)
-                (qr[i], qi[i]) = zipper(new(p1r[i], p1i[i]), new(p2r[i], p2i[i]));
+        ref double p1r = ref MemoryMarshal.GetArrayDataReference(re);
+        ref double p1i = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p2r = ref MemoryMarshal.GetArrayDataReference(other.re);
+        ref double p2i = ref MemoryMarshal.GetArrayDataReference(other.im);
+        ref double qr = ref MemoryMarshal.GetArrayDataReference(newRe);
+        ref double qi = ref MemoryMarshal.GetArrayDataReference(newIm);
+        for (int i = 0; i < len; i++)
+            (Add(ref qr, i), Add(ref qi, i)) = zipper(
+                new(Add(ref p1r, i), Add(ref p1i, i)), new(Add(ref p2r, i), Add(ref p2i, i)));
         return new(newRe, newIm);
     }
 

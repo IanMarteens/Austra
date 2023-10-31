@@ -2,8 +2,22 @@
 
 /// <summary>Represents a dense vector of arbitrary size.</summary>
 /// <remarks>
+/// <para>
 /// <see cref="Vector"/> provides a thin wrapper around a single array.
-/// Most method operations are non destructive, and return a new vector.
+/// Most method operations are non destructive, and return a new vector,
+/// at the cost of extra memory allocation.
+/// </para>
+/// <para>
+/// Of course, there exist methods like
+/// <see cref="MultiplyAdd(Austra.Library.Vector, Austra.Library.Vector)"/>
+/// that save memory by reusing the current vector's storage, and even
+/// may save time by using SIMD fused multiply-add instructions.
+/// </para>
+/// <para>
+/// Also, most methods are hardware accelerated, either by using managed references,
+/// SIMD operations or both. Memory pinning has been reduced to the minimum, for
+/// easing the garbage collector's work.
+/// </para>
 /// </remarks>
 public readonly struct Vector :
     IFormattable,
@@ -239,7 +253,7 @@ public readonly struct Vector :
     public double AMax()
     {
         Contract.Requires(IsInitialized);
-        return values.AbsoluteMaximum();
+        return values.AsSpan().AbsoluteMaximum();
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
@@ -247,7 +261,7 @@ public readonly struct Vector :
     public double AMin()
     {
         Contract.Requires(IsInitialized);
-        return values.AbsoluteMinimum();
+        return values.AsSpan().AbsoluteMinimum();
     }
 
     /// <summary>Gets the item with the maximum value.</summary>

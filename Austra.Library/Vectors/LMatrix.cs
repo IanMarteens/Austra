@@ -649,32 +649,29 @@ public readonly struct LMatrix :
     public static Matrix operator *(RMatrix m1, LMatrix m2) => (Matrix)m1 * m2;
 
     /// <summary>Gets the cell with the maximum absolute value.</summary>
+    /// <remarks>
+    /// The absolute maximum must always be zero or positive so, it is not a
+    /// problem to scan the whole matrix, including the upper triangular part.
+    /// </remarks>
     /// <returns>The max-norm of the matrix.</returns>
-    public double AMax() => new Matrix(Rows, Cols, values).AMax();
+    public double AMax() => values.AsSpan().AbsoluteMaximum();
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
     /// <returns>The minimum absolute value in the triangular matrix.</returns>
-    public unsafe double AMin()
+    public double AMin()
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<double>() >= 0);
 
         int r = Rows, c = Cols;
-        double min = Abs(values[0]);
         if (c < r)
             r = c;
-        fixed (double* a = values)
-        {
-            double* pA = a;
-            for (int row = 0; row < r; row++, pA += c)
-                for (int col = 0; col <= row; col++)
-                    min = Min(min, Abs(pA[col]));
-            if (Rows > c)
-            {
-                int c2 = c * c;
-                min = Min(min, CommonMatrix.AbsoluteMinimum(a + c2, values.Length - c2));
-            }
-        }
+        int offset = c;
+        double min = Abs(values[0]);
+        for (int row = 1; row < r; row++, offset += c)
+            min = Min(min, values.AsSpan(offset, row).AbsoluteMinimum());
+        if (Rows > c)
+            min = Min(min, values.AsSpan(c * c).AbsoluteMinimum());
         return min;
     }
 

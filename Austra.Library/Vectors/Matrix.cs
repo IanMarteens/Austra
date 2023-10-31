@@ -1240,7 +1240,7 @@ public readonly struct Matrix :
     public double AMax()
     {
         Contract.Requires(IsInitialized);
-        return values.AbsoluteMaximum();
+        return values.AsSpan().AbsoluteMaximum();
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
@@ -1248,7 +1248,7 @@ public readonly struct Matrix :
     public double AMin()
     {
         Contract.Requires(IsInitialized);
-        return values.AbsoluteMinimum();
+        return values.AsSpan().AbsoluteMinimum();
     }
 
     /// <summary>Gets the cell with the maximum value.</summary>
