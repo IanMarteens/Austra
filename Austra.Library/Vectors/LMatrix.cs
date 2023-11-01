@@ -654,53 +654,6 @@ public readonly struct LMatrix :
         return result;
     }
 
-    /// <summary>Transforms a vector using this matrix.</summary>
-    /// <param name="v">Vector to transform.</param>
-    /// <param name="result">Preallocated buffer for the transformed vector.</param>
-    /// <returns>The transformed vector.</returns>
-    public unsafe double[] Multiply(Vector v, double[] result)
-    {
-        Contract.Requires(IsInitialized);
-        Contract.Requires(v.IsInitialized);
-        Contract.Requires(Cols == v.Length);
-        Contract.Requires(result.Length == Rows);
-
-        int r = Rows, c = Cols;
-        fixed (double* pA = values, pX = (double[])v, pB = result)
-        {
-            double* pA1 = pA, pB1 = pB;
-            *pB1++ = *pA1 * *pX;    // First row is special.
-            pA1 += c;
-            if (c >= 8 && Avx.IsSupported)
-                for (int i = 1; i < r; i++)
-                {
-                    V4d vec = V4d.Zero;
-                    int top = Min(i + 1, c), j = 0;
-                    for (int last = top & Simd.AVX_MASK; j < last; j += 4)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    double d = vec.Sum();
-                    for (; j < top; j++)
-                        d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                    *pB1++ = d;
-                    pA1 += c;
-                }
-            else
-                for (int i = 1; i < r; i++)
-                {
-                    double d = 0;
-                    int top = Min(i + 1, c), j = 0;
-                    for (int last = top & Simd.AVX_MASK; j < last; j += 4)
-                        d += (pA1[j] * pX[j]) + (pA1[j + 1] * pX[j + 1]) +
-                            (pA1[j + 2] * pX[j + 2]) + (pA1[j + 3] * pX[j + 3]);
-                    for (; j < top; j++)
-                        d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                    *pB1++ = d;
-                    pA1 += c;
-                }
-        }
-        return result;
-    }
-
     /// <summary>Transforms a vector and adds an offset.</summary>
     /// <remarks>
     /// This overload is used by the <see cref="MultivariateNormalRandom"/> class.
@@ -709,31 +662,30 @@ public readonly struct LMatrix :
     /// <param name="add">Vector to add.</param>
     /// <param name="result">Preallocated buffer for the result.</param>
     /// <returns><c>this * multiplicand + add</c>.</returns>
-    public unsafe Vector MultiplyAdd(Vector v, Vector add, double[] result)
+    public Vector MultiplyAdd(Vector v, Vector add, double[] result)
     {
         int r = Rows, c = Cols;
-        fixed (double* pA = values, pX = (double[])v, pB = result, pC = (double[])add)
+        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double pX = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double pC = ref MemoryMarshal.GetArrayDataReference((double[])add);
+        // First row is special.
+        pB = pA * pX + pC;
+        for (int i = 1; i < r; i++)
         {
-            double* pA1 = pA, pB1 = pB, pC1 = pC;
-            // First row is special.
-            *pB1++ = *pA1 * *pX + *pC1++;
-            pA1 += c;
-            for (int i = 1; i < r; i++)
+            pA = ref Add(ref pA, c); pB = ref Add(ref pB, 1); pC = ref Add(ref pC, 1);
+            double d = 0;
+            nuint j = 0, top = (nuint)Min(i + 1, c);
+            if (Avx.IsSupported)
             {
-                double d = 0;
-                int j = 0, top = Min(i + 1, c);
-                if (Avx.IsSupported)
-                {
-                    V4d vec = V4d.Zero;
-                    for (int last = top & Simd.AVX_MASK; j < last; j += 4)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    d = vec.Sum();
-                }
-                for (; j < top; j++)
-                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                *pB1++ = d + *pC1++;
-                pA1 += c;
+                V4d vec = V4d.Zero;
+                for (nuint last = top & Simd.AVX_MASK; j < last; j += (nuint)V4d.Count)
+                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pX, j));
+                d = vec.Sum();
             }
+            for (; j < top; j++)
+                d = FusedMultiplyAdd(Add(ref pA, j), Add(ref pX, j), d);
+            pB = d + pC;
         }
         return result;
     }
@@ -751,31 +703,30 @@ public readonly struct LMatrix :
     /// <param name="sub">Vector to subtract.</param>
     /// <param name="result">Preallocated buffer for the result.</param>
     /// <returns><c>this * multiplicand - sub</c>.</returns>
-    public unsafe Vector MultiplySubtract(Vector v, Vector sub, double[] result)
+    public Vector MultiplySubtract(Vector v, Vector sub, double[] result)
     {
         int r = Rows, c = Cols;
-        fixed (double* pA = values, pX = (double[])v, pB = result, pC = (double[])sub)
+        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double pX = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double pC = ref MemoryMarshal.GetArrayDataReference((double[])sub);
+        // First row is special.
+        pB = pA * pX - pC;
+        for (int i = 1; i < r; i++)
         {
-            double* pA1 = pA, pB1 = pB, pC1 = pC;
-            // First row is special.
-            *pB1++ = *pA1 * *pX - *pC1++;
-            pA1 += c;
-            for (int i = 1; i < r; i++)
+            pA = ref Add(ref pA, c); pB = ref Add(ref pB, 1); pC = ref Add(ref pC, 1);
+            double d = 0;
+            nuint j = 0, top = (nuint)Min(i + 1, c);
+            if (Avx.IsSupported)
             {
-                double d = 0;
-                int j = 0, top = Min(i + 1, c);
-                if (Avx.IsSupported)
-                {
-                    V4d vec = V4d.Zero;
-                    for (int last = top & Simd.AVX_MASK; j < last; j += 4)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    d = vec.Sum();
-                }
-                for (; j < top; j++)
-                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                *pB1++ = d - *pC1++;
-                pA1 += c;
+                V4d vec = V4d.Zero;
+                for (nuint last = top & Simd.AVX_MASK; j < last; j += (nuint)V4d.Count)
+                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pX, j));
+                d = vec.Sum();
             }
+            for (; j < top; j++)
+                d = FusedMultiplyAdd(Add(ref pA, j), Add(ref pX, j), d);
+            pB = d - pC;
         }
         return result;
     }
@@ -850,8 +801,7 @@ public readonly struct LMatrix :
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
-    public override bool Equals(object? obj) =>
-        obj is LMatrix matrix && Equals(matrix);
+    public override bool Equals(object? obj) => obj is LMatrix matrix && Equals(matrix);
 
     /// <summary>Returns the hashcode for this matrix.</summary>
     /// <returns>A hashcode summarizing the content of the matrix.</returns>

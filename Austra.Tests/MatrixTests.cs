@@ -97,9 +97,31 @@ public class MatrixTests
     }
 
     [Test]
+    public void CheckLMultiplyAdd([Values(32, 49, 61)] int size)
+    {
+        LMatrix m1 = new(size, new NormalRandom());
+        Vector v1 = new(size, new NormalRandom());
+        Vector v2 = new(size, new NormalRandom());
+        Vector r1 = m1.MultiplyAdd(v1, v2);
+        Vector r2 = m1 * v1 + v2;
+        Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
+    }
+
+    [Test]
     public void CheckMultiplySub([Values(32, 49, 61)] int size)
     {
         Matrix m1 = new(size, new NormalRandom());
+        Vector v1 = new(size, new NormalRandom());
+        Vector v2 = new(size, new NormalRandom());
+        Vector r1 = m1.MultiplySubtract(v1, v2);
+        Vector r2 = m1 * v1 - v2;
+        Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
+    }
+
+    [Test]
+    public void CheckLMultiplySub([Values(32, 49, 61)] int size)
+    {
+        LMatrix m1 = new(size, new NormalRandom());
         Vector v1 = new(size, new NormalRandom());
         Vector v2 = new(size, new NormalRandom());
         Vector r1 = m1.MultiplySubtract(v1, v2);
