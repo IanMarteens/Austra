@@ -109,6 +109,12 @@ else msft.mean
               <title>Class methods and class constants</title>
               <content>
                   <para>Class methods in AUSTRA correspond both to constructors and static methods in traditional OOP languages, like C#.</para>
+                  <para>Let's start with some variables:</para>
+                  <code language="Austra">
+                  i = math::i
+                  e = math::e
+                  pi = math::pi and pi = math::π
+                  </code>
               </content>
           </section>
       </sections>

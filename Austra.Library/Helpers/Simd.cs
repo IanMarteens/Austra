@@ -238,15 +238,14 @@ public static class Simd
         V4d m = Avx2.Or(Avx2.And(x.AsUInt64(),
             V4.Create(0x000FFFFFFFFFFFFFUL)),
             V4.Create(0x3FE0000000000000UL)).AsDouble();
-        V4d e = Avx.Subtract(Avx2.Or(Avx2.ShiftRightLogical(x.AsUInt64(), 52),
-            V4.Create(pow2_52).AsUInt64()).AsDouble(), V4.Create(pow2_52 + bias));
+        V4d e = Avx2.Or(Avx2.ShiftRightLogical(x.AsUInt64(), 52),
+            V4.Create(pow2_52).AsUInt64()).AsDouble() - V4.Create(pow2_52 + bias);
         V4d blend = Avx.CompareGreaterThan(m, V4.Create(SQRT2 * 0.5));
         e = Avx.Add(e, Avx.And(V4.Create(1d), blend));
-        m = Avx.Subtract(Avx.Add(m, Avx.AndNot(blend, m)), V4.Create(1d));
-        V4d x2 = Avx.Multiply(m, m);
-        V4d re = Avx.Divide(
-            Avx.Multiply(m.Poly5(P0, P1, P2, P3, P4, P5), Avx.Multiply(m, x2)),
-            m.Poly5n(Q0, Q1, Q2, Q3, Q4));
+        m = Avx.Add(m, Avx.AndNot(blend, m)) - V4.Create(1d);
+        V4d x2 = m * m;
+        V4d re = Avx.Multiply(m.Poly5(P0, P1, P2, P3, P4, P5), m * x2)
+            / m.Poly5n(Q0, Q1, Q2, Q3, Q4);
         // Add exponent.
         return Fma.MultiplyAdd(e, V4.Create(ln2_hi), Avx.Add(
             Fma.MultiplyAdd(e, V4.Create(ln2_lo), re),
@@ -288,7 +287,7 @@ public static class Simd
             x2 = Avx.BlendVariable(Avx.And(x2, minusOne), x2, bothInfinite);
             y2 = Avx.BlendVariable(Avx.And(y2, minusOne), y2, bothInfinite);
         }
-        V4d t = Avx.Divide(y2, x2);
+        V4d t = y2 / x2;
 
         V4d notBig = Avx.CompareLessThanOrEqual(t, V4.Create(SQRT2 + 1.0));
         V4d notSmall = Avx.CompareGreaterThanOrEqual(t, V4.Create(0.66));
@@ -298,19 +297,16 @@ public static class Simd
             Avx.And(notSmall, Avx.BlendVariable(
                 V4.Create(MOREBITS), V4.Create(MOREBITSO2), notBig)));
 
-        V4d z = Avx.Divide(
-            Avx.Add(Avx.And(notBig, t), Avx.And(notSmall, minusOne)), 
-            Avx.Add(Avx.And(notBig, V4.Create(1d)), Avx.And(notSmall, t)));
-        V4d zz = Avx.Multiply(z, z);
+        V4d z = Avx.Add(Avx.And(notBig, t), Avx.And(notSmall, minusOne)) 
+            / Avx.Add(Avx.And(notBig, V4.Create(1d)), Avx.And(notSmall, t));
+        V4d zz = z * z;
 
-        V4d px = Avx.Divide(
-            zz.Poly4(P0, P1, P2, P3, P4), zz.Poly5n(Q0, Q1, Q2, Q3, Q4));
-        V4d re = Fma.MultiplyAdd(px, Avx.Multiply(z, zz), Avx.Add(z, s));
-        re = Avx.BlendVariable(re, Avx.Subtract(V4.Create(PI_2), re), swap);
+        V4d px = zz.Poly4(P0, P1, P2, P3, P4) / zz.Poly5n(Q0, Q1, Q2, Q3, Q4);
+        V4d re = Fma.MultiplyAdd(px, z * zz, z + s);
+        re = Avx.BlendVariable(re, V4.Create(PI_2) - re, swap);
         re = Avx.BlendVariable(re, V4d.Zero,
             Avx.CompareEqual(Avx.Or(x, y), V4d.Zero));
-        re = Avx.BlendVariable(re, Avx.Subtract(V4.Create(PI), re),
-            Avx.And(x, signMask));
+        re = Avx.BlendVariable(re, V4.Create(PI) - re, Avx.And(x, signMask));
         return Avx.Xor(re, Avx.And(y, signMask));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

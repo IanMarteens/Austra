@@ -1,6 +1,4 @@
-﻿using Austra.Library.Helpers;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
