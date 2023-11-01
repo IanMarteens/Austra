@@ -635,16 +635,12 @@ public readonly struct Vector :
             && result.Length >= V4d.Count)
         {
             V4d vq = V4.Create(multiplier);
-            int t = result.Length - V4d.Count;
-            for (int i = 0; i < t; i += V4d.Count)
-                V4.StoreUnsafe(
-                    Fma.MultiplySubtract(V4.LoadUnsafe(ref Add(ref p, i)), vq,
-                        V4.LoadUnsafe(ref Add(ref r, i))),
-                    ref Add(ref s, i));
-            V4.StoreUnsafe(
-                Fma.MultiplySubtract(V4.LoadUnsafe(ref Add(ref p, t)), vq,
-                    V4.LoadUnsafe(ref Add(ref r, t))),
-                ref Add(ref s, t));
+            nuint t = (nuint)(result.Length - V4d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(Fma.MultiplySubtract(
+                    V4.LoadUnsafe(ref p, i), vq, V4.LoadUnsafe(ref r, i)), ref s, i);
+            V4.StoreUnsafe(Fma.MultiplySubtract(
+                V4.LoadUnsafe(ref p, t), vq, V4.LoadUnsafe(ref r, t)), ref s, t);
         }
         for (int i = 0; i < result.Length; i++)
             Add(ref s, i) = Add(ref p, i) * multiplier - Add(ref r, i);
@@ -671,7 +667,7 @@ public readonly struct Vector :
         int firstW = weights.Length == vectors.Length ? 0 : 1;
         if (firstW > 0)
             Array.Fill(values, weights[0]);
-        int t = size - V4d.Count;
+        nuint t = (nuint)(size - V4d.Count);
         for (int i = 0; i < vectors.Length; i++)
         {
             if (vectors[i].Length != size)
@@ -681,13 +677,11 @@ public readonly struct Vector :
             if (V4.IsHardwareAccelerated && Fma.IsSupported && size >= V4d.Count)
             {
                 V4d vec = V4.Create(w);
-                for (int j = 0; j < t; j += V4d.Count)
+                for (nuint j = 0; j < t; j += (nuint)V4d.Count)
                     V4.StoreUnsafe(Fma.MultiplyAdd(
-                        V4.LoadUnsafe(ref Add(ref q, j)), vec, V4.LoadUnsafe(ref Add(ref p, j))),
-                        ref Add(ref p, j));
+                        V4.LoadUnsafe(ref q, j), vec, V4.LoadUnsafe(ref p, j)), ref p, j);
                 V4.StoreUnsafe(Fma.MultiplyAdd(
-                    V4.LoadUnsafe(ref Add(ref q, t)), vec, V4.LoadUnsafe(ref Add(ref p, t))),
-                    ref Add(ref p, t));
+                    V4.LoadUnsafe(ref q, t), vec, V4.LoadUnsafe(ref p, t)), ref p, t);
             }
             else
                 for (int j = 0; j < size; j++)
@@ -717,14 +711,12 @@ public readonly struct Vector :
         if (V4.IsHardwareAccelerated && Fma.IsSupported && values.Length >= V4d.Count)
         {
             V4d vw1 = V4.Create(w1), vw2 = V4.Create(w2);
-            int t = values.Length - V4d.Count;
-            for (int i = 0; i < t; i += V4d.Count)
+            nuint t = (nuint)(values.Length - V4d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
                 V4.StoreUnsafe(Fma.MultiplyAdd(
-                    V4.LoadUnsafe(ref Add(ref a, i)), vw1, V4.LoadUnsafe(ref Add(ref b, i)) * vw2),
-                    ref Add(ref c, i));
+                    V4.LoadUnsafe(ref a, i), vw1, V4.LoadUnsafe(ref b, i) * vw2), ref c, i);
             V4.StoreUnsafe(Fma.MultiplyAdd(
-                V4.LoadUnsafe(ref Add(ref a, t)), vw1, V4.LoadUnsafe(ref Add(ref b, t)) * vw2),
-                ref Add(ref c, t));
+                V4.LoadUnsafe(ref a, t), vw1, V4.LoadUnsafe(ref b, t) * vw2), ref c, t);
         }
         else
             for (int i = 0; i < values.Length; i++)
@@ -815,14 +807,10 @@ public readonly struct Vector :
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated)
         {
-            int t = result.Length - V4d.Count;
-            for (int i = 0; i < t; i += V4d.Count)
-                V4.StoreUnsafe(
-                    V4.Sqrt(V4.LoadUnsafe(ref Add(ref p, i))),
-                    ref Add(ref q, i));
-            V4.StoreUnsafe(
-                V4.Sqrt(V4.LoadUnsafe(ref Add(ref p, t))),
-                ref Add(ref q, t));
+            nuint t = (nuint)(result.Length - V4d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.Sqrt(V4.LoadUnsafe(ref p, i)), ref q, i);
+            V4.StoreUnsafe(V4.Sqrt(V4.LoadUnsafe(ref p, t)), ref q, t);
         }
         else
             for (int i = 0; i < result.Length; i++)
@@ -842,14 +830,10 @@ public readonly struct Vector :
         ref double q = ref MemoryMarshal.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
         {
-            int t = result.Length - V4d.Count;
-            for (int i = 0; i < t; i += V4d.Count)
-                V4.StoreUnsafe(
-                    V4.Abs(V4.LoadUnsafe(ref Add(ref p, i))),
-                    ref Add(ref q, i));
-            V4.StoreUnsafe(
-                V4.Abs(V4.LoadUnsafe(ref Add(ref p, t))),
-                ref Add(ref q, t));
+            nuint t = (nuint)(result.Length - V4d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
+            V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
         }
         else
             for (int i = 0; i < result.Length; i++)
@@ -944,7 +928,7 @@ public readonly struct Vector :
         double ex = 0, ey = 0, exy = 0, exx = 0, eyy = 0;
         ref double p = ref MemoryMarshal.GetArrayDataReference(values);
         ref double q = ref Add(ref p, lag);
-        int i = 0, count = Length - lag;
+        nuint i = 0, count = (nuint)(Length - lag);
         if (Avx.IsSupported)
         {
             V4d avg = V4.Create(average);
@@ -953,10 +937,10 @@ public readonly struct Vector :
             V4d vexx = V4d.Zero;
             V4d vexy = V4d.Zero;
             V4d veyy = V4d.Zero;
-            for (int top = count & Simd.AVX_MASK; i < top; i += V4d.Count)
+            for (nuint top = count & Simd.AVX_MASK; i < top; i += (nuint)V4d.Count)
             {
-                V4d x = V4.LoadUnsafe(ref Add(ref p, i)) - avg;
-                V4d y = V4.LoadUnsafe(ref Add(ref q, i)) - avg;
+                V4d x = V4.LoadUnsafe(ref p, i) - avg;
+                V4d y = V4.LoadUnsafe(ref q, i) - avg;
                 vex += x;
                 vey += y;
                 vexx = vexx.MultiplyAdd(x, x);
@@ -1201,25 +1185,26 @@ public readonly struct Vector :
         Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
 
         ref double p = ref Add(ref MemoryMarshal.GetArrayDataReference(values), from);
-        int size = Length - from;
-        if (V4.IsHardwareAccelerated && size >= V4d.Count)
+        nuint size = (nuint)(Length - from);
+        if (V4.IsHardwareAccelerated && size >= (nuint)V4d.Count)
         {
             V4d v = V4.Create(value);
-            int t = size - V4d.Count, mask;
-            for (int i = 0; i < t; i += V4d.Count)
+            nuint t = size - (nuint)V4d.Count;
+            int mask;
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
             {
-                mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref Add(ref p, i)), v));
+                mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p, i), v));
                 if (mask != 0)
-                    return i + BitOperations.TrailingZeroCount(mask) + from;
+                    return (int)i + BitOperations.TrailingZeroCount(mask) + from;
             }
-            mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref Add(ref p, t)), v));
+            mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p, t), v));
             if (mask != 0)
-                return t + BitOperations.TrailingZeroCount(mask) + from;
+                return (int)t + BitOperations.TrailingZeroCount(mask) + from;
         }
         else
-            for (int i = 0; i < size; i++)
+            for (nuint i = 0; i < size; i++)
                 if (Add(ref p, i) == value)
-                    return i + from;
+                    return (int)i + from;
         return -1;
     }
 

@@ -1090,8 +1090,8 @@ public readonly struct Matrix :
             {
                 V4d vec = V4d.Zero;
                 for (; j < top; j += V4d.Count)
-                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
-                        V4.LoadUnsafe(ref Add(ref x, j)));
+                    vec = vec.MultiplyAdd(
+                        V4.LoadUnsafe(ref a, (nuint)j), V4.LoadUnsafe(ref x, (nuint)j));
                 d = vec.Sum();
             }
             for (; j < c; j++)

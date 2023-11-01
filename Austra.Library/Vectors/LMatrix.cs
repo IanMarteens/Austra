@@ -750,7 +750,7 @@ public readonly struct LMatrix :
         Contract.Requires(v.Length == Rows);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
-        Vector result = new(v.Length);
+        Vector result = GC.AllocateUninitializedArray<double>(v.Length);
         Solve(v, result);
         return result;
     }
@@ -758,34 +758,33 @@ public readonly struct LMatrix :
     /// <summary>Solves the equation Ax = b for x.</summary>
     /// <param name="input">The right side of the equation.</param>
     /// <param name="output">The solving vector.</param>
-    public unsafe void Solve(Vector input, Vector output)
+    public void Solve(Vector input, Vector output)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(IsSquare);
         Contract.Requires(input.Length == Rows);
         Contract.Requires(output.Length == Rows);
 
-        int size = input.Length;
-        fixed (double* pA = values, pV = (double[])input, pR = (double[])output)
+        nuint size = (nuint)input.Length;
+        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double pV = ref MemoryMarshal.GetArrayDataReference((double[])input);
+        ref double pR = ref MemoryMarshal.GetArrayDataReference((double[])output);
+        pR = pV / pA;    // First row is special.
+        for (nuint i = 1; i < size; i++)
         {
-            *pR = *pV / *pA;    // First row is special.
-            double* pai = pA;
-            for (int i = 1; i < size; i++)
+            pA = ref Add(ref pA, size);
+            double sum = Add(ref pV, i);
+            nuint j = 0;
+            if (Avx.IsSupported)
             {
-                pai += size;
-                double sum = pV[i];
-                int j = 0;
-                if (Avx.IsSupported)
-                {
-                    V4d acc = V4d.Zero;
-                    for (int top = i & Simd.AVX_MASK; j < top; j += 4)
-                        acc = acc.MultiplyAdd(pai + j, pR + j);
-                    sum -= acc.Sum();
-                }
-                for (; j < i; j++)
-                    sum -= pR[j] * pai[j];
-                pR[i] = sum / pai[i];
+                V4d acc = V4d.Zero;
+                for (nuint top = i & Simd.AVX_MASK; j < top; j += 4)
+                    acc = acc.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pR, j));
+                sum -= acc.Sum();
             }
+            for (; j < i; j++)
+                sum = FusedMultiplyAdd(-Add(ref pR, j), Add(ref pA, j), sum);
+            Add(ref pR, i) = sum / Add(ref pA, i);
         }
     }
 
@@ -871,7 +870,7 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
     /// <param name="typeToConvert">The type of the object to convert.</param>
     /// <param name="options">JSON options.</param>
     /// <returns>A triangular matrix with the values read from JSON.</returns>
-    public unsafe override LMatrix Read(
+    public override LMatrix Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
@@ -896,16 +895,14 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
             else if (reader.TokenType == JsonTokenType.StartArray)
             {
                 values = new double[rows * cols];
-                fixed (double* p = values)
+                int total = rows * cols;
+                ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+                reader.Read();
+                while (reader.TokenType == JsonTokenType.Number && total-- > 0)
                 {
-                    int total = rows * cols;
-                    double* pa = p;
+                    p = reader.GetDouble();
+                    p = ref Add(ref p, 1);
                     reader.Read();
-                    while (reader.TokenType == JsonTokenType.Number && total-- > 0)
-                    {
-                        *pa++ = reader.GetDouble();
-                        reader.Read();
-                    }
                 }
             }
         }
@@ -916,7 +913,7 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
     /// <param name="writer">The JSON writer.</param>
     /// <param name="value">The matrix to serialize.</param>
     /// <param name="options">JSON options.</param>    
-    public unsafe override void Write(
+    public override void Write(
         Utf8JsonWriter writer,
         LMatrix value,
         JsonSerializerOptions options)
@@ -925,12 +922,8 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
         writer.WriteNumber(nameof(LMatrix.Rows), value.Rows);
         writer.WriteNumber(nameof(LMatrix.Cols), value.Cols);
         writer.WriteStartArray("values");
-        fixed (double* pV = (double[])value)
-        {
-            double* pEnd = pV + value.Rows * value.Cols;
-            for (double* p = pV; p < pEnd; p++)
-                writer.WriteNumberValue(*p);
-        }
+        foreach (double v in (double[])value)
+            writer.WriteNumberValue(v);
         writer.WriteEndArray();
         writer.WriteEndObject();
     }

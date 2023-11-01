@@ -128,4 +128,13 @@ public class MatrixTests
         Vector r2 = m1 * v1 - v2;
         Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
     }
+
+    [Test]
+    public void CheckLMatrixSolve([Values(32, 49, 61)] int size)
+    {
+        LMatrix m = new LMatrix(size, new Random()) + LMatrix.Identity(size) * 0.05;
+        Vector v = new(size, new NormalRandom());
+        Vector x = m.Solve(v);
+        Assert.That((m * x - v).AMax(), Is.LessThanOrEqualTo(2E-6));
+    }
 }
