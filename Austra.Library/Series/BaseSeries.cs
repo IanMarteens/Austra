@@ -530,7 +530,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <returns>A new series.</returns>
     public static Series<T> operator -(Series<T> s1, Series<T> s2)
     {
-        var (args, vals, type) = Add(s1, s2);
+        var (args, vals, type) = Sub(s1, s2);
         return new(s1.Name + "-" + s2.Name, s1.Ticker, args, vals, type);
     }
 
