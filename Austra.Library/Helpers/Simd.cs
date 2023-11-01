@@ -15,7 +15,7 @@ public static class Simd
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The total value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Sum(this Vector256<double> v)
+    internal static double Sum(this V4d v)
     {
         v = Avx.HorizontalAdd(v, v);
         return v.ToScalar() + v.GetElement(2);
@@ -25,7 +25,7 @@ public static class Simd
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The product of all items.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Product(this Vector256<double> v)
+    internal static double Product(this V4d v)
     {
         Vector128<double> x = Sse2.Multiply(v.GetLower(), v.GetUpper());
         return x.ToScalar() * x.GetElement(1);
@@ -35,7 +35,7 @@ public static class Simd
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The maximum component.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Max(this Vector256<double> v)
+    internal static double Max(this V4d v)
     {
         Vector128<double> x = Sse2.Max(v.GetLower(), v.GetUpper());
         return Math.Max(x.ToScalar(), x.GetElement(1));
@@ -45,7 +45,7 @@ public static class Simd
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The maximum component.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Min(this Vector256<double> v)
+    internal static double Min(this V4d v)
     {
         Vector128<double> x = Sse2.Min(v.GetLower(), v.GetUpper());
         return Math.Min(x.ToScalar(), x.GetElement(1));
@@ -60,10 +60,10 @@ public static class Simd
     /// <param name="multiplier">The operations's multiplier.</param>
     /// <returns><c>multiplicand * multiplier + summand</c></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Vector256<double> MultiplyAdd(
-        this Vector256<double> summand,
-        Vector256<double> multiplicand,
-        Vector256<double> multiplier) =>
+    internal static V4d MultiplyAdd(
+        this V4d summand,
+        V4d multiplicand,
+        V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplyAdd(multiplicand, multiplier, summand)
             : Avx.Add(summand, Avx.Multiply(multiplicand, multiplier));
@@ -77,10 +77,10 @@ public static class Simd
     /// <param name="multiplier">The operations's multiplier.</param>
     /// <returns><c>multiplicand * multiplier + summand</c></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal unsafe static Vector256<double> MultiplyAdd(
-        this Vector256<double> summand,
+    internal unsafe static V4d MultiplyAdd(
+        this V4d summand,
         double* multiplicand,
-        Vector256<double> multiplier) =>
+        V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplyAdd(Avx.LoadVector256(multiplicand), multiplier, summand)
             : Avx.Add(summand, Avx.Multiply(Avx.LoadVector256(multiplicand), multiplier));
@@ -94,8 +94,8 @@ public static class Simd
     /// <param name="multiplier">The address of the multiplier.</param>
     /// <returns><c>multiplicand * multiplier + summand</c></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal unsafe static Vector256<double> MultiplyAdd(
-        this Vector256<double> summand,
+    internal unsafe static V4d MultiplyAdd(
+        this V4d summand,
         double* multiplicand,
         double* multiplier) =>
         Fma.IsSupported
@@ -113,10 +113,10 @@ public static class Simd
     /// <param name="multiplier">The operations's multiplier.</param>
     /// <returns><c>multiplicand * multiplier - subtrahend</c></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Vector256<double> MultiplySub(
-        this Vector256<double> subtrahend,
-        Vector256<double> multiplicand,
-        Vector256<double> multiplier) =>
+    internal static V4d MultiplySub(
+        this V4d subtrahend,
+        V4d multiplicand,
+        V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplySubtract(multiplicand, multiplier, subtrahend)
             : Avx.Subtract(Avx.Multiply(multiplicand, multiplier), subtrahend);
@@ -130,10 +130,10 @@ public static class Simd
     /// <param name="multiplier">The operations's multiplier.</param>
     /// <returns><c>minuend - multiplicand * multiplier</c></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal unsafe static Vector256<double> MultiplyAddNeg(
-        this Vector256<double> minuend,
-        Vector256<double> multiplicand,
-        Vector256<double> multiplier) =>
+    internal unsafe static V4d MultiplyAddNeg(
+        this V4d minuend,
+        V4d multiplicand,
+        V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplyAddNegated(multiplicand, multiplier, minuend)
             : Avx.Subtract(minuend, Avx.Multiply(multiplicand, multiplier));
@@ -147,10 +147,10 @@ public static class Simd
     /// <param name="multiplier">The operations's multiplier.</param>
     /// <returns><c>minuend - multiplicand * multiplier</c></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal unsafe static Vector256<double> MultiplyAddNeg(
-        this Vector256<double> minuend,
+    internal unsafe static V4d MultiplyAddNeg(
+        this V4d minuend,
         double* multiplicand,
-        Vector256<double> multiplier) =>
+        V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplyAddNegated(Avx.LoadVector256(multiplicand), multiplier, minuend)
             : Avx.Subtract(minuend, Avx.Multiply(Avx.LoadVector256(multiplicand), multiplier));
@@ -164,7 +164,7 @@ public static class Simd
     /// <param name="c4">The quartic term.</param>
     /// <returns>The evaluation of the polynomial at the given point.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector256<double> Poly4(this Vector256<double> x,
+    public static V4d Poly4(this V4d x,
         double c0, double c1, double c2, double c3, double c4) =>
         Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(
             V4.Create(c4), x,
@@ -183,7 +183,7 @@ public static class Simd
     /// <remarks>It is assumed that the quintic term is one.</remarks>
     /// <returns>The evaluation of the polynomial at the given point.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector256<double> Poly5n(this Vector256<double> x,
+    public static V4d Poly5n(this V4d x,
         double c0, double c1, double c2, double c3, double c4) =>
         Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(Avx.Add(
             x, V4.Create(c4)),
@@ -202,7 +202,7 @@ public static class Simd
     /// <param name="c5">The quintic term.</param>
     /// <returns>The evaluation of the polynomial at the given point.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector256<double> Poly5(this Vector256<double> x,
+    public static V4d Poly5(this V4d x,
         double c0, double c1, double c2, double c3, double c4, double c5) =>
         Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(
             V4.Create(c5), x,
@@ -216,7 +216,7 @@ public static class Simd
     /// <remarks>Requires AVX/AVX2/FMA support.</remarks>
     /// <param name="x">An AVX vector of doubles.</param>
     /// <returns>A vector with the respective logarithms.</returns>
-    public static Vector256<double> Log(this Vector256<double> x)
+    public static V4d Log(this V4d x)
     {
         const double P0 = 7.70838733755885391666E0;
         const double P1 = 1.79368678507819816313E1;
@@ -235,16 +235,16 @@ public static class Simd
         const double bias = 1023.0;                  // bias in exponent
 
         // Get the mantissa.
-        Vector256<double> m = Avx2.Or(Avx2.And(x.AsUInt64(),
+        V4d m = Avx2.Or(Avx2.And(x.AsUInt64(),
             V4.Create(0x000FFFFFFFFFFFFFUL)),
             V4.Create(0x3FE0000000000000UL)).AsDouble();
-        Vector256<double> e = Avx.Subtract(Avx2.Or(Avx2.ShiftRightLogical(x.AsUInt64(), 52),
+        V4d e = Avx.Subtract(Avx2.Or(Avx2.ShiftRightLogical(x.AsUInt64(), 52),
             V4.Create(pow2_52).AsUInt64()).AsDouble(), V4.Create(pow2_52 + bias));
-        Vector256<double> blend = Avx.CompareGreaterThan(m, V4.Create(SQRT2 * 0.5));
+        V4d blend = Avx.CompareGreaterThan(m, V4.Create(SQRT2 * 0.5));
         e = Avx.Add(e, Avx.And(V4.Create(1d), blend));
         m = Avx.Subtract(Avx.Add(m, Avx.AndNot(blend, m)), V4.Create(1d));
-        Vector256<double> x2 = Avx.Multiply(m, m);
-        Vector256<double> re = Avx.Divide(
+        V4d x2 = Avx.Multiply(m, m);
+        V4d re = Avx.Divide(
             Avx.Multiply(m.Poly5(P0, P1, P2, P3, P4, P5), Avx.Multiply(m, x2)),
             m.Poly5n(Q0, Q1, Q2, Q3, Q4));
         // Add exponent.
@@ -258,7 +258,7 @@ public static class Simd
     /// <param name="y">AVX vector with ordinates.</param>
     /// <param name="x">AVX vector with abscissas.</param>
     /// <returns>A vector with the respectives tangent inverses.</returns>
-    public static Vector256<double> Atan2(this Vector256<double> y, Vector256<double> x)
+    public static V4d Atan2(this V4d y, V4d x)
     {
         const double PI_2 = PI / 2.0;
         const double PI_4 = PI / 4.0;
@@ -275,52 +275,52 @@ public static class Simd
         const double Q1 = 4.853903996359136964868E2;
         const double Q0 = 1.945506571482613964425E2;
 
-        Vector256<double> signMask = V4.Create(-0.0);
-        Vector256<double> minusOne = V4.Create(-1d);
-        Vector256<double> x1 = Avx.AndNot(signMask, x);
-        Vector256<double> y1 = Avx.AndNot(signMask, y);
-        Vector256<double> swap = Avx.CompareGreaterThan(y1, x1);
-        Vector256<double> x2 = Avx.BlendVariable(x1, y1, swap);
-        Vector256<double> y2 = Avx.BlendVariable(y1, x1, swap);
-        Vector256<double> bothInfinite = Avx.And(IsInfinite(x), IsInfinite(y));
+        V4d signMask = V4.Create(-0.0);
+        V4d minusOne = V4.Create(-1d);
+        V4d x1 = Avx.AndNot(signMask, x);
+        V4d y1 = Avx.AndNot(signMask, y);
+        V4d swap = Avx.CompareGreaterThan(y1, x1);
+        V4d x2 = Avx.BlendVariable(x1, y1, swap);
+        V4d y2 = Avx.BlendVariable(y1, x1, swap);
+        V4d bothInfinite = Avx.And(IsInfinite(x), IsInfinite(y));
         if (HorizontalOr(bothInfinite))
         {
             x2 = Avx.BlendVariable(Avx.And(x2, minusOne), x2, bothInfinite);
             y2 = Avx.BlendVariable(Avx.And(y2, minusOne), y2, bothInfinite);
         }
-        Vector256<double> t = Avx.Divide(y2, x2);
+        V4d t = Avx.Divide(y2, x2);
 
-        Vector256<double> notBig = Avx.CompareLessThanOrEqual(t, V4.Create(SQRT2 + 1.0));
-        Vector256<double> notSmall = Avx.CompareGreaterThanOrEqual(t, V4.Create(0.66));
-        Vector256<double> s = Avx.Add(
+        V4d notBig = Avx.CompareLessThanOrEqual(t, V4.Create(SQRT2 + 1.0));
+        V4d notSmall = Avx.CompareGreaterThanOrEqual(t, V4.Create(0.66));
+        V4d s = Avx.Add(
             Avx.And(notSmall, Avx.BlendVariable(
                 V4.Create(PI_2), V4.Create(PI_4), notBig)),
             Avx.And(notSmall, Avx.BlendVariable(
                 V4.Create(MOREBITS), V4.Create(MOREBITSO2), notBig)));
 
-        Vector256<double> z = Avx.Divide(
+        V4d z = Avx.Divide(
             Avx.Add(Avx.And(notBig, t), Avx.And(notSmall, minusOne)), 
             Avx.Add(Avx.And(notBig, V4.Create(1d)), Avx.And(notSmall, t)));
-        Vector256<double> zz = Avx.Multiply(z, z);
+        V4d zz = Avx.Multiply(z, z);
 
-        Vector256<double> px = Avx.Divide(
+        V4d px = Avx.Divide(
             zz.Poly4(P0, P1, P2, P3, P4), zz.Poly5n(Q0, Q1, Q2, Q3, Q4));
-        Vector256<double> re = Fma.MultiplyAdd(px, Avx.Multiply(z, zz), Avx.Add(z, s));
+        V4d re = Fma.MultiplyAdd(px, Avx.Multiply(z, zz), Avx.Add(z, s));
         re = Avx.BlendVariable(re, Avx.Subtract(V4.Create(PI_2), re), swap);
-        re = Avx.BlendVariable(re, Vector256<double>.Zero,
-            Avx.CompareEqual(Avx.Or(x, y), Vector256<double>.Zero));
+        re = Avx.BlendVariable(re, V4d.Zero,
+            Avx.CompareEqual(Avx.Or(x, y), V4d.Zero));
         re = Avx.BlendVariable(re, Avx.Subtract(V4.Create(PI), re),
             Avx.And(x, signMask));
         return Avx.Xor(re, Avx.And(y, signMask));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static Vector256<double> IsInfinite(Vector256<double> x) =>
+        static V4d IsInfinite(V4d x) =>
             Avx.Or(
                 Avx.CompareEqual(x, V4.Create(double.PositiveInfinity)),
                 Avx.CompareEqual(x, V4.Create(double.NegativeInfinity)));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static bool HorizontalOr(Vector256<double> x) =>
-            Avx.MoveMask(Avx.CompareNotEqual(x, Vector256<double>.Zero)) != 0;
+        static bool HorizontalOr(V4d x) =>
+            Avx.MoveMask(Avx.CompareNotEqual(x, V4d.Zero)) != 0;
     }
 }

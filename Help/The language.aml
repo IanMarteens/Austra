@@ -6,6 +6,17 @@
       <para>AUSTRA formulas are efficiently parsed by a .NET Engine, and they are translated into fast-running native code that calls routines also implemented in .NET that take advantage of multicore systems and SIMD extensions.</para>
       <para>This topic introduces the basic syntax of the language.</para>
     </introduction>
+    <section address="Lexical">
+      <title>Lexical syntax</title>
+      <content>
+      <para>
+      The lexical syntax of AUSTRA is very similar to most real programming languages:
+      <list>
+      	<listItem>White space, including line returns, are completely ignored.</listItem>
+      </list>
+      </para>
+      </content>
+    </section>
     <section address="Section1">
       <title>Root objects</title>
       <content>

@@ -354,9 +354,9 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
             {
                 var meanx = V4.Create(x0);
                 var meany = V4.Create(y0);
-                var vex = Vector256<double>.Zero;
-                var vey = Vector256<double>.Zero;
-                var vexy = Vector256<double>.Zero;
+                var vex = V4d.Zero;
+                var vey = V4d.Zero;
+                var vexy = V4d.Zero;
                 for (int top = count & Simd.AVX_MASK; i < top; i += 4)
                 {
                     var x = Avx.Subtract(Avx.LoadVector256(pA + i), meanx);

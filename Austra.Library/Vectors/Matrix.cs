@@ -503,10 +503,10 @@ public readonly struct Matrix :
             int r1 = r & Simd.AVX_MASK, r2 = r + r, r4 = r2 + r2;
             int c1 = c & Simd.AVX_MASK, c2 = c + c, c4 = c2 + c2;
             ref double pA = ref a;
-            for (int row = 0; row < r1; row += Vector256<double>.Count)
+            for (int row = 0; row < r1; row += V4d.Count)
             {
                 ref double q = ref Add(ref b, row);
-                for (int col = 0; col < c1; col += Vector256<double>.Count)
+                for (int col = 0; col < c1; col += V4d.Count)
                 {
                     ref double pp = ref Add(ref pA, col);
                     var row1 = V4.LoadUnsafe(ref pp);
@@ -787,7 +787,7 @@ public readonly struct Matrix :
                     double d = pa[k];
                     int j = 0;
                     if (Avx.IsSupported)
-                        for (Vector256<double> vd = V4.Create(d); j < top; j += Vector256<double>.Count)
+                        for (V4d vd = V4.Create(d); j < top; j += V4d.Count)
                             Avx.Store(pc + j,
                                 Avx.LoadVector256(pc + j).MultiplyAdd(pb + j, vd));
                     for (; j < p; j++)
@@ -919,8 +919,8 @@ public readonly struct Matrix :
                 double acc = 0;
                 if (Avx.IsSupported)
                 {
-                    Vector256<double> sum = Vector256<double>.Zero;
-                    for (; k < top; k += Vector256<double>.Count)
+                    V4d sum = V4d.Zero;
+                    for (; k < top; k += V4d.Count)
                         sum = sum.MultiplyAdd(
                             V4.LoadUnsafe(ref Add(ref ai, k)), V4.LoadUnsafe(ref Add(ref bj, k)));
                     acc = sum.Sum();
@@ -960,8 +960,8 @@ public readonly struct Matrix :
             double d = 0;
             if (V4.IsHardwareAccelerated)
             {
-                Vector256<double> vec = Vector256<double>.Zero;
-                for (; j < top; j += Vector256<double>.Count)
+                V4d vec = V4d.Zero;
+                for (; j < top; j += V4d.Count)
                     vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
                         V4.LoadUnsafe(ref Add(ref x, j)));
                 d = vec.Sum();
@@ -1008,8 +1008,8 @@ public readonly struct Matrix :
             int j = 0;
             if (Avx.IsSupported)
             {
-                Vector256<double> vec = V4.Create(d);
-                for (int last = c & Simd.AVX_MASK; j < last; j += Vector256<double>.Count)
+                V4d vec = V4.Create(d);
+                for (int last = c & Simd.AVX_MASK; j < last; j += V4d.Count)
                     V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref t, j)).MultiplyAdd(
                         V4.LoadUnsafe(ref Add(ref p, j)), vec),
                         ref Add(ref t, j));
@@ -1047,8 +1047,8 @@ public readonly struct Matrix :
             double d = 0;
             if (V4.IsHardwareAccelerated)
             {
-                Vector256<double> vec = Vector256<double>.Zero;
-                for (; j < top; j += Vector256<double>.Count)
+                V4d vec = V4d.Zero;
+                for (; j < top; j += V4d.Count)
                     vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
                         V4.LoadUnsafe(ref Add(ref x, j)));
                 d = vec.Sum();
@@ -1088,8 +1088,8 @@ public readonly struct Matrix :
             double d = 0;
             if (V4.IsHardwareAccelerated)
             {
-                Vector256<double> vec = Vector256<double>.Zero;
-                for (; j < top; j += Vector256<double>.Count)
+                V4d vec = V4d.Zero;
+                for (; j < top; j += V4d.Count)
                     vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
                         V4.LoadUnsafe(ref Add(ref x, j)));
                 d = vec.Sum();
@@ -1128,8 +1128,8 @@ public readonly struct Matrix :
             double d = 0;
             if (V4.IsHardwareAccelerated)
             {
-                Vector256<double> vec = Vector256<double>.Zero;
-                for (; j < top; j += Vector256<double>.Count)
+                V4d vec = V4d.Zero;
+                for (; j < top; j += V4d.Count)
                     vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
                         V4.LoadUnsafe(ref Add(ref x, j)));
                 d = vec.Sum();

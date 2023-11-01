@@ -59,7 +59,7 @@ public readonly struct LU : IFormattable
                     int k = 0;
                     if (Avx.IsSupported)
                     {
-                        Vector256<double> ac = Vector256<double>.Zero;
+                        V4d ac = V4d.Zero;
                         for (; k < lastBlock; k += 4)
                             ac = ac.MultiplyAdd(pAi + k, buf + k);
                         s = ac.Sum();
@@ -246,7 +246,7 @@ public readonly struct LU : IFormattable
                 int i = k + 1;
                 if (Avx2.IsSupported)
                 {
-                    Vector256<double> vm = Vector256.Create(m);
+                    V4d vm = V4.Create(m);
                     var vx = Vector128.Create(0, size, 2 * size, 3 * size);
                     for (double* p = a + i * size + k; i < size - 4; i += 4, p += 4 * size)
                         Avx.Store(c + i, Avx.Subtract(Avx.LoadVector256(c + i),
@@ -261,7 +261,7 @@ public readonly struct LU : IFormattable
                 int i = 0;
                 if (Avx2.IsSupported)
                 {
-                    Vector256<double> vm = Vector256.Create(m);
+                    V4d vm = V4.Create(m);
                     var vx = Vector128.Create(0, size, 2 * size, 3 * size);
                     for (double* p = a + k; i < k - 4; i += 4, p += size * 4)
                         Avx.Store(c + i, Avx.Subtract(Avx.LoadVector256(c + i),
@@ -321,7 +321,7 @@ public readonly struct LU : IFormattable
                     double mult = pA[i * size + k];
                     int j = 0;
                     if (Avx.IsSupported)
-                        for (var vm = Vector256.Create(mult); j < top; j += 4)
+                        for (var vm = V4.Create(mult); j < top; j += 4)
                             Avx.Store(pci + j,
                                 Avx.LoadVector256(pci + j).MultiplyAddNeg(pck + j, vm));
                     for (; j < size; j++)
@@ -334,7 +334,7 @@ public readonly struct LU : IFormattable
                 double mult = pA[k * size + k];
                 int l = 0;
                 if (Avx.IsSupported)
-                    for (Vector256<double> vm = Vector256.Create(1.0 / mult); l < top; l += 4)
+                    for (V4d vm = V4.Create(1.0 / mult); l < top; l += 4)
                         Avx.Store(pck + l, Avx.Multiply(Avx.LoadVector256(pck + l), vm));
                 for (; l < size; l++)
                     pck[l] /= mult;
@@ -345,7 +345,7 @@ public readonly struct LU : IFormattable
                     mult = *pai;
                     int j = 0;
                     if (Avx.IsSupported)
-                        for (var vm = Vector256.Create(mult); j < top; j += 4)
+                        for (var vm = V4.Create(mult); j < top; j += 4)
                             Avx.Store(pci + j,
                                 Avx.LoadVector256(pci + j).MultiplyAddNeg(pck + j, vm));
                     for (; j < size; j++)

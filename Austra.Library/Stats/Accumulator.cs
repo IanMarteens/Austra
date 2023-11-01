@@ -103,10 +103,10 @@ public sealed class Accumulator
         {
             var vMin = V4.Create(double.PositiveInfinity);
             var vMax = V4.Create(double.NegativeInfinity);
-            var μ1 = Vector256<double>.Zero;
-            var μ2 = Vector256<double>.Zero;
-            var μ3 = Vector256<double>.Zero;
-            var μ4 = Vector256<double>.Zero;
+            var μ1 = V4d.Zero;
+            var μ2 = V4d.Zero;
+            var μ3 = V4d.Zero;
+            var μ4 = V4d.Zero;
             var v3 = V4.Create(3.0);
             var v4 = V4.Create(4.0);
             var v6 = V4.Create(6.0);

@@ -70,7 +70,7 @@ public sealed partial class FftPlan
     /// <summary>Mask vector to conjugate one complex value.</summary>
     private static readonly Vector128<double> cnj = Vector128.Create(0.0, -0.0);
     /// <summary>Mask vector to conjugate two complex values at once.</summary>
-    private static readonly Vector256<double> CNJ = Vector256.Create(0.0, -0.0, 0.0, -0.0);
+    private static readonly V4d CNJ = V4.Create(0.0, -0.0, 0.0, -0.0);
 
     private static readonly double Cos2πOver3 = Cos(Tau / 3);
     private static readonly double Sin2πOver3 = Sin(Tau / 3);
@@ -444,7 +444,7 @@ public sealed partial class FftPlan
                     double v = kSqr * πOverN;
                     kSqr += k2 + 1;
                     double w = kSqr * πOverN;
-                    var b = Vector256.Create(Cos(v), Sin(v), Cos(w), Sin(w));
+                    var b = V4.Create(Cos(v), Sin(v), Cos(w), Sin(w));
                     Avx.Store(prec + k2, b);
                     Sse2.Store(prec + 2 * ((m - k) % m), b.GetLower());
                     Sse2.Store(prec + 2 * ((m - k - 1) % m), b.GetUpper());
@@ -652,8 +652,8 @@ public sealed partial class FftPlan
                 Execute(subplan, a, buf);
                 if (Avx.IsSupported)
                 {
-                    var d = Avx.Xor(Vector256.Create(1.0 / n1), CNJ);
-                    var vv = Vector256.Create(v, v);
+                    var d = Avx.Xor(V4.Create(1.0 / n1), CNJ);
+                    var vv = V4.Create(v, v);
                     int max = n1 & ~1, p = 0, kiq = 1;
                     Sse2.Store(pb, r);
                     for (int i = 0; i < max; i += 2, p += 4)
@@ -717,7 +717,7 @@ public sealed partial class FftPlan
             (bA, bB) = pool.Rent();
             bufa = bA; bufb = bB;
         }
-        var dm = Vector256.Create((double)m);
+        var dm = V4.Create((double)m);
         fixed (double* b = bufa, z = &precr[offs])
             for (int op = 0; op < count; op++)
             {

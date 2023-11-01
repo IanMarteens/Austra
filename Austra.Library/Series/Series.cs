@@ -97,7 +97,7 @@ public sealed class Series : Series<Date>,
             int i = 0, size = newValues.Length;
             if (Avx.IsSupported)
             {
-                Vector256<double> one = Vector256.Create(1.0);
+                V4d one = V4.Create(1.0);
                 for (int top = size & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i, Avx.Subtract(
                         Avx.Divide(Avx.LoadVector256(p + i), Avx.LoadVector256(p + i + 1)),

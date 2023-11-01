@@ -75,10 +75,10 @@ public sealed class SimpleAccumulator
         int i = 0;
         if (Avx.IsSupported && size >= 16)
         {
-            var vMin = Vector256.Create(double.PositiveInfinity);
-            var vMax = Vector256.Create(double.NegativeInfinity);
-            var vM1 = Vector256<double>.Zero;
-            var vM2 = Vector256<double>.Zero;
+            var vMin = V4.Create(double.PositiveInfinity);
+            var vMax = V4.Create(double.NegativeInfinity);
+            var vM1 = V4d.Zero;
+            var vM2 = V4d.Zero;
             long c = 0;
             for (int top = size & Simd.AVX_MASK; i < top; i += 4)
             {
@@ -87,8 +87,8 @@ public sealed class SimpleAccumulator
                 vMin = Avx.Min(vMin, vSample);
                 vMax = Avx.Max(vMax, vSample);
                 var vd = Avx.Subtract(vSample, vM1);
-                var vs = Avx.Divide(vd, Vector256.Create((double)c));
-                var vt = Avx.Multiply(Avx.Multiply(vd, vs), Vector256.Create((double)(c - 1)));
+                var vs = Avx.Divide(vd, V4.Create((double)c));
+                var vt = Avx.Multiply(Avx.Multiply(vd, vs), V4.Create((double)(c - 1)));
                 vM1 = Avx.Add(vM1, vs);
                 vM2 = Avx.Add(vM2, vt);
             }

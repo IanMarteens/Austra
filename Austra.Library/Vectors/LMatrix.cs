@@ -466,7 +466,7 @@ public readonly struct LMatrix :
                     int j = 0;
                     if (Avx.IsSupported)
                     {
-                        Vector256<double> vd = Vector256.Create(d);
+                        V4d vd = Vector256.Create(d);
                         for (; j < lastBlockIndex; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
@@ -510,7 +510,7 @@ public readonly struct LMatrix :
                     int j = 0, top = Min(k + 1, n);
                     if (Avx.IsSupported)
                     {
-                        Vector256<double> vd = Vector256.Create(d);
+                        V4d vd = Vector256.Create(d);
                         for (int last = top & Simd.AVX_MASK; j < last; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
@@ -601,7 +601,7 @@ public readonly struct LMatrix :
                     double acc = 0;
                     if (Avx.IsSupported)
                     {
-                        Vector256<double> sum = Vector256<double>.Zero;
+                        V4d sum = V4d.Zero;
                         for (int top = size & Simd.AVX_MASK; k < top; k += 4)
                             sum = sum.MultiplyAdd(pAi + k, pBj + k);
                         acc = sum.Sum();
@@ -622,7 +622,7 @@ public readonly struct LMatrix :
     /// <param name="m">The transformation matrix.</param>
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    public static unsafe Vector operator *(LMatrix m, Vector v)
+    public static Vector operator *(LMatrix m, Vector v)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -630,28 +630,26 @@ public readonly struct LMatrix :
 
         int r = m.Rows, c = m.Cols;
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        fixed (double* pA = m.values, pX = (double[])v, pB = result)
+        ref double pA = ref MemoryMarshal.GetArrayDataReference(m.values);
+        ref double pX = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        // First row is special.
+        pB = pA * pX;
+        for (int i = 1; i < r; i++)
         {
-            double* pA1 = pA, pB1 = pB;
-            // First row is special.
-            *pB1++ = *pA1 * *pX;
-            pA1 += c;
-            for (int i = 1; i < r; i++)
+            pA = ref Add(ref pA, c); pB = ref Add(ref pB, 1);
+            double d = 0;
+            nuint j = 0, top = (nuint)Min(i + 1, c);
+            if (Avx.IsSupported)
             {
-                double d = 0;
-                int j = 0, top = Min(i + 1, c);
-                if (Avx.IsSupported)
-                {
-                    Vector256<double> vec = Vector256<double>.Zero;
-                    for (int last = top & Simd.AVX_MASK; j < last; j += 4)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    d = vec.Sum();
-                }
-                for (; j < top; j++)
-                    d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                *pB1++ = d;
-                pA1 += c;
+                V4d vec = V4d.Zero;
+                for (nuint last = top & Simd.AVX_MASK; j < last; j += (nuint)V4d.Count)
+                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pX, j));
+                d = vec.Sum();
             }
+            for (; j < top; j++)
+                d = FusedMultiplyAdd(Add(ref pA, j), Add(ref pX, j), d);
+            pB = d;
         }
         return result;
     }
@@ -676,7 +674,7 @@ public readonly struct LMatrix :
             if (c >= 8 && Avx.IsSupported)
                 for (int i = 1; i < r; i++)
                 {
-                    Vector256<double> vec = Vector256<double>.Zero;
+                    V4d vec = V4d.Zero;
                     int top = Min(i + 1, c), j = 0;
                     for (int last = top & Simd.AVX_MASK; j < last; j += 4)
                         vec = vec.MultiplyAdd(pA1 + j, pX + j);
@@ -726,7 +724,7 @@ public readonly struct LMatrix :
                 int j = 0, top = Min(i + 1, c);
                 if (Avx.IsSupported)
                 {
-                    Vector256<double> vec = Vector256<double>.Zero;
+                    V4d vec = V4d.Zero;
                     for (int last = top & Simd.AVX_MASK; j < last; j += 4)
                         vec = vec.MultiplyAdd(pA1 + j, pX + j);
                     d = vec.Sum();
@@ -768,7 +766,7 @@ public readonly struct LMatrix :
                 int j = 0, top = Min(i + 1, c);
                 if (Avx.IsSupported)
                 {
-                    Vector256<double> vec = Vector256<double>.Zero;
+                    V4d vec = V4d.Zero;
                     for (int last = top & Simd.AVX_MASK; j < last; j += 4)
                         vec = vec.MultiplyAdd(pA1 + j, pX + j);
                     d = vec.Sum();
@@ -828,7 +826,7 @@ public readonly struct LMatrix :
                 int j = 0;
                 if (Avx.IsSupported)
                 {
-                    Vector256<double> acc = Vector256<double>.Zero;
+                    V4d acc = V4d.Zero;
                     for (int top = i & Simd.AVX_MASK; j < top; j += 4)
                         acc = acc.MultiplyAdd(pai + j, pR + j);
                     sum -= acc.Sum();

@@ -107,10 +107,10 @@ public static class FFT
                 int i = 0;
                 if (Avx.IsSupported)
                 {
-                    Vector256<double> z = Vector256<double>.Zero;
+                    V4d z = V4d.Zero;
                     for (int top = n & ~1; i < top; i += 4)
                     {
-                        Vector256<double> source = Avx.LoadVector256(pa + i);
+                        V4d source = Avx.LoadVector256(pa + i);
                         double* target = pfd + i + i;
                         Avx.Store(target,
                             Avx.Shuffle(Avx.Permute2x128(source, source, 0), z, 12));

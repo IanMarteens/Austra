@@ -203,7 +203,7 @@ public readonly struct RMatrix :
         double[] result = new double[r * c];
         fixed (double* pA = m.values, pC = result)
         {
-            Vector256<double> vec = Vector256.Create(d);
+            V4d vec = V4.Create(d);
             for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
                 int col = row, k = offset + col;
@@ -239,7 +239,7 @@ public readonly struct RMatrix :
         double[] result = new double[r * c];
         fixed (double* pA = m.values, pC = result)
         {
-            Vector256<double> vec = Vector256.Create(d);
+            V4d vec = V4.Create(d);
             for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
                 int col = row, k = offset + col;
@@ -303,7 +303,7 @@ public readonly struct RMatrix :
         double[] result = new double[r * c];
         fixed (double* pA = m.values, pC = result)
         {
-            Vector256<double> z = Vector256<double>.Zero;
+            V4d z = V4d.Zero;
             for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
                 int col = row, k = offset + col;
@@ -343,7 +343,7 @@ public readonly struct RMatrix :
                     int j = k;
                     if (Avx.IsSupported)
                     {
-                        Vector256<double> vd = Vector256.Create(d);
+                        V4d vd = V4.Create(d);
                         for (int top = (p - k) & Simd.AVX_MASK + k; j < top; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
@@ -373,7 +373,7 @@ public readonly struct RMatrix :
         double[] result = new double[r * c];
         fixed (double* pA = m.values, pC = result)
         {
-            Vector256<double> vec = Vector256.Create(d);
+            V4d vec = V4.Create(d);
             for (int row = 0, offset = 0; row < r; row++, offset += c)
             {
                 int col = row, k = offset + col;
@@ -420,7 +420,7 @@ public readonly struct RMatrix :
             if (c >= 12 && Avx.IsSupported)
                 for (int i = 0; i < r; i++)
                 {
-                    Vector256<double> vec = Vector256<double>.Zero;
+                    V4d vec = V4d.Zero;
                     int j = i;
                     for (int top = (c - i) & Simd.AVX_MASK + i; j < top; j += 4)
                         vec = vec.MultiplyAdd(pA1 + j, pX + j);
