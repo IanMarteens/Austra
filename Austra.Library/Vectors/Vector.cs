@@ -365,7 +365,9 @@ public readonly struct Vector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return CommonMatrix.SubV(d, v.values);
+        double[] result = GC.AllocateUninitializedArray<double>(v.Length);
+        CommonMatrix.SubV(d, v.values, result);
+        return result;
     }
 
     /// <summary>Pointwise multiplication.</summary>

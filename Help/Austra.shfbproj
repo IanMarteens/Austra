@@ -85,7 +85,8 @@
     <ContentLayout Include="Content Layout.content" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="The language.aml" />
+    <None Include="Definitions.aml" />
+    <None Include="Language.aml" />
     <None Include="Welcome.aml" />
   </ItemGroup>
 </Project>

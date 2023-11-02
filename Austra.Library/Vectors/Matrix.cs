@@ -686,7 +686,9 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
-        return new(m.Rows, m.Cols, CommonMatrix.SubV(d, m.values));
+        double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
+        CommonMatrix.SubV(d, m.values, result);
+        return new(m.Rows, m.Cols, result);
     }
 
     /// <summary>Cell by cell product with a second matrix.</summary>

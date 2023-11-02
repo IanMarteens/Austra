@@ -6,6 +6,7 @@ public class MatrixBenchmark : BenchmarkControl
     private readonly Matrix cm1, cm2, sym;
     private readonly Vector cv1, cv2;
     private readonly LMatrix lm1, lm2;
+    private readonly RMatrix rm1;
 
     public MatrixBenchmark()
     {
@@ -18,6 +19,7 @@ public class MatrixBenchmark : BenchmarkControl
         cv2 = new Vector(size, rnd);
         lm1 = new LMatrix(size, rnd);
         lm2 = new LMatrix(size, rnd);
+        rm1 = new RMatrix(size, rnd);
     }
 
     //[Benchmark]
@@ -26,10 +28,10 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public Matrix AustraSubMatrix() => cm1 - cm2;
 
-    [Benchmark]
+    //[Benchmark]
     public LMatrix AustraAddLMatrix() => lm1 + lm2;
 
-    [Benchmark]
+    //[Benchmark]
     public LMatrix AustraSubLMatrix1() => lm1 - lm2;
 
     //[Benchmark]
@@ -70,4 +72,7 @@ public class MatrixBenchmark : BenchmarkControl
 
     //[Benchmark]
     public Matrix AustraMatrixMap() => cm1.Map(x => x * x);
+
+    [Benchmark]
+    public LMatrix AustraTransposeRMatrix() => rm1.Transpose();
 }

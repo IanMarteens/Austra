@@ -259,27 +259,25 @@ public static class CommonMatrix
                 Add(ref q, i) = Add(ref p, i) - scalar;
     }
 
-    /// <summary>Pointwise subtraction of an array from a scalar.</summary>
+    /// <summary>Pointwise subtraction of an span from a scalar.</summary>
     /// <param name="scalar">Scalar minuend.</param>
-    /// <param name="array">Array subtrahend.</param>
-    /// <returns>The pointwise subtraction of the two arguments.</returns>
-    public static double[] SubV(double scalar, double[] array)
+    /// <param name="span">Span subtrahend.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void SubV(double scalar, Span<double> span, Span<double> target)
     {
-        double[] result = GC.AllocateUninitializedArray<double>(array.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(array);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
+        ref double p = ref MemoryMarshal.GetReference(span);
+        ref double q = ref MemoryMarshal.GetReference(target);
+        if (V4.IsHardwareAccelerated && target.Length >= V4d.Count)
         {
             V4d vec = V4.Create(scalar);
-            nuint t = (nuint)(result.Length - V4d.Count);
+            nuint t = (nuint)(target.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
                 V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, i), ref q, i);
             V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, t), ref q, t);
         }
         else
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < target.Length; i++)
                 Add(ref q, i) = scalar - Add(ref p, i);
-        return result;
     }
 
     /// <summary>Pointwise negation of a span.</summary>

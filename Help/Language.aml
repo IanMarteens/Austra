@@ -95,7 +95,7 @@ else msft.mean
     <section address="Section1">
       <title>Root objects</title>
       <content>
-        <para>Every AUSTRA expression must start with a root object. It could be either a global variable, a local variable, a class method, a class variable, or a code definition.</para>
+        <para>Every AUSTRA expression must start with a root object. It could be either a global variable, a local variable, a class method, a class variable, or a <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">code definition</link>.</para>
       </content>
       <sections>
           <section address="SubSection1">

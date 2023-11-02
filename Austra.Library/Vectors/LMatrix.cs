@@ -351,10 +351,10 @@ public readonly struct LMatrix :
     public static Matrix operator -(LMatrix m1, RMatrix m2) => new Matrix(m1.values) - m2;
 
     /// <summary>Subtracts a scalar value from a lower triangular matrix.</summary>
-    /// <remarks>The value is just subtracted to the lower triangular part.</remarks>
+    /// <remarks>The value is just subtracted from the lower triangular part.</remarks>
     /// <param name="m">Matrix minuend.</param>
     /// <param name="d">A scalar subtrahend.</param>
-    /// <returns>The sum of the matrix and the scalar.</returns>
+    /// <returns>The subtraction of the matrix and the scalar.</returns>
     public static LMatrix operator -(LMatrix m, double d)
     {
         Contract.Requires(m.IsInitialized);
@@ -376,6 +376,32 @@ public readonly struct LMatrix :
         return new(m.Rows, m.Cols, result);
     }
 
+    /// <summary>Subtracts a lower triangular matrix from a scalar value.</summary>
+    /// <remarks>The value is just subtracted from the lower triangular part.</remarks>
+    /// <param name="d">A scalar minuend.</param>
+    /// <param name="m">Matrix subtrahend.</param>
+    /// <returns>The subtraction of the matrix and the scalar.</returns>
+    public static LMatrix operator -(double d, LMatrix m)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
+        Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
+
+        int r = m.Rows, c = m.Cols;
+        double[] result = new double[m.values.Length];
+        if (c < r)
+            r = c;
+        result[0] = d - m.values[0];    // First row is special.
+        for (int row = 1, offset = c; row < r; row++, offset += c)
+            CommonMatrix.SubV(d, m.values.AsSpan(offset, row + 1), result.AsSpan(offset, row + 1));
+        if (m.Rows > c)
+        {
+            int c2 = c * c;
+            CommonMatrix.SubV(d, m.values.AsSpan(c2), result.AsSpan(c2));
+        }
+        return new(m.Rows, m.Cols, result);
+    }
+
     /// <summary>Negates a lower matrix.</summary>
     /// <param name="m">The matrix operand.</param>
     /// <returns>Cell-by-cell negation.</returns>
@@ -389,7 +415,7 @@ public readonly struct LMatrix :
         double[] result = new double[m.values.Length];
         if (c < r)
             r = c;
-        result[0] = -result[0];    // First row is special.
+        result[0] = -m.values[0];    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
             m.values.AsSpan(offset, row + 1).NegV(result.AsSpan(offset, row + 1));
         if (m.Rows > c)

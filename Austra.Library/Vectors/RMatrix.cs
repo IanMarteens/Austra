@@ -67,6 +67,13 @@ public readonly struct RMatrix :
     }
 
     /// <summary>
+    /// Creates a squared matrix filled with a uniform distribution generator.
+    /// </summary>
+    /// <param name="size">Number of rows and columns.</param>
+    /// <param name="random">A random number generator.</param>
+    public RMatrix(int size, Random random) : this(size, size, random) { }
+
+    /// <summary>
     /// Creates a matrix filled with a standard normal distribution.
     /// </summary>
     /// <param name="rows">Number of rows.</param>
@@ -79,6 +86,13 @@ public readonly struct RMatrix :
             for (int c = r; c < cols; c++)
                 values[r * Cols + c] = random.NextDouble();
     }
+
+    /// <summary>
+    /// Creates a squared matrix filled with a standard normal distribution.
+    /// </summary>
+    /// <param name="size">Number of rows and columns.</param>
+    /// <param name="random">A random standard normal generator.</param>
+    public RMatrix(int size, NormalRandom random) : this(size, size, random) { }
 
     /// <summary>Creates an identity matrix given its size.</summary>
     /// <param name="size">Number of rows and columns.</param>
@@ -146,16 +160,17 @@ public readonly struct RMatrix :
 
     /// <summary>Transposes the matrix.</summary>
     /// <returns>A new matrix with swapped rows and cells.</returns>
-    public unsafe LMatrix Transpose()
+    public LMatrix Transpose()
     {
         Contract.Requires(IsInitialized);
 
         int c = Cols, r = Rows;
-        double[] result = new double[c * r];
-        fixed (double* pA = values, pB = result)
-            for (int row = 0; row < r; row++)
-                for (int col = row; col < c; col++)
-                    pB[col * r + row] = pA[row * c + col];
+        double[] result = GC.AllocateUninitializedArray<double>(values.Length);
+        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        for (int row = 0; row < r; row++, pA = ref Add(ref pA, c))
+            for (int col = row; col < c; col++)
+                Add(ref pB, col * r + row) = Add(ref pA, col);
         return new(c, r, result);
     }
 
@@ -163,7 +178,7 @@ public readonly struct RMatrix :
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
     /// <returns>The sum of the two operands.</returns>
-    public static unsafe RMatrix operator +(RMatrix m1, RMatrix m2)
+    public static RMatrix operator +(RMatrix m1, RMatrix m2)
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
@@ -173,18 +188,11 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<RMatrix>().Cols == m1.Cols);
 
         int r = m1.Rows, c = m1.Cols;
-        double[] result = new double[r * c];
-        fixed (double* pA = m1.values, pB = m2.values, pC = result)
-            for (int row = 0, offset = 0; row < r; row++, offset += c)
-            {
-                int col = row, k = offset + col;
-                if (Avx.IsSupported)
-                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, Avx.LoadVector256(pA + k) + Avx.LoadVector256(pB + k));
-                for (; col < c; col++, k++)
-                    pC[k] = pA[k] + pB[k];
-            }
-        return new(m1.Rows, m1.Cols, result);
+        double[] result = new double[m1.values.Length];
+        for (int row = 0, offset = 0; row < r; row++, offset += c)
+            m1.values.AsSpan(offset + row, c - row).AddV(
+                m2.values.AsSpan(offset + row, c - row), result.AsSpan(offset + row, c - row));
+        return new(r, c, result);
     }
 
     /// <summary>Adds a scalar value to an upper triangular matrix.</summary>
@@ -192,28 +200,18 @@ public readonly struct RMatrix :
     /// <param name="m">The matrix summand.</param>
     /// <param name="d">The scalar summand.</param>
     /// <returns>The sum of the matrix by the scalar.</returns>
-    public static unsafe RMatrix operator +(RMatrix m, double d)
+    public static RMatrix operator +(RMatrix m, double d)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[] result = new double[r * c];
-        fixed (double* pA = m.values, pC = result)
-        {
-            V4d vec = V4.Create(d);
-            for (int row = 0, offset = 0; row < r; row++, offset += c)
-            {
-                int col = row, k = offset + col;
-                if (Avx.IsSupported)
-                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, Avx.LoadVector256(pA + k) + vec);
-                for (; col < c; col++, k++)
-                    pC[k] = pA[k] + d;
-            }
-        }
-        return new(m.Rows, m.Cols, result);
+        double[] result = new double[m.values.Length];
+        for (int row = 0, offset = 0; row < r; row++, offset += c)
+            m.values.AsSpan(offset + row, c - row).AddV(
+                d, result.AsSpan(offset + row, c - row));
+        return new(r, c, result);
     }
 
     /// <summary>Adds a scalar value to an upper triangular matrix.</summary>
@@ -222,35 +220,6 @@ public readonly struct RMatrix :
     /// <returns>The pointwise sum of the matrix and the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RMatrix operator +(double d, RMatrix m) => m + d;
-
-    /// <summary>Subtracts a scalar value from an upper triangular matrix.</summary>
-    /// <remarks>The value is just subtracted from the upper triangular part.</remarks>
-    /// <param name="m">The matrix minuend.</param>
-    /// <param name="d">The scalar subtrahend.</param>
-    /// <returns>The substraction of the scalar from the matrix.</returns>
-    public static unsafe RMatrix operator -(RMatrix m, double d)
-    {
-        Contract.Requires(m.IsInitialized);
-        Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
-        Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
-
-        int r = m.Rows, c = m.Cols;
-        double[] result = new double[r * c];
-        fixed (double* pA = m.values, pC = result)
-        {
-            V4d vec = V4.Create(d);
-            for (int row = 0, offset = 0; row < r; row++, offset += c)
-            {
-                int col = row, k = offset + col;
-                if (Avx.IsSupported)
-                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, Avx.LoadVector256(pA + k) - vec);
-                for (; col < c; col++, k++)
-                    pC[k] = pA[k] - d;
-            }
-        }
-        return new(r, c, result);
-    }
 
     /// <summary>Adds an upper triangular matrix and a lower triangular one.</summary>
     /// <param name="m1">The upper-triangular summand.</param>
@@ -264,7 +233,7 @@ public readonly struct RMatrix :
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
     /// <returns>The subtraction of the two operands.</returns>
-    public static unsafe RMatrix operator -(RMatrix m1, RMatrix m2)
+    public static RMatrix operator -(RMatrix m1, RMatrix m2)
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
@@ -274,44 +243,65 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<RMatrix>().Cols == m1.Cols);
 
         int r = m1.Rows, c = m1.Cols;
-        double[] result = new double[r * c];
-        fixed (double* pA = m1.values, pB = m2.values, pC = result)
-            for (int row = 0, offset = 0; row < r; row++, offset += c)
-            {
-                int col = row, k = offset + col;
-                if (Avx.IsSupported)
-                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k,Avx.LoadVector256(pA + k) - Avx.LoadVector256(pB + k));
-                for (; col < c; col++, k++)
-                    pC[k] = pA[k] - pB[k];
-            }
+        double[] result = new double[m1.values.Length];
+        for (int row = 0, offset = 0; row < r; row++, offset += c)
+            m1.values.AsSpan(offset + row, c - row).SubV(
+                m2.values.AsSpan(offset + row, c - row), result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
+
+    /// <summary>Subtracts a scalar value from an upper triangular matrix.</summary>
+    /// <remarks>The value is just subtracted from the upper triangular part.</remarks>
+    /// <param name="m">The matrix minuend.</param>
+    /// <param name="d">The scalar subtrahend.</param>
+    /// <returns>The substraction of the scalar from the matrix.</returns>
+    public static RMatrix operator -(RMatrix m, double d)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
+        Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
+
+        int r = m.Rows, c = m.Cols;
+        double[] result = new double[m.values.Length];
+        for (int row = 0, offset = 0; row < r; row++, offset += c)
+            m.values.AsSpan(offset + row, c - row).SubV(
+                d, result.AsSpan(offset + row, c - row));
+        return new(r, c, result);
+    }
+
+    /// <summary>Subtracts an upper triangular matrix from a scalar value.</summary>
+    /// <remarks>The value is just subtracted from the upper triangular part.</remarks>
+    /// <param name="d">The scalar minuend.</param>
+    /// <param name="m">The matrix subtrahend.</param>
+    /// <returns>The substraction of the matrix from the scalar.</returns>
+    public static RMatrix operator -(double d, RMatrix m)
+    {
+        Contract.Requires(m.IsInitialized);
+        Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
+        Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
+
+        int r = m.Rows, c = m.Cols;
+        double[] result = new double[m.values.Length];
+        for (int row = 0, offset = 0; row < r; row++, offset += c)
+            CommonMatrix.SubV(d, m.values.AsSpan(offset + row, c - row),
+                result.AsSpan(offset + row, c - row));
+        return new(r, c, result);
+    }
+
 
     /// <summary>Negates an upper right matrix.</summary>
     /// <param name="m">The matrix operand.</param>
     /// <returns>Cell-by-cell negation.</returns>
-    public static unsafe RMatrix operator -(RMatrix m)
+    public static RMatrix operator -(RMatrix m)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<RMatrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<RMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[] result = new double[r * c];
-        fixed (double* pA = m.values, pC = result)
-        {
-            V4d z = V4d.Zero;
-            for (int row = 0, offset = 0; row < r; row++, offset += c)
-            {
-                int col = row, k = offset + col;
-                if (Avx.IsSupported)
-                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, z - Avx.LoadVector256(pA + k));
-                for (; col < c; col++, k++)
-                    pC[k] = -pA[k];
-            }
-        }
+        double[] result = new double[m.values.Length];
+        for (int row = 0, offset = 0; row < r; row++, offset += c)
+            m.values.AsSpan(offset + row, c - row).NegV(result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
 
@@ -368,20 +358,10 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<LMatrix>().Cols == m.Cols);
 
         int r = m.Rows, c = m.Cols;
-        double[] result = new double[r * c];
-        fixed (double* pA = m.values, pC = result)
-        {
-            V4d vec = V4.Create(d);
-            for (int row = 0, offset = 0; row < r; row++, offset += c)
-            {
-                int col = row, k = offset + col;
-                if (Avx.IsSupported)
-                    for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, Avx.LoadVector256(pA + k) * vec);
-                for (; col < c; col++, k++)
-                    pC[k] = pA[k] * d;
-            }
-        }
+        double[] result = new double[m.values.Length];
+        for (int row = 0, offset = 0; row < r; row++, offset += c)
+            m.values.AsSpan(offset + row, c - row).MulV(
+                d, result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
 
@@ -459,8 +439,7 @@ public readonly struct RMatrix :
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>
-    public override bool Equals(object? obj) =>
-        obj is RMatrix matrix && Equals(matrix);
+    public override bool Equals(object? obj) => obj is RMatrix matrix && Equals(matrix);
 
     /// <summary>Returns the hashcode for this matrix.</summary>
     /// <returns>A hashcode summarizing the content of the matrix.</returns>

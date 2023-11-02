@@ -42,7 +42,7 @@ internal sealed partial class Parser
     /// <summary>Method for linear vector combinations.</summary>
     private static readonly MethodInfo VectorCombine2 =
         typeof(Vector).GetMethod(nameof(Vector.Combine2),
-            new[] { typeof(double), typeof(double), typeof(Vector), typeof(Vector)})!;
+            new[] { typeof(double), typeof(double), typeof(Vector), typeof(Vector) })!;
 
     private static readonly HashSet<string> classNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -528,6 +528,18 @@ internal sealed partial class Parser
                 ["min"] = typeof(LMatrix).Get(nameof(LMatrix.Minimum)),
                 ["diag"] = typeof(LMatrix).Get(nameof(LMatrix.Diagonal))
             },
+            [typeof(RMatrix)] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["det"] = typeof(RMatrix).Get(nameof(RMatrix.Determinant)),
+                ["trace"] = typeof(RMatrix).Get(nameof(RMatrix.Trace)),
+                ["rows"] = typeof(RMatrix).Prop(nameof(RMatrix.Rows)),
+                ["cols"] = typeof(RMatrix).Prop(nameof(RMatrix.Cols)),
+                //["amax"] = typeof(RMatrix).Get(nameof(RMatrix.AMax)),
+                //["amin"] = typeof(RMatrix).Get(nameof(RMatrix.AMin)),
+                //["max"] = typeof(RMatrix).Get(nameof(RMatrix.Maximum)),
+                //["min"] = typeof(RMatrix).Get(nameof(RMatrix.Minimum)),
+                ["diag"] = typeof(RMatrix).Get(nameof(RMatrix.Diagonal))
+            },
             [typeof(EVD)] = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["vectors"] = typeof(EVD).Prop(nameof(EVD.Vectors)),
@@ -776,6 +788,18 @@ internal sealed partial class Parser
             new("amin", "Gets the minimum absolute value"),
             new("max", "Gets the maximum value"),
             new("min", "Gets the minimum absolute value"),
+            new("diag", "Extracts the diagonal as a vector"),
+        },
+        [typeof(RMatrix)] = new Member[]
+        {
+            new("rows", "Gets the number of rows"),
+            new("cols", "Gets the number of columns"),
+            new("det", "Calculates the determinant"),
+            new("trace", "Gets the sum of the main diagonal"),
+            //new("amax", "Gets the maximum absolute value"),
+            //new("amin", "Gets the minimum absolute value"),
+            //new("max", "Gets the maximum value"),
+            //new("min", "Gets the minimum absolute value"),
             new("diag", "Extracts the diagonal as a vector"),
         },
         [typeof(EVD)] = new Member[]
