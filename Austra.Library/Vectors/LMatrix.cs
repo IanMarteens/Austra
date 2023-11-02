@@ -656,27 +656,12 @@ public readonly struct LMatrix :
 
         int r = m.Rows, c = m.Cols;
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        ref double pA = ref MemoryMarshal.GetArrayDataReference(m.values);
-        ref double pX = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        double[] vector = (double[])v;
         ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
         // First row is special.
-        pB = pA * pX;
-        for (int i = 1; i < r; i++)
-        {
-            pA = ref Add(ref pA, c); pB = ref Add(ref pB, 1);
-            double d = 0;
-            nuint j = 0, top = (nuint)Min(i + 1, c);
-            if (Avx.IsSupported)
-            {
-                V4d vec = V4d.Zero;
-                for (nuint last = top & Simd.AVX_MASK; j < last; j += (nuint)V4d.Count)
-                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pX, j));
-                d = vec.Sum();
-            }
-            for (; j < top; j++)
-                d = FusedMultiplyAdd(Add(ref pA, j), Add(ref pX, j), d);
-            pB = d;
-        }
+        pB = m.values[0] * vector[0];
+        for (int i = 1, offset = c; i < r; i++, offset += c)
+            Add(ref pB, i) = m.values.AsSpan(offset, Min(i + 1, c)).DotProduct(vector.AsSpan());
         return result;
     }
 

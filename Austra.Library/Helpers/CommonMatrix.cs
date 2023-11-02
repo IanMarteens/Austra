@@ -366,6 +366,30 @@ public static class CommonMatrix
         return result;
     }
 
+    /// <summary>Calculates the dot product of two spans.</summary>
+    /// <remarks>The second span can be longer than the first span.</remarks>
+    /// <param name="span1">First span operand.</param>
+    /// <param name="span2">Second span operand.</param>
+    /// <returns>The dot product of the vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double DotProduct(this Span<double> span1, Span<double> span2)
+    {
+        double sum = 0;
+        ref double p = ref MemoryMarshal.GetReference(span1);
+        ref double q = ref MemoryMarshal.GetReference(span2);
+        nuint i = 0;
+        if (V4.IsHardwareAccelerated)
+        {
+            V4d acc = V4d.Zero;
+            for (nuint top = (nuint)span1.Length & Simd.AVX_MASK; i < top; i += (nuint)V4d.Count)
+                acc = acc.MultiplyAdd(V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i));
+            sum = acc.Sum();
+        }
+        for (int j = (int)i; j < span1.Length; j++)
+            sum = FusedMultiplyAdd(Add(ref p, j), Add(ref q, j), sum);
+        return sum;
+    }
+
     /// <summary>Checks two arrays for equality.</summary>
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>

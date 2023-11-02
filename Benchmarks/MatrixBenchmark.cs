@@ -49,6 +49,12 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public Vector AustraMatrixVector() => cm1 * cv1;
 
+    [Benchmark]
+    public Vector AustraLMatrixVector() => lm1 * cv1;
+
+    [Benchmark]
+    public Vector AustraRMatrixVector() => rm1 * cv1;
+
     //[Benchmark]
     public Vector AustraMatrixMultiplyAddRaw() => cm1 * cv1 + cv2;
 
@@ -73,6 +79,6 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public Matrix AustraMatrixMap() => cm1.Map(x => x * x);
 
-    [Benchmark]
+    //[Benchmark]
     public LMatrix AustraTransposeRMatrix() => rm1.Transpose();
 }

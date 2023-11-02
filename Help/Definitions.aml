@@ -2,7 +2,7 @@
 <topic id="90cb2899-abcf-4ebe-b96a-8cfac1b2809f" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>Code definitions are formulas saved for future use. They are saved and loaded from any persistent storage used by AUSTRA.</para>
+      <para>Code definitions are formulas saved for future use. They are saved and loaded from any persistent storage used by AUSTRA. In this version, parameterized definitions are not yet allowed, but they are planned for the next version of the language.</para>
     </introduction>
     <section address="Section1">
       <title>Definitions</title>
@@ -17,7 +17,36 @@
         <code language="Austra">
 		def cxMvo:"MVO Model" = model::mvo(sm_ret, sm_cov, sm_low, sm_high)
         </code>
+        <para>Removing an existing definition is achieved with the <codeInline>undef</codeInline> command:</para>
+        <code language="Austra">
+		undef cxMvo
+        </code>
       </content>
+      <sections>
+      	<section>
+      	  <title>Definitions cannot use session variables</title>
+      	  <content>
+      	  <para>Code definitions must respect some limitations. The most important one is that they cannot reference session variables. This sequence of commands is invalid:</para>
+      	  <code language="Austra">
+      	  set vec = [1, 2, 3, 4]
+      	  def fact4 = vec.products <markup><font color="DarkGreen">-- Invalid code definition.</font></markup>
+      	  </code>
+      	  <para>The reason behind this constraint is that session variables only store their current values, but not the formula that generated that value.</para>
+      	  </content>
+      	</section>
+      	<section>
+      	  <title>Definitions may use existing definitions</title>
+      	  <content>
+      	  <para>A code definition may refer to an existing definition. For instance:</para>
+      	  <code language="Austra">
+def sm_cov = matrix::covariance(aapl, msft, hog, dax)
+def sm_ret = [1, 0.9, 1.2, 0.8]
+def cxMvo = model::mvo(sm_ret, sm_cov, vector(4), vector::ones(4))
+      	  </code>
+      	  <para>In this case, removing either <codeInline>sm_cov</codeInline> or <codeInline>sm_ret</codeInline>, would also remove <codeInline>cxMvo</codeInline>.</para>
+      	  </content>
+      	</section>
+      </sections>
     </section>
     <relatedTopics>
       <!-- One or more of the following:

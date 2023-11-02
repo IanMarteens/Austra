@@ -137,4 +137,12 @@ public class MatrixTests
         Vector x = m.Solve(v);
         Assert.That((m * x - v).AMax(), Is.LessThanOrEqualTo(2E-6));
     }
+
+    [Test]
+    public void CheckLMatrixTransform([Values(32, 49, 61)] int size)
+    {
+        LMatrix m = new LMatrix(size, new Random()) + LMatrix.Identity(size) * 0.05;
+        Vector v = new(size, new NormalRandom());
+        Assert.That((m * v - (Matrix)m * v).AMax(), Is.LessThanOrEqualTo(1E-14));
+    }
 }

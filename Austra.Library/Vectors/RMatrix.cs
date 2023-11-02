@@ -351,7 +351,7 @@ public readonly struct RMatrix :
     /// <param name="m">Matrix to be multiplied.</param>
     /// <param name="d">A scalar multiplicand.</param>
     /// <returns>The multiplication of the matrix by the scalar.</returns>
-    public static unsafe RMatrix operator *(RMatrix m, double d)
+    public static RMatrix operator *(RMatrix m, double d)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Ensures(Contract.Result<LMatrix>().Rows == m.Rows);
@@ -383,7 +383,7 @@ public readonly struct RMatrix :
     /// <param name="m">The transformation matrix.</param>
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    public static unsafe Vector operator *(RMatrix m, Vector v)
+    public static Vector operator *(RMatrix m, Vector v)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -391,40 +391,13 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<Vector>().Length == m.Rows);
 
         int r = m.Rows, c = m.Cols;
-        double[] b = new double[r];
-        fixed (double* pA = m.values, pX = (double[])v, pB = b)
-        {
-            double* pA1 = pA, pB1 = pB;
-            if (c >= 12 && Avx.IsSupported)
-                for (int i = 0; i < r; i++)
-                {
-                    V4d vec = V4d.Zero;
-                    int j = i;
-                    for (int top = (c - i) & Simd.AVX_MASK + i; j < top; j += 4)
-                        vec = vec.MultiplyAdd(pA1 + j, pX + j);
-                    double d = vec.Sum();
-                    for (; j < c; j++)
-                        d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                    *pB1 = d;
-                    pA1 += c;
-                    pB1++;
-                }
-            else
-                for (int i = 0; i < r; i++)
-                {
-                    double d = 0;
-                    int j = i;
-                    for (int top = (c - i) & Simd.AVX_MASK + i; j < top; j += 4)
-                        d += (pA1[j] * pX[j]) + (pA1[j + 1] * pX[j + 1]) +
-                            (pA1[j + 2] * pX[j + 2]) + (pA1[j + 3] * pX[j + 3]);
-                    for (; j < c; j++)
-                        d = FusedMultiplyAdd(pA1[j], pX[j], d);
-                    *pB1 = d;
-                    pA1 += c;
-                    pB1++;
-                }
-        }
-        return b;
+        double[] result = new double[r];
+        double[] vector = (double[])v;
+        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        for (int row = 0, offset = 0; row < c; row++, offset += c)
+            Add(ref pB, row) = m.values.AsSpan(offset + row, c - row)
+                .DotProduct(vector.AsSpan(row));
+        return result;
     }
 
     /// <summary>Gets the determinant of the matrix.</summary>
