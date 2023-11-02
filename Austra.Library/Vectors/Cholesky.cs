@@ -229,7 +229,7 @@ public readonly struct Cholesky : IFormattable
                 int j = 0;
                 if (Avx.IsSupported)
                     for (V4d vm1 = V4.Create(m1); j < top; j += 4)
-                        Avx.Store(pbi + j, Avx.Multiply(Avx.LoadVector256(pbi + j), vm1));
+                        Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
                 for (; j < size; j++)
                     pbi[j] *= m1;
             }
@@ -253,7 +253,7 @@ public readonly struct Cholesky : IFormattable
                 int j = 0;
                 if (Avx.IsSupported)
                     for (V4d vm1 = V4.Create(m1); j < top; j += 4)
-                        Avx.Store( pbi + j, Avx.Multiply(Avx.LoadVector256(pbi + j), vm1));
+                        Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
                 for (; j < size; j++)
                     pbi[j] *= m1;
             }

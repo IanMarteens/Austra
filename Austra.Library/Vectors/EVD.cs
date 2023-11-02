@@ -74,7 +74,7 @@ public readonly struct EVD : IFormattable
                 V4d mask = V4.Create(-0d);
                 V4d sum = V4d.Zero;
                 for (; kk < top; kk += 4)
-                    sum = Avx.Add(Avx.AndNot(mask, Avx.LoadVector256(d + kk)), sum);
+                    sum += Avx.AndNot(mask, Avx.LoadVector256(d + kk));
                 scale = sum.Sum();
             }
             for (; kk < i; kk++)
@@ -100,7 +100,7 @@ public readonly struct EVD : IFormattable
                     V4d sum = V4d.Zero;
                     for (V4d scl = V4.Create(1.0 / scale); m < top; m += 4)
                     {
-                        V4d dvec = Avx.Multiply(Avx.LoadVector256(d + m), scl);
+                        V4d dvec = Avx.LoadVector256(d + m) * scl;
                         sum = sum.MultiplyAdd(dvec, dvec);
                         Avx.Store(d + m, dvec);
                     }
@@ -164,7 +164,7 @@ public readonly struct EVD : IFormattable
                     V4d s = V4d.Zero;
                     for (V4d scl = V4.Create(1.0 / h); m < top; m += 4)
                     {
-                        V4d v = Avx.Multiply(Avx.LoadVector256(e + m), scl);
+                        V4d v = Avx.LoadVector256(e + m) * scl;
                         Avx.Store(e + m, v);
                         s = s.MultiplyAdd(v, Avx.LoadVector256(d + m));
                     }
@@ -191,12 +191,10 @@ public readonly struct EVD : IFormattable
                     int k = j;
                     if (Avx.IsSupported)
                     {
-                        V4d vf = V4.Create(f);
-                        V4d vg = V4.Create(g);
+                        V4d vf = V4.Create(f), vg = V4.Create(g);
                         for (; k < i - 4; k += 4)
-                            Avx.Store(aj + k, Avx.Subtract(
-                                Avx.LoadVector256(aj + k),
-                                Avx.Multiply(Avx.LoadVector256(d + k), vg).MultiplyAdd(e + k, vf)));
+                            Avx.Store(aj + k, Avx.LoadVector256(aj + k) -
+                                (Avx.LoadVector256(d + k) * vg).MultiplyAdd(e + k, vf));
                     }
                     for (; k < i; k++)
                         aj[k] -= f * e[k] + g * d[k];
@@ -222,7 +220,7 @@ public readonly struct EVD : IFormattable
                 int k = 0;
                 if (Avx.IsSupported)
                     for (V4d v = V4.Create(h); k < t; k += 4)
-                        Avx.Store(d + k, Avx.Multiply(Avx.LoadVector256(ai1 + k), v));
+                        Avx.Store(d + k, Avx.LoadVector256(ai1 + k) * v);
                 for (; k <= i; k++)
                     d[k] = ai1[k] * h;
                 double* aj = a;
@@ -307,7 +305,7 @@ public readonly struct EVD : IFormattable
                     {
                         V4d vh = V4.Create(h);
                         for (int top = (r - i) & Simd.AVX_MASK + i; i < top; i += 4)
-                            Avx.Store(d + i, Avx.Subtract(Avx.LoadVector256(d + i), vh));
+                            Avx.Store(d + i, Avx.LoadVector256(d + i) - vh);
                     }
                     for (; i < r; i++)
                         d[i] -= h;
@@ -341,8 +339,8 @@ public readonly struct EVD : IFormattable
                             {
                                 V4d vh = Avx.LoadVector256(ai1 + k);
                                 V4d vk = Avx.LoadVector256(ai + k);
-                                Avx.Store(ai1 + k, Avx.Multiply(vc, vh).MultiplyAdd(vs, vk));
-                                Avx.Store(ai + k, Avx.Multiply(vs, vh).MultiplySub(vc, vk));
+                                Avx.Store(ai1 + k, (vc * vh).MultiplyAdd(vs, vk));
+                                Avx.Store(ai + k, (vs * vh).MultiplySub(vc, vk));
                             }
                         }
                         for (; k < r; k++)
@@ -411,7 +409,7 @@ public readonly struct EVD : IFormattable
                 V4d sum = V4d.Zero;
                 V4d mask = V4.Create(-0d);
                 for (; ii < top; ii += 4)
-                    sum = Avx.Add(Avx.AndNot(mask, Avx.LoadVector256(h + mm1O + ii)), sum);
+                    sum += Avx.AndNot(mask, Avx.LoadVector256(h + mm1O + ii));
                 scale = sum.Sum();
             }
             for (; ii < rank; ii++)
@@ -428,7 +426,7 @@ public readonly struct EVD : IFormattable
                     V4d vhh = V4d.Zero;
                     for (; i < top; i += 4)
                     {
-                        V4d v = Avx.Multiply(Avx.LoadVector256(h + mm1O + i), vsc);
+                        V4d v = Avx.LoadVector256(h + mm1O + i) * vsc;
                         Avx.Store(ort + i, v);
                         vhh = vhh.MultiplyAdd(v, v);
                     }
@@ -616,8 +614,8 @@ public readonly struct EVD : IFormattable
                         {
                             V4d vz = Avx.LoadVector256(h + nm1O + i);
                             V4d va = Avx.LoadVector256(h + nO + i);
-                            Avx.Store(h + nm1O + i, Avx.Multiply(vp, va).MultiplyAdd(vq, vz));
-                            Avx.Store(h + nO + i, Avx.Multiply(vq, va).MultiplyAddNeg(vp, vz));
+                            Avx.Store(h + nm1O + i, (vp * va).MultiplyAdd(vq, vz));
+                            Avx.Store(h + nO + i, (vq * va).MultiplyAddNeg(vp, vz));
                         }
                     }
                     for (; i <= n; i++)
@@ -637,11 +635,9 @@ public readonly struct EVD : IFormattable
                         for (int top = rank & Simd.AVX_MASK; i < top; i += 4)
                         {
                             V4d vz = Avx.LoadVector256(a + nm1O + i);
-                            Avx.Store(a + nm1O + i,
-                                Avx.Multiply(vq, vz).MultiplyAdd(a + nO + i, vp));
+                            Avx.Store(a + nm1O + i, (vq * vz).MultiplyAdd(a + nO + i, vp));
                             Avx.Store(a + nO + i,
-                                Avx.Multiply(vq, Avx.LoadVector256(a + nO + i))
-                                    .MultiplyAddNeg(vp, vz));
+                                (vq * Avx.LoadVector256(a + nO + i)).MultiplyAddNeg(vp, vz));
                         }
                     }
                     for (; i < rank; i++)
@@ -792,14 +788,14 @@ public readonly struct EVD : IFormattable
                             {
                                 V4d v1 = Avx.LoadVector256(h + kO + i);
                                 V4d v2 = Avx.LoadVector256(h + kp1O + i);
-                                V4d vp = Avx.Multiply(vx, v1).MultiplyAdd(vy, v2);
+                                V4d vp = (vx * v1).MultiplyAdd(vy, v2);
                                 if (notlast)
                                 {
                                     V4d v3 = Avx.LoadVector256(h + kp2O + i);
                                     vp = vp.MultiplyAdd(vz, v3);
                                     Avx.Store(h + kp2O + i, v3.MultiplyAddNeg(vp, vr));
                                 }
-                                Avx.Store(h + kO + i, Avx.Subtract(v1, vp));
+                                Avx.Store(h + kO + i, v1 - vp);
                                 Avx.Store(h + kp1O + i, v2.MultiplyAddNeg(vp, vq));
                             }
                         }
@@ -828,14 +824,14 @@ public readonly struct EVD : IFormattable
                             {
                                 V4d v1 = Avx.LoadVector256(a + kO + i);
                                 V4d v2 = Avx.LoadVector256(a + kp1O + i);
-                                V4d vp = Avx.Multiply(vy, v2).MultiplyAdd(vx, v1);
+                                V4d vp = (vy * v2).MultiplyAdd(vx, v1);
                                 if (notlast)
                                 {
                                     V4d v3 = Avx.LoadVector256(a + kp2O + i);
                                     vp = vp.MultiplyAdd(vz, v3);
                                     Avx.Store(a + kp2O + i, v3.MultiplyAddNeg(vp, vr));
                                 }
-                                Avx.Store(a + kO + i, Avx.Subtract(v1, vp));
+                                Avx.Store(a + kO + i, v1 - vp);
                                 Avx.Store(a + kp1O + i, v2.MultiplyAddNeg(vp, vq));
                             }
                         }
@@ -902,8 +898,7 @@ public readonly struct EVD : IFormattable
                             int j = i;
                             if (Avx.IsSupported)
                                 for (V4d vt = V4.Create(1 / t); j + 4 <= n; j += 4)
-                                    Avx.Store(h + nO + j,
-                                        Avx.Multiply(Avx.LoadVector256(h + nO + j), vt));
+                                    Avx.Store(h + nO + j, Avx.LoadVector256(h + nO + j) * vt);
                             for (; j <= n; j++)
                                 h[nO + j] /= t;
                         }
@@ -973,10 +968,8 @@ public readonly struct EVD : IFormattable
                             if (Avx.IsSupported)
                                 for (V4d vt = V4.Create(1 / t); j + 4 <= n; j += 4)
                                 {
-                                    Avx.Store(h + nm1O + j,
-                                        Avx.Multiply(Avx.LoadVector256(h + nm1O + j), vt));
-                                    Avx.Store(h + nO + j,
-                                        Avx.Multiply(Avx.LoadVector256(h + nO + j), vt));
+                                    Avx.Store(h + nm1O + j, Avx.LoadVector256(h + nm1O + j) * vt);
+                                    Avx.Store(h + nO + j, Avx.LoadVector256(h + nO + j) * vt);
                                 }
                             for (; j <= n; j++)
                             {

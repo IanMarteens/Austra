@@ -66,7 +66,7 @@ public static class Simd
         V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplyAdd(multiplicand, multiplier, summand)
-            : Avx.Add(summand, Avx.Multiply(multiplicand, multiplier));
+            : multiplicand * multiplier + summand;
 
     /// <summary>
     /// Execute the best available version of a SIMD multiplication and addition.
@@ -83,7 +83,7 @@ public static class Simd
         V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplyAdd(Avx.LoadVector256(multiplicand), multiplier, summand)
-            : Avx.Add(summand, Avx.Multiply(Avx.LoadVector256(multiplicand), multiplier));
+            : Avx.LoadVector256(multiplicand) * multiplier + summand;
 
     /// <summary>
     /// Execute the best available version of a SIMD multiplication and addition.
@@ -101,8 +101,7 @@ public static class Simd
         Fma.IsSupported
             ? Fma.MultiplyAdd(
                 Avx.LoadVector256(multiplicand), Avx.LoadVector256(multiplier), summand)
-            : Avx.Add(summand, Avx.Multiply(
-                Avx.LoadVector256(multiplicand), Avx.LoadVector256(multiplier)));
+            : Avx.LoadVector256(multiplicand) * Avx.LoadVector256(multiplier) + summand;
 
     /// <summary>
     /// Execute the best available version of a SIMD multiplication and subtraction.
@@ -119,7 +118,7 @@ public static class Simd
         V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplySubtract(multiplicand, multiplier, subtrahend)
-            : Avx.Subtract(Avx.Multiply(multiplicand, multiplier), subtrahend);
+            : multiplicand * multiplier - subtrahend;
 
     /// <summary>
     /// Execute the best available version of a SIMD multiplication and subtraction.
@@ -136,7 +135,7 @@ public static class Simd
         V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplyAddNegated(multiplicand, multiplier, minuend)
-            : Avx.Subtract(minuend, Avx.Multiply(multiplicand, multiplier));
+            : minuend - multiplicand * multiplier;
 
     /// <summary>
     /// Execute the best available version of a SIMD multiplication and subtraction.
@@ -153,7 +152,7 @@ public static class Simd
         V4d multiplier) =>
         Fma.IsSupported
             ? Fma.MultiplyAddNegated(Avx.LoadVector256(multiplicand), multiplier, minuend)
-            : Avx.Subtract(minuend, Avx.Multiply(Avx.LoadVector256(multiplicand), multiplier));
+            : minuend - Avx.LoadVector256(multiplicand) * multiplier;
 
     /// <summary>Calculates <c>c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
     /// <param name="x">The real variable used for evaluation.</param>
@@ -185,8 +184,8 @@ public static class Simd
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static V4d Poly5n(this V4d x,
         double c0, double c1, double c2, double c3, double c4) =>
-        Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(Avx.Add(
-            x, V4.Create(c4)),
+        Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(Fma.MultiplyAdd(
+            x + V4.Create(c4),
             x, V4.Create(c3)),
             x, V4.Create(c2)),
             x, V4.Create(c1)),
@@ -241,15 +240,15 @@ public static class Simd
         V4d e = Avx2.Or(Avx2.ShiftRightLogical(x.AsUInt64(), 52),
             V4.Create(pow2_52).AsUInt64()).AsDouble() - V4.Create(pow2_52 + bias);
         V4d blend = Avx.CompareGreaterThan(m, V4.Create(SQRT2 * 0.5));
-        e = Avx.Add(e, Avx.And(V4.Create(1d), blend));
-        m = Avx.Add(m, Avx.AndNot(blend, m)) - V4.Create(1d);
+        e += V4.Create(1d) & blend;
+        m += Avx.AndNot(blend, m) - V4.Create(1d);
         V4d x2 = m * m;
-        V4d re = Avx.Multiply(m.Poly5(P0, P1, P2, P3, P4, P5), m * x2)
+        V4d re = m.Poly5(P0, P1, P2, P3, P4, P5) * m * x2
             / m.Poly5n(Q0, Q1, Q2, Q3, Q4);
         // Add exponent.
-        return Fma.MultiplyAdd(e, V4.Create(ln2_hi), Avx.Add(
-            Fma.MultiplyAdd(e, V4.Create(ln2_lo), re),
-            Fma.MultiplyAddNegated(x2, V4.Create(0.5), m)));
+        return Fma.MultiplyAdd(e, V4.Create(ln2_hi), 
+            Fma.MultiplyAdd(e, V4.Create(ln2_lo), re) +
+            Fma.MultiplyAddNegated(x2, V4.Create(0.5), m));
     }
 
     /// <summary>Computes four <see cref="Math.Atan2(double, double)"/> at once.</summary>
@@ -281,39 +280,37 @@ public static class Simd
         V4d swap = Avx.CompareGreaterThan(y1, x1);
         V4d x2 = Avx.BlendVariable(x1, y1, swap);
         V4d y2 = Avx.BlendVariable(y1, x1, swap);
-        V4d bothInfinite = Avx.And(IsInfinite(x), IsInfinite(y));
+        V4d bothInfinite = IsInfinite(x) & IsInfinite(y);
         if (HorizontalOr(bothInfinite))
         {
-            x2 = Avx.BlendVariable(Avx.And(x2, minusOne), x2, bothInfinite);
-            y2 = Avx.BlendVariable(Avx.And(y2, minusOne), y2, bothInfinite);
+            x2 = Avx.BlendVariable(x2 & minusOne, x2, bothInfinite);
+            y2 = Avx.BlendVariable(y2 & minusOne, y2, bothInfinite);
         }
         V4d t = y2 / x2;
 
         V4d notBig = Avx.CompareLessThanOrEqual(t, V4.Create(SQRT2 + 1.0));
         V4d notSmall = Avx.CompareGreaterThanOrEqual(t, V4.Create(0.66));
-        V4d s = Avx.Add(
-            Avx.And(notSmall, Avx.BlendVariable(
-                V4.Create(PI_2), V4.Create(PI_4), notBig)),
-            Avx.And(notSmall, Avx.BlendVariable(
-                V4.Create(MOREBITS), V4.Create(MOREBITSO2), notBig)));
+        V4d s = 
+            (notSmall & Avx.BlendVariable(
+                V4.Create(PI_2), V4.Create(PI_4), notBig))
+            + (notSmall & Avx.BlendVariable(
+                V4.Create(MOREBITS), V4.Create(MOREBITSO2), notBig));
 
-        V4d z = Avx.Add(Avx.And(notBig, t), Avx.And(notSmall, minusOne)) 
-            / Avx.Add(Avx.And(notBig, V4.Create(1d)), Avx.And(notSmall, t));
+        V4d z = ((notBig & t) + (notSmall & minusOne)) 
+            / ((notBig & V4.Create(1d)) + (notSmall & t));
         V4d zz = z * z;
 
         V4d px = zz.Poly4(P0, P1, P2, P3, P4) / zz.Poly5n(Q0, Q1, Q2, Q3, Q4);
         V4d re = Fma.MultiplyAdd(px, z * zz, z + s);
         re = Avx.BlendVariable(re, V4.Create(PI_2) - re, swap);
-        re = Avx.BlendVariable(re, V4d.Zero,
-            Avx.CompareEqual(Avx.Or(x, y), V4d.Zero));
-        re = Avx.BlendVariable(re, V4.Create(PI) - re, Avx.And(x, signMask));
-        return Avx.Xor(re, Avx.And(y, signMask));
+        re = Avx.BlendVariable(re, V4d.Zero, Avx.CompareEqual(x | y, V4d.Zero));
+        re = Avx.BlendVariable(re, V4.Create(PI) - re, x & signMask);
+        return re ^ (y & signMask);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static V4d IsInfinite(V4d x) =>
-            Avx.Or(
-                Avx.CompareEqual(x, V4.Create(double.PositiveInfinity)),
-                Avx.CompareEqual(x, V4.Create(double.NegativeInfinity)));
+            Avx.CompareEqual(x, V4.Create(double.PositiveInfinity)) |
+            Avx.CompareEqual(x, V4.Create(double.NegativeInfinity));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool HorizontalOr(V4d x) =>

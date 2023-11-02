@@ -634,12 +634,12 @@ public sealed partial class FftPlan
                         int top = n1 & 0x7FFF_FFFE;
                         for (; j < top; j += 2, p0 += 4)
                         {
-                            var v1 = Avx.LoadVector256(a + p0);
-                            var v2 = Avx.LoadVector256(pz + p0);
-                            var v3 = Avx.Multiply(v1, v2);
-                            v2 = Avx.Xor(Avx.Permute(v2, 5), CNJ);
-                            v1 = Avx.HorizontalSubtract(v3, Avx.Multiply(v1, v2));
-                            Avx.Store(a + p0, Avx.Xor(v1, CNJ));
+                            V4d v1 = Avx.LoadVector256(a + p0);
+                            V4d v2 = Avx.LoadVector256(pz + p0);
+                            V4d v3 = v1 * v2;
+                            v2 = Avx.Permute(v2, 5) ^ CNJ;
+                            v1 = Avx.HorizontalSubtract(v3, v1 * v2);
+                            Avx.Store(a + p0, v1 ^ CNJ);
                         }
                     }
                     for (; j < n1; j++, p0 += 2)
@@ -652,15 +652,15 @@ public sealed partial class FftPlan
                 Execute(subplan, a, buf);
                 if (Avx.IsSupported)
                 {
-                    var d = Avx.Xor(V4.Create(1.0 / n1), CNJ);
-                    var vv = V4.Create(v, v);
+                    V4d d = V4.Create(1.0 / n1) ^ CNJ;
+                    V4d vv = V4.Create(v, v);
                     int max = n1 & ~1, p = 0, kiq = 1;
                     Sse2.Store(pb, r);
                     for (int i = 0; i < max; i += 2, p += 4)
                     {
-                        var aa = Avx.Multiply(Avx.LoadVector256(a + p), d);
+                        V4d aa = Avx.LoadVector256(a + p) * d;
                         Avx.Store(a + p, aa);
-                        aa = Avx.Add(aa, vv);
+                        aa += vv;
                         Sse2.Store(pb + 2 * kiq, aa.GetLower());
                         kiq = kiq * riq % n;
                         Sse2.Store(pb + 2 * kiq, aa.GetUpper());
@@ -668,9 +668,9 @@ public sealed partial class FftPlan
                     }
                     if (max != n1)
                     {
-                        var aa = Sse2.Multiply(Sse2.LoadVector128(a + p), d.GetLower());
+                        var aa = Sse2.LoadVector128(a + p) * d.GetLower();
                         Sse2.Store(a + p, aa);
-                        Sse2.Store(pb + 2 * kiq, Sse2.Add(aa, v));
+                        Sse2.Store(pb + 2 * kiq, aa + v);
                     }
                 }
                 else
@@ -730,9 +730,9 @@ public sealed partial class FftPlan
                     {
                         var v1 = Avx.LoadVector256(z + p0);
                         var v2 = Avx.LoadVector256(a + p0);
-                        var v3 = Avx.Multiply(v1, v2);
-                        v2 = Avx.Xor(Avx.Permute(v2, 5), CNJ);
-                        Avx.Store(b + p0, Avx.HorizontalAdd(v3, Avx.Multiply(v1, v2)));
+                        var v3 = v1 * v2;
+                        v2 = Avx.Permute(v2, 5) ^ CNJ;
+                        Avx.Store(b + p0, Avx.HorizontalAdd(v3, v1 * v2));
                     }
                 }
                 for (; i < n; i++, p0 += 2)
@@ -754,10 +754,10 @@ public sealed partial class FftPlan
                     {
                         var v1 = Avx.LoadVector256(b + p0);
                         var v2 = Avx.LoadVector256(z + p1);
-                        var v3 = Avx.Multiply(v1, v2);
-                        v2 = Avx.Xor(Avx.Permute(v2, 5), CNJ);
-                        v1 = Avx.HorizontalSubtract(v3, Avx.Multiply(v1, v2));
-                        Avx.Store(b + p0, Avx.Xor(v1, CNJ));
+                        var v3 = v1 * v2;
+                        v2 = Avx.Permute(v2, 5) ^ CNJ;
+                        v1 = Avx.HorizontalSubtract(v3, v1 * v2);
+                        Avx.Store(b + p0, v1 ^ CNJ);
                     }
                 }
                 for (; i < m; i++, p0 += 2, p1 += 2)
@@ -776,11 +776,11 @@ public sealed partial class FftPlan
                     for (; i < top; i += 2, p0 += 4)
                     {
                         var v1 = Avx.LoadVector256(z + p0);
-                        var v2 = Avx.Divide(Avx.LoadVector256(b + p0), dm);
-                        var v3 = Avx.Multiply(v1, v2);
-                        v2 = Avx.Xor(Avx.Permute(v2, 5), CNJ);
-                        v1 = Avx.HorizontalSubtract(v3, Avx.Multiply(v1, v2));
-                        Avx.Store(a + p0, Avx.Xor(v1, CNJ));
+                        var v2 = Avx.LoadVector256(b + p0) / dm;
+                        var v3 = v1 * v2;
+                        v2 = Avx.Permute(v2, 5) ^ CNJ;
+                        v1 = Avx.HorizontalSubtract(v3, v1 * v2);
+                        Avx.Store(a + p0, v1 ^ CNJ);
                     }
                 }
                 for (; i < n; i++, p0 += 2)

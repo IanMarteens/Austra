@@ -180,8 +180,7 @@ public readonly struct RMatrix :
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
                     for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k,
-                            Avx.Add(Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
+                        Avx.Store(pC + k, Avx.LoadVector256(pA + k) + Avx.LoadVector256(pB + k));
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] + pB[k];
             }
@@ -209,7 +208,7 @@ public readonly struct RMatrix :
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
                     for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, Avx.Add(Avx.LoadVector256(pA + k), vec));
+                        Avx.Store(pC + k, Avx.LoadVector256(pA + k) + vec);
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] + d;
             }
@@ -245,7 +244,7 @@ public readonly struct RMatrix :
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
                     for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, Avx.Subtract(Avx.LoadVector256(pA + k), vec));
+                        Avx.Store(pC + k, Avx.LoadVector256(pA + k) - vec);
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] - d;
             }
@@ -282,8 +281,7 @@ public readonly struct RMatrix :
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
                     for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k,
-                            Avx.Subtract(Avx.LoadVector256(pA + k), Avx.LoadVector256(pB + k)));
+                        Avx.Store(pC + k,Avx.LoadVector256(pA + k) - Avx.LoadVector256(pB + k));
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] - pB[k];
             }
@@ -309,7 +307,7 @@ public readonly struct RMatrix :
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
                     for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, Avx.Subtract(z, Avx.LoadVector256(pA + k)));
+                        Avx.Store(pC + k, z - Avx.LoadVector256(pA + k));
                 for (; col < c; col++, k++)
                     pC[k] = -pA[k];
             }
@@ -379,7 +377,7 @@ public readonly struct RMatrix :
                 int col = row, k = offset + col;
                 if (Avx.IsSupported)
                     for (int top = (c - row) & Simd.AVX_MASK + row; col < top; col += 4, k += 4)
-                        Avx.Store(pC + k, Avx.Multiply(Avx.LoadVector256(pA + k), vec));
+                        Avx.Store(pC + k, Avx.LoadVector256(pA + k) * vec);
                 for (; col < c; col++, k++)
                     pC[k] = pA[k] * d;
             }

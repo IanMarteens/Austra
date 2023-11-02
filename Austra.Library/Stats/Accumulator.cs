@@ -101,36 +101,29 @@ public sealed class Accumulator
         int i = 0;
         if (Avx.IsSupported && size >= 16)
         {
-            var vMin = V4.Create(double.PositiveInfinity);
-            var vMax = V4.Create(double.NegativeInfinity);
-            var μ1 = V4d.Zero;
-            var μ2 = V4d.Zero;
-            var μ3 = V4d.Zero;
-            var μ4 = V4d.Zero;
-            var v3 = V4.Create(3.0);
-            var v4 = V4.Create(4.0);
-            var v6 = V4.Create(6.0);
+            V4d vMin = V4.Create(double.PositiveInfinity);
+            V4d vMax = V4.Create(double.NegativeInfinity);
+            V4d μ1 = V4d.Zero, μ2 = V4d.Zero, μ3 = V4d.Zero, μ4 = V4d.Zero;
+            V4d v3 = V4.Create(3.0), v4 = V4.Create(4.0), v6 = V4.Create(6.0);
             long c = 0;
             for (int top = size & Simd.AVX_MASK; i < top; i += 4)
             {
                 c++;
-                var vSample = Avx.LoadVector256(samples + i);
+                V4d vSample = Avx.LoadVector256(samples + i);
                 vMin = Avx.Min(vMin, vSample);
                 vMax = Avx.Max(vMax, vSample);
-                var vd = Avx.Subtract(vSample, μ1);
-                var vs = Avx.Divide(vd, V4.Create((double)c));
-                var vt = Avx.Multiply(Avx.Multiply(vd, vs),
-                    V4.Create((double)(c - 1)));
-                μ1 = Avx.Add(μ1, vs);
-                var t1 = Avx.Multiply(Avx.Multiply(vt, vs),
-                    V4.Create((double)(c * (c - 3) + 3)));
-                var t2 = Avx.Multiply(Avx.Multiply(vs, μ2), v6);
-                var t3 = Avx.Multiply(v4, μ3);
-                μ4 = μ4.MultiplyAdd(Avx.Subtract(Avx.Add(t1, t2), t3), vs);
-                t1 = Avx.Multiply(vt, V4.Create((double)(c - 2)));
-                t2 = Avx.Multiply(μ2, v3);
-                μ3 = μ3.MultiplyAdd(Avx.Subtract(t1, t2), vs);
-                μ2 = Avx.Add(μ2, vt);
+                V4d vd = vSample - μ1;
+                V4d vs = vd / V4.Create((double)c);
+                V4d vt = vd * vs * V4.Create((double)(c - 1));
+                μ1 += vs;
+                V4d t1 = vt * vs * V4.Create((double)(c * (c - 3) + 3));
+                V4d t2 = vs * μ2 * v6;
+                V4d t3 = v4 * μ3;
+                μ4 = μ4.MultiplyAdd(t1 + t2 - t3, vs);
+                t1 = vt * V4.Create((double)(c - 2));
+                t2 = μ2 * v3;
+                μ3 = μ3.MultiplyAdd(t1 - t2, vs);
+                μ2 += vt;
             }
             var a01 = Mix(c,
                 μ1.ToScalar(), μ2.ToScalar(), μ3.ToScalar(), μ4.ToScalar(),

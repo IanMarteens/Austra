@@ -1,7 +1,5 @@
 ﻿namespace Austra.Library;
 
-using Austra.Library.Stats;
-
 /// <summary>Simple taxonomy for series.</summary>
 public enum SeriesType
 {
@@ -352,17 +350,14 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
             int i = 0;
             if (Avx.IsSupported)
             {
-                var meanx = V4.Create(x0);
-                var meany = V4.Create(y0);
-                var vex = V4d.Zero;
-                var vey = V4d.Zero;
-                var vexy = V4d.Zero;
+                V4d meanx = V4.Create(x0), meany = V4.Create(y0);
+                V4d vex = V4d.Zero, vey = V4d.Zero, vexy = V4d.Zero;
                 for (int top = count & Simd.AVX_MASK; i < top; i += 4)
                 {
-                    var x = Avx.Subtract(Avx.LoadVector256(pA + i), meanx);
-                    var y = Avx.Subtract(Avx.LoadVector256(pB + i), meany);
-                    vex = Avx.Add(vex, x);
-                    vey = Avx.Add(vey, y);
+                    V4d x = Avx.LoadVector256(pA + i) - meanx;
+                    V4d y = Avx.LoadVector256(pB + i) - meany;
+                    vex += x;
+                    vey += y;
                     vexy = vexy.MultiplyAdd(x, y);
                 }
                 ex = vex.Sum();
@@ -592,7 +587,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
                     double w = weights[firstW + i];
                     if (Avx.IsSupported)
                     {
-                        var vec = V4.Create(w);
+                        V4d vec = V4.Create(w);
                         for (int top = size & Simd.AVX_MASK; j < top; j += 4)
                             Avx.Store(p + j, Avx.LoadVector256(p + j).MultiplyAdd(pa + j, vec));
                     }

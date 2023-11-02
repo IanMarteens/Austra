@@ -237,4 +237,14 @@ public class VectorTests
         ComplexVector t = x.PointwiseDivide(y).PointwiseMultiply(y) - x;
         Assert.That(t.AbsMax(), Is.LessThan(1E-14));
     }
+
+    [Test]
+    public void CheckComplexPhase()
+    {
+        ComplexVector x = new ComplexVector(510, Random.Shared) + 0.1;
+        int i = Random.Shared.Next(510);
+        double phase1 = x.Phases()[i];
+        double phase2 = x[i].Phase;
+        Assert.That(phase1, Is.EqualTo(phase2).Within(1E-14));
+    }
 }

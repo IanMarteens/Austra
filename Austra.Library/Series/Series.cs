@@ -1,8 +1,5 @@
 ﻿namespace Austra.Library;
 
-using Austra.Library.Dates;
-using Austra.Library.Stats;
-
 /// <summary>Most common sampling sequences for time series.</summary>
 public enum Frequency
 {
@@ -99,9 +96,8 @@ public sealed class Series : Series<Date>,
             {
                 V4d one = V4.Create(1.0);
                 for (int top = size & Simd.AVX_MASK; i < top; i += 4)
-                    Avx.Store(q + i, Avx.Subtract(
-                        Avx.Divide(Avx.LoadVector256(p + i), Avx.LoadVector256(p + i + 1)),
-                        one));
+                    Avx.Store(q + i,
+                        Avx.LoadVector256(p + i) / Avx.LoadVector256(p + i + 1) - one);
             }
             for (; i < size; i++)
                 q[i] = p[i] / p[i + 1] - 1;
@@ -121,7 +117,7 @@ public sealed class Series : Series<Date>,
             {
                 for (int top = size & Simd.AVX_MASK; i < top; i += 4)
                     Avx.Store(q + i,
-                        Avx.Divide(Avx.LoadVector256(p + i), Avx.LoadVector256(p + i + 1)).Log());
+                        (Avx.LoadVector256(p + i) / Avx.LoadVector256(p + i + 1)).Log());
             }
             for (; i < size; i++)
                 q[i] = Log(p[i] / p[i + 1]);
