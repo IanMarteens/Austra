@@ -49,11 +49,14 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public Vector AustraMatrixVector() => cm1 * cv1;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraLMatrixVector() => lm1 * cv1;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraRMatrixVector() => rm1 * cv1;
+
+    [Benchmark]
+    public Vector AustraLMatrixMultAdd() => lm1.MultiplyAdd(cv1, cv2);
 
     //[Benchmark]
     public Vector AustraMatrixMultiplyAddRaw() => cm1 * cv1 + cv2;

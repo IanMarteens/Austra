@@ -519,7 +519,7 @@ public sealed partial class FftPlan
                     Avx.Store((double*)(b0 += m), Avx.Permute2x128(d1, e1, 0x31));
                     Avx.Store((double*)(b0 += m), Avx.Permute2x128(d2, e2, 0x20));
                     Avx.Store((double*)(b0 += m), Avx.Permute2x128(d2, e2, 0x31));
-                    Avx.Store((double*)(b0 += m), Vector256.Create(d3, e3));
+                    Avx.Store((double*)(b0 += m), V4.Create(d3, e3));
                 }
                 if (row < m)
                 {

@@ -198,50 +198,49 @@ public readonly struct LMatrix :
 
     /// <summary>Transposes the matrix.</summary>
     /// <returns>A new matrix with swapped rows and cells.</returns>
-    public unsafe RMatrix Transpose()
+    public RMatrix Transpose()
     {
         Contract.Requires(IsInitialized);
 
-        int c = Cols, r = Rows;
-        double[] result = new double[c * r];
-        fixed (double* pA = values, pB = result)
+        nuint c = (nuint)Cols, r = (nuint)Rows;
+        double[] result = new double[values.Length];
+        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        if (Avx.IsSupported && r == c && (r & 0b11) == 0)
         {
-            if (Avx.IsSupported && r == c && (r & 0b11) == 0)
+            // Columns and rows are equal and multiples of four.
+            nuint r2 = r + r;
+            for (nuint row = 0; row < r; row += 4)
             {
-                // Columns and rows are equal and multiples of four.
-                int r2 = r + r, c2 = c + c;
-                for (int row = 0; row < r; row += 4)
+                nuint top = Min(row + 1, c);
+                for (nuint col = 0; col < top; col += 4)
                 {
-                    int top = Min(row + 1, c);
-                    for (int col = 0; col < top; col += 4)
-                    {
-                        double* pp = pA + (row * r + col);
-                        var row1 = Avx.LoadVector256(pp);
-                        var row2 = Avx.LoadVector256(pp + r);
-                        var row3 = Avx.LoadVector256(pp + r2);
-                        var row4 = Avx.LoadVector256(pp + r2 + r);
-                        var t1 = Avx.Shuffle(row1, row2, 0b0000);
-                        var t2 = Avx.Shuffle(row1, row2, 0b1111);
-                        var t3 = Avx.Shuffle(row3, row4, 0b0000);
-                        var t4 = Avx.Shuffle(row3, row4, 0b1111);
-                        row1 = Avx.Permute2x128(t1, t3, 0b00100000);
-                        row2 = Avx.Permute2x128(t2, t4, 0b00100000);
-                        row3 = Avx.Permute2x128(t1, t3, 0b00110001);
-                        row4 = Avx.Permute2x128(t2, t4, 0b00110001);
-                        double* qq = pB + (col * r + row);
-                        Avx.Store(qq, row1);
-                        Avx.Store(qq + c, row2);
-                        Avx.Store(qq + c2, row3);
-                        Avx.Store(qq + c2 + c, row4);
-                    }
+                    ref double pp = ref Add(ref pA, row * r + col);
+                    var row1 = V4.LoadUnsafe(ref pp);
+                    var row2 = V4.LoadUnsafe(ref pp, r);
+                    var row3 = V4.LoadUnsafe(ref pp, r2);
+                    var row4 = V4.LoadUnsafe(ref pp, r2 + r);
+                    var t1 = Avx.Shuffle(row1, row2, 0b0000);
+                    var t2 = Avx.Shuffle(row1, row2, 0b1111);
+                    var t3 = Avx.Shuffle(row3, row4, 0b0000);
+                    var t4 = Avx.Shuffle(row3, row4, 0b1111);
+                    row1 = Avx.Permute2x128(t1, t3, 0b00100000);
+                    row2 = Avx.Permute2x128(t2, t4, 0b00100000);
+                    row3 = Avx.Permute2x128(t1, t3, 0b00110001);
+                    row4 = Avx.Permute2x128(t2, t4, 0b00110001);
+                    ref double qq = ref Add(ref pB, col * r + row);
+                    V4.StoreUnsafe(row1, ref qq);
+                    V4.StoreUnsafe(row2, ref qq, r);
+                    V4.StoreUnsafe(row3, ref qq, r2);
+                    V4.StoreUnsafe(row4, ref qq, r2 + r);
                 }
             }
-            else
-                for (int row = 0; row < r; row++)
-                    for (int col = 0, top = Min(row + 1, c); col < top; col++)
-                        pB[col * r + row] = pA[row * c + col];
         }
-        return new(c, r, result);
+        else
+            for (nuint row = 0; row < r; row++)
+                for (nuint col = 0, top = Min(row + 1, c); col < top; col++)
+                    Add(ref pB, col * r + row) = Add(ref pA, row * c + col);
+        return new(Cols, Rows, result);
     }
 
     /// <summary>Sums two lower matrices with the same size.</summary>
@@ -479,7 +478,7 @@ public readonly struct LMatrix :
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        int lastBlockIndex = p & Simd.AVX_MASK;
+        int last = p & Simd.AVX_MASK;
         fixed (double* pA = m1.values, pB = (double[])m2, pC = result)
         {
             double* pAi = pA, pCi = pC;
@@ -492,8 +491,8 @@ public readonly struct LMatrix :
                     int j = 0;
                     if (Avx.IsSupported)
                     {
-                        V4d vd = Vector256.Create(d);
-                        for (; j < lastBlockIndex; j += 4)
+                        V4d vd = V4.Create(d);
+                        for (; j < last; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
                     }
@@ -536,7 +535,7 @@ public readonly struct LMatrix :
                     int j = 0, top = Min(k + 1, n);
                     if (Avx.IsSupported)
                     {
-                        V4d vd = Vector256.Create(d);
+                        V4d vd = V4.Create(d);
                         for (int last = top & Simd.AVX_MASK; j < last; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
@@ -676,28 +675,14 @@ public readonly struct LMatrix :
     public Vector MultiplyAdd(Vector v, Vector add, double[] result)
     {
         int r = Rows, c = Cols;
-        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double pX = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        double[] vector = (double[])v;
         ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
         ref double pC = ref MemoryMarshal.GetArrayDataReference((double[])add);
         // First row is special.
-        pB = pA * pX + pC;
-        for (int i = 1; i < r; i++)
-        {
-            pA = ref Add(ref pA, c); pB = ref Add(ref pB, 1); pC = ref Add(ref pC, 1);
-            double d = 0;
-            nuint j = 0, top = (nuint)Min(i + 1, c);
-            if (Avx.IsSupported)
-            {
-                V4d vec = V4d.Zero;
-                for (nuint last = top & Simd.AVX_MASK; j < last; j += (nuint)V4d.Count)
-                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pX, j));
-                d = vec.Sum();
-            }
-            for (; j < top; j++)
-                d = FusedMultiplyAdd(Add(ref pA, j), Add(ref pX, j), d);
-            pB = d + pC;
-        }
+        pB = values[0] * vector[0] + pC;
+        for (int i = 1, offset = c; i < r; i++, offset += c)
+            Add(ref pB, i) = values.AsSpan(offset, Min(i + 1, c))
+                .DotProduct(vector.AsSpan()) + Add(ref pC, i);
         return result;
     }
 
@@ -717,28 +702,14 @@ public readonly struct LMatrix :
     public Vector MultiplySubtract(Vector v, Vector sub, double[] result)
     {
         int r = Rows, c = Cols;
-        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double pX = ref MemoryMarshal.GetArrayDataReference((double[])v);
+        double[] vector = (double[])v;
         ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
         ref double pC = ref MemoryMarshal.GetArrayDataReference((double[])sub);
         // First row is special.
-        pB = pA * pX - pC;
-        for (int i = 1; i < r; i++)
-        {
-            pA = ref Add(ref pA, c); pB = ref Add(ref pB, 1); pC = ref Add(ref pC, 1);
-            double d = 0;
-            nuint j = 0, top = (nuint)Min(i + 1, c);
-            if (Avx.IsSupported)
-            {
-                V4d vec = V4d.Zero;
-                for (nuint last = top & Simd.AVX_MASK; j < last; j += (nuint)V4d.Count)
-                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pX, j));
-                d = vec.Sum();
-            }
-            for (; j < top; j++)
-                d = FusedMultiplyAdd(Add(ref pA, j), Add(ref pX, j), d);
-            pB = d - pC;
-        }
+        pB = values[0] * vector[0] - pC;
+        for (int i = 1, offset = c; i < r; i++, offset += c)
+            Add(ref pB, i) = values.AsSpan(offset, Min(i + 1, c))
+                .DotProduct(vector.AsSpan()) - Add(ref pC, i);
         return result;
     }
 
