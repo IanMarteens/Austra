@@ -95,7 +95,7 @@ else msft.mean
     <section address="Section1">
       <title>Root objects</title>
       <content>
-        <para>Every AUSTRA expression must start with a root object. It could be either a global variable, a local variable, a class method or a class variable.</para>
+        <para>Every AUSTRA expression must start with a root object. It could be either a global variable, a local variable, a class method, a class variable, or a code definition.</para>
       </content>
       <sections>
           <section address="SubSection1">
@@ -115,6 +115,19 @@ else msft.mean
                   e = math::e
                   pi = math::pi and pi = math::π
                   </code>
+                  <para>Actually, the same equivalence is valid for what we normally would consider "global functions":</para>
+                  <code language="Austra">
+                  exp(π*i)
+                  math::exp(math::pi * math::i)
+                  </code>
+                  <para>Those global functions and constants are considered as belonging to the <codeInline>math</codeInline> for avoiding problems if any of these simbols is redefined as a persistent or session variable.</para>
+                  <para>Of course, there are more classes than <codeInline>math</codeInline>, and we can use their class methods for creating new objects:</para>
+                  <code language="Austra">
+                  matrix::random(10)
+                  vector::new(10)
+                  vector(10)
+                  </code>
+                  <para>As the last example shows, when you call a <codeInline>new</codeInline> method on a class, you can omit the <codeInline>::new</codeInline> part and use just the class name as synonym.</para>
               </content>
           </section>
       </sections>
