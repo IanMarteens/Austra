@@ -496,14 +496,11 @@ public readonly struct Vector :
 
         int rows = v1.Length, cols = v2.Length;
         double[] result = GC.AllocateUninitializedArray<double>(rows * cols);
-        ref double p = ref MM.GetArrayDataReference(v1.values);
-        ref double q = ref MM.GetArrayDataReference(v2.values);
         ref double r = ref MM.GetArrayDataReference(result);
-        for (int i = 0; i < rows; i++, p = ref Add(ref p, 1))
+        foreach (double d in v1.values)
         {
-            double d = p;
-            for (int j = 0; j < cols; j++, r = ref Add(ref r, 1))
-                r = Add(ref q, j) * d;
+            v2.values.AsSpan().MulV(d, MM.CreateSpan(ref r, cols));
+            r = ref Add(ref r, cols);
         }
         return new(rows, cols, result);
     }
@@ -616,8 +613,8 @@ public readonly struct Vector :
         ref double s = ref MM.GetArrayDataReference(result);
         if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
         {
-            nuint t = (nuint)(result.Length - V4d.Count);
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+            nuint t = (nuint)(result.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
                 V8.StoreUnsafe(Avx512F.FusedMultiplySubtract(
                     V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), V8.LoadUnsafe(ref r, i)),
                     ref s, i);
@@ -704,7 +701,7 @@ public readonly struct Vector :
         int firstW = weights.Length == vectors.Length ? 0 : 1;
         if (firstW > 0)
             Array.Fill(values, weights[0]);
-        nuint t = (nuint)(size - V4d.Count);
+        nuint t = V8.IsHardwareAccelerated ? (nuint)(size - V8d.Count) : (nuint)(size - V4d.Count);
         for (int i = 0; i < vectors.Length; i++)
         {
             if (vectors[i].Length != size)

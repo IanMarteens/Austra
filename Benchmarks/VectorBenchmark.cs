@@ -57,10 +57,10 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public bool AustraVectorEqualsTrue() => cv1 == cv3;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraRawLineal() => 2 * cv4 + 3 * cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraCombineLineal() => Vector.Combine2(2, 3, cv4, cv5);
 
     //[Benchmark]
@@ -81,7 +81,7 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public Vector AustraVectorMap() => cv7.Map(Math.Abs);
 
-    //[Benchmark]
+    [Benchmark]
     public Matrix AustraExternalProduct() => cv1 ^ cv3;
 
     //[Benchmark]
