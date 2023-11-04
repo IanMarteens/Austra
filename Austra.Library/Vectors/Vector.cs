@@ -83,7 +83,7 @@ public readonly struct Vector :
     public Vector(int size, NormalRandom rnd)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         int i = 0;
         for (int t = size & ~1; i < t; i += 2)
             rnd.NextDoubles(ref Add(ref p, i));
@@ -218,7 +218,7 @@ public readonly struct Vector :
     public double SafeThis(int index) =>
         (uint)index >= values.Length
         ? 0.0
-        : Add(ref MemoryMarshal.GetArrayDataReference(values), index);
+        : Add(ref MM.GetArrayDataReference(values), index);
 
     /// <summary>Gets the first value in the vector.</summary>
     public double First => values[0];
@@ -410,22 +410,7 @@ public readonly struct Vector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         Contract.EndContractBlock();
-
-        double sum = 0;
-        int i = 0;
-        ref double p = ref MemoryMarshal.GetArrayDataReference(v1.values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(v2.values);
-        if (V4.IsHardwareAccelerated)
-        {
-            V4d acc = V4d.Zero;
-            for (int top = v1.values.Length & Simd.AVX_MASK; i < top; i += V4d.Count)
-                acc = acc.MultiplyAdd(
-                    V4.LoadUnsafe(ref p, (nuint)i), V4.LoadUnsafe(ref q, (nuint)i));
-            sum = acc.Sum();
-        }
-        for (; i < v1.values.Length; i++)
-            sum = FusedMultiplyAdd(Add(ref p, i), Add(ref q, i), sum);
-        return sum;
+        return v1.values.AsSpan().DotProduct(v2.values);
     }
 
     /// <summary>Gets the squared norm of this vector.</summary>
@@ -439,11 +424,24 @@ public readonly struct Vector :
         Contract.Requires(IsInitialized);
 
         double sum = 0d;
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         ref double q = ref Add(ref p, values.Length);
-        if (V4.IsHardwareAccelerated && Length > V4d.Count)
+        if (V8.IsHardwareAccelerated && Length > V8d.Count)
         {
-            ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
+            ref double last = ref Add(ref p, values.Length & Simd.MASK8);
+            V8d acc = V8d.Zero;
+            do
+            {
+                V8d v = V8.LoadUnsafe(ref p);
+                acc = Avx512F.FusedMultiplyAdd(v, v, acc);
+                p = ref Add(ref p, V8d.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            sum = V8.Sum(acc);
+        }
+        else if (V4.IsHardwareAccelerated && Length > V4d.Count)
+        {
+            ref double last = ref Add(ref p, values.Length & Simd.MASK4);
             V4d acc = V4d.Zero;
             do
             {
@@ -498,9 +496,9 @@ public readonly struct Vector :
 
         int rows = v1.Length, cols = v2.Length;
         double[] result = GC.AllocateUninitializedArray<double>(rows * cols);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(v1.values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(v2.values);
-        ref double r = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double p = ref MM.GetArrayDataReference(v1.values);
+        ref double q = ref MM.GetArrayDataReference(v2.values);
+        ref double r = ref MM.GetArrayDataReference(result);
         for (int i = 0; i < rows; i++, p = ref Add(ref p, 1))
         {
             double d = p;
@@ -524,22 +522,29 @@ public readonly struct Vector :
         Contract.Requires(Length == summand.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(multiplier.values);
-        ref double r = ref MemoryMarshal.GetArrayDataReference(summand.values);
-        ref double s = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated)
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference(multiplier.values);
+        ref double r = ref MM.GetArrayDataReference(summand.values);
+        ref double s = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
+        {
+            nuint t = (nuint)(result.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                    V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), V8.LoadUnsafe(ref r, i)),
+                    ref s, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                V8.LoadUnsafe(ref p, t), V8.LoadUnsafe(ref q, t), V8.LoadUnsafe(ref r, t)),
+                ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
         {
             nuint t = (nuint)(result.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(
-                    V4.LoadUnsafe(ref r, i).MultiplyAdd(
-                        V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i)),
-                    ref Add(ref s, i));
-            V4.StoreUnsafe(
-                V4.LoadUnsafe(ref r, t).MultiplyAdd(
-                    V4.LoadUnsafe(ref p, t), V4.LoadUnsafe(ref q, t)),
-                ref Add(ref s, t));
+                V4.StoreUnsafe(V4.LoadUnsafe(ref r, i).MultiplyAdd(
+                    V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i)), ref s, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref r, t).MultiplyAdd(
+                V4.LoadUnsafe(ref p, t), V4.LoadUnsafe(ref q, t)), ref s, t);
         }
         else
             for (int i = 0; i < result.Length; i++)
@@ -559,9 +564,9 @@ public readonly struct Vector :
         Contract.Requires(Length == summand.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double r = ref MemoryMarshal.GetArrayDataReference(summand.values);
-        ref double s = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double r = ref MM.GetArrayDataReference(summand.values);
+        ref double s = ref MM.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated && Fma.IsSupported && result.Length >= V4d.Count)
         {
             V4d vq = V4.Create(multiplier);
@@ -572,8 +577,9 @@ public readonly struct Vector :
             V4.StoreUnsafe(Fma.MultiplyAdd(
                 V4.LoadUnsafe(ref p, t), vq, V4.LoadUnsafe(ref r, t)), ref s, t);
         }
-        for (int i = 0; i < result.Length; i++)
-            Add(ref s, i) = FusedMultiplyAdd(Add(ref p, i), multiplier, Add(ref r, i));
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = FusedMultiplyAdd(Add(ref p, i), multiplier, Add(ref r, i));
         return result;
     }
 
@@ -594,10 +600,10 @@ public readonly struct Vector :
         Contract.Requires(Length == subtrahend.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(multiplier.values);
-        ref double r = ref MemoryMarshal.GetArrayDataReference(subtrahend.values);
-        ref double s = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference(multiplier.values);
+        ref double r = ref MM.GetArrayDataReference(subtrahend.values);
+        ref double s = ref MM.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated)
         {
             nuint t = (nuint)(result.Length - V4d.Count);
@@ -630,9 +636,9 @@ public readonly struct Vector :
         Contract.Requires(Length == subtrahend.Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double r = ref MemoryMarshal.GetArrayDataReference(subtrahend.values);
-        ref double s = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double r = ref MM.GetArrayDataReference(subtrahend.values);
+        ref double s = ref MM.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated && Fma.IsSupported
             && result.Length >= V4d.Count)
         {
@@ -644,8 +650,9 @@ public readonly struct Vector :
             V4.StoreUnsafe(Fma.MultiplySubtract(
                 V4.LoadUnsafe(ref p, t), vq, V4.LoadUnsafe(ref r, t)), ref s, t);
         }
-        for (int i = 0; i < result.Length; i++)
-            Add(ref s, i) = Add(ref p, i) * multiplier - Add(ref r, i);
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = Add(ref p, i) * multiplier - Add(ref r, i);
         return result;
     }
 
@@ -665,7 +672,7 @@ public readonly struct Vector :
             throw new ArgumentException("Weights and vectors don't match");
         int size = vectors[0].Length;
         double[] values = new double[size];
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         int firstW = weights.Length == vectors.Length ? 0 : 1;
         if (firstW > 0)
             Array.Fill(values, weights[0]);
@@ -674,7 +681,7 @@ public readonly struct Vector :
         {
             if (vectors[i].Length != size)
                 throw new VectorLengthException();
-            ref double q = ref MemoryMarshal.GetArrayDataReference(vectors[i].values);
+            ref double q = ref MM.GetArrayDataReference(vectors[i].values);
             double w = weights[firstW + i];
             if (V4.IsHardwareAccelerated && Fma.IsSupported && size >= V4d.Count)
             {
@@ -707,9 +714,9 @@ public readonly struct Vector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         double[] values = GC.AllocateUninitializedArray<double>(v1.Length);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(v1.values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(v2.values);
-        ref double c = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double a = ref MM.GetArrayDataReference(v1.values);
+        ref double b = ref MM.GetArrayDataReference(v2.values);
+        ref double c = ref MM.GetArrayDataReference(values);
         if (V4.IsHardwareAccelerated && Fma.IsSupported && values.Length >= V4d.Count)
         {
             V4d vw1 = V4.Create(w1), vw2 = V4.Create(w2);
@@ -748,11 +755,23 @@ public readonly struct Vector :
         Contract.Requires(IsInitialized);
 
         double result = 0d;
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         ref double q = ref Add(ref p, values.Length);
-        if (V4.IsHardwareAccelerated && Length > V4d.Count)
+        if (V8.IsHardwareAccelerated && Length > V8d.Count)
         {
-            ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
+            ref double last = ref Add(ref p, values.Length & Simd.MASK8);
+            V8d sum = V8d.Zero;
+            do
+            {
+                sum += V8.LoadUnsafe(ref p);
+                p = ref Add(ref p, V8d.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = V8.Sum(sum);
+        }
+        else if (V4.IsHardwareAccelerated && Length > V4d.Count)
+        {
+            ref double last = ref Add(ref p, values.Length & Simd.MASK4);
             V4d sum = V4d.Zero;
             do
             {
@@ -774,12 +793,24 @@ public readonly struct Vector :
         Contract.Requires(IsInitialized);
 
         double result = 1d;
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         ref double q = ref Add(ref p, values.Length);
-        if (V4.IsHardwareAccelerated && Length > V4d.Count)
+        if (V8.IsHardwareAccelerated && Length > V8d.Count)
         {
-            ref double last = ref Add(ref p, values.Length & Simd.AVX_MASK + 1);
-            V4d prod = V4.Create(1d);
+            ref double last = ref Add(ref p, values.Length & Simd.MASK8);
+            V8d prod = V8d.One;
+            do
+            {
+                prod *= V8.LoadUnsafe(ref p);
+                p = ref Add(ref p, V8d.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = (prod.GetLower() * prod.GetUpper()).Product();
+        }
+        else if (V4.IsHardwareAccelerated && Length > V4d.Count)
+        {
+            ref double last = ref Add(ref p, values.Length & Simd.MASK4);
+            V4d prod = V4d.One;
             do
             {
                 prod *= V4.LoadUnsafe(ref p);
@@ -805,9 +836,16 @@ public readonly struct Vector :
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated)
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
+        {
+            nuint t = (nuint)(result.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.Sqrt(V8.LoadUnsafe(ref p, i)), ref q, i);
+            V8.StoreUnsafe(Avx512F.Sqrt(V8.LoadUnsafe(ref p, t)), ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
         {
             nuint t = (nuint)(result.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
@@ -828,9 +866,16 @@ public readonly struct Vector :
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
+        {
+            nuint t = (nuint)(result.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
+            V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
         {
             nuint t = (nuint)(result.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
@@ -851,7 +896,7 @@ public readonly struct Vector :
     public Vector Map(Func<double, double> mapper)
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         for (int i = 0; i < newValues.Length; i++)
             newValues[i] = mapper(Add(ref p, i));
         return newValues;
@@ -913,9 +958,9 @@ public readonly struct Vector :
     {
         int len = Min(Length, other.Length);
         double[] newValues = GC.AllocateUninitializedArray<double>(len);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(other.values);
-        ref double r = ref MemoryMarshal.GetArrayDataReference(newValues);
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference(other.values);
+        ref double r = ref MM.GetArrayDataReference(newValues);
         for (int i = 0; i < len; i++)
             Add(ref r, i) = zipper(Add(ref p, i), Add(ref q, i));
         return newValues;
@@ -928,23 +973,34 @@ public readonly struct Vector :
     internal double AutoCorrelation(int lag, double average)
     {
         double ex = 0, ey = 0, exy = 0, exx = 0, eyy = 0;
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         ref double q = ref Add(ref p, lag);
         nuint i = 0, count = (nuint)(Length - lag);
-        if (Avx.IsSupported)
+        if (Avx512F.IsSupported)
+        {
+            V8d avg = V8.Create(average);
+            V8d vex = V8d.Zero, vey = V8d.Zero;
+            V8d vexx = V8d.Zero, vexy = V8d.Zero, veyy = V8d.Zero;
+            for (nuint top = count & Simd.MASK8; i < top; i += (nuint)V8d.Count)
+            {
+                V8d x = V8.LoadUnsafe(ref p, i) - avg, y = V8.LoadUnsafe(ref q, i) - avg;
+                vex += x; vey += y;
+                vexx = Avx512F.FusedMultiplyAdd(x, x, vexx);
+                vexy = Avx512F.FusedMultiplyAdd(x, y, vexy);
+                veyy = Avx512F.FusedMultiplyAdd(y, y, veyy);
+            }
+            ex = V8.Sum(vex); ey = V8.Sum(vey);
+            exx = V8.Sum(vexx); exy = V8.Sum(vexy); eyy = V8.Sum(veyy);
+        }
+        else if (Avx.IsSupported)
         {
             V4d avg = V4.Create(average);
-            V4d vex = V4d.Zero;
-            V4d vey = V4d.Zero;
-            V4d vexx = V4d.Zero;
-            V4d vexy = V4d.Zero;
-            V4d veyy = V4d.Zero;
-            for (nuint top = count & Simd.AVX_MASK; i < top; i += (nuint)V4d.Count)
+            V4d vex = V4d.Zero, vey = V4d.Zero;
+            V4d vexx = V4d.Zero, vexy = V4d.Zero, veyy = V4d.Zero;
+            for (nuint top = count & Simd.MASK4; i < top; i += (nuint)V4d.Count)
             {
-                V4d x = V4.LoadUnsafe(ref p, i) - avg;
-                V4d y = V4.LoadUnsafe(ref q, i) - avg;
-                vex += x;
-                vey += y;
+                V4d x = V4.LoadUnsafe(ref p, i) - avg, y = V4.LoadUnsafe(ref q, i) - avg;
+                vex += x; vey += y;
                 vexx = vexx.MultiplyAdd(x, x);
                 vexy = vexy.MultiplyAdd(x, y);
                 veyy = veyy.MultiplyAdd(y, y);
@@ -955,11 +1011,10 @@ public readonly struct Vector :
         for (; i < count; i++)
         {
             double x = Add(ref p, i) - average, y = Add(ref q, i) - average;
-            ex += x;
-            ey += y;
-            exy += x * y;
-            exx += x * x;
-            eyy += y * y;
+            ex += x; ey += y;
+            exx = FusedMultiplyAdd(x, x, exx);
+            exy = FusedMultiplyAdd(x , y, exy);
+            eyy = FusedMultiplyAdd(y, y, eyy);
         }
         return (exy - ex * ey / count) /
             Math.Sqrt((exx - ex * ex / count) * (eyy - ey * ey / count));
@@ -1186,7 +1241,7 @@ public readonly struct Vector :
         Contract.Requires(from >= 0 && from < Length);
         Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
 
-        ref double p = ref Add(ref MemoryMarshal.GetArrayDataReference(values), from);
+        ref double p = ref Add(ref MM.GetArrayDataReference(values), from);
         nuint size = (nuint)(Length - from);
         if (V4.IsHardwareAccelerated && size >= (nuint)V4d.Count)
         {

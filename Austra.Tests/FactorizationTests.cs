@@ -81,7 +81,7 @@ public class FactorizationTests
     [Test]
     public void CholeskySolveVector([Values(27, 32, 37)] int size)
     {
-        LMatrix lm = new(size, size, Random.Shared, 0.1);
+        LMatrix lm = new(size, size, Random.Shared, 0.2);
         while (lm.Determinant() == 0)
             lm = new(size, Random.Shared);
         Matrix m = lm * lm.Transpose();

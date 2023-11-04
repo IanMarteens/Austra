@@ -1,14 +1,13 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents the result of a Cholesky decomposition.</summary>
-public readonly struct Cholesky : IFormattable
+/// <remarks>Initializes a Cholesky decomposition.</remarks>
+/// <param name="matrix">A lower triangular matrix.</param>
+public readonly struct Cholesky(LMatrix matrix) : IFormattable
 {
-    /// <summary>Initializes a Cholesky decomposition.</summary>
-    /// <param name="matrix">A lower triangular matrix.</param>
-    public Cholesky(LMatrix matrix) => L = matrix;
 
     /// <summary>Gets the Cholesky lower triangular matrix.</summary>
-    public LMatrix L { get; }
+    public LMatrix L { get; } = matrix;
 
     /// <summary>Tentative Cholesky decomposition of a matrix.</summary>
     /// <param name="matrix">The matrix to decompose.</param>
@@ -44,7 +43,7 @@ public readonly struct Cholesky : IFormattable
                 if (Avx.IsSupported)
                 {
                     V4d acc = V4d.Zero;
-                    for (int top = j & Simd.AVX_MASK; m < top; m += 4)
+                    for (int top = j & Simd.MASK4; m < top; m += 4)
                     {
                         V4d vec = Avx.LoadVector256(pDj + m);
                         acc = acc.MultiplyAdd(vec, vec);
@@ -78,7 +77,7 @@ public readonly struct Cholesky : IFormattable
                         if (Avx.IsSupported)
                         {
                             V4d acc = V4d.Zero;
-                            for (int top = j & Simd.AVX_MASK; k < top; k += 4)
+                            for (int top = j & Simd.MASK4; k < top; k += 4)
                                 acc = acc.MultiplyAdd(pDi + k, tmp + k);
                             v = acc.Sum();
                         }
@@ -169,7 +168,7 @@ public readonly struct Cholesky : IFormattable
                 if (Avx.IsSupported)
                 {
                     V4d acc = V4d.Zero;
-                    for (int top = i & Simd.AVX_MASK; k < top; k += 4)
+                    for (int top = i & Simd.MASK4; k < top; k += 4)
                         acc = acc.MultiplyAdd(pAi + k, pB + k);
                     sum -= acc.Sum();
                 }
@@ -206,7 +205,7 @@ public readonly struct Cholesky : IFormattable
         int size = L.Rows;
         fixed (double* pA = (double[])L, pB = (double[])m)
         {
-            int top = size & Simd.AVX_MASK;
+            int top = size & Simd.MASK4;
             for (int i = 0, isize = 0; i < size; i++, isize += size)
             {
                 double* pbi = pB + isize;

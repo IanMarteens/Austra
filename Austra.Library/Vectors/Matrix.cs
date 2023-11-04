@@ -55,7 +55,7 @@ public readonly struct Matrix :
     public Matrix(int rows, int cols, Func<int, int, double> f)
     {
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < cols; j++, p = ref Add(ref p, 1))
                 p = f(i, j);
@@ -151,7 +151,7 @@ public readonly struct Matrix :
     {
         int i = 0, len = rows * cols;
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(len));
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double p = ref MM.GetArrayDataReference(values);
         for (int t = len & ~1; i < t; i += 2)
             random.NextDoubles(ref Add(ref p, i));
         if (i < len)
@@ -294,7 +294,7 @@ public readonly struct Matrix :
     public static explicit operator double[,](Matrix m)
     {
         double[,] result = new double[m.Rows, m.Cols];
-        ref byte source = ref As<double, byte>(ref MemoryMarshal.GetArrayDataReference(m.values));
+        ref byte source = ref As<double, byte>(ref MM.GetArrayDataReference(m.values));
         ref byte target = ref As<double, byte>(ref result[0, 0]);
         CopyBlockUnaligned(ref target, ref source, (uint)(m.values.Length * sizeof(double)));
         return result;
@@ -495,11 +495,11 @@ public readonly struct Matrix :
         double[] result = GC.AllocateUninitializedArray<double>(c * r);
         if (Avx.IsSupported)
         {
-            ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-            ref double b = ref MemoryMarshal.GetArrayDataReference(result);
+            ref double a = ref MM.GetArrayDataReference(values);
+            ref double b = ref MM.GetArrayDataReference(result);
             // Blocks are multiple of four.
-            int r1 = r & Simd.AVX_MASK, r2 = r + r, r4 = r2 + r2;
-            int c1 = c & Simd.AVX_MASK, c2 = c + c, c4 = c2 + c2;
+            int r1 = r & Simd.MASK4, r2 = r + r, r4 = r2 + r2;
+            int c1 = c & Simd.MASK4, c2 = c + c, c4 = c2 + c2;
             ref double pA = ref a;
             for (int row = 0; row < r1; row += V4d.Count)
             {
@@ -600,8 +600,7 @@ public readonly struct Matrix :
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
-        if (m1.Rows != m2.Rows ||
-            m1.Cols != m2.Cols)
+        if (m1.Rows != m2.Rows || m1.Cols != m2.Cols)
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
@@ -619,8 +618,7 @@ public readonly struct Matrix :
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
-        if (m1.Rows != m2.Rows ||
-            m1.Cols != m2.Cols)
+        if (m1.Rows != m2.Rows || m1.Cols != m2.Cols)
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
@@ -698,8 +696,7 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
-        if (Rows != m.Rows ||
-            Cols != m.Cols)
+        if (Rows != m.Rows || Cols != m.Cols)
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
@@ -713,8 +710,7 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
-        if (Rows != m.Rows ||
-            Cols != m.Cols)
+        if (Rows != m.Rows || Cols != m.Cols)
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
@@ -779,7 +775,7 @@ public readonly struct Matrix :
         static void NonBlocking(int m, int n, int p, double* a, double* b, double* c)
         {
             double* pa = a, pc = c;
-            for (int i = 0, top = p & Simd.AVX_MASK; i < m; i++)
+            for (int i = 0, top = p & Simd.MASK4; i < m; i++)
             {
                 double* pb = b;
                 for (int k = 0; k < n; k++)
@@ -788,8 +784,7 @@ public readonly struct Matrix :
                     int j = 0;
                     if (Avx.IsSupported)
                         for (V4d vd = V4.Create(d); j < top; j += V4d.Count)
-                            Avx.Store(pc + j,
-                                Avx.LoadVector256(pc + j).MultiplyAdd(pb + j, vd));
+                            Avx.Store(pc + j, Avx.LoadVector256(pc + j).MultiplyAdd(pb + j, vd));
                     for (; j < p; j++)
                         pc[j] = FusedMultiplyAdd(pb[j], d, pc[j]);
                     pb += p;
@@ -820,8 +815,18 @@ public readonly struct Matrix :
                             {
                                 double d = pa[k];
                                 int j = jj;
-                                if (Avx.IsSupported)
-                                    for (var vd = V4.Create(d); j < top; j += 16)
+                                if (Avx512F.IsSupported)
+                                    for (V8d vd = V8.Create(d); j < top; j += 16)
+                                    {
+                                        V8d op1 = Avx512F.LoadVector512(pb + j);
+                                        V8d op2 = Avx512F.LoadVector512(pb + j + 8);
+                                        Avx512F.Store(pc + j, Avx512F.FusedMultiplyAdd(
+                                            op1, vd, Avx512F.LoadVector512(pc + j)));
+                                        Avx512F.Store(pc + j + 8, Avx512F.FusedMultiplyAdd(
+                                            op2, vd, Avx512F.LoadVector512(pc + j + 8)));
+                                    }
+                                else if (Avx.IsSupported)
+                                    for (V4d vd = V4.Create(d); j < top; j += 16)
                                     {
                                         Avx.Store(pc + j, Avx.LoadVector256(pc + j)
                                             .MultiplyAdd(pb + j, vd));
@@ -904,33 +909,17 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
-        int r = Rows, n = Cols, c = m.Rows, top = n & Simd.AVX_MASK;
+        int r = Rows, n = Cols, c = m.Rows, top = n & Simd.MASK4;
         double[] result = new double[r * c];
-        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(m.values);
-        ref double t = ref MemoryMarshal.GetArrayDataReference(result);
-        ref double ai = ref a, ti = ref t;
-        for (int i = 0; i < r; i++)
+        ref double a = ref MM.GetArrayDataReference(values);
+        ref double b = ref MM.GetArrayDataReference(m.values);
+        ref double t = ref MM.GetArrayDataReference(result);
+        for (int i = 0; i < r; i++, a = ref Add(ref a, n), t = ref Add(ref t, c))
         {
             ref double bj = ref b;
             for (int j = 0; j < c; j++, bj = ref Add(ref bj, n))
-            {
-                int k = 0;
-                double acc = 0;
-                if (Avx.IsSupported)
-                {
-                    V4d sum = V4d.Zero;
-                    for (; k < top; k += V4d.Count)
-                        sum = sum.MultiplyAdd(
-                            V4.LoadUnsafe(ref Add(ref ai, k)), V4.LoadUnsafe(ref Add(ref bj, k)));
-                    acc = sum.Sum();
-                }
-                for (; k < n; k++)
-                    acc = FusedMultiplyAdd(Add(ref ai, k), Add(ref bj, k), acc);
-                Add(ref ti, j) = acc;
-            }
-            ai = ref Add(ref ai, n);
-            ti = ref Add(ref ti, c);
+                Add(ref t, j) = MM.CreateSpan(ref a, n).DotProduct(
+                    MM.CreateSpan(ref bj, n));
         }
         return new(r, c, result);
     }
@@ -946,30 +935,15 @@ public readonly struct Matrix :
     {
         Contract.Requires(m.IsInitialized);
         Contract.Requires(v.IsInitialized);
-        int r = m.Rows, c = m.Cols, top = c & Simd.AVX_MASK;
+        int r = m.Rows, c = m.Cols;
         if (c != v.Length)
             throw new MatrixSizeException();
 
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(m.values);
-        ref double x = ref MemoryMarshal.GetArrayDataReference((double[])v);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
-        for (int i = 0; i < r; i++, a = ref Add(ref a, c), b = ref Add(ref b, 1))
-        {
-            int j = 0;
-            double d = 0;
-            if (V4.IsHardwareAccelerated)
-            {
-                V4d vec = V4d.Zero;
-                for (; j < top; j += V4d.Count)
-                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
-                        V4.LoadUnsafe(ref Add(ref x, j)));
-                d = vec.Sum();
-            }
-            for (; j < c; j++)
-                d = FusedMultiplyAdd(Add(ref a, j), Add(ref x, j), d);
-            b = d;
-        }
+        double[] source = (double[])v;
+        ref double b = ref MM.GetArrayDataReference(result);
+        for (int i = 0, offset = 0; i < r; i++, offset += c)
+            Add(ref b, i) = m.values.AsSpan(offset, c).DotProduct(source);
         return result;
     }
 
@@ -999,9 +973,9 @@ public readonly struct Matrix :
 
         int r = Rows, c = Cols;
         double[] result = new double[r];
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference((double[])v);
-        ref double t = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference((double[])v);
+        ref double t = ref MM.GetArrayDataReference(result);
         for (int k = 0; k < r; k++, p = ref Add(ref p, c))
         {
             double d = Add(ref q, k);
@@ -1009,7 +983,7 @@ public readonly struct Matrix :
             if (Avx.IsSupported)
             {
                 V4d vec = V4.Create(d);
-                for (int last = c & Simd.AVX_MASK; j < last; j += V4d.Count)
+                for (int last = c & Simd.MASK4; j < last; j += V4d.Count)
                     V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref t, j)).MultiplyAdd(
                         V4.LoadUnsafe(ref Add(ref p, j)), vec),
                         ref Add(ref t, j));
@@ -1031,32 +1005,16 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-        int r = Rows, c = Cols, top = c & Simd.AVX_MASK;
+        int r = Rows, c = Cols, top = c & Simd.MASK4;
         if (c != v.Length)
             throw new MatrixSizeException();
 
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double x = ref MemoryMarshal.GetArrayDataReference((double[])v);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
-        ref double ad = ref MemoryMarshal.GetArrayDataReference((double[])add);
-        for (int i = 0; i < r;
-            i++, a = ref Add(ref a, c), b = ref Add(ref b, 1), ad = ref Add(ref ad, 1))
-        {
-            int j = 0;
-            double d = 0;
-            if (V4.IsHardwareAccelerated)
-            {
-                V4d vec = V4d.Zero;
-                for (; j < top; j += V4d.Count)
-                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
-                        V4.LoadUnsafe(ref Add(ref x, j)));
-                d = vec.Sum();
-            }
-            for (; j < c; j++)
-                d = FusedMultiplyAdd(Add(ref a, j), Add(ref x, j), d);
-            b = d + ad;
-        }
+        double[] source = (double[])v;
+        ref double ad = ref MM.GetArrayDataReference((double[])add);
+        ref double b = ref MM.GetArrayDataReference(result);
+        for (int i = 0, offset = 0; i < r; i++, offset += c, ad = ref Add(ref ad, 1))
+            Add(ref b, i) = values.AsSpan(offset, c).DotProduct(source) + ad;
         return result;
     }
 
@@ -1072,32 +1030,16 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-        int r = Rows, c = Cols, top = c & Simd.AVX_MASK;
+        int r = Rows, c = Cols, top = c & Simd.MASK4;
         if (c != v.Length)
             throw new MatrixSizeException();
 
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double x = ref MemoryMarshal.GetArrayDataReference((double[])v);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
-        ref double ad = ref MemoryMarshal.GetArrayDataReference((double[])add);
-        for (int i = 0; i < r;
-            i++, a = ref Add(ref a, c), b = ref Add(ref b, 1), ad = ref Add(ref ad, 1))
-        {
-            int j = 0;
-            double d = 0;
-            if (V4.IsHardwareAccelerated)
-            {
-                V4d vec = V4d.Zero;
-                for (; j < top; j += V4d.Count)
-                    vec = vec.MultiplyAdd(
-                        V4.LoadUnsafe(ref a, (nuint)j), V4.LoadUnsafe(ref x, (nuint)j));
-                d = vec.Sum();
-            }
-            for (; j < c; j++)
-                d = FusedMultiplyAdd(Add(ref a, j), Add(ref x, j), d);
-            b = d + scale * ad;
-        }
+        double[] source = (double[])v;
+        ref double ad = ref MM.GetArrayDataReference((double[])add);
+        ref double b = ref MM.GetArrayDataReference(result);
+        for (int i = 0, offset = 0; i < r; i++, offset += c, ad = ref Add(ref ad, 1))
+            Add(ref b, i) = values.AsSpan(offset, c).DotProduct(source) + scale * ad;
         return result;
     }
 
@@ -1112,32 +1054,16 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-        int r = Rows, c = Cols, top = c & Simd.AVX_MASK;
+        int r = Rows, c = Cols, top = c & Simd.MASK4;
         if (c != v.Length)
             throw new MatrixSizeException();
 
         double[] result = GC.AllocateUninitializedArray<double>(r);
-        ref double a = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double x = ref MemoryMarshal.GetArrayDataReference((double[])v);
-        ref double b = ref MemoryMarshal.GetArrayDataReference(result);
-        ref double sb = ref MemoryMarshal.GetArrayDataReference((double[])sub);
-        for (int i = 0; i < r;
-            i++, a = ref Add(ref a, c), b = ref Add(ref b, 1), sb = ref Add(ref sb, 1))
-        {
-            int j = 0;
-            double d = 0;
-            if (V4.IsHardwareAccelerated)
-            {
-                V4d vec = V4d.Zero;
-                for (; j < top; j += V4d.Count)
-                    vec = vec.MultiplyAdd(V4.LoadUnsafe(ref Add(ref a, j)),
-                        V4.LoadUnsafe(ref Add(ref x, j)));
-                d = vec.Sum();
-            }
-            for (; j < c; j++)
-                d = FusedMultiplyAdd(Add(ref a, j), Add(ref x, j), d);
-            b = d - sb;
-        }
+        double[] source = (double[])v;
+        ref double sb = ref MM.GetArrayDataReference((double[])sub);
+        ref double b = ref MM.GetArrayDataReference(result);
+        for (int i = 0, offset = 0; i < r; i++, offset += c, sb = ref Add(ref sb, 1))
+            Add(ref b, i) = values.AsSpan(offset, c).DotProduct(source) - sb;
         return result;
     }
 
@@ -1263,8 +1189,8 @@ public readonly struct Matrix :
     public Matrix Map(Func<double, double> mapper)
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(newValues);
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference(newValues);
         for (int i = 0; i < newValues.Length; i++)
             Add(ref q, i) = mapper(Add(ref p, i));
         return new(Rows, Cols, newValues);
@@ -1392,7 +1318,7 @@ public class MatrixJsonConverter : JsonConverter<Matrix>
             else if (reader.TokenType == JsonTokenType.StartArray)
             {
                 values = new double[rows * cols];
-                ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+                ref double p = ref MM.GetArrayDataReference(values);
                 int total = rows * cols;
                 reader.Read();
                 while (reader.TokenType == JsonTokenType.Number && total-- > 0)

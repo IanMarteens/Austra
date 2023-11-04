@@ -65,7 +65,7 @@ public readonly struct EVD : IFormattable
         // Householder reduction to tridiagonal form.
         for (int i = r - 1; i > 0; i--)
         {
-            int top = i & Simd.AVX_MASK;
+            int top = i & Simd.MASK4;
             // Scale to avoid under/overflow.
             double scale = 0.0;
             int kk = 0;
@@ -213,7 +213,7 @@ public readonly struct EVD : IFormattable
             a[i * r + r - 1] = a[i * r + i];
             a[i * r + i] = 1.0;
             double h = d[i + 1];
-            int t = (i + 1) & Simd.AVX_MASK;
+            int t = (i + 1) & Simd.MASK4;
             if (h != 0.0)
             {
                 h = 1.0 / h;
@@ -304,7 +304,7 @@ public readonly struct EVD : IFormattable
                     if (Avx.IsSupported)
                     {
                         V4d vh = V4.Create(h);
-                        for (int top = (r - i) & Simd.AVX_MASK + i; i < top; i += 4)
+                        for (int top = (r - i) & Simd.MASK4 + i; i < top; i += 4)
                             Avx.Store(d + i, Avx.LoadVector256(d + i) - vh);
                     }
                     for (; i < r; i++)
@@ -335,7 +335,7 @@ public readonly struct EVD : IFormattable
                         {
                             V4d vs = V4.Create(s);
                             V4d vc = V4.Create(c);
-                            for (int top = r & Simd.AVX_MASK; k < top; k += 4)
+                            for (int top = r & Simd.MASK4; k < top; k += 4)
                             {
                                 V4d vh = Avx.LoadVector256(ai1 + k);
                                 V4d vk = Avx.LoadVector256(ai + k);
@@ -378,7 +378,7 @@ public readonly struct EVD : IFormattable
                 double* ai = a + i * r, ak = a + k * r;
                 int j = 0;
                 if (Avx.IsSupported)
-                    for (int t = r & Simd.AVX_MASK; j < t; j += 4)
+                    for (int t = r & Simd.MASK4; j < t; j += 4)
                     {
                         V4d v = Avx.LoadVector256(ai + j);
                         Avx.Store(ai + j, Avx.LoadVector256(ak + j));
@@ -400,7 +400,7 @@ public readonly struct EVD : IFormattable
         for (int m = 1, high = rank - 1; m < high; m++)
         {
             int mm1O = (m - 1) * rank;
-            int top = (rank - m) & Simd.AVX_MASK + m;
+            int top = (rank - m) & Simd.MASK4 + m;
             // Scale column.
             double scale = 0.0;
             int ii = m;
@@ -491,11 +491,11 @@ public readonly struct EVD : IFormattable
             {
                 int k = m + 1;
                 if (Avx.IsSupported)
-                    for (int t = (rank - m - 1) & Simd.AVX_MASK + m + 1; k < t; k += 4)
+                    for (int t = (rank - m - 1) & Simd.MASK4 + m + 1; k < t; k += 4)
                         Avx.Store(ort + k, Avx.LoadVector256(h + mm1O + k));
                 for (; k < rank; k++)
                     ort[k] = h[mm1O + k];
-                int top = (rank - m) & Simd.AVX_MASK + m;
+                int top = (rank - m) & Simd.MASK4 + m;
                 for (int j = m, jO = m * rank; j < rank; j++, jO += rank)
                 {
                     double g = 0.0;
@@ -610,7 +610,7 @@ public readonly struct EVD : IFormattable
                     {
                         V4d vp = V4.Create(p);
                         V4d vq = V4.Create(q);
-                        for (int top = (n + 1) & Simd.AVX_MASK; i < top; i += 4)
+                        for (int top = (n + 1) & Simd.MASK4; i < top; i += 4)
                         {
                             V4d vz = Avx.LoadVector256(h + nm1O + i);
                             V4d va = Avx.LoadVector256(h + nO + i);
@@ -632,7 +632,7 @@ public readonly struct EVD : IFormattable
                     {
                         V4d vp = V4.Create(p);
                         V4d vq = V4.Create(q);
-                        for (int top = rank & Simd.AVX_MASK; i < top; i += 4)
+                        for (int top = rank & Simd.MASK4; i < top; i += 4)
                         {
                             V4d vz = Avx.LoadVector256(a + nm1O + i);
                             Avx.Store(a + nm1O + i, (vq * vz).MultiplyAdd(a + nO + i, vp));
@@ -784,7 +784,7 @@ public readonly struct EVD : IFormattable
                             V4d vz = V4.Create(z);
                             V4d vr = V4.Create(r);
                             V4d vq = V4.Create(q);
-                            for (int top = (upper + 1) & Simd.AVX_MASK; i < top; i += 4)
+                            for (int top = (upper + 1) & Simd.MASK4; i < top; i += 4)
                             {
                                 V4d v1 = Avx.LoadVector256(h + kO + i);
                                 V4d v2 = Avx.LoadVector256(h + kp1O + i);
@@ -815,12 +815,9 @@ public readonly struct EVD : IFormattable
                         i = 0;
                         if (Avx.IsSupported)
                         {
-                            V4d vx = V4.Create(x);
-                            V4d vy = V4.Create(y);
-                            V4d vz = V4.Create(z);
-                            V4d vr = V4.Create(r);
-                            V4d vq = V4.Create(q);
-                            for (int top = rank & Simd.AVX_MASK; i < top; i += 4)
+                            V4d vx = V4.Create(x), vy = V4.Create(y), vz = V4.Create(z);
+                            V4d vr = V4.Create(r), vq = V4.Create(q);
+                            for (int top = rank & Simd.MASK4; i < top; i += 4)
                             {
                                 V4d v1 = Avx.LoadVector256(a + kO + i);
                                 V4d v2 = Avx.LoadVector256(a + kp1O + i);

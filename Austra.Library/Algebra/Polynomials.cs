@@ -176,9 +176,9 @@ public static class Polynomials
         if (k[0] == 0)
             return SolveQuadratic(k[1..]);
 
-        ref double rk = ref MemoryMarshal.GetReference(k);
-        double a = rk, b = Unsafe.Add(ref rk, 1);
-        double c = Unsafe.Add(ref rk, 2), d = Unsafe.Add(ref rk, 3);
+        ref double rk = ref MM.GetReference(k);
+        double a = rk, b = Add(ref rk, 1);
+        double c = Add(ref rk, 2), d = Add(ref rk, 3);
         double bb = b * b, ac = a * c, bc = b * c;
         double A = bb - 3 * ac;
         double B = (2 * bb - 9 * ac) * b + 27 * a * a * d;

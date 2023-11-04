@@ -3,7 +3,7 @@
 public class ParserBenchmark : BenchmarkControl
 {
     private readonly IDataSource dataSource;
-    private readonly IAustraEngine engine;
+    private readonly AustraEngine engine;
 
     public ParserBenchmark()
     {

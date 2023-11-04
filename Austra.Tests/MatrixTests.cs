@@ -132,7 +132,7 @@ public class MatrixTests
     [Test]
     public void CheckLMatrixSolve([Values(32, 49, 61)] int size)
     {
-        LMatrix m = new LMatrix(size, new Random()) + LMatrix.Identity(size) * 0.05;
+        LMatrix m = new LMatrix(size, new Random()) + LMatrix.Identity(size) * 0.1;
         Vector v = new(size, new NormalRandom());
         Vector x = m.Solve(v);
         Assert.That((m * x - v).AMax(), Is.LessThanOrEqualTo(2E-6));

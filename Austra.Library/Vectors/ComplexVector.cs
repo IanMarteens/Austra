@@ -83,8 +83,8 @@ public readonly struct ComplexVector :
     {
         re = GC.AllocateUninitializedArray<double>(size);
         im = GC.AllocateUninitializedArray<double>(size);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
         for (int i = 0; i < size; i++)
             (Add(ref p, i), Add(ref q, i)) = (
                 FusedMultiplyAdd(rnd.NextDouble(), width, offset),
@@ -98,8 +98,8 @@ public readonly struct ComplexVector :
     {
         re = GC.AllocateUninitializedArray<double>(size);
         im = GC.AllocateUninitializedArray<double>(size);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
         for (int i = 0; i < size; i++)
             (Add(ref p, i), Add(ref q, i)) = (rnd.NextDouble(), rnd.NextDouble());
     }
@@ -111,8 +111,8 @@ public readonly struct ComplexVector :
     {
         re = GC.AllocateUninitializedArray<double>(size);
         im = GC.AllocateUninitializedArray<double>(size);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
         for (int i = 0; i < size; i++)
             (Add(ref p, i), Add(ref q, i)) = rnd.NextDoubles();
     }
@@ -122,8 +122,8 @@ public readonly struct ComplexVector :
     /// <param name="f">A function defining item content.</param>
     public ComplexVector(int size, Func<int, Complex> f) : this(size)
     {
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
         for (int i = 0; i < size; i++)
             (Add(ref p, i), Add(ref q, i)) = f(i);
     }
@@ -133,8 +133,8 @@ public readonly struct ComplexVector :
     /// <param name="f">A function defining item content.</param>
     public ComplexVector(int size, Func<int, ComplexVector, Complex> f) : this(size)
     {
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
         for (int i = 0; i < size; i++)
             (Add(ref p, i), Add(ref q, i)) = f(i, this);
     }
@@ -143,11 +143,11 @@ public readonly struct ComplexVector :
     /// <param name="values">The complex components of the vector.</param>
     public ComplexVector(Complex[] values) : this(values.Length)
     {
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
         if (V4.IsHardwareAccelerated)
         {
-            ref double r = ref As<Complex, double>(ref MemoryMarshal.GetArrayDataReference(values));
+            ref double r = ref As<Complex, double>(ref MM.GetArrayDataReference(values));
             int t = values.Length - V4d.Count;
             for (int i = 0; i < t; i += V4d.Count)
             {
@@ -167,7 +167,7 @@ public readonly struct ComplexVector :
         }
         else
         {
-            ref Complex r = ref MemoryMarshal.GetArrayDataReference(values);
+            ref Complex r = ref MM.GetArrayDataReference(values);
             for (int i = 0; i < values.Length; i++)
                 (Add(ref p, i), Add(ref q, i)) = Add(ref r, i);
         }
@@ -191,9 +191,9 @@ public readonly struct ComplexVector :
     public static explicit operator Complex[](ComplexVector v)
     {
         Complex[] result = GC.AllocateUninitializedArray<Complex>(v.Length);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(v.re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(v.im);
-        ref double rs = ref As<Complex, double>(ref MemoryMarshal.GetArrayDataReference(result));
+        ref double p = ref MM.GetArrayDataReference(v.re);
+        ref double q = ref MM.GetArrayDataReference(v.im);
+        ref double rs = ref As<Complex, double>(ref MM.GetArrayDataReference(result));
         if (V4.IsHardwareAccelerated && v.re.Length >= V4d.Count)
         {
             nuint t = (nuint)(v.re.Length - V4d.Count);
@@ -265,8 +265,8 @@ public readonly struct ComplexVector :
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (uint)index < (uint)re.Length
             ? new(
-                Add(ref MemoryMarshal.GetArrayDataReference(re), index),
-                Add(ref MemoryMarshal.GetArrayDataReference(im), index))
+                Add(ref MM.GetArrayDataReference(re), index),
+                Add(ref MM.GetArrayDataReference(im), index))
             : throw new IndexOutOfRangeException();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => (re[index], im[index]) = value;
@@ -298,8 +298,8 @@ public readonly struct ComplexVector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Complex SafeThis(int index) => (uint)index < (uint)Length
         ? new(
-            Add(ref MemoryMarshal.GetArrayDataReference(re), index),
-            Add(ref MemoryMarshal.GetArrayDataReference(im), index))
+            Add(ref MM.GetArrayDataReference(re), index),
+            Add(ref MM.GetArrayDataReference(im), index))
         : Complex.Zero;
 
     /// <summary>Adds two complex vectors.</summary>
@@ -420,12 +420,12 @@ public readonly struct ComplexVector :
         Contract.Ensures(Contract.Result<Vector>().Length == Length);
 
         double[] r = new double[Length], m = new double[Length];
-        ref double pr = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double pi = ref MemoryMarshal.GetArrayDataReference(im);
-        ref double qr = ref MemoryMarshal.GetArrayDataReference(other.re);
-        ref double qi = ref MemoryMarshal.GetArrayDataReference(other.im);
-        ref double vr = ref MemoryMarshal.GetArrayDataReference(r);
-        ref double vm = ref MemoryMarshal.GetArrayDataReference(m);
+        ref double pr = ref MM.GetArrayDataReference(re);
+        ref double pi = ref MM.GetArrayDataReference(im);
+        ref double qr = ref MM.GetArrayDataReference(other.re);
+        ref double qi = ref MM.GetArrayDataReference(other.im);
+        ref double vr = ref MM.GetArrayDataReference(r);
+        ref double vm = ref MM.GetArrayDataReference(m);
         if (V4.IsHardwareAccelerated && r.Length >= V4d.Count)
         {
             nuint t = (nuint)(r.Length - V4d.Count);
@@ -462,12 +462,12 @@ public readonly struct ComplexVector :
 
         double[] r = GC.AllocateUninitializedArray<double>(Length);
         double[] m = GC.AllocateUninitializedArray<double>(Length);
-        ref double pr = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double pi = ref MemoryMarshal.GetArrayDataReference(im);
-        ref double qr = ref MemoryMarshal.GetArrayDataReference(other.re);
-        ref double qi = ref MemoryMarshal.GetArrayDataReference(other.im);
-        ref double vr = ref MemoryMarshal.GetArrayDataReference(r);
-        ref double vm = ref MemoryMarshal.GetArrayDataReference(m);
+        ref double pr = ref MM.GetArrayDataReference(re);
+        ref double pi = ref MM.GetArrayDataReference(im);
+        ref double qr = ref MM.GetArrayDataReference(other.re);
+        ref double qi = ref MM.GetArrayDataReference(other.im);
+        ref double vr = ref MM.GetArrayDataReference(r);
+        ref double vm = ref MM.GetArrayDataReference(m);
         if (V4.IsHardwareAccelerated && r.Length >= V4d.Count)
         {
             nuint t = (nuint)(r.Length - V4d.Count);
@@ -505,17 +505,17 @@ public readonly struct ComplexVector :
             throw new VectorLengthException();
         Contract.EndContractBlock();
 
-        ref double pr = ref MemoryMarshal.GetArrayDataReference(v1.re);
-        ref double pi = ref MemoryMarshal.GetArrayDataReference(v1.im);
-        ref double qr = ref MemoryMarshal.GetArrayDataReference(v2.re);
-        ref double qi = ref MemoryMarshal.GetArrayDataReference(v2.im);
+        ref double pr = ref MM.GetArrayDataReference(v1.re);
+        ref double pi = ref MM.GetArrayDataReference(v1.im);
+        ref double qr = ref MM.GetArrayDataReference(v2.re);
+        ref double qi = ref MM.GetArrayDataReference(v2.im);
         double sumRe = 0, sumIm = 0;
         int i = 0, size = v1.Length;
         if (Avx.IsSupported)
         {
             V4d accRe = V4d.Zero;
             V4d accIm = V4d.Zero;
-            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
+            for (int top = size & Simd.MASK4; i < top; i += 4)
             {
                 V4d vpr = V4.LoadUnsafe(ref Add(ref pr, i));
                 V4d vpi = V4.LoadUnsafe(ref Add(ref pi, i));
@@ -540,14 +540,14 @@ public readonly struct ComplexVector :
     public double Squared()
     {
         Contract.Requires(IsInitialized);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
         double sum = 0;
         nuint i = 0;
         if (Avx.IsSupported)
         {
             V4d acc = V4d.Zero;
-            for (nuint top = (nuint)Length & Simd.AVX_MASK; i < top; i += 4)
+            for (nuint top = (nuint)Length & Simd.MASK4; i < top; i += 4)
             {
                 V4d v = V4.LoadUnsafe(ref p, i), w = V4.LoadUnsafe(ref q, i);
                 acc += (v * v).MultiplyAdd(w, w);
@@ -573,15 +573,15 @@ public readonly struct ComplexVector :
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
 
         double[] re = new double[v.Length], im = new double[v.Length];
-        ref double pr = ref MemoryMarshal.GetArrayDataReference(v.re);
-        ref double pi = ref MemoryMarshal.GetArrayDataReference(v.im);
-        ref double qr = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double qi = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double pr = ref MM.GetArrayDataReference(v.re);
+        ref double pi = ref MM.GetArrayDataReference(v.im);
+        ref double qr = ref MM.GetArrayDataReference(re);
+        ref double qi = ref MM.GetArrayDataReference(im);
         int len = v.Length, i = 0;
         if (Avx.IsSupported)
         {
             V4d vr = V4.Create(c.Real), vi = V4.Create(c.Imaginary);
-            for (int top = len & Simd.AVX_MASK; i < top; i += 4)
+            for (int top = len & Simd.MASK4; i < top; i += 4)
             {
                 V4d vpr = V4.LoadUnsafe(ref Add(ref pr, i));
                 V4d vpi = V4.LoadUnsafe(ref Add(ref pi, i));
@@ -664,12 +664,12 @@ public readonly struct ComplexVector :
     internal Vector Magnitudes(int n)
     {
         double[] result = GC.AllocateUninitializedArray<double>(n);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
-        ref double r = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
+        ref double r = ref MM.GetArrayDataReference(result);
         int i = 0;
         if (Avx.IsSupported)
-            for (int top = n & Simd.AVX_MASK; i < top; i += 4)
+            for (int top = n & Simd.MASK4; i < top; i += 4)
             {
                 V4d v = V4.LoadUnsafe(ref Add(ref p, i));
                 V4d w = V4.LoadUnsafe(ref Add(ref q, i));
@@ -700,14 +700,14 @@ public readonly struct ComplexVector :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<double>() >= 0);
 
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
         int i = 0;
         double result = 0;
         if (Avx.IsSupported)
         {
             V4d max = V4d.Zero;
-            for (int top = Length & Simd.AVX_MASK; i < top; i += 4)
+            for (int top = Length & Simd.MASK4; i < top; i += 4)
             {
                 V4d v = V4.LoadUnsafe(ref Add(ref p, i));
                 V4d w = V4.LoadUnsafe(ref Add(ref q, i));
@@ -729,9 +729,9 @@ public readonly struct ComplexVector :
     internal Vector Phases(int n)
     {
         double[] result = GC.AllocateUninitializedArray<double>(n);
-        ref double p = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double q = ref MemoryMarshal.GetArrayDataReference(im);
-        ref double r = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
+        ref double r = ref MM.GetArrayDataReference(result);
         if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
         {
             int t = result.Length - V4d.Count;
@@ -865,12 +865,12 @@ public readonly struct ComplexVector :
     {
         int len = Min(Length, other.Length);
         double[] newRe = new double[len], newIm = new double[len];
-        ref double p1r = ref MemoryMarshal.GetArrayDataReference(re);
-        ref double p1i = ref MemoryMarshal.GetArrayDataReference(im);
-        ref double p2r = ref MemoryMarshal.GetArrayDataReference(other.re);
-        ref double p2i = ref MemoryMarshal.GetArrayDataReference(other.im);
-        ref double qr = ref MemoryMarshal.GetArrayDataReference(newRe);
-        ref double qi = ref MemoryMarshal.GetArrayDataReference(newIm);
+        ref double p1r = ref MM.GetArrayDataReference(re);
+        ref double p1i = ref MM.GetArrayDataReference(im);
+        ref double p2r = ref MM.GetArrayDataReference(other.re);
+        ref double p2i = ref MM.GetArrayDataReference(other.im);
+        ref double qr = ref MM.GetArrayDataReference(newRe);
+        ref double qi = ref MM.GetArrayDataReference(newIm);
         for (int i = 0; i < len; i++)
             (Add(ref qr, i), Add(ref qi, i)) = zipper(
                 new(Add(ref p1r, i), Add(ref p1i, i)), new(Add(ref p2r, i), Add(ref p2i, i)));

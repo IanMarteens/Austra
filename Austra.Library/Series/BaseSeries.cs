@@ -165,8 +165,8 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
         (uint)index >= values.Length
         ? default
         : new(
-            Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(args), values.Length - index - 1),
-            Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(values), values.Length - index - 1));
+            Unsafe.Add(ref MM.GetArrayDataReference(args), values.Length - index - 1),
+            Unsafe.Add(ref MM.GetArrayDataReference(values), values.Length - index - 1));
 
     /// <summary>Gets statistics on the series.</summary>
     /// <returns>The current calculated statistics.</returns>
@@ -352,7 +352,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
             {
                 V4d meanx = V4.Create(x0), meany = V4.Create(y0);
                 V4d vex = V4d.Zero, vey = V4d.Zero, vexy = V4d.Zero;
-                for (int top = count & Simd.AVX_MASK; i < top; i += 4)
+                for (int top = count & Simd.MASK4; i < top; i += 4)
                 {
                     V4d x = Avx.LoadVector256(pA + i) - meanx;
                     V4d y = Avx.LoadVector256(pB + i) - meany;
@@ -588,7 +588,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
                     if (Avx.IsSupported)
                     {
                         V4d vec = V4.Create(w);
-                        for (int top = size & Simd.AVX_MASK; j < top; j += 4)
+                        for (int top = size & Simd.MASK4; j < top; j += 4)
                             Avx.Store(p + j, Avx.LoadVector256(p + j).MultiplyAdd(pa + j, vec));
                     }
                     for (; j < size; j++)

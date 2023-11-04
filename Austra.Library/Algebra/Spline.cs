@@ -56,12 +56,12 @@ public abstract class Spline<ARG> where ARG : struct
 
     private void CalculateSplines(double[] xs, double[] ys)
     {
-        ref double rx = ref MemoryMarshal.GetArrayDataReference(xs);
-        ref double ry = ref MemoryMarshal.GetArrayDataReference(ys);
+        ref double rx = ref MM.GetArrayDataReference(xs);
+        ref double ry = ref MM.GetArrayDataReference(ys);
         // Allocate temporal and final arrays.
         int n = xs.Length;
-        ref double rc = ref MemoryMarshal.GetArrayDataReference(new double[n]);
-        ref double rr = ref MemoryMarshal.GetArrayDataReference(new double[n]);
+        ref double rc = ref MM.GetArrayDataReference(new double[n]);
+        ref double rr = ref MM.GetArrayDataReference(new double[n]);
         // First row.
         rc = 0.5;
         double last = rr = 1.5 * (Add(ref ry, 1) - ry) / (Add(ref rx, 1) - rx);
@@ -115,7 +115,7 @@ public abstract class Spline<ARG> where ARG : struct
     {
         get
         {
-            ref double rx = ref MemoryMarshal.GetArrayDataReference(xs);
+            ref double rx = ref MM.GetArrayDataReference(xs);
             if (x < rx || x > Add(ref rx, xs.Length - 1))
                 throw new ArgumentOutOfRangeException(nameof(x));
             if (x == Add(ref rx, xs.Length - 1))
@@ -137,7 +137,7 @@ public abstract class Spline<ARG> where ARG : struct
     /// <returns>The cubic approximation to the derivative.</returns>
     protected double Derivative(double x)
     {
-        ref double rx = ref MemoryMarshal.GetArrayDataReference(xs);
+        ref double rx = ref MM.GetArrayDataReference(xs);
         if (x < rx || x > Add(ref rx, xs.Length - 1))
             throw new ArgumentOutOfRangeException(nameof(x));
         int i = Array.BinarySearch(xs, x);
@@ -206,17 +206,14 @@ public abstract class Spline<ARG> where ARG : struct
 }
 
 /// <summary>Interpolates temporal series.</summary>
-public sealed class DateSpline : Spline<Date>
+/// <remarks>Creates an interpolator for a series.</remarks>
+/// <param name="series">The temporal series to interpolate.</param>
+public sealed class DateSpline(Series series) : Spline<Date>(
+    series.Args.Reverse().Take(series.Count).Select(x => (double)x).ToArray(),
+    series.Values.Reverse().Take(series.Count).ToArray())
 {
-    /// <summary>Creates an interpolator for a series.</summary>
-    /// <param name="series">The temporal series to interpolate.</param>
-    public DateSpline(Series series) : base(
-        series.Args.Reverse().Take(series.Count).Select(x => (double)x).ToArray(),
-        series.Values.Reverse().Take(series.Count).ToArray()) =>
-        Original = series;
-
     /// <summary>Original series.</summary>
-    public Series Original { get; }
+    public Series Original { get; } = series;
 
     /// <summary>Gets the interpolated value at a given date.</summary>
     /// <param name="d">A new date to interpolate its value.</param>

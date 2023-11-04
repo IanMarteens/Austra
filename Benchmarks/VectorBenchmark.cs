@@ -18,10 +18,10 @@ public class VectorBenchmark : BenchmarkControl
         cv7 = new Vector(1024, new NormalRandom(rnd));
     }
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorSum() => cv4 + cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraVectorSub() => cv4 - cv5;
 
     //[Benchmark]
@@ -84,7 +84,7 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public int AustraIndexOfLast() => cv7.IndexOf(cv7[^1]);
 
-    //[Benchmark]
+    [Benchmark]
     public double AustraAutocorrelation() => cv7.AutoCorrelation(4);
 
     //[Benchmark]

@@ -94,8 +94,8 @@ public sealed class Series : Series<Date>,
             int i = 0, size = newValues.Length;
             if (Avx.IsSupported)
             {
-                V4d one = V4.Create(1.0);
-                for (int top = size & Simd.AVX_MASK; i < top; i += 4)
+                V4d one = V4d.One;
+                for (int top = size & Simd.MASK4; i < top; i += 4)
                     Avx.Store(q + i,
                         Avx.LoadVector256(p + i) / Avx.LoadVector256(p + i + 1) - one);
             }
@@ -115,7 +115,7 @@ public sealed class Series : Series<Date>,
             int i = 0, size = newValues.Length;
             if (Avx2.IsSupported && Fma.IsSupported)
             {
-                for (int top = size & Simd.AVX_MASK; i < top; i += 4)
+                for (int top = size & Simd.MASK4; i < top; i += 4)
                     Avx.Store(q + i,
                         (Avx.LoadVector256(p + i) / Avx.LoadVector256(p + i + 1)).Log());
             }
@@ -565,7 +565,7 @@ public sealed class Series : Series<Date>,
         }
         return dates.Count == Count
             ? this
-            : new(Name + ".FILTER", Ticker, dates.ToArray(), vs.ToArray(), this);
+            : new(Name + ".FILTER", Ticker, [.. dates], [.. vs], this);
     }
 
     /// <summary>Combines the common sufix of two time series.</summary>

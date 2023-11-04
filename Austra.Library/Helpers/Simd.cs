@@ -4,9 +4,9 @@
 public static class Simd
 {
     /// <summary>Mask for <see cref="Vector256{T}"/> iterations.</summary>
-    public const int AVX_MASK = 0x_7FFF_FFFC;
-    /// <summary>Mask for Vector512 iterations.</summary>
-    public const int AVX512_MASK = 0x_7FFF_FFF8;
+    public const int MASK4 = 0x_7FFF_FFFC;
+    /// <summary>Mask for <see cref="Vector512{T}"/> iterations.</summary>
+    public const int MASK8 = 0x_7FFF_FFF8;
 
     /// <summary>The square root of two.</summary>
     public const double SQRT2 = 1.41421356237309504880;
@@ -30,6 +30,13 @@ public static class Simd
         Vector128<double> x = Sse2.Multiply(v.GetLower(), v.GetUpper());
         return x.ToScalar() * x.GetElement(1);
     }
+
+    /// <summary>Gets the maximum component in a vector.</summary>
+    /// <param name="v">A intrinsics vector with four doubles.</param>
+    /// <returns>The maximum component.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static double Max(this V8d v) =>
+        Math.Max(v.GetLower().Max(), v.GetUpper().Max());
 
     /// <summary>Gets the maximum component in a vector.</summary>
     /// <param name="v">A intrinsics vector with four doubles.</param>
@@ -240,8 +247,8 @@ public static class Simd
         V4d e = Avx2.Or(Avx2.ShiftRightLogical(x.AsUInt64(), 52),
             V4.Create(pow2_52).AsUInt64()).AsDouble() - V4.Create(pow2_52 + bias);
         V4d blend = Avx.CompareGreaterThan(m, V4.Create(SQRT2 * 0.5));
-        e += V4.Create(1d) & blend;
-        m += Avx.AndNot(blend, m) - V4.Create(1d);
+        e += V4d.One & blend;
+        m += Avx.AndNot(blend, m) - V4d.One;
         V4d x2 = m * m;
         V4d re = m.Poly5(P0, P1, P2, P3, P4, P5) * m * x2
             / m.Poly5n(Q0, Q1, Q2, Q3, Q4);
@@ -296,10 +303,8 @@ public static class Simd
             + (notSmall & Avx.BlendVariable(
                 V4.Create(MOREBITS), V4.Create(MOREBITSO2), notBig));
 
-        V4d z = ((notBig & t) + (notSmall & minusOne)) 
-            / ((notBig & V4.Create(1d)) + (notSmall & t));
+        V4d z = ((notBig & t) + (notSmall & minusOne)) / ((notBig & V4d.One) + (notSmall & t));
         V4d zz = z * z;
-
         V4d px = zz.Poly4(P0, P1, P2, P3, P4) / zz.Poly5n(Q0, Q1, Q2, Q3, Q4);
         V4d re = Fma.MultiplyAdd(px, z * zz, z + s);
         re = Avx.BlendVariable(re, V4.Create(PI_2) - re, swap);

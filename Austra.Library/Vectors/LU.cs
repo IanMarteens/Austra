@@ -54,7 +54,7 @@ public readonly struct LU : IFormattable
                 for (int i = 0; i < r; i++)
                 {
                     int top = Min(i, j);
-                    int lastBlock = top & Simd.AVX_MASK;
+                    int lastBlock = top & Simd.MASK4;
                     double s = 0.0;
                     int k = 0;
                     if (Avx.IsSupported)
@@ -94,7 +94,7 @@ public readonly struct LU : IFormattable
                     if (Avx.IsSupported)
                     {
                         // Unroll the loop.
-                        for (int lastBlock = r & Simd.AVX512_MASK; k < lastBlock; k += 8)
+                        for (int lastBlock = r & Simd.MASK8; k < lastBlock; k += 8)
                         {
                             var v1 = Avx.LoadVector256(pAp + k);
                             var v2 = Avx.LoadVector256(pAp + (k + 4));
@@ -106,7 +106,7 @@ public readonly struct LU : IFormattable
                             Avx.Store(pAp + k, w1);
                             Avx.Store(pAp + (k + 4), w2);
                         }
-                        if (k < (r & Simd.AVX_MASK))
+                        if (k < (r & Simd.MASK4))
                         {
                             var v1 = Avx.LoadVector256(pAp + k);
                             var w1 = Avx.LoadVector256(pAj + k);
@@ -234,7 +234,7 @@ public readonly struct LU : IFormattable
                 int i = 0;
                 if (Avx2.IsSupported)
                 {
-                    for (int top = size & Simd.AVX_MASK; i < top; i += 4)
+                    for (int top = size & Simd.MASK4; i < top; i += 4)
                         Avx.Store(c + i, Avx2.GatherVector256(p, Sse2.LoadVector128(q + i), 8));
                 }
                 for (; i < size; i++)
@@ -303,7 +303,7 @@ public readonly struct LU : IFormattable
         int size = Size;
         fixed (double* pA = values, pC = (double[])output)
         {
-            int top = size & Simd.AVX_MASK;
+            int top = size & Simd.MASK4;
             // Apply permutations to each column of the input.
             fixed (double* pB = (double[])input)
             fixed (int* pP = pivots)

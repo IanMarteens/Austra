@@ -166,8 +166,8 @@ public readonly struct RMatrix :
 
         int c = Cols, r = Rows;
         double[] result = GC.AllocateUninitializedArray<double>(values.Length);
-        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double pA = ref MM.GetArrayDataReference(values);
+        ref double pB = ref MM.GetArrayDataReference(result);
         for (int row = 0; row < r; row++, pA = ref Add(ref pA, c))
             for (int col = row; col < c; col++)
                 Add(ref pB, col * r + row) = Add(ref pA, col);
@@ -332,7 +332,7 @@ public readonly struct RMatrix :
                     if (Avx.IsSupported)
                     {
                         V4d vd = V4.Create(d);
-                        for (int top = (p - k) & Simd.AVX_MASK + k; j < top; j += 4)
+                        for (int top = (p - k) & Simd.MASK4 + k; j < top; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
                     }
@@ -393,7 +393,7 @@ public readonly struct RMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = new double[r];
         double[] vector = (double[])v;
-        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double pB = ref MM.GetArrayDataReference(result);
         for (int row = 0, offset = 0; row < c; row++, offset += c)
             Add(ref pB, row) = m.values.AsSpan(offset + row, c - row)
                 .DotProduct(vector.AsSpan(row));

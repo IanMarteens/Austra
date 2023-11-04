@@ -77,7 +77,7 @@ internal sealed partial class Parser
         parsingHeader = parsingLambdaHeader;
         List<Member> result;
         if (parsingHeader)
-            result = new();
+            result = [];
         else
         {
             result = new(locals.Count + 2);
@@ -859,7 +859,7 @@ internal sealed partial class Parser
                 ? Expression.New(IndexCtor, e2, Expression.Constant(fromEnd2))
                 : Expression.Constant(Index.End);
             return Expression.Property(e,
-                typeof(Series).GetProperty("Item", new[] { typeof(Range) })!,
+                typeof(Series).GetProperty("Item", [typeof(Range)])!,
                 Expression.New(RangeCtor, e1, e2));
         }
         e1 ??= e2!.Type == typeof(Date)
@@ -869,7 +869,7 @@ internal sealed partial class Parser
             ? Expression.Constant(new Date(3000, 1, 1))
             : Expression.Constant(int.MaxValue);
         return Expression.Call(e,
-            typeof(Series).GetMethod(nameof(Series.Slice), new[] { e1.Type, e2.Type })!,
+            typeof(Series).GetMethod(nameof(Series.Slice), [e1.Type, e2.Type])!,
             e1, e2);
     }
 

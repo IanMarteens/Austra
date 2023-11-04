@@ -106,7 +106,7 @@ public sealed class Accumulator
             V4d μ1 = V4d.Zero, μ2 = V4d.Zero, μ3 = V4d.Zero, μ4 = V4d.Zero;
             V4d v3 = V4.Create(3.0), v4 = V4.Create(4.0), v6 = V4.Create(6.0);
             long c = 0;
-            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
+            for (int top = size & Simd.MASK4; i < top; i += 4)
             {
                 c++;
                 V4d vSample = Avx.LoadVector256(samples + i);

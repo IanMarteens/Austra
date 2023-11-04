@@ -77,7 +77,7 @@ public readonly struct LMatrix :
     public LMatrix(int rows, int cols, Random random)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        ref double cell = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double cell = ref MM.GetArrayDataReference(values);
         for (int r = 0; r < rows; r++)
             for (int c = 0, top = Min(cols, r + 1); c < top; c++)
                 Add(ref cell, r * cols + c) = random.NextDouble();
@@ -100,7 +100,7 @@ public readonly struct LMatrix :
     public LMatrix(int rows, int cols, NormalRandom random)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        ref double cell = ref MemoryMarshal.GetArrayDataReference(values);
+        ref double cell = ref MM.GetArrayDataReference(values);
         // First row is special!
         cell = random.NextDouble();
         for (int r = 1; r < rows; r++)
@@ -204,8 +204,8 @@ public readonly struct LMatrix :
 
         nuint c = (nuint)Cols, r = (nuint)Rows;
         double[] result = new double[values.Length];
-        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double pA = ref MM.GetArrayDataReference(values);
+        ref double pB = ref MM.GetArrayDataReference(result);
         if (Avx.IsSupported && r == c && (r & 0b11) == 0)
         {
             // Columns and rows are equal and multiples of four.
@@ -478,7 +478,7 @@ public readonly struct LMatrix :
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        int last = p & Simd.AVX_MASK;
+        int last = p & Simd.MASK4;
         fixed (double* pA = m1.values, pB = (double[])m2, pC = result)
         {
             double* pAi = pA, pCi = pC;
@@ -536,7 +536,7 @@ public readonly struct LMatrix :
                     if (Avx.IsSupported)
                     {
                         V4d vd = V4.Create(d);
-                        for (int last = top & Simd.AVX_MASK; j < last; j += 4)
+                        for (int last = top & Simd.MASK4; j < last; j += 4)
                             Avx.Store(pCi + j,
                                 Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
                     }
@@ -627,7 +627,7 @@ public readonly struct LMatrix :
                     if (Avx.IsSupported)
                     {
                         V4d sum = V4d.Zero;
-                        for (int top = size & Simd.AVX_MASK; k < top; k += 4)
+                        for (int top = size & Simd.MASK4; k < top; k += 4)
                             sum = sum.MultiplyAdd(pAi + k, pBj + k);
                         acc = sum.Sum();
                     }
@@ -656,7 +656,7 @@ public readonly struct LMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = GC.AllocateUninitializedArray<double>(r);
         double[] vector = (double[])v;
-        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
+        ref double pB = ref MM.GetArrayDataReference(result);
         // First row is special.
         pB = m.values[0] * vector[0];
         for (int i = 1, offset = c; i < r; i++, offset += c)
@@ -676,8 +676,8 @@ public readonly struct LMatrix :
     {
         int r = Rows, c = Cols;
         double[] vector = (double[])v;
-        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
-        ref double pC = ref MemoryMarshal.GetArrayDataReference((double[])add);
+        ref double pB = ref MM.GetArrayDataReference(result);
+        ref double pC = ref MM.GetArrayDataReference((double[])add);
         // First row is special.
         pB = values[0] * vector[0] + pC;
         for (int i = 1, offset = c; i < r; i++, offset += c)
@@ -703,8 +703,8 @@ public readonly struct LMatrix :
     {
         int r = Rows, c = Cols;
         double[] vector = (double[])v;
-        ref double pB = ref MemoryMarshal.GetArrayDataReference(result);
-        ref double pC = ref MemoryMarshal.GetArrayDataReference((double[])sub);
+        ref double pB = ref MM.GetArrayDataReference(result);
+        ref double pC = ref MM.GetArrayDataReference((double[])sub);
         // First row is special.
         pB = values[0] * vector[0] - pC;
         for (int i = 1, offset = c; i < r; i++, offset += c)
@@ -748,9 +748,9 @@ public readonly struct LMatrix :
         Contract.Requires(output.Length == Rows);
 
         nuint size = (nuint)input.Length;
-        ref double pA = ref MemoryMarshal.GetArrayDataReference(values);
-        ref double pV = ref MemoryMarshal.GetArrayDataReference((double[])input);
-        ref double pR = ref MemoryMarshal.GetArrayDataReference((double[])output);
+        ref double pA = ref MM.GetArrayDataReference(values);
+        ref double pV = ref MM.GetArrayDataReference((double[])input);
+        ref double pR = ref MM.GetArrayDataReference((double[])output);
         pR = pV / pA;    // First row is special.
         for (nuint i = 1; i < size; i++)
         {
@@ -760,7 +760,7 @@ public readonly struct LMatrix :
             if (Avx.IsSupported)
             {
                 V4d acc = V4d.Zero;
-                for (nuint top = i & Simd.AVX_MASK; j < top; j += 4)
+                for (nuint top = i & Simd.MASK4; j < top; j += 4)
                     acc = acc.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pR, j));
                 sum -= acc.Sum();
             }
@@ -878,7 +878,7 @@ public class LMatrixJsonConverter : JsonConverter<LMatrix>
             {
                 values = new double[rows * cols];
                 int total = rows * cols;
-                ref double p = ref MemoryMarshal.GetArrayDataReference(values);
+                ref double p = ref MM.GetArrayDataReference(values);
                 reader.Read();
                 while (reader.TokenType == JsonTokenType.Number && total-- > 0)
                 {

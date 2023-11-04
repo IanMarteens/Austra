@@ -486,7 +486,7 @@ public sealed partial class FftPlan
     /// <param name="reps">Repetition count.</param>
     private unsafe void Execute(int row, double* a, Span<double> buffer, int reps = 1)
     {
-        for (ref Plan entry0 = ref MemoryMarshal.GetArrayDataReference(plans); ;)
+        for (ref Plan entry0 = ref MM.GetArrayDataReference(plans); ;)
         {
             ref Plan e = ref Unsafe.Add(ref entry0, row);
             switch (e.Type)
@@ -1774,7 +1774,7 @@ public sealed partial class FftPlan
     }
 
     /// <summary>Provides a simple pool of arrays.</summary>
-    private struct SharedPool
+    private struct SharedPool(int arraySize)
     {
         private sealed class Entry
         {
@@ -1787,10 +1787,8 @@ public sealed partial class FftPlan
         /// <summary>List of recycled entries.</summary>
         private Entry? recycled_entries;
 
-        public SharedPool(int arraySize) => ArraySize = arraySize;
-
         /// <summary>Size of new arrays.</summary>
-        public int ArraySize { get; }
+        public int ArraySize { get; } = arraySize;
 
         public (double[] obj1, double[] obj2) Rent()
         {

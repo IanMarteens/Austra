@@ -80,7 +80,7 @@ public sealed class SimpleAccumulator
             V4d vM1 = V4d.Zero;
             V4d vM2 = V4d.Zero;
             long c = 0;
-            for (int top = size & Simd.AVX_MASK; i < top; i += 4)
+            for (int top = size & Simd.MASK4; i < top; i += 4)
             {
                 c++;
                 V4d vSample = Avx.LoadVector256(samples + i);

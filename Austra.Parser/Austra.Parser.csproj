@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Austra.Parser</RootNamespace>
 		<AssemblyName>Austra.Parser</AssemblyName>
 		<PackageIcon>au256.png</PackageIcon>
@@ -13,9 +13,9 @@
 		<LangVersion>latest</LangVersion>
 		<PackageReadmeFile>ReadMe.md</PackageReadmeFile>
 		<PackageOutputPath>D:\Source\Packages</PackageOutputPath>
-		<AssemblyVersion>1.6.0</AssemblyVersion>
-		<FileVersion>1.6.0</FileVersion>
-		<Version>1.6.0</Version>
+		<AssemblyVersion>2.0.0</AssemblyVersion>
+		<FileVersion>2.0.0</FileVersion>
+		<Version>2.0.0</Version>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Nullable>enable</Nullable>
 		<Description>Implements a compiler for the AUSTRA's formula language.</Description>

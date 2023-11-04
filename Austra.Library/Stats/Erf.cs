@@ -468,7 +468,7 @@ public partial class Functions
     private static double Evaluate(double z, ReadOnlySpan<double> coefficients)
     {
         int n = coefficients.Length;
-        ref double rd = ref MemoryMarshal.GetReference(coefficients);
+        ref double rd = ref MM.GetReference(coefficients);
         double sum = Unsafe.Add(ref rd, n - 1);
         for (int i = n - 2; i >= 0; --i)
             sum = FusedMultiplyAdd(z, sum, Unsafe.Add(ref rd, i));

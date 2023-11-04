@@ -154,7 +154,7 @@ public static partial class Functions
     /// <returns>The gamma function.</returns>
     public static double Gamma(double z)
     {
-        ref double rd = ref MemoryMarshal.GetReference(GammaDk);
+        ref double rd = ref MM.GetReference(GammaDk);
         double s = rd;
         if (z < 0.5)
         {

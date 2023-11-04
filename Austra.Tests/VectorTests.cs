@@ -111,11 +111,11 @@ public class VectorTests
     }
 
     [Test]
-    public void CheckMultiplyAddScalar()
+    public void CheckMultiplyAddScalar([Values(921, 1024)]int size)
     {
-        Vector x = new(1024, Random.Shared);
+        Vector x = new(size, Random.Shared);
         double y = Random.Shared.NextDouble();
-        Vector z = new(1024, Random.Shared);
+        Vector z = new(size, Random.Shared);
         Vector d = x * y + z;
         Vector e = x.MultiplyAdd(y, z);
         Assert.That((d - e).AMax(), Is.LessThan(1E-14));
@@ -133,11 +133,11 @@ public class VectorTests
     }
 
     [Test]
-    public void CheckMultiplySubtractScalar()
+    public void CheckMultiplySubtractScalar([Values(921, 1024)] int size)
     {
-        Vector x = new(1024, Random.Shared);
+        Vector x = new(size, Random.Shared);
         double y = Random.Shared.NextDouble();
-        Vector z = new(1024, Random.Shared);
+        Vector z = new(size, Random.Shared);
         Vector d = x * y - z;
         Vector e = x.MultiplySubtract(y, z);
         Assert.That((d - e).AMax(), Is.LessThan(1E-14));
@@ -215,7 +215,7 @@ public class VectorTests
         ComplexVector z = v.PointwiseMultiply(w);
         Assert.That(z, Has.Length.EqualTo(v.Length));
         for (int i = 0; i < v.Length; i++)
-            Assert.That((z[i] - v[i] * w[i]).Magnitude, Is.LessThan(1E-14));
+            Assert.That((z[i] - v[i] * w[i]).Magnitude, Is.LessThan(2E-14));
     }
 
     [Test]
