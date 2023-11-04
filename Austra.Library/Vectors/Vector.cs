@@ -567,7 +567,17 @@ public readonly struct Vector :
         ref double p = ref MM.GetArrayDataReference(values);
         ref double r = ref MM.GetArrayDataReference(summand.values);
         ref double s = ref MM.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && Fma.IsSupported && result.Length >= V4d.Count)
+        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
+        {
+            V8d vq = V8.Create(multiplier);
+            nuint t = (nuint)(result.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                    V8.LoadUnsafe(ref p, i), vq, V8.LoadUnsafe(ref r, i)), ref s, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                V8.LoadUnsafe(ref p, t), vq, V8.LoadUnsafe(ref r, t)), ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && Fma.IsSupported && result.Length >= V4d.Count)
         {
             V4d vq = V4.Create(multiplier);
             nuint t = (nuint)(result.Length - V4d.Count);
@@ -604,15 +614,24 @@ public readonly struct Vector :
         ref double q = ref MM.GetArrayDataReference(multiplier.values);
         ref double r = ref MM.GetArrayDataReference(subtrahend.values);
         ref double s = ref MM.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated)
+        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
         {
             nuint t = (nuint)(result.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(
-                    V4.LoadUnsafe(ref r, i).MultiplySub(
+                V8.StoreUnsafe(Avx512F.FusedMultiplySubtract(
+                    V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), V8.LoadUnsafe(ref r, i)),
+                    ref s, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplySubtract(
+                V8.LoadUnsafe(ref p, t), V8.LoadUnsafe(ref q, t), V8.LoadUnsafe(ref r, t)),
+                ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
+        {
+            nuint t = (nuint)(result.Length - V4d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref r, i).MultiplySub(
                         V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i)), ref s, i);
-            V4.StoreUnsafe(
-                V4.LoadUnsafe(ref r, t).MultiplySub(
+            V4.StoreUnsafe(V4.LoadUnsafe(ref r, t).MultiplySub(
                     V4.LoadUnsafe(ref p, t), V4.LoadUnsafe(ref q, t)), ref s, t);
         }
         else
@@ -639,8 +658,17 @@ public readonly struct Vector :
         ref double p = ref MM.GetArrayDataReference(values);
         ref double r = ref MM.GetArrayDataReference(subtrahend.values);
         ref double s = ref MM.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && Fma.IsSupported
-            && result.Length >= V4d.Count)
+        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
+        {
+            V8d vq = V8.Create(multiplier);
+            nuint t = (nuint)(result.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplySubtract(
+                    V8.LoadUnsafe(ref p, i), vq, V8.LoadUnsafe(ref r, i)), ref s, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplySubtract(
+                V8.LoadUnsafe(ref p, t), vq, V8.LoadUnsafe(ref r, t)), ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && Fma.IsSupported && result.Length >= V4d.Count)
         {
             V4d vq = V4.Create(multiplier);
             nuint t = (nuint)(result.Length - V4d.Count);
@@ -683,7 +711,16 @@ public readonly struct Vector :
                 throw new VectorLengthException();
             ref double q = ref MM.GetArrayDataReference(vectors[i].values);
             double w = weights[firstW + i];
-            if (V4.IsHardwareAccelerated && Fma.IsSupported && size >= V4d.Count)
+            if (V8.IsHardwareAccelerated && size >= V8d.Count)
+            {
+                V8d vec = V8.Create(w);
+                for (nuint j = 0; j < t; j += (nuint)V8d.Count)
+                    V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                        V8.LoadUnsafe(ref q, j), vec, V8.LoadUnsafe(ref p, j)), ref p, j);
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                    V8.LoadUnsafe(ref q, t), vec, V8.LoadUnsafe(ref p, t)), ref p, t);
+            }
+            else if (V4.IsHardwareAccelerated && Fma.IsSupported && size >= V4d.Count)
             {
                 V4d vec = V4.Create(w);
                 for (nuint j = 0; j < t; j += (nuint)V4d.Count)
@@ -717,7 +754,17 @@ public readonly struct Vector :
         ref double a = ref MM.GetArrayDataReference(v1.values);
         ref double b = ref MM.GetArrayDataReference(v2.values);
         ref double c = ref MM.GetArrayDataReference(values);
-        if (V4.IsHardwareAccelerated && Fma.IsSupported && values.Length >= V4d.Count)
+        if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
+        {
+            V8d vw1 = V8.Create(w1), vw2 = V8.Create(w2);
+            nuint t = (nuint)(values.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                    V8.LoadUnsafe(ref a, i), vw1, V8.LoadUnsafe(ref b, i) * vw2), ref c, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                V8.LoadUnsafe(ref a, t), vw1, V8.LoadUnsafe(ref b, t) * vw2), ref c, t);
+        }
+        else if (V4.IsHardwareAccelerated && Fma.IsSupported && values.Length >= V4d.Count)
         {
             V4d vw1 = V4.Create(w1), vw2 = V4.Create(w2);
             nuint t = (nuint)(values.Length - V4d.Count);

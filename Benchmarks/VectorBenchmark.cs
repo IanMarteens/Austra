@@ -37,6 +37,12 @@ public class VectorBenchmark : BenchmarkControl
     public Vector AustraVectorPointMultAdd() => cv4.MultiplyAdd(cv5, cv6);
 
     //[Benchmark]
+    public Vector AustraVectorMultAdd() => cv4.MultiplyAdd(Math.PI, cv6);
+
+    //[Benchmark]
+    public Vector AustraVectorMultAddRaw() => cv4 * Math.PI + cv6;
+
+    //[Benchmark]
     public double AustraDotProduct() => cv1 * cv2;
 
     //[Benchmark]
@@ -51,10 +57,10 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public bool AustraVectorEqualsTrue() => cv1 == cv3;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraRawLineal() => 2 * cv4 + 3 * cv5;
 
-    //[Benchmark]
+    [Benchmark]
     public Vector AustraCombineLineal() => Vector.Combine2(2, 3, cv4, cv5);
 
     //[Benchmark]
@@ -84,7 +90,7 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public int AustraIndexOfLast() => cv7.IndexOf(cv7[^1]);
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraAutocorrelation() => cv7.AutoCorrelation(4);
 
     //[Benchmark]
