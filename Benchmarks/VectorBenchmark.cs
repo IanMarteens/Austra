@@ -48,7 +48,7 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public double AustraVectorProduct() => cv5.Product();
 
-    //[Benchmark]
+    [Benchmark]
     public double AustraVectorSumItems() => cv5.Sum();
 
     //[Benchmark]
@@ -81,7 +81,7 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public Vector AustraVectorMap() => cv7.Map(Math.Abs);
 
-    [Benchmark]
+    //[Benchmark]
     public Matrix AustraExternalProduct() => cv1 ^ cv3;
 
     //[Benchmark]

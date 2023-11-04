@@ -48,6 +48,13 @@ public static class Simd
         return Math.Max(x.ToScalar(), x.GetElement(1));
     }
 
+    /// <summary>Gets the maximum component in a vector.</summary>
+    /// <param name="v">A intrinsics vector with four doubles.</param>
+    /// <returns>The maximum component.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static double Min(this V8d v) =>
+        Math.Min(v.GetLower().Min(), v.GetUpper().Min());
+
     /// <summary>Gets the minimum component in a vector.</summary>
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The maximum component.</returns>

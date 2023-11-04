@@ -69,8 +69,7 @@ public static class CommonMatrix
             return 0;
         double trace = 0;
         int r = cols + 1, size = Min(rows, cols);
-        for (ref double p = ref MM.GetArrayDataReference(values);
-            size-- > 0; p = ref Add(ref p, r))
+        for (ref double p = ref MM.GetArrayDataReference(values); size-- > 0; p = ref Add(ref p, r))
             trace += p;
         return trace;
     }
@@ -83,8 +82,7 @@ public static class CommonMatrix
     {
         int r = cols + 1, size = Min(rows, cols);
         double product = 1.0;
-        for (ref double p = ref MM.GetArrayDataReference(values);
-            size-- > 0; p = Add(ref p, r))
+        for (ref double p = ref MM.GetArrayDataReference(values); size-- > 0; p = ref Add(ref p, r))
             product *= p;
         return product;
     }
@@ -94,7 +92,16 @@ public static class CommonMatrix
     /// <returns>The maximum absolute value in the samples.</returns>
     public static double AbsoluteMaximum(this Span<double> span)
     {
-        if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
+        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
+        {
+            ref double p = ref MM.GetReference(span);
+            ref double t = ref Add(ref p, span.Length - V8d.Count);
+            V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
+            for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8d.Count))
+                vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p)));
+            return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref t))).Max();
+        }
+        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
         {
             ref double p = ref MM.GetReference(span);
             ref double t = ref Add(ref p, span.Length - V4d.Count);
@@ -114,7 +121,16 @@ public static class CommonMatrix
     /// <returns>The minimum absolute value in the samples.</returns>
     public static double AbsoluteMinimum(this Span<double> span)
     {
-        if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
+        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
+        {
+            ref double p = ref MM.GetReference(span);
+            ref double t = ref Add(ref p, span.Length - V8d.Count);
+            V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
+            for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8d.Count))
+                vm = V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref p)));
+            return V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref t))).Min();
+        }
+        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
         {
             ref double p = ref MM.GetReference(span);
             ref double t = ref Add(ref p, span.Length - V4d.Count);
@@ -135,6 +151,15 @@ public static class CommonMatrix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Maximum(this double[] values)
     {
+        if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
+        {
+            ref double p = ref MM.GetArrayDataReference(values);
+            ref double t = ref Add(ref p, values.Length - V8d.Count);
+            V8d vm = V8.LoadUnsafe(ref p);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8d.Count))
+                vm = V8.Max(vm, V8.LoadUnsafe(ref p));
+            return V8.Max(vm, V8.LoadUnsafe(ref t)).Max();
+        }
         if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
         {
             ref double p = ref MM.GetArrayDataReference(values);
@@ -142,13 +167,11 @@ public static class CommonMatrix
             V4d vm = V4.LoadUnsafe(ref p);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4d.Count))
                 vm = Avx.Max(vm, V4.LoadUnsafe(ref p));
-            vm = Avx.Max(vm, V4.LoadUnsafe(ref t));
-            return vm.Max();
+            return Avx.Max(vm, V4.LoadUnsafe(ref t)).Max();
         }
         double max = double.MaxValue;
         foreach (double d in values)
-            if (d > max)
-                max = d;
+            max = Max(max, d);
         return max;
     }
 
@@ -158,6 +181,15 @@ public static class CommonMatrix
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Minimum(this double[] values)
     {
+        if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
+        {
+            ref double p = ref MM.GetArrayDataReference(values);
+            ref double t = ref Add(ref p, values.Length - V8d.Count);
+            V8d vm = V8.LoadUnsafe(ref p);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8d.Count))
+                vm = V8.Min(vm, V8.LoadUnsafe(ref p));
+            return V8.Min(vm, V8.LoadUnsafe(ref t)).Min();
+        }
         if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
         {
             ref double p = ref MM.GetArrayDataReference(values);
@@ -165,13 +197,11 @@ public static class CommonMatrix
             V4d vm = V4.LoadUnsafe(ref p);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4d.Count))
                 vm = Avx.Min(vm, V4.LoadUnsafe(ref p));
-            vm = Avx.Min(vm, V4.LoadUnsafe(ref t));
-            return vm.Min();
+            return Avx.Min(vm, V4.LoadUnsafe(ref t)).Min();
         }
         double min = double.MaxValue;
         foreach (double d in values)
-            if (d < min)
-                min = d;
+            min = Min(min, d);
         return min;
     }
 
@@ -609,8 +639,8 @@ public static class CommonMatrix
             ref double lastp = ref Add(ref p, len - V8d.Count);
             ref double lastq = ref Add(ref q, len - V8d.Count);
             V8d vm = V8d.Zero;
-            for (; IsAddressLessThan(ref p, ref lastp); p = ref Add(ref p, V4d.Count),
-                q = ref Add(ref q, V4d.Count))
+            for (; IsAddressLessThan(ref p, ref lastp); p = ref Add(ref p, V8d.Count),
+                q = ref Add(ref q, V8d.Count))
                 vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p) - V8.LoadUnsafe(ref q)));
             return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref lastp) - V8.LoadUnsafe(ref lastq))).Max();
         }

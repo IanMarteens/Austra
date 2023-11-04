@@ -373,7 +373,7 @@ internal sealed partial class Parser
             {
                 if (e2.Type != typeof(string))
                     e2 = Expression.Call(e2,
-                        e2.Type.GetMethod(nameof(ToString), Array.Empty<Type>())!);
+                        e2.Type.GetMethod(nameof(ToString), [])!);
                 e1 = typeof(string).Call(nameof(string.Concat), e1, e2);
             }
             else

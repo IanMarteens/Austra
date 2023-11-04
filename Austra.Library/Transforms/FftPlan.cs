@@ -99,7 +99,7 @@ public sealed partial class FftPlan
     {
         this.buffer = buffer;
         int precrsize = GetSpaceRequirements(n);
-        precr = precrsize > 0 ? new double[precrsize] : Array.Empty<double>();
+        precr = precrsize > 0 ? new double[precrsize] : [];
         int precrptr = 0;
         int bluesteinSize = 1;
         CreatePlan(n, 1, true, true, ref bluesteinSize, ref precrptr);
@@ -699,8 +699,10 @@ public sealed partial class FftPlan
     private unsafe void ApplyBluestein(
         double* a, int count, int n, int subplan, int m, int offs)
     {
+#pragma warning disable IDE0302 // Simplify collection initialization
         Span<double> bufa = stackalloc double[0];
         Span<double> bufb = stackalloc double[0];
+#pragma warning restore IDE0302 // Simplify collection initialization
         double[]? bA = null, bB = null;
         if (pool.ArraySize <= 150)
         {

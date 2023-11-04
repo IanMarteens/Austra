@@ -46,6 +46,16 @@ def cxMvo = model::mvo(sm_ret, sm_cov, vector(4), vector::ones(4))
       	  <para>In this case, removing either <codeInline>sm_cov</codeInline> or <codeInline>sm_ret</codeInline>, would also remove <codeInline>cxMvo</codeInline>.</para>
       	  </content>
       	</section>
+      	<section>
+      	  <title>Deterministic callings</title>
+      	  <content>
+      	  <para>Let's say we make this definition:</para>
+      	  <code language="Austra">
+def extProduct = vector::random(4) ^ vector::random(4)
+      	  </code>
+      	  <para>This definition calls twice a class method that creates a random vector. The caret operator, <codeInline>^</codeInline>, combines those two vectors in a 4x4 matrix.</para>
+      	  </content>
+      	</section>
       </sections>
     </section>
     <relatedTopics>

@@ -918,8 +918,7 @@ public readonly struct Matrix :
         {
             ref double bj = ref b;
             for (int j = 0; j < c; j++, bj = ref Add(ref bj, n))
-                Add(ref t, j) = MM.CreateSpan(ref a, n).DotProduct(
-                    MM.CreateSpan(ref bj, n));
+                Add(ref t, j) = MM.CreateSpan(ref a, n).DotProduct(MM.CreateSpan(ref bj, n));
         }
         return new(r, c, result);
     }
@@ -1005,7 +1004,7 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-        int r = Rows, c = Cols, top = c & Simd.MASK4;
+        int r = Rows, c = Cols;
         if (c != v.Length)
             throw new MatrixSizeException();
 
@@ -1030,7 +1029,7 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-        int r = Rows, c = Cols, top = c & Simd.MASK4;
+        int r = Rows, c = Cols;
         if (c != v.Length)
             throw new MatrixSizeException();
 
@@ -1054,7 +1053,7 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-        int r = Rows, c = Cols, top = c & Simd.MASK4;
+        int r = Rows, c = Cols;
         if (c != v.Length)
             throw new MatrixSizeException();
 

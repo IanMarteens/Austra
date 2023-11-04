@@ -37,7 +37,7 @@ public sealed class Calendar
 
     /// <summary>Creates a neutral calendar.</summary>
     /// <param name="today">Current date.</param>
-    public Calendar(Date today) : this("NEUTRAL", today, Array.Empty<Date>()) { }
+    public Calendar(Date today) : this("NEUTRAL", today, []) { }
 
     /// <summary>Combines two calendars.</summary>
     /// <param name="c1">First calendar to merge.</param>

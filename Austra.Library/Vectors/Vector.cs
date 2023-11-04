@@ -980,7 +980,7 @@ public readonly struct Vector :
         foreach (double value in values)
             if (predicate(value))
                 newValues[j++] = value;
-        return j == 0 ? Array.Empty<double>() : j == Length ? this : newValues[..j];
+        return j == 0 ? [] : j == Length ? this : newValues[..j];
     }
 
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
