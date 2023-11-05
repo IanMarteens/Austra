@@ -63,9 +63,10 @@ public readonly struct LMatrix :
         double offset = 0.0, double width = 1.0)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        for (int r = 0; r < rows; r++)
+        ref double cell = ref MM.GetArrayDataReference(values);
+        for (int r = 0; r < rows; r++, cell = ref Add(ref cell, cols))
             for (int c = 0, top = Min(cols, r + 1); c < top; c++)
-                values[r * Cols + c] = FusedMultiplyAdd(random.NextDouble(), width, offset);
+                Add(ref cell, c) = FusedMultiplyAdd(random.NextDouble(), width, offset);
     }
 
     /// <summary>
@@ -78,9 +79,9 @@ public readonly struct LMatrix :
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         ref double cell = ref MM.GetArrayDataReference(values);
-        for (int r = 0; r < rows; r++)
+        for (int r = 0; r < rows; r++, cell = ref Add(ref cell, cols))
             for (int c = 0, top = Min(cols, r + 1); c < top; c++)
-                Add(ref cell, r * cols + c) = random.NextDouble();
+                Add(ref cell, c) = random.NextDouble();
     }
 
     /// <summary>
@@ -105,11 +106,12 @@ public readonly struct LMatrix :
         cell = random.NextDouble();
         for (int r = 1; r < rows; r++)
         {
+            cell = ref Add(ref cell, cols);
             int c = 0, top = Min(cols, r + 1);
             for (int t = top & ~1; c < t; c += 2)
-                random.NextDoubles(ref Add(ref cell, r * cols + c));
+                random.NextDoubles(ref Add(ref cell, c));
             if (c < top)
-                Add(ref cell, r * cols + c) = random.NextDouble();
+                Add(ref cell, c) = random.NextDouble();
         }
     }
 
@@ -622,18 +624,9 @@ public readonly struct LMatrix :
                 pBj += c;
                 for (int j = 1; j < c; j++)
                 {
-                    int k = 0, size = Min(i, j) + 1;
-                    double acc = 0;
-                    if (Avx.IsSupported)
-                    {
-                        V4d sum = V4d.Zero;
-                        for (int top = size & Simd.MASK4; k < top; k += 4)
-                            sum = sum.MultiplyAdd(pAi + k, pBj + k);
-                        acc = sum.Sum();
-                    }
-                    for (; k < size; k++)
-                        acc += pAi[k] * pBj[k];
-                    pCi[j] = acc;
+                    int size = Min(i, j) + 1;
+                    pCi[j] = (double)new Span<double>(pAi, size)
+                        .DotProduct(new Span<double>(pBj, size));
                     pBj += c;
                 }
                 pAi += r;

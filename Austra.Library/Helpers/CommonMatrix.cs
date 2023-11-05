@@ -1,4 +1,6 @@
-﻿namespace Austra.Library.Helpers;
+﻿using System;
+
+namespace Austra.Library.Helpers;
 
 /// <summary>Implements common matrix and vector operations.</summary>
 public static class CommonMatrix
@@ -73,6 +75,7 @@ public static class CommonMatrix
             trace += p;
         return trace;
     }
+
     /// <summary>Gets the product of the cells in the main diagonal.</summary>
     /// <param name="values">A 1D-array.</param>
     /// <param name="rows">Number of rows.</param>
@@ -461,6 +464,37 @@ public static class CommonMatrix
             for (int i = 0; i < result.Length; i++)
                 Add(ref c, i) = Add(ref a, i) / Add(ref b, i);
         return result;
+    }
+
+    /// <summary>
+    /// Multiplies a span by a scalar and sums the result to a memory location.
+    /// </summary>
+    /// <param name="span">Source vector.</param>
+    /// <param name="d">Scale factor.</param>
+    /// <param name="target">The target memory of the whole operation.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void MulAddStore(this Span<double> span, double d, Span<double> target)
+    {
+        ref double p = ref MM.GetReference(span);
+        ref double q = ref MM.GetReference(target);
+
+        nuint j = 0, c = (nuint)target.Length;
+        if (Avx512F.IsSupported)
+        {
+            V8d vec = V8.Create(d);
+            for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                    V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
+        }
+        else if (Avx.IsSupported)
+        {
+            V4d vec = V4.Create(d);
+            for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref q, j)
+                    .MultiplyAdd(V4.LoadUnsafe(ref p, j), vec), ref q, j);
+        }
+        for (; j < c; j++)
+            Add(ref q, j) += Add(ref p, j) * d;
     }
 
     /// <summary>Calculates the dot product of two spans.</summary>

@@ -971,25 +971,12 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Vector>().Length == Cols);
 
         int r = Rows, c = Cols;
-        double[] result = new double[r];
+        double[] result = new double[c];
         ref double p = ref MM.GetArrayDataReference(values);
         ref double q = ref MM.GetArrayDataReference((double[])v);
-        ref double t = ref MM.GetArrayDataReference(result);
+        Span<double> target = MM.CreateSpan(ref MM.GetArrayDataReference(result), c);
         for (int k = 0; k < r; k++, p = ref Add(ref p, c))
-        {
-            double d = Add(ref q, k);
-            int j = 0;
-            if (Avx.IsSupported)
-            {
-                V4d vec = V4.Create(d);
-                for (int last = c & Simd.MASK4; j < last; j += V4d.Count)
-                    V4.StoreUnsafe(V4.LoadUnsafe(ref Add(ref t, j)).MultiplyAdd(
-                        V4.LoadUnsafe(ref Add(ref p, j)), vec),
-                        ref Add(ref t, j));
-            }
-            for (; j < c; j++)
-                Add(ref t, j) += Add(ref p, j) * d;
-        }
+            MM.CreateSpan(ref p, c).MulAddStore(Add(ref q, k), target);
         return result;
     }
 

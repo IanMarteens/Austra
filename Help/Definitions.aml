@@ -53,7 +53,28 @@ def cxMvo = model::mvo(sm_ret, sm_cov, vector(4), vector::ones(4))
       	  <code language="Austra">
 def extProduct = vector::random(4) ^ vector::random(4)
       	  </code>
-      	  <para>This definition calls twice a class method that creates a random vector. The caret operator, <codeInline>^</codeInline>, combines those two vectors in a 4x4 matrix.</para>
+      	  <para>This definition calls twice a class method that creates a random vector. The caret operator, <codeInline>^</codeInline>, combines those two vectors in a 4x4 matrix. Executing this definitions two times in a row gives, as expected, different results:</para>
+      	  <code language="Austra">
+&gt; extProduct
+ans ∊ ℝ(4⨯4)
+0.416065  0.493621  0.412334  0.0249965
+0.390261  0.463007  0.386762  0.0234462
+0.377909  0.448353   0.37452  0.0227041
+ 0.49103   0.58256  0.486626  0.0295002
+
+&gt; extProduct
+ans ∊ ℝ(4⨯4)
+0.0251534  0.0182728  0.0452763  0.00933612
+0.0374942  0.0272379    0.06749   0.0139167
+0.0555746  0.0403725   0.100035   0.0206275
+0.0256057  0.0186015  0.0460906  0.00950403
+      	  </code>
+      	  <para>However, this could be inconvenient to test properties of the result:</para>
+      	  <code language="Austra">
+extProduct = expProduct'' <markup><font color="DarkGreen">-- Double transpose.</font></markup>
+(extProduct * extProduct).det - extProduct.det^2
+      	  </code>
+      	  <para>AUSTRA assumes that, inside a formula, all parameterless definitions call must return the same value.</para>
       	  </content>
       	</section>
       </sections>

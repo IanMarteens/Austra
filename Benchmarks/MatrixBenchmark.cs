@@ -61,10 +61,10 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public Vector AustraMatrixMultiplyAddRaw() => cm1 * cv1 + cv2;
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraMatrixMultiplyAdd() => cm1.MultiplyAdd(cv1, cv2);
 
-    [Benchmark]
+    //[Benchmark]
     public Vector AustraMatrixMultiplySub() => cm1.MultiplySubtract(cv1, cv2);
 
     //[Benchmark]
@@ -84,4 +84,7 @@ public class MatrixBenchmark : BenchmarkControl
 
     //[Benchmark]
     public LMatrix AustraTransposeRMatrix() => rm1.Transpose();
+
+    [Benchmark]
+    public LMatrix AustraLMultiplyTranspose() => lm1.MultiplyTranspose(lm1);
 }
