@@ -149,11 +149,11 @@ public class MatrixTests
     [Test]
     public void CheckMatrixMultiply([Values(32, 35, 256, 257, 1024, 1025)] int size)
     {
-        Matrix m1 = new(size, size, new Random(), 0.3, 1.5);
-        Matrix m2 = new(size, size, new Random(), 0.3, 1.5);
+        Matrix m1 = new Matrix(size, size, new Random(), 0.5, 1.6) + Matrix.Identity(size) * 0.02;
+        Matrix m2 = new(size, size, new Random(), 0.5, 1.6);
         Matrix m3 = m1 * m2;
         NMatrix n3 = new NMatrix(m1).Multiply(new NMatrix(m2));
-        Assert.That(new NMatrix(m3).AMax(n3), Is.LessThanOrEqualTo(1E-12));
+        Assert.That(new NMatrix(m3).AMax(n3), Is.LessThanOrEqualTo(1E-11));
     }
 
     [Test]

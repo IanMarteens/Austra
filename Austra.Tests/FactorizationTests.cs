@@ -90,4 +90,16 @@ public class FactorizationTests
         // Yes, this is a very loose tolerance, but it's the best we can do with Cholesky.
         Assert.That((m * answer - v).AMax(), Is.LessThan(2E-05));
     }
+
+    [Test]
+    public void CholeskyInvert([Values(27, 32, 37)] int size)
+    {
+        LMatrix lm = new(size, size, Random.Shared, 0.2);
+        while (lm.Determinant() < 1E-12)
+            lm = new(size, Random.Shared);
+        Matrix m = lm.MultiplyTranspose(lm);
+        Matrix inverse = m.Cholesky().Solve(Matrix.Identity(size));
+        Assert.That((m * inverse - Matrix.Identity(size)).AMax(), Is.LessThan(1E-5));
+
+    }
 }

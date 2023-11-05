@@ -5,7 +5,6 @@
 /// <param name="matrix">A lower triangular matrix.</param>
 public readonly struct Cholesky(LMatrix matrix) : IFormattable
 {
-
     /// <summary>Gets the Cholesky lower triangular matrix.</summary>
     public LMatrix L { get; } = matrix;
 
@@ -40,10 +39,20 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                 double* pDj = pD + j * rows;
                 double v = 0.0;
                 int m = 0;
-                if (Avx.IsSupported)
+                if (Avx512F.IsSupported)
+                {
+                    V8d acc = V8d.Zero;
+                    for (int top = j & Simd.MASK8; m < top; m += V8d.Count)
+                    {
+                        V8d vec = Avx512F.LoadVector512(pDj + m);
+                        acc = Avx512F.FusedMultiplyAdd(vec, vec, acc);
+                    }
+                    v = V8.Sum(acc);
+                }
+                else if (Avx.IsSupported)
                 {
                     V4d acc = V4d.Zero;
-                    for (int top = j & Simd.MASK4; m < top; m += 4)
+                    for (int top = j & Simd.MASK4; m < top; m += V4d.Count)
                     {
                         V4d vec = Avx.LoadVector256(pDj + m);
                         acc = acc.MultiplyAdd(vec, vec);
@@ -71,19 +80,8 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                         pDj, tmp, sizeof(double) * j, sizeof(double) * j);
                     for (int i = j; i < n; i++)
                     {
-                        v = 0.0;
                         double* pDi = pD + (i + 1) * rows;
-                        int k = 0;
-                        if (Avx.IsSupported)
-                        {
-                            V4d acc = V4d.Zero;
-                            for (int top = j & Simd.MASK4; k < top; k += 4)
-                                acc = acc.MultiplyAdd(pDi + k, tmp + k);
-                            v = acc.Sum();
-                        }
-                        for (; k < j; k++)
-                            v = FusedMultiplyAdd(pDi[k], tmp[k], v);
-                        tmp[i] = v;
+                        tmp[i] = new Span<double>(pDi, j).DotProduct(new Span<double>(tmp, j));
                     }
                     for (int i = j, idx = (j + 1) * rows + j; i < n; i++, idx += rows)
                         pD[idx] = (pS[idx] - tmp[i]) * r;
@@ -162,20 +160,8 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
             int size = L.Rows;
             double* pAi = pA;
             for (int i = 0; i < size; i++, pAi += size)
-            {
-                double sum = pB[i];
-                int k = 0;
-                if (Avx.IsSupported)
-                {
-                    V4d acc = V4d.Zero;
-                    for (int top = i & Simd.MASK4; k < top; k += 4)
-                        acc = acc.MultiplyAdd(pAi + k, pB + k);
-                    sum -= acc.Sum();
-                }
-                for (; k < i; k++)
-                    sum -= pAi[k] * pB[k];
-                pB[i] = sum / pAi[i];
-            }
+                pB[i] = (pB[i] - new Span<double>(pAi, i)
+                    .DotProduct(new Span<double>(pB, i))) / pAi[i];
             for (int i = size - 1; i >= 0; i--)
             {
                 double sum = pB[i];
@@ -205,29 +191,34 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
         int size = L.Rows;
         fixed (double* pA = (double[])L, pB = (double[])m)
         {
-            int top = size & Simd.MASK4;
+            int top = Avx512F.IsSupported ? (size & Simd.MASK8) : (size & Simd.MASK4);
             for (int i = 0, isize = 0; i < size; i++, isize += size)
             {
                 double* pbi = pB + isize;
                 for (int k = i - 1; k >= 0; k--)
                 {
-                    double mult = pA[isize + k];
                     double* pbk = pB + k * size;
+                    double mult = pA[isize + k];
                     int l = 0;
-                    if (Avx.IsSupported)
-                    {
-                        V4d vm = V4.Create(mult);
-                        for (; l < top; l += 4)
+                    if (Avx512F.IsSupported)
+                        for (V8d vm = V8.Create(mult); l < top; l += V8d.Count)
+                            Avx512F.Store(pbi + l, Avx512F.FusedMultiplyAddNegated(
+                                Avx512F.LoadVector512(pbk + l), vm,
+                                Avx512F.LoadVector512(pbi + l)));
+                    else if (Avx.IsSupported)
+                        for (V4d vm = V4.Create(mult); l < top; l += V4d.Count)
                             Avx.Store(pbi + l,
                                 Avx.LoadVector256(pbi + l).MultiplyAddNeg(pbk + l, vm));
-                    }
                     for (; l < size; l++)
                         pbi[l] -= pbk[l] * mult;
                 }
                 double m1 = 1.0 / pA[isize + i];
                 int j = 0;
-                if (Avx.IsSupported)
-                    for (V4d vm1 = V4.Create(m1); j < top; j += 4)
+                if (Avx512F.IsSupported)
+                    for (V8d vm1 = V8.Create(m1); j < top; j += V8d.Count)
+                        Avx512F.Store(pbi + j, Avx512F.LoadVector512(pbi + j) * vm1);
+                else if (Avx.IsSupported)
+                    for (V4d vm1 = V4.Create(m1); j < top; j += V4d.Count)
                         Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
                 for (; j < size; j++)
                     pbi[j] *= m1;
@@ -241,8 +232,13 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                     double* pbk = pB + ksize;
                     double mult = pA[ksize + i];
                     int l = 0;
-                    if (Avx.IsSupported)
-                        for (V4d vm = V4.Create(mult); l < top; l += 4)
+                    if (Avx512F.IsSupported)
+                        for (V8d vm = V8.Create(mult); l < top; l += V8d.Count)
+                            Avx512F.Store(pbi + l, Avx512F.FusedMultiplyAddNegated(
+                                Avx512F.LoadVector512(pbk + l), vm,
+                                Avx512F.LoadVector512(pbi + l)));
+                    else if (Avx.IsSupported)
+                        for (V4d vm = V4.Create(mult); l < top; l += V4d.Count)
                             Avx.Store(pbi + l,
                                 Avx.LoadVector256(pbi + l).MultiplyAddNeg(pbk + l, vm));
                     for (; l < size; l++)
@@ -250,8 +246,11 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                 }
                 double m1 = 1.0 / pA[isize + i];
                 int j = 0;
+                if (Avx512F.IsSupported)
+                    for (V8d vm1 = V8.Create(m1); j < top; j += V8d.Count)
+                        Avx512F.Store(pbi + j, Avx512F.LoadVector512(pbi + j) * vm1);
                 if (Avx.IsSupported)
-                    for (V4d vm1 = V4.Create(m1); j < top; j += 4)
+                    for (V4d vm1 = V4.Create(m1); j < top; j += V4d.Count)
                         Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
                 for (; j < size; j++)
                     pbi[j] *= m1;
