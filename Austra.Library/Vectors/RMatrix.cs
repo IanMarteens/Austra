@@ -2,7 +2,9 @@
 
 /// <summary>Represents an upper triangular matrix.</summary>
 /// <remarks>
-/// Triangular matrices may have a different number of rows and columns.
+/// <para>Having a separate type for upper-triangular matrices is not a matter of storage,
+/// but of semantics.</para>
+/// <para>Upper-triangular matrices may have a different number of rows and columns.</para>
 /// </remarks>
 public readonly struct RMatrix :
     IFormattable,

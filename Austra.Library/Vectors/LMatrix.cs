@@ -3,8 +3,10 @@
 /// <summary>Represents a lower triangular matrix.</summary>
 /// <remarks>
 /// <para>Having a separate type for lower-triangular matrices is not a matter of storage,
-/// but of semantics.</para>
-/// <para>Triangular matrices may have a different number of rows and columns.</para>
+/// but of semantics. For instance, the Cholesky factorization always returns either
+/// a lower or upper triangular matrix, so it's important for the API to make clear
+/// which type of matrix is returning.</para>
+/// <para>Lower-triangular matrices may have a different number of rows and columns.</para>
 /// </remarks>
 [JsonConverter(typeof(LMatrixJsonConverter))]
 public readonly struct LMatrix :
