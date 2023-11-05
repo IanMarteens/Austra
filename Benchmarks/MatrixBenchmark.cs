@@ -1,5 +1,4 @@
 ﻿namespace Benchmarks;
-
 public class MatrixBenchmark : BenchmarkControl
 {
     private readonly int size;
@@ -85,6 +84,12 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public LMatrix AustraTransposeRMatrix() => rm1.Transpose();
 
-    [Benchmark]
+    //[Benchmark]
     public LMatrix AustraLMultiplyTranspose() => lm1.MultiplyTranspose(lm1);
+
+    //[Benchmark]
+    public Matrix AustraLRMatrixMult() => cm1 * lm1;
+
+    [Benchmark]
+    public Vector AustraLMatrixSolve() => lm1.Solve(cv1);
 }

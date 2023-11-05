@@ -484,26 +484,12 @@ public readonly struct LMatrix :
         fixed (double* pA = m1.values, pB = (double[])m2, pC = result)
         {
             double* pAi = pA, pCi = pC;
-            for (int i = 0; i < m; i++)
+            for (int i = 0; i < m; i++, pAi += n, pCi += n)
             {
                 double* pBk = pB;
-                for (int k = 0, top = Min(i + 1, n); k < top; k++)
-                {
-                    double d = pAi[k];
-                    int j = 0;
-                    if (Avx.IsSupported)
-                    {
-                        V4d vd = V4.Create(d);
-                        for (; j < last; j += 4)
-                            Avx.Store(pCi + j,
-                                Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
-                    }
-                    for (; j < p; j++)
-                        pCi[j] += pBk[j] * d;
-                    pBk += p;
-                }
-                pAi += n;
-                pCi += n;
+                Span<double> target = new(pCi, p);
+                for (int k = 0, top = Min(i + 1, n); k < top; k++, pBk += p)
+                    new Span<double>(pBk, p).MulAddStore(pAi[k], target);
             }
         }
         return new(m, p, result);
@@ -526,27 +512,16 @@ public readonly struct LMatrix :
         fixed (double* pA = (double[])m1, pB = m2.values, pC = result)
         {
             double* pAi = pA, pCi = pC;
-            for (int i = 0; i < m; i++)
+            for (int i = 0; i < m; i++, pAi += n, pCi += n)
             {
                 double* pBk = pB;
                 *pCi += *pBk * *pAi;
                 for (int k = 1; k < n; k++)
                 {
                     pBk += p;
-                    double d = pAi[k];
-                    int j = 0, top = Min(k + 1, n);
-                    if (Avx.IsSupported)
-                    {
-                        V4d vd = V4.Create(d);
-                        for (int last = top & Simd.MASK4; j < last; j += 4)
-                            Avx.Store(pCi + j,
-                                Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
-                    }
-                    for (; j < top; j++)
-                        pCi[j] += pBk[j] * d;
+                    int top = Min(k + 1, n);
+                    new Span<double>(pBk, top).MulAddStore(pAi[k], new Span<double>(pCi, top));
                 }
-                pAi += n;
-                pCi += n;
             }
         }
         return new(m, p, result);
@@ -617,20 +592,16 @@ public readonly struct LMatrix :
         fixed (double* pA = values, pB = m.values, pC = result)
         {
             double* pAi = pA, pCi = pC;
-            for (int i = 0; i < r; i++)
+            for (int i = 0; i < r; i++, pAi += r, pCi += r)
             {
                 double* pBj = pB;
                 *pCi = *pAi * *pBj;
                 pBj += c;
-                for (int j = 1; j < c; j++)
+                for (int j = 1; j < c; j++, pBj += c)
                 {
-                    int size = Min(i, j) + 1;
-                    pCi[j] = (double)new Span<double>(pAi, size)
-                        .DotProduct(new Span<double>(pBj, size));
-                    pBj += c;
+                    int s = Min(i, j) + 1;
+                    pCi[j] = new Span<double>(pAi, s).DotProduct(new Span<double>(pBj, s));
                 }
-                pAi += r;
-                pCi += r;
             }
         }
         return new(r, c, result);
@@ -740,25 +711,16 @@ public readonly struct LMatrix :
         Contract.Requires(input.Length == Rows);
         Contract.Requires(output.Length == Rows);
 
-        nuint size = (nuint)input.Length;
+        int size = input.Length;
         ref double pA = ref MM.GetArrayDataReference(values);
         ref double pV = ref MM.GetArrayDataReference((double[])input);
         ref double pR = ref MM.GetArrayDataReference((double[])output);
         pR = pV / pA;    // First row is special.
-        for (nuint i = 1; i < size; i++)
+        for (int i = 1; i < size; i++)
         {
             pA = ref Add(ref pA, size);
-            double sum = Add(ref pV, i);
-            nuint j = 0;
-            if (Avx.IsSupported)
-            {
-                V4d acc = V4d.Zero;
-                for (nuint top = i & Simd.MASK4; j < top; j += 4)
-                    acc = acc.MultiplyAdd(V4.LoadUnsafe(ref pA, j), V4.LoadUnsafe(ref pR, j));
-                sum -= acc.Sum();
-            }
-            for (; j < i; j++)
-                sum = FusedMultiplyAdd(-Add(ref pR, j), Add(ref pA, j), sum);
+            double sum = Add(ref pV, i) - MM.CreateSpan(ref pA, i)
+                .DotProduct(MM.CreateSpan(ref pR, i));
             Add(ref pR, i) = sum / Add(ref pA, i);
         }
     }
