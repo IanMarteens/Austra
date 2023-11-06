@@ -91,6 +91,21 @@ public static class Simd
     /// <param name="multiplier">The operations's multiplier.</param>
     /// <returns><c>multiplicand * multiplier + summand</c></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal unsafe static V8d MultiplyAdd(
+        this V8d summand,
+        double* multiplicand,
+        V8d multiplier) =>
+        Avx512F.FusedMultiplyAdd(Avx512F.LoadVector512(multiplicand), multiplier, summand);
+
+    /// <summary>
+    /// Execute the best available version of a SIMD multiplication and addition.
+    /// </summary>
+    /// <remarks>This version takes also care of loading the multiplicand.</remarks>
+    /// <param name="summand">The summand of the fused operation.</param>
+    /// <param name="multiplicand">The address if the multiplicand.</param>
+    /// <param name="multiplier">The operations's multiplier.</param>
+    /// <returns><c>multiplicand * multiplier + summand</c></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal unsafe static V4d MultiplyAdd(
         this V4d summand,
         double* multiplicand,

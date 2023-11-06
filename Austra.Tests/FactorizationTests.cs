@@ -7,7 +7,7 @@ public class FactorizationTests
     /// Check that eigenvectors are calculated correctly for symmetrical matrices.
     /// </summary>
     [Test]
-    public void EvdSymTest([Values(12, 25, 32, 39)] int size)
+    public void EvdSymTest([Values(12, 18, 25, 32, 33, 39)] int size)
     {
         // Generate a random lower triangular matrix.
         LMatrix m = new(size, Random.Shared);
@@ -22,7 +22,7 @@ public class FactorizationTests
     /// Check that eigenvectors are calculated correctly for general matrices.
     /// </summary>
     [Test]
-    public void EvdTest([Values(8, 15, 18, 32)] int size)
+    public void EvdTest([Values(8, 15, 18, 32, 33)] int size)
     {
         // Generate a random squared matrix.
         Matrix m = new(size, size, new Random(12), 1);

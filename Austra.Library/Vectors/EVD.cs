@@ -65,20 +65,26 @@ public readonly struct EVD : IFormattable
         // Householder reduction to tridiagonal form.
         for (int i = r - 1; i > 0; i--)
         {
-            int top = i & Simd.MASK4;
             // Scale to avoid under/overflow.
             double scale = 0.0;
             int kk = 0;
-            if (Avx.IsSupported)
+            if (Avx512F.IsSupported)
             {
-                V4d mask = V4.Create(-0d);
-                V4d sum = V4d.Zero;
-                for (; kk < top; kk += 4)
+                V8d sum = V8d.Zero;
+                for (int t = i & Simd.MASK8; kk < t; kk += V8d.Count)
+                    sum += V8.Abs(Avx512F.LoadVector512(d + kk));
+                scale = V8.Sum(sum);
+            }
+            else if (Avx.IsSupported)
+            {
+                V4d mask = V4.Create(-0d), sum = V4d.Zero;
+                for (int t = i & Simd.MASK4; kk < t; kk += V4d.Count)
                     sum += Avx.AndNot(mask, Avx.LoadVector256(d + kk));
                 scale = sum.Sum();
             }
             for (; kk < i; kk++)
                 scale += Abs(d[kk]);
+            int top = i & Simd.MASK4;
             if (scale == 0.0)
             {
                 e[i] = d[i - 1];
@@ -95,10 +101,21 @@ public readonly struct EVD : IFormattable
                 // Generate Householder vector.
                 double h = 0.0;
                 int m = 0;
-                if (Avx.IsSupported)
+                if (Avx512F.IsSupported)
                 {
-                    V4d sum = V4d.Zero;
-                    for (V4d scl = V4.Create(1.0 / scale); m < top; m += 4)
+                    V8d sum = V8d.Zero, scl = V8.Create(1.0 / scale);
+                    for (int t = i & Simd.MASK8; m < t; m += V8d.Count)
+                    {
+                        V8d dvec = Avx512F.LoadVector512(d + m) * scl;
+                        sum = Avx512F.FusedMultiplyAdd(dvec, dvec, sum);
+                        Avx512F.Store(d + m, dvec);
+                    }
+                    h = V8.Sum(sum);
+                }
+                else if (Avx.IsSupported)
+                {
+                    V4d sum = V4d.Zero, scl = V4.Create(1.0 / scale);
+                    for (int t = i & Simd.MASK4; m < t; m += V4d.Count)
                     {
                         V4d dvec = Avx.LoadVector256(d + m) * scl;
                         sum = sum.MultiplyAdd(dvec, dvec);
@@ -176,20 +193,21 @@ public readonly struct EVD : IFormattable
                     f += e[m] * d[m];
                 }
 
-                double hh = f / (h + h);
-                m = 0;
-                if (Avx.IsSupported)
-                    for (V4d v = V4.Create(-hh); m < top; m += 4)
-                        Avx.Store(e + m, Avx.LoadVector256(e + m).MultiplyAdd(d + m, v));
-                for (; m < i; m++)
-                    e[m] -= hh * d[m];
+                new Span<double>(d, i).MulNegStore((double)(f / (h + h)), new Span<double>(e, i));
 
                 aj = a;
                 for (int j = 0; j < i; j++, aj += r)
                 {
                     f = d[j]; g = e[j];
                     int k = j;
-                    if (Avx.IsSupported)
+                    if (Avx512F.IsSupported)
+                    {
+                        V8d vf = V8.Create(f), vg = V8.Create(g);
+                        for (; k < i - 8; k += 8)
+                            Avx512F.Store(aj + k, Avx512F.LoadVector512(aj + k) -
+                                (Avx512F.LoadVector512(d + k) * vg).MultiplyAdd(e + k, vf));
+                    }
+                    else if (Avx.IsSupported)
                     {
                         V4d vf = V4.Create(f), vg = V4.Create(g);
                         for (; k < i - 4; k += 4)
@@ -213,42 +231,29 @@ public readonly struct EVD : IFormattable
             a[i * r + r - 1] = a[i * r + i];
             a[i * r + i] = 1.0;
             double h = d[i + 1];
-            int t = (i + 1) & Simd.MASK4;
             if (h != 0.0)
             {
-                h = 1.0 / h;
-                int k = 0;
-                if (Avx.IsSupported)
-                    for (V4d v = V4.Create(h); k < t; k += 4)
-                        Avx.Store(d + k, Avx.LoadVector256(ai1 + k) * v);
-                for (; k <= i; k++)
-                    d[k] = ai1[k] * h;
+                new Span<double>(ai1, i + 1).MulV(1d / h, new Span<double>(d, i + 1));
                 double* aj = a;
                 for (int j = 0; j <= i; j++, aj += r)
                 {
-                    double g = 0;
-                    k = 0;
-                    if (Avx.IsSupported)
-                    {
-                        V4d v = V4d.Zero;
-                        for (; k < t; k += 4)
-                            v = v.MultiplyAdd(ai1 + k, aj + k);
-                        g = v.Sum();
-                    }
-                    for (; k <= i; k++)
-                        g += ai1[k] * aj[k];
-                    k = 0;
-                    if (Avx.IsSupported)
-                        for (V4d vmg = V4.Create(-g); k < t; k += 4)
-                            Avx.Store(aj + k, Avx.LoadVector256(aj + k).MultiplyAdd(d + k, vmg));
-                    for (; k <= i; k++)
-                        aj[k] -= g * d[k];
+                    double g = new Span<double>(ai1, i + 1).DotProduct(new Span<double>(aj, i + 1));
+                    new Span<double>(d, i + 1).MulNegStore(g, new Span<double>(aj, i + 1));
                 }
             }
             int kk = 0;
-            if (Avx.IsSupported)
-                for (V4d z = V4d.Zero; kk < t; kk += 4)
+            if (Avx512F.IsSupported)
+            {
+                V8d z = V8d.Zero;
+                for (int t = (i + 1) & Simd.MASK8; kk < t; kk += V8d.Count)
+                    Avx512F.Store(ai1 + kk, z);
+            }
+            else if (Avx.IsSupported)
+            {
+                V4d z = V4d.Zero;
+                for (int t = (i + 1) & Simd.MASK4; kk < t; kk += V4d.Count)
                     Avx.Store(ai1 + kk, z);
+            }
             for (; kk <= i; kk++)
                 ai1[kk] = 0.0;
         }
@@ -301,10 +306,16 @@ public readonly struct EVD : IFormattable
 
                     double dl1 = d[l + 1], h = g - d[l];
                     int i = l + 2;
-                    if (Avx.IsSupported)
+                    if (Avx512F.IsSupported)
+                    {
+                        V8d vh = V8.Create(h);
+                        for (int top = (r - i) & Simd.MASK8 + i; i < top; i += V8d.Count)
+                            Avx512F.Store(d + i, Avx512F.LoadVector512(d + i) - vh);
+                    }
+                    else if (Avx.IsSupported)
                     {
                         V4d vh = V4.Create(h);
-                        for (int top = (r - i) & Simd.MASK4 + i; i < top; i += 4)
+                        for (int top = (r - i) & Simd.MASK4 + i; i < top; i += V4d.Count)
                             Avx.Store(d + i, Avx.LoadVector256(d + i) - vh);
                     }
                     for (; i < r; i++)
@@ -400,16 +411,21 @@ public readonly struct EVD : IFormattable
         for (int m = 1, high = rank - 1; m < high; m++)
         {
             int mm1O = (m - 1) * rank;
-            int top = (rank - m) & Simd.MASK4 + m;
             // Scale column.
             double scale = 0.0;
             int ii = m;
-            if (Avx.IsSupported)
+            if (Avx512F.IsSupported)
+            {
+                V8d sum = V8d.Zero;
+                for (int t = (rank - m) & Simd.MASK8 + m; ii < t; ii += 4)
+                    sum += V8.Abs(Avx512F.LoadVector512(h + mm1O + ii));
+                scale = V8.Sum(sum);
+            }
+            else if (Avx.IsSupported)
             {
                 V4d sum = V4d.Zero;
-                V4d mask = V4.Create(-0d);
-                for (; ii < top; ii += 4)
-                    sum += Avx.AndNot(mask, Avx.LoadVector256(h + mm1O + ii));
+                for (int t = (rank - m) & Simd.MASK4 + m; ii < t; ii += 4)
+                    sum += V4.Abs(Avx.LoadVector256(h + mm1O + ii));
                 scale = sum.Sum();
             }
             for (; ii < rank; ii++)
@@ -420,11 +436,21 @@ public readonly struct EVD : IFormattable
                 // Compute Householder transformation.
                 double hh = 0.0;
                 int i = m;
-                if (Avx.IsSupported)
+                if (Avx512F.IsSupported)
                 {
-                    V4d vsc = V4.Create(1d / scale);
-                    V4d vhh = V4d.Zero;
-                    for (; i < top; i += 4)
+                    V8d vsc = V8.Create(1d / scale), vhh = V8d.Zero;
+                    for (int t = (rank - m) & Simd.MASK8 + m; i < t; i += V8d.Count)
+                    {
+                        V8d v = Avx512F.LoadVector512(h + mm1O + i) * vsc;
+                        Avx512F.Store(ort + i, v);
+                        vhh = Avx512F.FusedMultiplyAdd(v, v, vhh);
+                    }
+                    hh = V8.Sum(vhh);
+                }
+                else if (Avx.IsSupported)
+                {
+                    V4d vsc = V4.Create(1d / scale), vhh = V4d.Zero;
+                    for (int t = (rank - m) & Simd.MASK4 + m; i < t; i += V4d.Count)
                     {
                         V4d v = Avx.LoadVector256(h + mm1O + i) * vsc;
                         Avx.Store(ort + i, v);
@@ -446,24 +472,24 @@ public readonly struct EVD : IFormattable
                 // Apply Householder similarity transformation.
                 for (int j = m, jO = m * rank; j < rank; j++, jO += rank)
                 {
-                    double f = 0.0;
+                    double f = new Span<double>(ort + m, rank - m).
+                        DotProduct(new Span<double>(h + jO + m, rank - m)) / hh;
                     i = m;
-                    if (Avx.IsSupported)
+                    if (Avx512F.IsSupported)
                     {
-                        V4d vf = V4d.Zero;
-                        for (; i < top; i += 4)
-                            vf = vf.MultiplyAdd(ort + i, h + jO + i);
-                        f = vf.Sum();
+                        V8d vf = V8.Create(f);
+                        for (int t = (rank - m) & Simd.MASK8 + m; i < t; i += V8d.Count)
+                            Avx512F.Store(h + jO + i, Avx512F.FusedMultiplyAddNegated(
+                                Avx512F.LoadVector512(ort + i), vf,
+                                Avx512F.LoadVector512(h + jO + i)));
                     }
-                    for (; i < rank; i++)
-                        f += ort[i] * h[jO + i];
-                    f /= hh;
-
-                    i = m;
-                    if (Avx.IsSupported)
-                        for (V4d vf = V4.Create(f); i < top; i += 4)
+                    else if (Avx.IsSupported)
+                    {
+                        V4d vf = V4.Create(f);
+                        for (int t = (rank - m) & Simd.MASK4 + m; i < t; i += V4d.Count)
                             Avx.Store(h + jO + i,
                                 Avx.LoadVector256(h + jO + i).MultiplyAddNeg(ort + i, vf));
+                    }
                     for (; i < rank; i++)
                         h[jO + i] -= f * ort[i];
                 }
@@ -489,35 +515,16 @@ public readonly struct EVD : IFormattable
         {
             if (h[mm1O + m] != 0.0)
             {
-                int k = m + 1;
-                if (Avx.IsSupported)
-                    for (int t = (rank - m - 1) & Simd.MASK4 + m + 1; k < t; k += 4)
-                        Avx.Store(ort + k, Avx.LoadVector256(h + mm1O + k));
-                for (; k < rank; k++)
-                    ort[k] = h[mm1O + k];
-                int top = (rank - m) & Simd.MASK4 + m;
+                CopyBlock(ort + m + 1, h + mm1O + m + 1,
+                    (uint)(rank - m) * sizeof(double));
                 for (int j = m, jO = m * rank; j < rank; j++, jO += rank)
                 {
-                    double g = 0.0;
-                    int i = m;
-                    if (Avx.IsSupported)
-                    {
-                        V4d vg = V4d.Zero;
-                        for (; i < top; i += 4)
-                            vg = vg.MultiplyAdd(ort + i, a + jO + i);
-                        g = vg.Sum();
-                    }
-                    for (; i < rank; i++)
-                        g += ort[i] * a[jO + i];
+                    double g = new Span<double>(ort + m, rank - m)
+                        .DotProduct(new Span<double>(a + jO + m, rank - m));
                     // Double division avoids possible underflow
                     g = g / ort[m] / h[mm1O + m];
-                    i = m;
-                    if (Avx.IsSupported)
-                        for (V4d vg = V4.Create(g); i < top; i += 4)
-                            Avx.Store(a + jO + i,
-                                Avx.LoadVector256(a + jO + i).MultiplyAdd(ort + i, vg));
-                    for (; i < rank; i++)
-                        a[jO + i] += g * ort[i];
+                    new Span<double>(ort + m, rank - m)
+                        .MulAddStore(g, new Span<double>(a + jO + m, rank - m));
                 }
             }
         }
@@ -608,9 +615,8 @@ public readonly struct EVD : IFormattable
                     int i = 0;
                     if (Avx.IsSupported)
                     {
-                        V4d vp = V4.Create(p);
-                        V4d vq = V4.Create(q);
-                        for (int top = (n + 1) & Simd.MASK4; i < top; i += 4)
+                        V4d vp = V4.Create(p), vq = V4.Create(q);
+                        for (int top = (n + 1) & Simd.MASK4; i < top; i += V4d.Count)
                         {
                             V4d vz = Avx.LoadVector256(h + nm1O + i);
                             V4d va = Avx.LoadVector256(h + nO + i);
@@ -628,11 +634,21 @@ public readonly struct EVD : IFormattable
 
                     // Accumulate transformations
                     i = 0;
-                    if (Avx.IsSupported)
+                    if (Avx512F.IsSupported)
                     {
-                        V4d vp = V4.Create(p);
-                        V4d vq = V4.Create(q);
-                        for (int top = rank & Simd.MASK4; i < top; i += 4)
+                        V8d vp = V8.Create(p), vq = V8.Create(q);
+                        for (int top = rank & Simd.MASK8; i < top; i += V8d.Count)
+                        {
+                            V8d vz = Avx512F.LoadVector512(a + nm1O + i);
+                            Avx512F.Store(a + nm1O + i, (vq * vz).MultiplyAdd(a + nO + i, vp));
+                            Avx512F.Store(a + nO + i, Avx512F.FusedMultiplyAddNegated(
+                                vp, vz, vq * Avx512F.LoadVector512(a + nO + i)));
+                        }
+                    }
+                    else if (Avx.IsSupported)
+                    {
+                        V4d vp = V4.Create(p), vq = V4.Create(q);
+                        for (int top = rank & Simd.MASK4; i < top; i += V4d.Count)
                         {
                             V4d vz = Avx.LoadVector256(a + nm1O + i);
                             Avx.Store(a + nm1O + i, (vq * vz).MultiplyAdd(a + nO + i, vp));
@@ -779,12 +795,9 @@ public readonly struct EVD : IFormattable
                         int i = 0;
                         if (Avx.IsSupported)
                         {
-                            V4d vx = V4.Create(x);
-                            V4d vy = V4.Create(y);
-                            V4d vz = V4.Create(z);
-                            V4d vr = V4.Create(r);
-                            V4d vq = V4.Create(q);
-                            for (int top = (upper + 1) & Simd.MASK4; i < top; i += 4)
+                            V4d vx = V4.Create(x), vy = V4.Create(y), vz = V4.Create(z);
+                            V4d vr = V4.Create(r), vq = V4.Create(q);
+                            for (int top = (upper + 1) & Simd.MASK4; i < top; i += V4d.Count)
                             {
                                 V4d v1 = Avx.LoadVector256(h + kO + i);
                                 V4d v2 = Avx.LoadVector256(h + kp1O + i);
@@ -813,11 +826,32 @@ public readonly struct EVD : IFormattable
 
                         // Accumulate transformations
                         i = 0;
-                        if (Avx.IsSupported)
+                        if (Avx512F.IsSupported)
+                        {
+                            V8d vx = V8.Create(x), vy = V8.Create(y), vz = V8.Create(z);
+                            V8d vr = V8.Create(r), vq = V8.Create(q);
+                            for (int top = rank & Simd.MASK8; i < top; i += V8d.Count)
+                            {
+                                V8d v1 = Avx512F.LoadVector512(a + kO + i);
+                                V8d v2 = Avx512F.LoadVector512(a + kp1O + i);
+                                V8d vp = Avx512F.FusedMultiplyAdd(vx, v1, vy * v2);
+                                if (notlast)
+                                {
+                                    V8d v3 = Avx512F.LoadVector512(a + kp2O + i);
+                                    vp = Avx512F.FusedMultiplyAdd(vz, v3, vp);
+                                    Avx512F.Store(a + kp2O + i,
+                                        Avx512F.FusedMultiplyAddNegated(vp, vr, v3));
+                                }
+                                Avx512F.Store(a + kO + i, v1 - vp);
+                                Avx512F.Store(a + kp1O + i,
+                                    Avx512F.FusedMultiplyAddNegated(vp, vq, v2));
+                            }
+                        }
+                        else if (Avx.IsSupported)
                         {
                             V4d vx = V4.Create(x), vy = V4.Create(y), vz = V4.Create(z);
                             V4d vr = V4.Create(r), vq = V4.Create(q);
-                            for (int top = rank & Simd.MASK4; i < top; i += 4)
+                            for (int top = rank & Simd.MASK4; i < top; i += V4d.Count)
                             {
                                 V4d v1 = Avx.LoadVector256(a + kO + i);
                                 V4d v2 = Avx.LoadVector256(a + kp1O + i);
@@ -893,7 +927,10 @@ public readonly struct EVD : IFormattable
                         if (ε * t * t > 1)
                         {
                             int j = i;
-                            if (Avx.IsSupported)
+                            if (Avx512F.IsSupported)
+                                for (V8d vt = V8.Create(1 / t); j + 8 <= n; j += 8)
+                                    Avx512F.Store(h + nO + j, Avx512F.LoadVector512(h + nO + j) * vt);
+                            else if (Avx.IsSupported)
                                 for (V4d vt = V4.Create(1 / t); j + 4 <= n; j += 4)
                                     Avx.Store(h + nO + j, Avx.LoadVector256(h + nO + j) * vt);
                             for (; j <= n; j++)
