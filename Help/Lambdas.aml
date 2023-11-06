@@ -17,7 +17,7 @@ given predicate. The way we state the predicate to be satisfied is using this sy
         <code language="Austra">
 x => x >= 0
         </code>
-		<para>>This can be read as "given an arbitrary value x, check that it is non-negative". We
+		<para>This can be read as "given an arbitrary value x, check that it is non-negative". We
 can use all for any other purpose, such as checking that all values in a series lie
 inside the (0, 1) interval:</para>
         <code language="Austra">
