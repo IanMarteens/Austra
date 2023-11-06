@@ -46,6 +46,16 @@ public class FactorizationTests
         Assert.That((m * answer - v).AMax(), Is.LessThan(1E-12));
     }
 
+    [Test]
+    public void LUInvertTest([Values(27, 32, 67)] int size)
+    {
+        Matrix m = new(size, Random.Shared);
+        while (m.Determinant() < 1E-7)
+            m = new(size, Random.Shared);
+        Matrix answer = m.LU().Solve(Matrix.Identity(size));
+        Assert.That((m * answer - Matrix.Identity(size)).AMax(), Is.LessThan(1E-12));
+    }
+
     /// <summary>
     /// Cholesky can factorize identity matrix.
     /// </summary>
@@ -100,6 +110,5 @@ public class FactorizationTests
         Matrix m = lm.MultiplyTranspose(lm);
         Matrix inverse = m.Cholesky().Solve(Matrix.Identity(size));
         Assert.That((m * inverse - Matrix.Identity(size)).AMax(), Is.LessThan(1E-5));
-
     }
 }

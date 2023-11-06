@@ -290,7 +290,6 @@ public readonly struct RMatrix :
         return new(r, c, result);
     }
 
-
     /// <summary>Negates an upper right matrix.</summary>
     /// <param name="m">The matrix operand.</param>
     /// <returns>Cell-by-cell negation.</returns>
