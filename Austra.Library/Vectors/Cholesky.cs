@@ -196,22 +196,8 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
             {
                 double* pbi = pB + isize;
                 for (int k = i - 1; k >= 0; k--)
-                {
-                    double* pbk = pB + k * size;
-                    double mult = pA[isize + k];
-                    int l = 0;
-                    if (Avx512F.IsSupported)
-                        for (V8d vm = V8.Create(mult); l < top; l += V8d.Count)
-                            Avx512F.Store(pbi + l, Avx512F.FusedMultiplyAddNegated(
-                                Avx512F.LoadVector512(pbk + l), vm,
-                                Avx512F.LoadVector512(pbi + l)));
-                    else if (Avx.IsSupported)
-                        for (V4d vm = V4.Create(mult); l < top; l += V4d.Count)
-                            Avx.Store(pbi + l,
-                                Avx.LoadVector256(pbi + l).MultiplyAddNeg(pbk + l, vm));
-                    for (; l < size; l++)
-                        pbi[l] -= pbk[l] * mult;
-                }
+                    new Span<double>(pB + k * size, size)
+                        .MulNegStore(pA[isize + k], new Span<double>(pbi, size));
                 double m1 = 1.0 / pA[isize + i];
                 int j = 0;
                 if (Avx512F.IsSupported)
@@ -229,20 +215,8 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                 for (int k = i + 1; k < size; k++)
                 {
                     int ksize = k * size;
-                    double* pbk = pB + ksize;
-                    double mult = pA[ksize + i];
-                    int l = 0;
-                    if (Avx512F.IsSupported)
-                        for (V8d vm = V8.Create(mult); l < top; l += V8d.Count)
-                            Avx512F.Store(pbi + l, Avx512F.FusedMultiplyAddNegated(
-                                Avx512F.LoadVector512(pbk + l), vm,
-                                Avx512F.LoadVector512(pbi + l)));
-                    else if (Avx.IsSupported)
-                        for (V4d vm = V4.Create(mult); l < top; l += V4d.Count)
-                            Avx.Store(pbi + l,
-                                Avx.LoadVector256(pbi + l).MultiplyAddNeg(pbk + l, vm));
-                    for (; l < size; l++)
-                        pbi[l] -= pbk[l] * mult;
+                    new Span<double>(pB + ksize, size)
+                        .MulNegStore(pA[ksize + i], new Span<double>(pbi, size));
                 }
                 double m1 = 1.0 / pA[isize + i];
                 int j = 0;

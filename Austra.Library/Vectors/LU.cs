@@ -51,29 +51,11 @@ public readonly struct LU : IFormattable
                 for (int i = 0; i < r; i++)
                     buf[i] = data[i * r + j];
                 double* pAi = data;
-                for (int i = 0; i < r; i++)
+                for (int i = 0; i < r; i++, pAi += r)
                 {
                     int top = Min(i, j);
-                    int lastBlock = top & Simd.MASK4;
-                    double s = 0.0;
-                    int k = 0;
-                    if (Avx.IsSupported)
-                    {
-                        V4d ac = V4d.Zero;
-                        for (; k < lastBlock; k += 4)
-                            ac = ac.MultiplyAdd(pAi + k, buf + k);
-                        s = ac.Sum();
-                    }
-                    else
-                        for (; k < lastBlock; k += 4)
-                            s += pAi[k] * buf[k] +
-                                pAi[k + 1] * buf[k + 1] +
-                                pAi[k + 2] * buf[k + 2] +
-                                pAi[k + 3] * buf[k + 3];
-                    for (; k < top; k++)
-                        s += pAi[k] * buf[k];
+                    double s = new Span<double>(pAi, top).DotProduct(new Span<double>(buf, top));
                     pAi[j] = buf[i] -= s;
-                    pAi += r;
                 }
 
                 // Find pivot and exchange if necessary.
@@ -91,10 +73,28 @@ public readonly struct LU : IFormattable
                     double* pAp = data + pivot * r;
                     double* pAj = data + j * r;
                     int k = 0;
-                    if (Avx.IsSupported)
+                    if (Avx512F.IsSupported)
+                    {
+                        for (int lastBlock = r & Simd.MASK8; k < lastBlock; k += V8d.Count)
+                        {
+                            V8d v1 = Avx512F.LoadVector512(pAp + k);
+                            V8d w1 = Avx512F.LoadVector512(pAj + k);
+                            Avx512F.Store(pAj + k, v1);
+                            Avx512F.Store(pAp + k, w1);
+                        }
+                        if (k < (r & Simd.MASK4))
+                        {
+                            var v1 = Avx.LoadVector256(pAp + k);
+                            var w1 = Avx.LoadVector256(pAj + k);
+                            Avx.Store(pAj + k, v1);
+                            Avx.Store(pAp + k, w1);
+                            k += V4d.Count;
+                        }
+                    }
+                    else if (Avx.IsSupported)
                     {
                         // Unroll the loop.
-                        for (int lastBlock = r & Simd.MASK8; k < lastBlock; k += 8)
+                        for (int lastBlock = r & Simd.MASK8; k < lastBlock; k += V8d.Count)
                         {
                             var v1 = Avx.LoadVector256(pAp + k);
                             var v2 = Avx.LoadVector256(pAp + (k + 4));
@@ -112,7 +112,7 @@ public readonly struct LU : IFormattable
                             var w1 = Avx.LoadVector256(pAj + k);
                             Avx.Store(pAj + k, v1);
                             Avx.Store(pAp + k, w1);
-                            k += 4;
+                            k += V4d.Count;
                         }
                     }
                     for (; k < r; k++)
@@ -303,7 +303,7 @@ public readonly struct LU : IFormattable
         int size = Size;
         fixed (double* pA = values, pC = (double[])output)
         {
-            int top = size & Simd.MASK4;
+            int top = size & (Avx512F.IsSupported ? Simd.MASK8 : Simd.MASK4);
             // Apply permutations to each column of the input.
             fixed (double* pB = (double[])input)
             fixed (int* pP = pivots)
@@ -316,43 +316,26 @@ public readonly struct LU : IFormattable
             {
                 double* pck = pC + k * size;
                 for (int i = k + 1; i < size; i++)
-                {
-                    double* pci = pC + i * size;
-                    double mult = pA[i * size + k];
-                    int j = 0;
-                    if (Avx.IsSupported)
-                        for (var vm = V4.Create(mult); j < top; j += 4)
-                            Avx.Store(pci + j,
-                                Avx.LoadVector256(pci + j).MultiplyAddNeg(pck + j, vm));
-                    for (; j < size; j++)
-                        pci[j] -= pck[j] * mult;
-                }
+                    new Span<double>(pck, size)
+                        .MulNegStore(pA[i * size + k], new Span<double>(pC + i * size, size));
             }
             for (int k = size - 1; k >= 0; k--)
             {
                 double* pck = pC + k * size;
                 double mult = pA[k * size + k];
                 int l = 0;
-                if (Avx.IsSupported)
-                    for (V4d vm = V4.Create(1.0 / mult); l < top; l += 4)
+                
+                if (Avx512F.IsSupported)
+                    for (V8d vm = V8.Create(1.0 / mult); l < top; l += V8d.Count)
+                        Avx512F.Store(pck + l, Avx512F.LoadVector512(pck + l) * vm);
+                else if (Avx.IsSupported)
+                    for (V4d vm = V4.Create(1.0 / mult); l < top; l += V4d.Count)
                         Avx.Store(pck + l, Avx.LoadVector256(pck + l) * vm);
                 for (; l < size; l++)
                     pck[l] /= mult;
-                double* pai = pA + k;
-                double* pci = pC;
-                for (int i = 0; i < k; i++)
-                {
-                    mult = *pai;
-                    int j = 0;
-                    if (Avx.IsSupported)
-                        for (var vm = V4.Create(mult); j < top; j += 4)
-                            Avx.Store(pci + j,
-                                Avx.LoadVector256(pci + j).MultiplyAddNeg(pck + j, vm));
-                    for (; j < size; j++)
-                        pci[j] -= pck[j] * mult;
-                    pai += size;
-                    pci += size;
-                }
+                double* pai = pA + k, pci = pC;
+                for (int i = 0; i < k; i++, pai += size, pci += size)
+                    new Span<double>(pck, size).MulNegStore(*pai, new Span<double>(pci, size));
             }
         }
     }
