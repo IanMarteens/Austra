@@ -19,6 +19,13 @@ public class VectorTests
     }
 
     [Test]
+    public void ComplexVectorNorm([Values(12, 25, 39)] int size)
+    {
+        ComplexVector v = new(new Vector(size, 1d), new Vector(size, 1d));
+        Assert.That(v.Norm(), Is.EqualTo(Math.Sqrt(size + size)).Within(1E-16));
+    }
+
+    [Test]
     public void VectorSquared([Values(12, 256, 999)] int size)
     {
         Vector v = new(size, Random.Shared);

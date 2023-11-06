@@ -616,11 +616,11 @@ public static class CommonMatrix
         {
             int s1 = size & Simd.MASK4;
             int s2 = size + size;
-            for (int r = 0; r < s1; r += 4)
+            for (int r = 0, rsz = 0; r < s1; r += 4, rsz += s2 + s2)
             {
                 for (int c = 0; c < r; c += 4)
                 {
-                    double* pp = a + (r * size + c);
+                    double* pp = a + (rsz + c);
                     double* qq = a + (c * size + r);
                     var row1 = Avx.LoadVector256(pp);
                     var row2 = Avx.LoadVector256(pp + size);
@@ -649,7 +649,7 @@ public static class CommonMatrix
                 }
                 // Transpose a diagonal block.
                 {
-                    double* pp = a + (r * size + r);
+                    double* pp = a + (rsz + r);
                     var row1 = Avx.LoadVector256(pp);
                     var row2 = Avx.LoadVector256(pp + size);
                     var row3 = Avx.LoadVector256(pp + s2);

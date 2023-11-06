@@ -28,7 +28,7 @@ public class MatrixTests
     /// Check in-place matrix transpose.
     /// </summary>
     [Test]
-    public void CheckInplaceMatrixTranspose([Values(32, 49, 61)] int size)
+    public void CheckInplaceMatrixTranspose([Values(32, 49, 61, 63, 128)] int size)
     {
         Matrix m = new(size, new NormalRandom());
         Matrix m1 = m.Transpose();

@@ -513,9 +513,8 @@ public readonly struct ComplexVector :
         int i = 0, size = v1.Length;
         if (Avx.IsSupported)
         {
-            V4d accRe = V4d.Zero;
-            V4d accIm = V4d.Zero;
-            for (int top = size & Simd.MASK4; i < top; i += 4)
+            V4d accRe = V4d.Zero, accIm = V4d.Zero;
+            for (int top = size & Simd.MASK4; i < top; i += V4d.Count)
             {
                 V4d vpr = V4.LoadUnsafe(ref Add(ref pr, i));
                 V4d vpi = V4.LoadUnsafe(ref Add(ref pi, i));
@@ -544,10 +543,20 @@ public readonly struct ComplexVector :
         ref double q = ref MM.GetArrayDataReference(im);
         double sum = 0;
         nuint i = 0;
-        if (Avx.IsSupported)
+        if (Avx512F.IsSupported)
+        {
+            V8d acc = V8d.Zero;
+            for (nuint top = (nuint)Length & Simd.MASK8; i < top; i += (nuint)V8d.Count)
+            {
+                V8d v = V8.LoadUnsafe(ref p, i), w = V8.LoadUnsafe(ref q, i);
+                acc += Avx512F.FusedMultiplyAdd(w, w, v * v);
+            }
+            sum = V8.Sum(acc);
+        }
+        else if (Avx.IsSupported)
         {
             V4d acc = V4d.Zero;
-            for (nuint top = (nuint)Length & Simd.MASK4; i < top; i += 4)
+            for (nuint top = (nuint)Length & Simd.MASK4; i < top; i += (nuint)V4d.Count)
             {
                 V4d v = V4.LoadUnsafe(ref p, i), w = V4.LoadUnsafe(ref q, i);
                 acc += (v * v).MultiplyAdd(w, w);
@@ -669,7 +678,7 @@ public readonly struct ComplexVector :
         ref double r = ref MM.GetArrayDataReference(result);
         int i = 0;
         if (Avx.IsSupported)
-            for (int top = n & Simd.MASK4; i < top; i += 4)
+            for (int top = n & Simd.MASK4; i < top; i += V4d.Count)
             {
                 V4d v = V4.LoadUnsafe(ref Add(ref p, i));
                 V4d w = V4.LoadUnsafe(ref Add(ref q, i));

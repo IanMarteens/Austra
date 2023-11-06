@@ -14,6 +14,9 @@ public class CVectorBenchmark : BenchmarkControl
     public ComplexVector AustraComplexVectorCtor() => new(cv);
 
     [Benchmark]
+    public double AustraComplexVectorSquared() => cxv.Squared();
+
+    [Benchmark]
     public Vector AustraComplexVectorMagnitudes() => cxv.Magnitudes();
 
     [Benchmark]
