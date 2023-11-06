@@ -22,11 +22,10 @@
     <HtmlHelpName>Documentation</HtmlHelpName>
     <Language>en-US</Language>
     <DocumentationSources>
-      <DocumentationSource sourceFile="..\Austra.Library\bin\Release\net7.0\Austra.Library.dll" />
-      <DocumentationSource sourceFile="..\Austra.Library\bin\Release\net7.0\Austra.Library.xml" />
-      <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net7.0\Austra.Parser.xml" />
-      <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net7.0\Austra.Parser.dll" />
-    </DocumentationSources>
+      <DocumentationSource sourceFile="..\Austra.Library\bin\Release\net8.0\Austra.Library.dll" />
+<DocumentationSource sourceFile="..\Austra.Library\bin\Release\net8.0\Austra.Library.xml" />
+<DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net8.0\Austra.Parser.xml" />
+<DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net8.0\Austra.Parser.dll" /></DocumentationSources>
     <HelpFileFormat>Website</HelpFileFormat>
     <SyntaxFilters>C#</SyntaxFilters>
     <PresentationStyle>Default2022</PresentationStyle>
@@ -85,6 +84,8 @@
     <ContentLayout Include="Content Layout.content" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Lambdas.aml" />
+    <None Include="LocalVariables.aml" />
     <None Include="Definitions.aml" />
     <None Include="Language.aml" />
     <None Include="Welcome.aml" />

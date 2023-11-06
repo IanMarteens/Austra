@@ -324,26 +324,12 @@ public readonly struct RMatrix :
         fixed (double* pA = (double[])m1, pB = m2.values, pC = result)
         {
             double* pAi = pA, pCi = pC;
-            for (int i = 0; i < m; i++)
+            for (int i = 0; i < m; i++, pAi += n, pCi += n)
             {
                 double* pBk = pB;
-                for (int k = 0; k < n; k++)
-                {
-                    double d = pAi[k];
-                    int j = k;
-                    if (Avx.IsSupported)
-                    {
-                        V4d vd = V4.Create(d);
-                        for (int top = (p - k) & Simd.MASK4 + k; j < top; j += 4)
-                            Avx.Store(pCi + j,
-                                Avx.LoadVector256(pCi + j).MultiplyAdd(pBk + j, vd));
-                    }
-                    for (; j < p; j++)
-                        pCi[j] += pBk[j] * d;
-                    pBk += p;
-                }
-                pAi += n;
-                pCi += n;
+                for (int k = 0; k < n; k++, pBk += p)
+                    new Span<double>(pBk + k, p - k + 1)
+                        .MulAddStore(pAi[k], new Span<double>(pCi + k, p - k + 1));
             }
         }
         return new(m, p, result);

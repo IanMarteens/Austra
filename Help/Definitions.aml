@@ -5,10 +5,8 @@
       <para>Code definitions are formulas saved for future use. They are saved and loaded from any persistent storage used by AUSTRA. In this version, parameterized definitions are not yet allowed, but they are planned for the next version of the language.</para>
     </introduction>
     <section address="Section1">
-      <title>Definitions</title>
+      <title>Creating definitions</title>
       <content>
-        <!-- Uncomment this to create a sub-section outline
-        <autoOutline /> -->
         <para>Definitions are created using the <codeInline>def</codeInline> statement:</para>
         <code language="Austra">
 		def cxMvo = model::mvo(sm_ret, sm_cov, sm_low, sm_high)
@@ -69,12 +67,17 @@ ans ∊ ℝ(4⨯4)
 0.0555746  0.0403725   0.100035   0.0206275
 0.0256057  0.0186015  0.0460906  0.00950403
       	  </code>
-      	  <para>However, this could be inconvenient to test properties of the result:</para>
+      	  <para>That is the expected behavior. However, this could be inconvenient to test properties of the result. For instance, we could want to check the determinant of the product, or that a double transpose works fine:</para>
       	  <code language="Austra">
 extProduct = expProduct'' <markup><font color="DarkGreen">-- Double transpose.</font></markup>
 (extProduct * extProduct).det - extProduct.det^2
       	  </code>
-      	  <para>AUSTRA assumes that, inside a formula, all parameterless definitions call must return the same value.</para>
+      	  <para>AUSTRA assumes that, inside a formula, all parameterless definitions call must return the same value. For that purpose, the two above formulas are internally rewritten as:</para>
+      	  <code language="Austra">
+let x = extProduct in x = x''
+let x = extProduct in (x * x).det - x.det ^ 2
+      	  </code>
+<para>A <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">local variable</link> is created under the hood for evaluating the definition just once inside the current formula.</para>
       	  </content>
       	</section>
       </sections>
