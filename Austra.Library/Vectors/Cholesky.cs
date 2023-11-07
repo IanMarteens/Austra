@@ -162,21 +162,33 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
             for (int i = 0; i < size; i++, pAi += size)
                 pB[i] = (pB[i] - new Span<double>(pAi, i)
                     .DotProduct(new Span<double>(pB, i))) / pAi[i];
+            int s4 = 4 * size, s8 = s4 + s4;
             for (int i = size - 1; i >= 0; i--)
             {
                 double sum = pB[i];
                 double* p = pA + ((i + 1) * size + i);
                 int k = i + 1;
-                if (Avx2.IsSupported)
+                if (Avx512F.IsSupported)
+                {
+                    V8d acc = V8d.Zero;
+                    Vector128<int> vx = Vector128.Create(0, size, 2 * size, 3 * size);
+                    Vector128<int> vy = vx + Vector128.Create(s4);
+                    for (int t = (size - i - 1) & Simd.MASK8 + i + 1; k < t; k += 8, p += s8)
+                        acc = Avx512F.FusedMultiplyAdd(Avx512F.LoadVector512(pB + k),
+                            V8.Create(Avx2.GatherVector256(p, vx, 8),
+                            Avx2.GatherVector256(p, vy, 8)), acc);
+                    sum -= V8.Sum(acc);
+                }
+                else if (Avx2.IsSupported)
                 {
                     V4d acc = V4d.Zero;
                     Vector128<int> vx = Vector128.Create(0, size, 2 * size, 3 * size);
-                    for (; k < size - 4; k += 4, p += 4 * size)
+                    for (; k < size - 4; k += 4, p += s4)
                         acc = acc.MultiplyAdd(pB + k, Avx2.GatherVector256(p, vx, 8));
                     sum -= acc.Sum();
                 }
                 for (; k < size; k++, p += size)
-                    sum -= *p * pB[k];
+                    sum = FusedMultiplyAdd(-*p, pB[k], sum);
                 pB[i] = sum / pA[i * size + i];
             }
         }
@@ -223,7 +235,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                 if (Avx512F.IsSupported)
                     for (V8d vm1 = V8.Create(m1); j < top; j += V8d.Count)
                         Avx512F.Store(pbi + j, Avx512F.LoadVector512(pbi + j) * vm1);
-                if (Avx.IsSupported)
+                else if (Avx.IsSupported)
                     for (V4d vm1 = V4.Create(m1); j < top; j += V4d.Count)
                         Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
                 for (; j < size; j++)
