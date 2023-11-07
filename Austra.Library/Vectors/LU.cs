@@ -243,13 +243,14 @@ public readonly struct LU : IFormattable
                 int i = k + 1;
                 if (Avx512F.IsSupported)
                 {
-                    V4d vm = V4.Create(m);
+                    V8d vm = V8.Create(m);
+                    int t = ((size - k - 1) & Simd.MASK8) + k + 1;
                     Vector128<int> vx = Vector128.Create(0, size, 2 * size, 3 * size);
-                    for (double* p = a + i * size + k; i < size - 8; i += 8, p += 8 * size)
+                    for (double* p = a + i * size + k; i < t; i += V8d.Count, p += 8 * size)
                         Avx512F.Store(c + i,
                             Avx512F.LoadVector512(c + i) - V8.Create(
-                                Avx2.GatherVector256(p, vx, 8) * vm, 
-                                Avx2.GatherVector256(p + 4 * size, vx, 8) * vm));
+                                Avx2.GatherVector256(p, vx, 8), 
+                                Avx2.GatherVector256(p + 4 * size, vx, 8)) * vm);
                 }
                 else if (Avx2.IsSupported)
                 {
@@ -268,13 +269,14 @@ public readonly struct LU : IFormattable
                 int i = 0;
                 if (Avx512F.IsSupported)
                 {
-                    V4d vm = V4.Create(m);
+                    V8d vm = V8.Create(m);
                     Vector128<int> vx = Vector128.Create(0, size, 2 * size, 3 * size);
-                    for (double* p = a + k; i < k - 8; i += 8, p += size * 8)
+                    int t = k & Simd.MASK8;
+                    for (double* p = a + k; i < t; i += 8, p += size * 8)
                         Avx512F.Store(c + i,
                             Avx512F.LoadVector512(c + i) - V8.Create(
-                                Avx2.GatherVector256(p, vx, 8) * vm,
-                                Avx2.GatherVector256(p + 4 * size, vx, 8) * vm));
+                                Avx2.GatherVector256(p, vx, 8),
+                                Avx2.GatherVector256(p + 4 * size, vx, 8)) * vm);
                 }
                 else if (Avx2.IsSupported)
                 {
@@ -341,7 +343,6 @@ public readonly struct LU : IFormattable
                 double* pck = pC + k * size;
                 double mult = pA[k * size + k];
                 int l = 0;
-                
                 if (Avx512F.IsSupported)
                     for (V8d vm = V8.Create(1.0 / mult); l < top; l += V8d.Count)
                         Avx512F.Store(pck + l, Avx512F.LoadVector512(pck + l) * vm);
