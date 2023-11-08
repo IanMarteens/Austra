@@ -492,54 +492,130 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         int r = Rows, c = Cols;
+        nuint r1 = (nuint)r, r2 = r1 + r1, r3 = r2 + r1, r4 = r2 + r2, r8 = r4 + r4;
+        nuint c1 = (nuint)c, c2 = c1 + c1, c3 = c2 + c1, c4 = c2 + c2, c8 = c4 + c4;
         double[] result = GC.AllocateUninitializedArray<double>(c * r);
-        if (Avx.IsSupported)
+        ref double a = ref MM.GetArrayDataReference(values);
+        ref double b = ref MM.GetArrayDataReference(result);
+        if (Avx512F.IsSupported)
         {
-            ref double a = ref MM.GetArrayDataReference(values);
-            ref double b = ref MM.GetArrayDataReference(result);
-            // Blocks are multiple of four.
-            int r1 = r & Simd.MASK4, r2 = r + r, r4 = r2 + r2;
-            int c1 = c & Simd.MASK4, c2 = c + c, c4 = c2 + c2;
+            V8L i0 = V8.Create(00L, 01, 08, 09, 02, 03, 10, 11);
+            V8L i1 = V8.Create(04L, 05, 12, 13, 06, 07, 14, 15);
+            V8L i2 = V8.Create(00L, 01, 02, 03, 12, 13, 14, 15);
+            V8L i3 = V8.Create(06L, 07, 14, 15, 04, 05, 06, 07);
+            V8L i4 = V8.Create(04L, 05, 12, 13, 04, 05, 06, 07);
+            V8L i5 = V8.Create(02L, 03, 10, 11, 04, 05, 06, 07);
+            V8L i6 = V8.Create(00L, 01, 08, 09, 04, 05, 06, 07);
+            V8L i7 = V8.Create(00L, 01, 02, 03, 08, 09, 10, 11);
+            // Blocks are multiple of eight.
+            int rm = r & Simd.MASK8, cm = c & Simd.MASK8;
             ref double pA = ref a;
-            for (int row = 0; row < r1; row += V4d.Count)
+            for (int row = 0; row < rm; row += V8d.Count)
             {
                 ref double q = ref Add(ref b, row);
-                for (int col = 0; col < c1; col += V4d.Count)
+                for (int col = 0; col < cm; col += V8d.Count)
+                {
+                    ref double pp = ref Add(ref pA, col);
+                    V8d row0 = V8.LoadUnsafe(ref pp);
+                    V8d row1 = V8.LoadUnsafe(ref pp, c1);
+                    V8d row2 = V8.LoadUnsafe(ref pp, c2);
+                    V8d row3 = V8.LoadUnsafe(ref pp, c3);
+                    V8d row4 = V8.LoadUnsafe(ref pp, c4);
+                    V8d row5 = V8.LoadUnsafe(ref pp, c4 + c1);
+                    V8d row6 = V8.LoadUnsafe(ref pp, c4 + c2);
+                    V8d row7 = V8.LoadUnsafe(ref pp, c4 + c3);
+
+                    V8d t0 = Avx512F.UnpackLow(row0, row1);
+                    V8d t1 = Avx512F.UnpackHigh(row0, row1);
+                    V8d t2 = Avx512F.UnpackLow(row2, row3);
+                    V8d t3 = Avx512F.UnpackHigh(row2, row3);
+                    V8d t4 = Avx512F.UnpackLow(row4, row5);
+                    V8d t5 = Avx512F.UnpackHigh(row4, row5);
+                    V8d t6 = Avx512F.UnpackLow(row6, row7);
+                    V8d t7 = Avx512F.UnpackHigh(row6, row7);
+
+                    V8d t8 = Avx512F.PermuteVar8x64x2(t4, i0, t6);
+                    t6 = Avx512F.PermuteVar8x64x2(t4, i1, t6);
+                    t4 = Avx512F.PermuteVar8x64x2(t5, i0, t7);
+                    t5 = Avx512F.PermuteVar8x64x2(t5, i1, t7);
+
+                    V8.StoreUnsafe(Avx512F.PermuteVar8x64x2(
+                        Avx512F.PermuteVar8x64x2(t0, i6, t2), i7, t8), ref q);
+                    V8.StoreUnsafe(Avx512F.PermuteVar8x64x2(
+                        Avx512F.PermuteVar8x64x2(t1, i6, t3), i7, t4), ref q, r1);
+                    V8.StoreUnsafe(Avx512F.PermuteVar8x64x2(
+                        Avx512F.PermuteVar8x64x2(t0, i5, t2), i2, t8), ref q, r2);
+                    V8.StoreUnsafe(Avx512F.PermuteVar8x64x2(
+                        Avx512F.PermuteVar8x64x2(t1, i5, t3), i2, t4), ref q, r3);
+                    V8.StoreUnsafe(Avx512F.PermuteVar8x64x2(
+                        Avx512F.PermuteVar8x64x2(t0, i4, t2), i7, t6), ref q, r4);
+                    V8.StoreUnsafe(Avx512F.PermuteVar8x64x2(
+                        Avx512F.PermuteVar8x64x2(t1, i4, t3), i7, t5), ref q, r4 + r1);
+                    V8.StoreUnsafe(Avx512F.PermuteVar8x64x2(
+                        Avx512F.PermuteVar8x64x2(t0, i3, t2), i2, t6), ref q, r4 + r2);
+                    V8.StoreUnsafe(Avx512F.PermuteVar8x64x2(
+                        Avx512F.PermuteVar8x64x2(t1, i3, t3), i2, t5), ref q, r4 + r3);
+                    q = ref Add(ref q, r8);
+                }
+                pA = ref Add(ref pA, c8);
+            }
+            for (int row = rm; row < r; row++)
+            {
+                ref double src = ref Add(ref a, row * c);
+                for (int col = 0, cr = row; col < c; col++, cr += r)
+                    Add(ref b, cr) = Add(ref src, col);
+            }
+            for (int col = cm; col < c; col++)
+            {
+                ref double dst = ref Add(ref b, col * r);
+                for (int row = 0, rc = col; row < rm; row++, rc += c)
+                    Add(ref dst, row) = Add(ref a, rc);
+            }
+        }
+        else if (Avx.IsSupported)
+        {
+            // Blocks are multiple of four.
+            int rm = r & Simd.MASK4, cm = c & Simd.MASK4;
+            ref double pA = ref a;
+            for (int row = 0; row < rm; row += V4d.Count)
+            {
+                ref double q = ref Add(ref b, row);
+                for (int col = 0; col < cm; col += V4d.Count)
                 {
                     ref double pp = ref Add(ref pA, col);
                     var row1 = V4.LoadUnsafe(ref pp);
-                    var row2 = V4.LoadUnsafe(ref Add(ref pp, c));
-                    var row3 = V4.LoadUnsafe(ref Add(ref pp, c2));
-                    var row4 = V4.LoadUnsafe(ref Add(ref pp, c2 + c));
+                    var row2 = V4.LoadUnsafe(ref pp, c1);
+                    var row3 = V4.LoadUnsafe(ref pp, c2);
+                    var row4 = V4.LoadUnsafe(ref pp, c3);
                     var t1 = Avx.Shuffle(row1, row2, 0b_0000);
                     var t2 = Avx.Shuffle(row1, row2, 0b_1111);
                     var t3 = Avx.Shuffle(row3, row4, 0b_0000);
                     var t4 = Avx.Shuffle(row3, row4, 0b_1111);
                     V4.StoreUnsafe(Avx.Permute2x128(t1, t3, 0b_0010_0000), ref q);
-                    V4.StoreUnsafe(Avx.Permute2x128(t2, t4, 0b_0010_0000), ref Add(ref q, r));
-                    V4.StoreUnsafe(Avx.Permute2x128(t1, t3, 0b_0011_0001), ref Add(ref q, r2));
-                    V4.StoreUnsafe(Avx.Permute2x128(t2, t4, 0b_0011_0001), ref Add(ref q, r2 + r));
+                    V4.StoreUnsafe(Avx.Permute2x128(t2, t4, 0b_0010_0000), ref q, r1);
+                    V4.StoreUnsafe(Avx.Permute2x128(t1, t3, 0b_0011_0001), ref q, r2);
+                    V4.StoreUnsafe(Avx.Permute2x128(t2, t4, 0b_0011_0001), ref q, r3);
                     q = ref Add(ref q, r4);
                 }
                 pA = ref Add(ref pA, c4);
             }
-            for (int row = r1; row < r; row++)
+            for (int row = rm; row < r; row++)
             {
                 ref double src = ref Add(ref a, row * c);
                 for (int col = 0; col < c; col++)
                     Add(ref b, col * r + row) = Add(ref src, col);
             }
-            for (int col = c1; col < c; col++)
+            for (int col = cm; col < c; col++)
             {
                 ref double dst = ref Add(ref b, col * r);
-                for (int row = 0; row < r1; row++)
+                for (int row = 0; row < rm; row++)
                     Add(ref dst, row) = Add(ref a, row * c + col);
             }
         }
         else
             for (int row = 0; row < r; row++)
-                for (int col = 0; col < c; col++)
-                    result[col * r + row] = values[row * c + col];
+                for (int col = 0, cr = row; col < c; col++, cr += r)
+                    Add(ref b, cr) = Add(ref a, row * c + col);
         return new(Cols, Rows, result);
     }
 

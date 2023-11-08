@@ -1,4 +1,5 @@
 ﻿namespace Benchmarks;
+
 public class MatrixBenchmark : BenchmarkControl
 {
     private readonly int size;

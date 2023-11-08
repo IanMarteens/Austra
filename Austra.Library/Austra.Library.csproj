@@ -62,6 +62,7 @@
 		<Using Include="System.Runtime.Intrinsics.Vector256&lt;double&gt;" Alias="V4d"/>
 		<Using Include="System.Runtime.Intrinsics.Vector512" Alias="V8" />
 		<Using Include="System.Runtime.Intrinsics.Vector512&lt;double&gt;" Alias="V8d"/>
+		<Using Include="System.Runtime.Intrinsics.Vector512&lt;long&gt;" Alias="V8L"/>
 		<Using Include="System.Runtime.InteropServices.MemoryMarshal" Alias="MM"/>
 	</ItemGroup>
 

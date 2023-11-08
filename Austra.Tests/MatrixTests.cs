@@ -20,7 +20,8 @@ public class MatrixTests
     [Test]
     public void CheckMatrixTranspose([Values(32, 49, 61)] int size)
     {
-        Matrix m = new(size, new NormalRandom());
+        int idx = 1;
+        Matrix m = new(size, (i, j) => idx++);
         Assert.That((m.Transpose().Transpose() - m).AMax(), Is.EqualTo(0));
     }
 
