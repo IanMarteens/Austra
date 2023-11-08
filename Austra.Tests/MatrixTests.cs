@@ -175,4 +175,12 @@ public class MatrixTests
         NMatrix n3 = new NMatrix(m1).Multiply(new NMatrix((Matrix)m2));
         Assert.That(new NMatrix(m3).AMax(n3), Is.LessThanOrEqualTo(1E-12));
     }
+
+    [Test]
+    public void CheckMatrixDiagonal([Values(32, 35, 256, 257, 1024, 1025)] int size)
+    {
+        Vector v = new(size, Random.Shared);
+        Matrix m = new(v);
+        Assert.That(v, Is.EqualTo(m.Diagonal()));
+    }
 }
