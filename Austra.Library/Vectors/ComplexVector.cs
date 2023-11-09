@@ -80,42 +80,19 @@ public readonly struct ComplexVector :
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
     public ComplexVector(int size, Random rnd, double offset, double width)
-    {
-        re = GC.AllocateUninitializedArray<double>(size);
-        im = GC.AllocateUninitializedArray<double>(size);
-        ref double p = ref MM.GetArrayDataReference(re);
-        ref double q = ref MM.GetArrayDataReference(im);
-        for (int i = 0; i < size; i++)
-            (Add(ref p, i), Add(ref q, i)) = (
-                FusedMultiplyAdd(rnd.NextDouble(), width, offset),
-                FusedMultiplyAdd(rnd.NextDouble(), width, offset));
-    }
+        : this(new Vector(size, rnd, offset, width), new Vector(size, rnd, offset, width)) { }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
     public ComplexVector(int size, Random rnd)
-    {
-        re = GC.AllocateUninitializedArray<double>(size);
-        im = GC.AllocateUninitializedArray<double>(size);
-        ref double p = ref MM.GetArrayDataReference(re);
-        ref double q = ref MM.GetArrayDataReference(im);
-        for (int i = 0; i < size; i++)
-            (Add(ref p, i), Add(ref q, i)) = (rnd.NextDouble(), rnd.NextDouble());
-    }
+        : this(new Vector(size, rnd), new Vector(size, rnd)) { }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A normal random number generator.</param>
     public ComplexVector(int size, NormalRandom rnd)
-    {
-        re = GC.AllocateUninitializedArray<double>(size);
-        im = GC.AllocateUninitializedArray<double>(size);
-        ref double p = ref MM.GetArrayDataReference(re);
-        ref double q = ref MM.GetArrayDataReference(im);
-        for (int i = 0; i < size; i++)
-            (Add(ref p, i), Add(ref q, i)) = rnd.NextDoubles();
-    }
+        : this(new Vector(size, rnd), new Vector(size, rnd)) { }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
@@ -426,7 +403,22 @@ public readonly struct ComplexVector :
         ref double qi = ref MM.GetArrayDataReference(other.im);
         ref double vr = ref MM.GetArrayDataReference(r);
         ref double vm = ref MM.GetArrayDataReference(m);
-        if (V4.IsHardwareAccelerated && r.Length >= V4d.Count)
+        if (V8.IsHardwareAccelerated && r.Length >= V8d.Count)
+        {
+            nuint t = (nuint)(r.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+            {
+                V8d vpr = V8.LoadUnsafe(ref pr, i), vpi = V8.LoadUnsafe(ref pi, i);
+                V8d vqr = V8.LoadUnsafe(ref qr, i), vqi = V8.LoadUnsafe(ref qi, i);
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(vpi, vqi, vpr * vqr), ref vr, i);
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(vpi, vqr, vpr * vqi), ref vm, i);
+            }
+            V8d wpr = V8.LoadUnsafe(ref pr, t), wpi = V8.LoadUnsafe(ref pi, t);
+            V8d wqr = V8.LoadUnsafe(ref qr, t), wqi = V8.LoadUnsafe(ref qi, t);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(wpi, wqi, wpr * wqr), ref vr, t);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(wpi, wqr, wpr * wqi), ref vm, t);
+        }
+        else if (V4.IsHardwareAccelerated && r.Length >= V4d.Count)
         {
             nuint t = (nuint)(r.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
@@ -468,7 +460,24 @@ public readonly struct ComplexVector :
         ref double qi = ref MM.GetArrayDataReference(other.im);
         ref double vr = ref MM.GetArrayDataReference(r);
         ref double vm = ref MM.GetArrayDataReference(m);
-        if (V4.IsHardwareAccelerated && r.Length >= V4d.Count)
+        if (V8.IsHardwareAccelerated && r.Length >= V8d.Count)
+        {
+            nuint t = (nuint)(r.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+            {
+                V8d vpr = V8.LoadUnsafe(ref pr, i), vpi = V8.LoadUnsafe(ref pi, i);
+                V8d vqr = V8.LoadUnsafe(ref qr, i), vqi = V8.LoadUnsafe(ref qi, i);
+                V8d quot = V8d.One / Avx512F.FusedMultiplyAdd(vqi, vqi, vqr * vqr);
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(vpi, vqi, vpr * vqr) * quot, ref vr, i);
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(vpr, vqi, vpi * vqr) * quot, ref vm, i);
+            }
+            V8d wpr = V8.LoadUnsafe(ref pr, t), wpi = V8.LoadUnsafe(ref pi, t);
+            V8d wqr = V8.LoadUnsafe(ref qr, t), wqi = V8.LoadUnsafe(ref qi, t);
+            V8d wquot = V8d.One / Avx512F.FusedMultiplyAdd(wqi, wqi, wqr * wqr);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(wpi, wqi, wpr * wqr) * wquot, ref vr, t);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(wpr, wqi, wpi * wqr) * wquot, ref vm, t);
+        }
+        else if (V4.IsHardwareAccelerated && r.Length >= V4d.Count)
         {
             nuint t = (nuint)(r.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
@@ -511,7 +520,22 @@ public readonly struct ComplexVector :
         ref double qi = ref MM.GetArrayDataReference(v2.im);
         double sumRe = 0, sumIm = 0;
         int i = 0, size = v1.Length;
-        if (Avx.IsSupported)
+        if (V8.IsHardwareAccelerated)
+        {
+            V8d accRe = V8d.Zero, accIm = V8d.Zero;
+            for (int top = size & Simd.MASK8; i < top; i += V8d.Count)
+            {
+                V8d vpr = V8.LoadUnsafe(ref Add(ref pr, i));
+                V8d vpi = V8.LoadUnsafe(ref Add(ref pi, i));
+                V8d vqr = V8.LoadUnsafe(ref Add(ref qr, i));
+                V8d vqi = V8.LoadUnsafe(ref Add(ref qi, i));
+                accRe += Avx512F.FusedMultiplyAdd(vpi, vqi, vpr * vqr);
+                accIm += Avx512F.FusedMultiplyAddNegated(vpr, vqi, vpi * vqr);
+            }
+            sumRe = V8.Sum(accRe);
+            sumIm = V8.Sum(accIm);
+        }
+        else if (V4.IsHardwareAccelerated)
         {
             V4d accRe = V4d.Zero, accIm = V4d.Zero;
             for (int top = size & Simd.MASK4; i < top; i += V4d.Count)
@@ -521,15 +545,15 @@ public readonly struct ComplexVector :
                 V4d vqr = V4.LoadUnsafe(ref Add(ref qr, i));
                 V4d vqi = V4.LoadUnsafe(ref Add(ref qi, i));
                 accRe += (vpr * vqr).MultiplyAdd(vpi, vqi);
-                accIm += (vpi * vqr).MultiplySub(vpr, vqi);
+                accIm += (vpi * vqr).MultiplyAddNeg(vpr, vqi);
             }
             sumRe = accRe.Sum();
             sumIm = accIm.Sum();
         }
         for (; i < size; i++)
         {
-            sumRe += Add(ref pr, i) * Add(ref qr, i) + Add(ref pi, i) * Add(ref qi, i);
-            sumIm += Add(ref pi, i) * Add(ref qr, i) - Add(ref pr, i) * Add(ref qi, i);
+            sumRe += FusedMultiplyAdd(Add(ref pi, i), Add(ref qi, i), Add(ref pr, i) * Add(ref qr, i));
+            sumIm += FusedMultiplyAdd(-Add(ref pr, i), Add(ref qi, i), Add(ref pi, i) * Add(ref qr, i));
         }
         return new(sumRe, sumIm);
     }
@@ -952,5 +976,5 @@ public readonly struct ComplexVector :
     /// <param name="right">Second vector operand.</param>
     /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(ComplexVector left, ComplexVector right) => !(left == right);
+    public static bool operator !=(ComplexVector left, ComplexVector right) => !left.Equals(right);
 }

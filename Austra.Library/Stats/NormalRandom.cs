@@ -97,7 +97,7 @@ public sealed class NormalRandom
         double r = Sqrt(-u - u) * stdDev;
         double v = Tau * random.NextDouble();
         target = FusedMultiplyAdd(Sin(v), r, mean);
-        Unsafe.Add(ref target, 1) = FusedMultiplyAdd(Cos(v), r, mean);
+        Add(ref target, 1) = FusedMultiplyAdd(Cos(v), r, mean);
     }
 
     /// <summary>
