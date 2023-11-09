@@ -86,22 +86,31 @@ public sealed class Series : Series<Date>,
 
     /// <summary>Creates a new series based in the returns.</summary>
     /// <returns>A derived series with one less point.</returns>
-    public unsafe new Series AsReturns()
+    public new Series AsReturns()
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(Count - 1);
-        fixed (double* p = values, q = newValues)
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double p1 = ref Unsafe.Add(ref p, 1);
+        ref double q = ref MM.GetArrayDataReference(newValues);
+        if (V8.IsHardwareAccelerated && newValues.Length >= V8d.Count)
         {
-            int i = 0, size = newValues.Length;
-            if (Avx.IsSupported)
-            {
-                V4d one = V4d.One;
-                for (int top = size & Simd.MASK4; i < top; i += 4)
-                    Avx.Store(q + i,
-                        Avx.LoadVector256(p + i) / Avx.LoadVector256(p + i + 1) - one);
-            }
-            for (; i < size; i++)
-                q[i] = p[i] / p[i + 1] - 1;
+            V8d v1 = V8d.One;
+            nuint t = (nuint)(newValues.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) / V8.LoadUnsafe(ref p1, i) - v1, ref q, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) / V8.LoadUnsafe(ref p1, t) - v1, ref q, t);
         }
+        else if (V4.IsHardwareAccelerated && newValues.Length >= V4d.Count)
+        {
+            V4d v1 = V4d.One;
+            nuint t = (nuint)(newValues.Length - V4d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) / V4.LoadUnsafe(ref p1, i) - v1, ref q, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) / V4.LoadUnsafe(ref p1, t) - v1, ref q, t);
+        }
+        else
+            for (int i = 0; i < newValues.Length; i++)
+                Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) / Unsafe.Add(ref p1, i) - 1;
         return new(Name + ".RETS", Ticker, args[0..^1], newValues, SeriesType.Rets, Freq);
     }
 
