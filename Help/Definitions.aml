@@ -84,6 +84,8 @@ let x = extProduct in (x * x).det - x.det ^ 2
 extProduct = extProduct
 <markup><font color="DarkGreen">-- This second expression returns <b>false</b>.</font></markup>
 extProduct = extProduct!
+<markup><font color="DarkGreen">-- This expression also returns <b>false</b>.</font></markup>
+extProduct! = extProduct
       	  </code>
       	  </content>
       	</section>

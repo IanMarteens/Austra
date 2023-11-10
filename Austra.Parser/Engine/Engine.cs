@@ -124,24 +124,25 @@ public interface IAustraEngine
 /// <remarks>It does not supports persistency.</remarks>
 public partial class AustraEngine : IAustraEngine
 {
-    private static readonly Member[] rootClasses = new Member[]
-    {
+    private static readonly Member[] rootClasses =
+    [
         new("complexvector::", "Allows access to complex vector constructors"),
         new("matrix::", "Allows access to matrix constructors"),
         new("model::", "Allows access to model constructors"),
         new("series::", "Allows access to series constructors"),
         new("spline::", "Allows access to spline constructors"),
         new("vector::", "Allows access to vector constructors"),
+        new("seq::", "Allows access to sequence constructors"),
         new("math::", "Allows access to mathematical functions"),
         /*new("complexvector(", "Default complex vector constructor"),
         new("matrix(", "Default matrix constructor"),
         new("series(", "Default series constructor"),
         new("spline(", "Default spline constructor"),
         new("vector(", "Default vector constructor"),*/
-    };
+    ];
 
-    private static readonly Member[] globalFunctions = new Member[]
-    {
+    private static readonly Member[] globalFunctions =
+    [
         new("abs(", "Absolute value"),
         new("sqrt(", "Squared root"),
         new("gamma(", "The Gamma function"),
@@ -174,7 +175,7 @@ public partial class AustraEngine : IAustraEngine
         new("polar(", "Creates a complex number from its magnitude and phase components"),
         new("set", "Assigns a value to a variable"),
         new("let", "Declares local variables"),
-    };
+    ];
 
     private readonly Member[] classesAndGlobals;
 
@@ -183,7 +184,7 @@ public partial class AustraEngine : IAustraEngine
     public AustraEngine(IDataSource source)
     {
         Source = source;
-        classesAndGlobals = rootClasses.Concat(globalFunctions).ToArray();
+        classesAndGlobals = [.. rootClasses, .. globalFunctions];
     }
 
     /// <summary>The data source associated with the engine.</summary>
@@ -272,14 +273,15 @@ public partial class AustraEngine : IAustraEngine
             List<Member> newMembers = new Parser(Source, text).ParseContext(position, out bool parsingHeader);
             return parsingHeader
                 ? newMembers
-                : newMembers
-                    .Concat(Source.Variables
-                        .Select(t => new Member(t.name, "Variable: " + t.type?.Name)))
-                    .Concat(Source.AllDefinitions
-                        .Select(d => new Member(d.Name, "Definition: " + d.Type.Name)))
-                    .Concat(classesAndGlobals)
-                    .OrderBy(x => x.Name)
-                    .ToList();
+                : [
+                    .. newMembers
+                        .Concat(Source.Variables
+                            .Select(t => new Member(t.name, "Variable: " + t.type?.Name)))
+                        .Concat(Source.AllDefinitions
+                            .Select(d => new Member(d.Name, "Definition: " + d.Type.Name)))
+                        .Concat(classesAndGlobals)
+                        .OrderBy(x => x.Name)
+                ];
         }
         return Source.Variables
                 .Select(t => new Member(t.name, "Variable: " + t.type?.Name))

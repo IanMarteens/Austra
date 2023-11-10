@@ -21,7 +21,7 @@ let m = matrix::lrandom(5),
 multiplied by its transpose. Then, the Cholesky transform is calculated and finally
 we check that the transform is valid, evaluating the absolute maximum of the
 matrix difference.</para>
-<para>The <codeInline>m</codeInline>, <codeInline>m1</codeInline> and <codeInline>c</codeInline> variables only exist while the formula is been evaluated.</para>
+<para>The <codeInline>m</codeInline>, <codeInline>m1</codeInline> and <codeInline>c</codeInline> variables only exist while the formula is being evaluated.</para>
       </content>
     </section>
     <relatedTopics>

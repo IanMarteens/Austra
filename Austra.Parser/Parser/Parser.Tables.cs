@@ -44,9 +44,32 @@ internal sealed partial class Parser
         typeof(Vector).GetMethod(nameof(Vector.Combine2),
             [typeof(double), typeof(double), typeof(Vector), typeof(Vector)])!;
 
+    private static readonly Dictionary<string, MethodInfo> doubleSeq = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["filter"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Filter)),
+        ["map"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Map)),
+    };
+    private static readonly Dictionary<string, MethodInfo> seqProps = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["sum"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sum)),
+        ["prod"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Product)),
+        ["product"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Product)),
+        ["stats"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Stats)),
+        ["length"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Length)),
+    };
+
+    private static readonly Member[] seqMembers = [
+        new("filter(x => ", "Filters the sequence according to a predicate"),
+        new("map(x => ", "Transforms the sequence according to a mapping function"),
+        new("prod", "Gets the product of all values in the sequence"),
+        new("sum", "Gets the sum of all values in the sequence"),
+        new("stats", "Gets the common statistics of the sequence"),
+        new("length", "Gets the number of values in the sequence"),
+    ];
+
     private static readonly HashSet<string> classNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        "complexvector", "matrix", "math", "model", "series", "vector", "spline"
+        "complexvector", "matrix", "math", "model", "series", "vector", "spline", "seq",
     };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -142,6 +165,10 @@ internal sealed partial class Parser
                 ["deriv"] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
                 ["der"] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
             },
+            [typeof(DoubleSequence)] = doubleSeq,
+            [typeof(DoubleRangeSequence)] = doubleSeq,
+            [typeof(DoubleGridSequence)] = doubleSeq,
+            [typeof(DoubleVectorSequence)] = doubleSeq,
         };
 
     internal readonly struct MethodData
@@ -396,6 +423,11 @@ internal sealed partial class Parser
             typeof(Solver).MD(nameof(Solver.Solve),
                 typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
                 typeof(double), typeof(int))),
+        ["seq.new"] = new(
+            typeof(DoubleRangeSequence).MD(typeof(int), typeof(int)),
+            typeof(DoubleGridSequence).MD(typeof(double), typeof(double), typeof(int)),
+            typeof(DoubleVectorSequence).MD(typeof(Vector)),
+            typeof(DoubleVectorSequence).MD(typeof(Series))),
     };
 
     /// <summary>Allowed properties and their implementations.</summary>
@@ -669,6 +701,10 @@ internal sealed partial class Parser
                 ["dow"] = typeof(Date).Prop(nameof(Date.DayOfWeek)),
                 ["isleap"] = typeof(Date).Get(nameof(Date.IsLeap)),
             },
+            [typeof(DoubleSequence)] = seqProps,
+            [typeof(DoubleRangeSequence)] = seqProps,
+            [typeof(DoubleGridSequence)] = seqProps,
+            [typeof(DoubleVectorSequence)] = seqProps,
         };
 
     /// <summary>Code completion descriptors for properties and methods.</summary>
@@ -947,6 +983,10 @@ internal sealed partial class Parser
             new("eval", "Evaluates the polynomial at a point between 0 and 1"),
             new("derivative", "Gets the derivative at a point between 0 and 1"),
         ],
+        [typeof(DoubleSequence)] = seqMembers,
+        [typeof(DoubleRangeSequence)] = seqMembers,
+        [typeof(DoubleGridSequence)] = seqMembers,
+        [typeof(DoubleVectorSequence)] = seqMembers,
     };
 
     /// <summary>Code completion descriptors for class methods or constructors.</summary>
@@ -955,6 +995,9 @@ internal sealed partial class Parser
         {
             ["series"] = [
                 new("new(", "Creates a new series using weights and a list of series"),
+            ],
+            ["seq"] = [
+                new("new(", "Creates a sequence from a range, a grid or a vector"),
             ],
             ["spline"] = [
                 new("new(", "Creates a new interpolator either from two vectors, a series, or from a function"),
