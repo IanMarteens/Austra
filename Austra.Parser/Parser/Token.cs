@@ -107,6 +107,8 @@ public enum Token
     /// <summary>A multiplied variable.</summary>
     /// <remarks>A juxtaposed pair of an integer number and an identifier.</remarks>
     MultVarI,
+    /// <summary>Identifier plus bang, for avoiding memoization.</summary>
+    IdBang,
     /// <summary>An unrecognized token.</summary>
     Error,
     /// <summary>End of input.</summary>

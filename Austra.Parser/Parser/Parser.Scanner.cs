@@ -135,12 +135,20 @@ internal sealed partial class Parser
             {
                 // Skip blanks after the identifier.
                 id = text[start..i];
-                while (char.IsWhiteSpace(Add(ref c, i)))
+                if (ch == '!' && Add(ref c, i + 1) != '=')
+                {
+                    kind = Token.IdBang;
                     i++;
-                ch = Add(ref c, i);
-                kind = ch == '(' ? Token.Functor
-                    : ch == ':' && Add(ref c, i + 1) == ':' ? Token.ClassName
-                    : Token.Id;
+                }
+                else
+                {
+                    while (char.IsWhiteSpace(Add(ref c, i)))
+                        i++;
+                    ch = Add(ref c, i);
+                    kind = ch == '(' ? Token.Functor
+                        : ch == ':' && Add(ref c, i + 1) == ':' ? Token.ClassName
+                        : Token.Id;
+                }
             }
         }
         else if ((uint)(ch - '0') < 10u)

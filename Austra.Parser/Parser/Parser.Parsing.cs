@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Austra.Parser;
 
@@ -571,6 +572,9 @@ internal sealed partial class Parser
                 break;
             case Token.Id:
                 e = ParseVariable();
+                break;
+            case Token.IdBang:
+                e = ParseIdBang();
                 break;
             case Token.MultVarR:
                 {
@@ -1274,6 +1278,17 @@ internal sealed partial class Parser
         }
         Return(items);
         return result;
+    }
+
+    private Expression ParseIdBang()
+    {
+        // Check macro definitions.
+        Definition? def = source.GetDefinition(id)
+            ?? throw Error($"{id} is not a definition.");
+        Move();
+        if (isParsingDefinition)
+            references.Add(def);
+        return def.Expression;
     }
 
     private Expression ParseVariable()
