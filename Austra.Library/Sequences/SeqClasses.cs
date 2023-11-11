@@ -107,6 +107,8 @@ public abstract partial class DoubleSequence : IFormattable
     {
         /// <summary>Current index in the sequence.</summary>
         private int current;
+        /// <summary>The distance between two steps.</summary>
+        private readonly double delta = (upper - lower) / steps;
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
@@ -137,7 +139,7 @@ public abstract partial class DoubleSequence : IFormattable
                 current++;
             }
             else if (current < steps)
-                value = lower + (upper - lower) * current++ / steps;
+                value = lower + delta * current++;
             else
             {
                 value = default;
@@ -159,6 +161,7 @@ public abstract partial class DoubleSequence : IFormattable
         public VectorSequence(double[] values) : this(new Vector(values)) { }
 
         /// <summary>Creates a sequence of doubles from the values in a series.</summary>
+        /// <remarks>The values array of the series is reversed.</remarks>
         /// <param name="series">The time series.</param>
         public VectorSequence(Series series) : this(series.GetValues().Reverse()) { }
 

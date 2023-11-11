@@ -1,7 +1,16 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
-public abstract partial class DoubleSequence : IFormattable
+public abstract partial class DoubleSequence :
+    IEquatable<DoubleSequence>, IFormattable,
+    IEqualityOperators<DoubleSequence, DoubleSequence, bool>,
+    IAdditionOperators<DoubleSequence, DoubleSequence, DoubleSequence>,
+    IAdditionOperators<DoubleSequence, double, DoubleSequence>,
+    ISubtractionOperators<DoubleSequence, DoubleSequence, DoubleSequence>,
+    ISubtractionOperators<DoubleSequence, double, DoubleSequence>,
+    IMultiplyOperators<DoubleSequence, double, DoubleSequence>,
+    IDivisionOperators<DoubleSequence, double, DoubleSequence>,
+    IUnaryNegationOperators<DoubleSequence, DoubleSequence>
 {
     /// <summary>Gets the next number in the sequence.</summary>
     /// <param name="value">The next number in the sequence.</param>
@@ -277,4 +286,35 @@ public abstract partial class DoubleSequence : IFormattable
     /// <returns>Space-separated components.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         Materialize().ToString(v => v.ToString(format, provider));
+
+    /// <summary>Checks if two sequence has the same length and arguments.</summary>
+    /// <param name="other">The second sequence to be compared.</param>
+    /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
+    public bool Equals(DoubleSequence? other) =>
+        other is not null && Materialize().EqualsV(other.Materialize());
+
+    /// <summary>Checks if the provided argument is a sequence with the same values.</summary>
+    /// <param name="obj">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a sequence with the same items.</returns>
+    public override bool Equals(object? obj) =>
+        obj is DoubleSequence && Equals(obj);
+
+    /// <summary>Returns the hashcode for this vector.</summary>
+    /// <returns>A hashcode summarizing the content of the vector.</returns>
+    public override int GetHashCode() =>
+        ((IStructuralEquatable)Materialize()).GetHashCode(EqualityComparer<double>.Default);
+
+    /// <summary>Compares two vectors for equality. </summary>
+    /// <param name="left">First sequence operand.</param>
+    /// <param name="right">Second sequence operand.</param>
+    /// <returns><see langword="true"/> if all corresponding items are equal.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(DoubleSequence? left, DoubleSequence? right) => left?.Equals(right) == true;
+
+    /// <summary>Compares two vectors for inequality. </summary>
+    /// <param name="left">First sequence operand.</param>
+    /// <param name="right">Second sequence operand.</param>
+    /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(DoubleSequence? left, DoubleSequence? right) => left?.Equals(right) != true;
 }
