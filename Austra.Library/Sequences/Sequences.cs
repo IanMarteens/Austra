@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
-public abstract class DoubleSequence : IFormattable
+public abstract partial class DoubleSequence : IFormattable
 {
     /// <summary>Gets the next number in the sequence.</summary>
     /// <param name="value">The next number in the sequence.</param>
@@ -26,6 +26,151 @@ public abstract class DoubleSequence : IFormattable
     /// <returns>The combined sequence.</returns>
     public DoubleSequence Zip(DoubleSequence other, Func<double, double, double> zipper) =>
         new Zipped(this, other, zipper);
+
+    /// <summary>Creates a sequence from a range.</summary>
+    /// <param name="first">The first value in the sequence.</param>
+    /// <param name="last">The last value in the sequence.</param>
+    /// <returns>A sequence returning a range of values.</returns>
+    public static DoubleSequence Create(int first, int last) =>
+        new RangeSequence(first, last);
+
+    /// <summary>Creates a sequence from a uniform grid.</summary>
+    /// <param name="lower">The first value in the sequence.</param>
+    /// <param name="upper">The last value in the sequence.</param>
+    /// <param name="steps">The number of steps in the sequence, minus one.</param>
+    /// <returns>A sequence returning a uniform grid of values.</returns>
+    public static DoubleSequence Create(double lower, double upper, int steps) =>
+        new GridSequence(lower, upper, steps);
+
+    /// <summary>Creates a sequence from a vector.</summary>
+    /// <param name="vector">The vector containing the sequence's values.</param>
+    /// <returns>The sequence encapsulating the vector.</returns>
+    public static DoubleSequence Create(Vector vector) =>
+        new VectorSequence(vector);
+
+    /// <summary>Creates a sequence from a time series.</summary>
+    /// <param name="series">The series containing the sequence's values.</param>
+    /// <returns>The sequence encapsulating the time series.</returns>
+    public static DoubleSequence Create(Series series) =>
+        new VectorSequence(series);
+
+    /// <summary>Creates a sequence from random values.</summary>
+    /// <param name="size">The size of the series.</param>
+    /// <returns>The sequence encapsulating the time series.</returns>
+    public static DoubleSequence Random(int size) =>
+        new RandomSequence(size, System.Random.Shared);
+
+    /// <summary>Creates a sequence from normal random values.</summary>
+    /// <param name="size">The size of the series.</param>
+    /// <returns>The sequence encapsulating the time series.</returns>
+    public static DoubleSequence NormalRandom(int size) =>
+        new NormalRandomSequence(size, Library.Stats.NormalRandom.Shared);
+
+    /// <summary>Adds the common part of two sequences.</summary>
+    /// <param name="s1">First sequence operand.</param>
+    /// <param name="s2">Second sequence operand.</param>
+    /// <returns>The component by component sum of the sequences.</returns>
+    public static DoubleSequence operator+(DoubleSequence s1, DoubleSequence s2)
+    {
+        double[] a1 = s1.Materialize();
+        double[] a2 = s2.Materialize();
+        double[] r = GC.AllocateUninitializedArray<double>(Min(a1.Length, a2.Length));
+        a1.AsSpan(0, r.Length).AddV(a2.AsSpan(0, r.Length), r);
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Adds a scalar value to a sequence.</summary>
+    /// <param name="s">Sequence operand.</param>
+    /// <param name="d">Scalar operand.</param>
+    /// <returns>The component by component sum of the sequence and the scalar.</returns>
+    public static DoubleSequence operator +(DoubleSequence s, double d)
+    {
+        double[] a = s.Materialize();
+        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
+        a.AsSpan().AddV(d, r.AsSpan());
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Adds a sequence to a scalar value.</summary>
+    /// <param name="d">Scalar operand.</param>
+    /// <param name="s">Sequence operand.</param>
+    /// <returns>The component by component sum of the scalar and the sequence.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DoubleSequence operator +(double d, DoubleSequence s) => s + d;
+
+    /// <summary>Subtracts a scalar common part of two sequences.</summary>
+    /// <param name="s1">Sequence minuend.</param>
+    /// <param name="s2">Sequence subtrahend.</param>
+    /// <returns>The component by component subtraction of the sequences.</returns>
+    public static DoubleSequence operator -(DoubleSequence s1, DoubleSequence s2)
+    {
+        double[] a1 = s1.Materialize();
+        double[] a2 = s2.Materialize();
+        double[] r = GC.AllocateUninitializedArray<double>(Min(a1.Length, a2.Length));
+        a1.AsSpan(0, r.Length).SubV(a2.AsSpan(0, r.Length), r);
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Subtracts a scalar from a sequence.</summary>
+    /// <param name="s">Sequence minuend.</param>
+    /// <param name="d">Scalar subtrahend.</param>
+    /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
+    public static DoubleSequence operator -(DoubleSequence s, double d)
+    {
+        double[] a = s.Materialize();
+        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
+        a.AsSpan().SubV(d, r.AsSpan());
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Subtracts a scalar from a sequence.</summary>
+    /// <param name="s">Sequence minuend.</param>
+    /// <param name="d">Scalar subtrahend.</param>
+    /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
+    public static DoubleSequence operator -(double d, DoubleSequence s)
+    {
+        double[] a = s.Materialize();
+        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
+        CommonMatrix.SubV(d, a, r);
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Negates a sequence.</summary>
+    /// <param name="s">The sequence operand.</param>
+    /// <returns>The component by component negation.</returns>
+    public static DoubleSequence operator -(DoubleSequence s)
+    {
+        double[] a = s.Materialize();
+        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
+        a.AsSpan().NegV(r);
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Multiplies a sequence by a scalar value.</summary>
+    /// <param name="s">Sequence multiplicand.</param>
+    /// <param name="d">A scalar multiplier.</param>
+    /// <returns>The multiplication of the sequence by the scalar.</returns>
+    public static DoubleSequence operator *(DoubleSequence s, double d)
+    {
+        double[] a = s.Materialize();
+        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
+        a.AsSpan().MulV(d, r.AsSpan());
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Multiplies a scalar value by a sequence.</summary>
+    /// <param name="d">Scalar multiplicand.</param>
+    /// <param name="s">Sequence multiplier.</param>
+    /// <returns>The multiplication of the sequence by the scalar.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DoubleSequence operator *(double d, DoubleSequence s) => s * d;
+
+    /// <summary>Divides a sequence by a scalar value.</summary>
+    /// <param name="s">Sequence dividend.</param>
+    /// <param name="d">A scalar divisor.</param>
+    /// <returns>The quotient of the sequence and the scalar.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DoubleSequence operator /(DoubleSequence s, double d) => s * (1d / d);
 
     /// <summary>Gets all statistics from the values in the secuence.</summary>
     /// <returns>Simple statistics of all the values in the sequence.</returns>
@@ -78,6 +223,32 @@ public abstract class DoubleSequence : IFormattable
         return count;
     }
 
+    /// <summary>Checks whether the predicate is satisfied by all items.</summary>
+    /// <param name="predicate">The predicate to be checked.</param>
+    /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
+    public bool All(Func<double, bool> predicate)
+    {
+        while (Next(out double value))
+            if (!predicate(value))
+                return false;
+        return true;
+    }
+
+    /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
+    /// <param name="predicate">The predicate to be checked.</param>
+    /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
+    public bool Any(Func<double, bool> predicate)
+    {
+        while (Next(out double value))
+            if (predicate(value))
+                return true;
+        return false;
+    }
+
+    /// <summary>Converts this sequence into a vector.</summary>
+    /// <returns>A new vector.</returns>
+    public Vector ToVector() => Materialize();
+
     /// <summary>Creates an array with all values from the sequence.</summary>
     /// <returns>The values as an array.</returns>
     protected virtual double[] Materialize()
@@ -86,6 +257,13 @@ public abstract class DoubleSequence : IFormattable
         while (Next(out double value))
             values.Add(value);
         return [.. values];
+    }
+
+    /// <summary>Fills a span with all values from the sequence.</summary>
+    protected void Materialize(Span<double> span)
+    {
+        for (ref double d = ref MM.GetReference(span); Next(out double v); d = ref Add(ref d, 1))
+            d = v;
     }
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="Vector"/>.</summary>
@@ -99,170 +277,4 @@ public abstract class DoubleSequence : IFormattable
     /// <returns>Space-separated components.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         Materialize().ToString(v => v.ToString(format, provider));
-
-    /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
-    /// <param name="source">The original sequence.</param>
-    /// <param name="mapper">The mapping function.</param>
-    private sealed class Mapped(DoubleSequence source, Func<double, double> mapper) : DoubleSequence
-    {
-        /// <summary>Gets the next number in the sequence.</summary>
-        /// <param name="value">The next number in the sequence.</param>
-        /// <returns><see langword="true"/>, when there is a next number.</returns>
-        public override bool Next(out double value)
-        {
-            if (source.Next(out value))
-            {
-                value = mapper(value);
-                return true;
-            }
-            return false;
-        }
-    }
-
-    /// <summary>Implements a sequence filtered by a predicate.</summary>
-    /// <param name="source">The original sequence.</param>
-    /// <param name="filter">The filtering lambda.</param>
-    private sealed class Filtered(DoubleSequence source, Func<double, bool> filter) : DoubleSequence
-    {
-        /// <summary>Gets the next number in the sequence.</summary>
-        /// <param name="value">The next number in the sequence.</param>
-        /// <returns><see langword="true"/>, when there is a next number.</returns>
-        public override bool Next(out double value)
-        {
-            while (source.Next(out value))
-                if (filter(value))
-                    return true;
-            return false;
-        }
-    }
-
-    /// <summary>Joins the common part of two sequences with the help of a lambda.</summary>
-    /// <param name="s1">First sequence.</param>
-    /// <param name="s2">Second sequence.</param>
-    /// <param name="zipper">The joining function.</param>
-    private sealed class Zipped(DoubleSequence s1, DoubleSequence s2,
-        Func<double, double, double> zipper) : DoubleSequence
-    {
-        /// <summary>Gets the next number in the computed sequence.</summary>
-        /// <param name="value">The next number in the sequence.</param>
-        /// <returns><see langword="true"/>, when there is a next number.</returns>
-        public override bool Next(out double value)
-        {
-            while (s1.Next(out double value1) && s2.Next(out double value2))
-            {
-                value = zipper(value1, value2);
-                return true;
-            }
-            value = default;
-            return false;
-        }
-    }
-}
-
-/// <summary>Implements a sequence of double values based in an integer range.</summary>
-/// <remarks>Creates a double sequence from an integer range.</remarks>
-/// <param name="first">The first value in the sequence.</param>
-/// <param name="last">The last value in the sequence.</param>
-public class DoubleRangeSequence(int first, int last) : DoubleSequence
-{
-    private readonly int last = last;
-    private int current = first;
-
-    /// <summary>Gets the next number in the sequence.</summary>
-    /// <param name="value">The next number in the sequence.</param>
-    /// <returns><see langword="true"/>, when there is a next number.</returns>
-    public override bool Next(out double value)
-    {
-        if (current <= last)
-        {
-            value = current++;
-            return true;
-        }
-        value = default;
-        return false;
-    }
-}
-
-/// <summary>Implements a sequence of double values based in a grid.</summary>
-/// <remarks>Creates a double sequence from a grid.</remarks>
-/// <param name="lower">The first value in the sequence.</param>
-/// <param name="upper">The last value in the sequence.</param>
-/// <param name="steps">The number of steps in the sequence, minus one.</param>
-public class DoubleGridSequence(double lower, double upper, int steps) : DoubleSequence
-{
-    private readonly double lower = lower;
-    private readonly double upper = upper;
-    private readonly int steps = steps;
-    private int current;
-
-    /// <summary>Gets the next number in the sequence.</summary>
-    /// <param name="value">The next number in the sequence.</param>
-    /// <returns><see langword="true"/>, when there is a next number.</returns>
-    public override bool Next(out double value)
-    {
-        if (current == 0)
-        {
-            value = lower;
-            current = 1;
-        }
-        else if (current == steps)
-        {
-            value = upper;
-            current++;
-        }
-        else if (current < steps)
-            value = lower + (upper - lower) * current++ / steps;
-        else
-        {
-            value = default;
-            return false;
-        }
-        return true;
-    }
-}
-
-/// <summary>Implements a sequence using a vector as its storage.</summary>
-/// <param name="source">The underlying vector.</param>
-public class DoubleVectorSequence(Vector source) : DoubleSequence
-{
-    private readonly Vector source = source;
-    private int current;
-
-    /// <summary>Creates a sequence of doubles from the values in a series.</summary>
-    /// <param name="series">The time series.</param>
-    public DoubleVectorSequence(Series series) : this(series.GetValues().Reverse()) { }
-
-    /// <summary>Gets the next number in the sequence.</summary>
-    /// <param name="value">The next number in the sequence.</param>
-    /// <returns><see langword="true"/>, when there is a next number.</returns>
-    public override bool Next(out double value)
-    {
-        if (current < source.Length)
-        {
-            value = source[current++];
-            return true;
-        }
-        value = default;
-        return false;
-    }
-
-    /// <summary>Gets all statistics from the values in the secuence.</summary>
-    /// <returns>Simple statistics of all the values in the sequence.</returns>
-    public override Accumulator Stats() => source.Stats();
-
-    /// <summary>Gets the sum of all the values in the sequence.</summary>
-    /// <returns>The sum of all the values in the sequence.</returns>
-    public override double Sum() => source.Sum();
-
-    /// <summary>Gets the product of all the values in the sequence.</summary>
-    /// <returns>The product of all the values in the sequence.</returns>
-    public override double Product() => source.Product();
-
-    /// <summary>Gets the total number of values in the sequence.</summary>
-    /// <returns>The total number of values in the sequence.</returns>
-    public override int Length() => source.Length;
-
-    /// <summary>Creates an array with all values from the sequence.</summary>
-    /// <returns>The values as an array.</returns>
-    protected override double[] Materialize() => (double[])source;
 }
