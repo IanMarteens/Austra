@@ -4,25 +4,21 @@ using static System.Runtime.CompilerServices.Unsafe;
 namespace Austra.Parser;
 
 /// <summary>A parsing exception associated with a position.</summary>
-public class AstException : ApplicationException
+/// <remarks>Creates a new exception with a message and a position.</remarks>
+/// <param name="message">Error message.</param>
+/// <param name="position">Error position.</param>
+public class AstException(string message, int position) : ApplicationException(message)
 {
     /// <summary>Gets the position inside the source code.</summary>
-    public int Position { get; }
-
-    /// <summary>Creates a new exception with a message and a position.</summary>
-    /// <param name="message">Error message.</param>
-    /// <param name="position">Error position.</param>
-    public AstException(string message, int position)
-        : base(message) => Position = position;
+    public int Position { get; } = position;
 }
 
 /// <summary>Silently aborts parsing for code-completion purposes.</summary>
 /// <remarks>This exception must always be catched inside the library.</remarks>
-internal sealed class AbortException : ApplicationException
+/// <remarks>Creates a new exception with an attached message.</remarks>
+/// <param name="message">Error message.</param>
+internal sealed class AbortException(string message) : ApplicationException(message)
 {
-    /// <summary>Creates a new exception with an attached message.</summary>
-    /// <param name="message">Error message.</param>
-    public AbortException(string message) : base(message) { }
 }
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
@@ -33,7 +29,7 @@ internal sealed partial class Parser
     /// <summary>The text being scanned.</summary>
     private readonly string text;
     /// <summary>Referenced definitions.</summary>
-    private readonly HashSet<Definition> references = new();
+    private readonly HashSet<Definition> references = [];
     /// <summary>All top-level locals, from LET clauses.</summary>
     private readonly List<ParameterExpression> topLocals = new(8);
     /// <summary>Top-level local asignment expressions.</summary>
@@ -591,10 +587,10 @@ internal static class ParserExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MethodCallExpression Call(this Type type,
         Expression? instance, string method, Expression arg) =>
-        Expression.Call(instance, type.GetMethod(method, new[] { arg.Type })!, arg);
+        Expression.Call(instance, type.GetMethod(method, [arg.Type])!, arg);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MethodCallExpression Call(this Type type,
         string method, Expression a1, Expression a2) =>
-        Expression.Call(type.GetMethod(method, new[] { a1.Type, a2.Type })!, a1, a2);
+        Expression.Call(type.GetMethod(method, [a1.Type, a2.Type])!, a1, a2);
 }

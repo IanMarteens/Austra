@@ -86,9 +86,9 @@ public class DataSource : IDataSource
     private readonly Dictionary<string, Definition> definitions =
         new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Topologically-sorted list of definitions.</summary>
-    private readonly List<Definition> allDefinitions = new();
+    private readonly List<Definition> allDefinitions = [];
     /// <summary>Memoized expressions.</summary>
-    private readonly Dictionary<string, Expression> memos = new();
+    private readonly Dictionary<string, Expression> memos = [];
     /// <summary>Synchronizes access to definitions.</summary>
     private readonly object defLock = new();
 
