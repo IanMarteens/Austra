@@ -37,6 +37,17 @@ public abstract class DoubleSequence : IFormattable
         return result;
     }
 
+    /// <summary>Reduces a sequence to a single number.</summary>
+    /// <param name="seed">The seed value.</param>
+    /// <param name="reducer">A function that combines two elements into one.</param>
+    /// <returns>The reduced values.</returns>
+    public virtual double Reduce(double seed, Func<double, double, double> reducer)
+    {
+        while (Next(out double value))
+            seed = reducer(seed, value);
+        return seed;
+    }
+
     /// <summary>Gets the sum of all the values in the sequence.</summary>
     /// <returns>The sum of all the values in the sequence.</returns>
     public virtual double Sum()
