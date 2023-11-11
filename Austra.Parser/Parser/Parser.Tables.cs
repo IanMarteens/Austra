@@ -48,6 +48,7 @@ internal sealed partial class Parser
     {
         ["filter"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Filter)),
         ["map"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Map)),
+        ["zip"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Zip)),
     };
     private static readonly Dictionary<string, MethodInfo> seqProps = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -61,6 +62,7 @@ internal sealed partial class Parser
     private static readonly Member[] seqMembers = [
         new("filter(x => ", "Filters the sequence according to a predicate"),
         new("map(x => ", "Transforms the sequence according to a mapping function"),
+        new("zip(", "Combines two sequence using a lambda function"),
         new("prod", "Gets the product of all values in the sequence"),
         new("sum", "Gets the sum of all values in the sequence"),
         new("stats", "Gets the common statistics of the sequence"),

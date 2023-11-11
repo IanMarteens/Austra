@@ -12,13 +12,20 @@ public abstract class DoubleSequence : IFormattable
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>
     public DoubleSequence Map(Func<double, double> mapper) =>
-        new Mapper(this, mapper);
+        new Mapped(this, mapper);
 
     /// <summary>Transform a sequence acording to the predicate passed as parameter.</summary>
     /// <param name="filter">A predicate for selecting surviving values</param>
     /// <returns>The filtered sequence.</returns>
     public DoubleSequence Filter(Func<double, bool> filter) =>
         new Filtered(this, filter);
+
+    /// <summary>Joins the common part of two sequence with the help of a lambda.</summary>
+    /// <param name="other">The second sequence.</param>
+    /// <param name="zipper">The joining sequence.</param>
+    /// <returns>The combined sequence.</returns>
+    public DoubleSequence Zip(DoubleSequence other, Func<double, double, double> zipper) =>
+        new Zipped(this, other, zipper);
 
     /// <summary>Gets all statistics from the values in the secuence.</summary>
     /// <returns>Simple statistics of all the values in the sequence.</returns>
@@ -82,11 +89,11 @@ public abstract class DoubleSequence : IFormattable
     public string ToString(string? format, IFormatProvider? provider = null) =>
         Materialize().ToString(v => v.ToString(format, provider));
 
-    private sealed class Mapper(DoubleSequence source, Func<double, double> mapper) : DoubleSequence
+    /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="mapper">The mapping function.</param>
+    private sealed class Mapped(DoubleSequence source, Func<double, double> mapper) : DoubleSequence
     {
-        private readonly DoubleSequence source = source;
-        private readonly Func<double, double> mapper = mapper;
-
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -101,11 +108,11 @@ public abstract class DoubleSequence : IFormattable
         }
     }
 
+    /// <summary>Implements a sequence filtered by a predicate.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="filter">The filtering lambda.</param>
     private sealed class Filtered(DoubleSequence source, Func<double, bool> filter) : DoubleSequence
     {
-        private readonly DoubleSequence source = source;
-        private readonly Func<double, bool> filter = filter;
-
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -114,6 +121,28 @@ public abstract class DoubleSequence : IFormattable
             while (source.Next(out value))
                 if (filter(value))
                     return true;
+            return false;
+        }
+    }
+
+    /// <summary>Joins the common part of two sequences with the help of a lambda.</summary>
+    /// <param name="s1">First sequence.</param>
+    /// <param name="s2">Second sequence.</param>
+    /// <param name="zipper">The joining function.</param>
+    private sealed class Zipped(DoubleSequence s1, DoubleSequence s2,
+        Func<double, double, double> zipper) : DoubleSequence
+    {
+        /// <summary>Gets the next number in the computed sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            while (s1.Next(out double value1) && s2.Next(out double value2))
+            {
+                value = zipper(value1, value2);
+                return true;
+            }
+            value = default;
             return false;
         }
     }

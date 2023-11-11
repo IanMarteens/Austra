@@ -1063,7 +1063,8 @@ internal sealed partial class Parser
             }
         Expression e = ParseLightConditional();
         return e.Type == expected ||
-            expected == typeof(Series<Date>) && e.Type == typeof(Series)
+            expected == typeof(Series<Date>) && e.Type == typeof(Series) ||
+            expected.IsClass && e.Type.IsAssignableTo(expected)
             ? e
             : expected == typeof(double) && e.Type == typeof(int)
             ? IntToDouble(e)

@@ -39,10 +39,10 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<Using Include="Austra.Library.Dates"/>
-		<Using Include="Austra.Library.Stats"/>
-		<Using Include="Austra.Library.Transforms"/>
-		<Using Include="Austra.Library.Helpers"/>
+		<Using Include="Austra.Library.Dates" />
+		<Using Include="Austra.Library.Stats" />
+		<Using Include="Austra.Library.Transforms" />
+		<Using Include="Austra.Library.Helpers" />
 		<Using Include="System" />
 		<Using Include="System.Math" Static="true" />
 		<Using Include="System.Collections" />
@@ -59,11 +59,11 @@
 		<Using Include="System.Text.Json.Serialization" />
 		<Using Include="System.Runtime.CompilerServices.Unsafe" Static="true" />
 		<Using Include="System.Runtime.Intrinsics.Vector256" Alias="V4" />
-		<Using Include="System.Runtime.Intrinsics.Vector256&lt;double&gt;" Alias="V4d"/>
+		<Using Include="System.Runtime.Intrinsics.Vector256&lt;double&gt;" Alias="V4d" />
 		<Using Include="System.Runtime.Intrinsics.Vector512" Alias="V8" />
-		<Using Include="System.Runtime.Intrinsics.Vector512&lt;double&gt;" Alias="V8d"/>
-		<Using Include="System.Runtime.Intrinsics.Vector512&lt;long&gt;" Alias="V8L"/>
-		<Using Include="System.Runtime.InteropServices.MemoryMarshal" Alias="MM"/>
+		<Using Include="System.Runtime.Intrinsics.Vector512&lt;double&gt;" Alias="V8d" />
+		<Using Include="System.Runtime.Intrinsics.Vector512&lt;long&gt;" Alias="V8L" />
+		<Using Include="System.Runtime.InteropServices.MemoryMarshal" Alias="MM" />
 	</ItemGroup>
 
 	<ItemGroup>
