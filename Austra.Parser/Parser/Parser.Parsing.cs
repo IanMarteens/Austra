@@ -1163,6 +1163,8 @@ internal sealed partial class Parser
         if (mth.ExpectedArgs < mth.Args.Length && mth.Args[^1] is Type t)
             args.Add(t == typeof(Random) || t == typeof(NormalRandom)
                 ? t.New() : Expression.Constant(t == typeof(One) ? 1d : 0d));
+        if (mth.ExpectedArgs != int.MaxValue && args.Count < mth.ExpectedArgs)
+            throw Error("No class method accepts this argument list.");
         for (int i = 0; i < mth.ExpectedArgs; i++)
         {
             Type expected = mth.Args[i], actual = args[i].Type;
