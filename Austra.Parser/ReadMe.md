@@ -65,6 +65,7 @@ The parser performs some optimizations:
 * Both `vector * double + vector1` and `double * vector + vector1` are converted to `vector.MultiplyAdd(double, vector1)`, saving again one operation and one intermediate value.
 * `double * vector1 + double * vector2`, and all its variants, are converted to the more efficient `Vector.Combine2(d1, d2, v1, v2    )`. When more than two vectors are involved, it is better to use an overload of the `vector::new` class vector that allows linear combinations directly from the language.
 * `matrix * vector1 + vector2` is converted to `matrix.MultiplyAdd(vector1, vector2)`. This time, what we save is a temporal buffer, which also saves some time.
+* `matrix * vector1 + double * vector2` is converted to `matrix.MultiplyAdd(vector1, double, vector2)`.
 
 Some simple constant folding also takes place, but it only affects numeric expressions. In any case, most of the time spent by the parser has to do with compiling to IL.
 

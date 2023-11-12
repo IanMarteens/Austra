@@ -399,6 +399,14 @@ internal sealed partial class Parser
                                     be1.Left,
                                     opAdd == Token.Plus ? be2.Left : Expression.Negate(be2.Left),
                                     be1.Right, be2.Right);
+                            else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } bee2
+                                && be1.Left.Type == typeof(Matrix)
+                                && bee2.Left.Type == typeof(double))
+                                // m * v1 + d * v2
+                                e1 = Expression.Call(be1.Left, MatrixCombine,
+                                    be1.Right,
+                                    opAdd == Token.Plus ? bee2.Left : Expression.Negate(bee2.Left),
+                                    bee2.Right);
                             else
                                 e1 = be1.Right.Type == typeof(double)
                                     ? Expression.Call(be1.Left,

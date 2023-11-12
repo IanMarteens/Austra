@@ -45,6 +45,10 @@ internal sealed partial class Parser
     private static readonly MethodInfo VectorCombine2 =
         typeof(Vector).GetMethod(nameof(Vector.Combine2),
             [typeof(double), typeof(double), typeof(Vector), typeof(Vector)])!;
+    /// <summary>Method for linear vector combinations.</summary>
+    private static readonly MethodInfo MatrixCombine =
+        typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
+            [typeof(Vector), typeof(double), typeof(Vector)])!;
 
     private static readonly HashSet<string> classNames = new(StringComparer.OrdinalIgnoreCase)
     {

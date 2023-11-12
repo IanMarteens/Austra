@@ -4,7 +4,8 @@
     <Topic id="04ea4168-169f-488a-9250-41bdab54e5e6" visible="True" isExpanded="true" title="The AUSTRA language" tocTitle="The AUSTRA language">
       <Topic id="90cb2899-abcf-4ebe-b96a-8cfac1b2809f" visible="True" />
       <Topic id="8b381718-bf08-4762-a51b-1516af27bef2" visible="True" title="Local variables" tocTitle="Local variables" />
-      <Topic id="9ebcc778-37a1-4313-87f9-1ea37494d2c8" visible="True" isSelected="true" title="Lambda functions" tocTitle="Lambda functions" />
+      <Topic id="9ebcc778-37a1-4313-87f9-1ea37494d2c8" visible="True" title="Lambda functions" tocTitle="Lambda functions" />
+      <Topic id="d1757dd1-7bbd-4d90-88b9-cc034c5ad326" visible="True" isSelected="true" title="Sequences" tocTitle="Sequences" />
     </Topic>
   </Topic>
 </Topics>
