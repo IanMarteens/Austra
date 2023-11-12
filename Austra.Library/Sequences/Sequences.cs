@@ -8,6 +8,7 @@ public abstract partial class DoubleSequence :
     IAdditionOperators<DoubleSequence, double, DoubleSequence>,
     ISubtractionOperators<DoubleSequence, DoubleSequence, DoubleSequence>,
     ISubtractionOperators<DoubleSequence, double, DoubleSequence>,
+    IMultiplyOperators<DoubleSequence, DoubleSequence, double>,
     IMultiplyOperators<DoubleSequence, double, DoubleSequence>,
     IDivisionOperators<DoubleSequence, double, DoubleSequence>,
     IUnaryNegationOperators<DoubleSequence, DoubleSequence>
@@ -155,6 +156,18 @@ public abstract partial class DoubleSequence :
         return new VectorSequence(r);
     }
 
+    /// <summary>Calculates the scalar product of the common part of two sequences.</summary>
+    /// <param name="s1">First sequence.</param>
+    /// <param name="s2">Second sequence.</param>
+    /// <returns>The dot product of the common part.</returns>
+    public static double operator*(DoubleSequence s1, DoubleSequence s2)
+    {
+        double[] a1 = s1.Materialize();
+        double[] a2 = s2.Materialize();
+        int size = Min(a1.Length, a2.Length);
+        return a1.AsSpan(0, size).DotProduct(a2.AsSpan(0, size));
+    }
+
     /// <summary>Multiplies a sequence by a scalar value.</summary>
     /// <param name="s">Sequence multiplicand.</param>
     /// <param name="d">A scalar multiplier.</param>
@@ -254,6 +267,20 @@ public abstract partial class DoubleSequence :
         return false;
     }
 
+    /// <summary>Sorts the content of this sequence.</summary>
+    /// <returns>A sorted sequence</returns>
+    public DoubleSequence Sort()
+    {
+        double[] data = Materialize();
+        Array.Sort(data);
+        return Create(data);
+    }
+
+    /// <summary>Gets only the unique values in this sequence.</summary>
+    /// <returns>A sequence with unique values.</returns>
+    public DoubleSequence Distinct() =>
+        Create(new HashSet<double>(Materialize()).ToArray());
+
     /// <summary>Converts this sequence into a vector.</summary>
     /// <returns>A new vector.</returns>
     public Vector ToVector() => Materialize();
@@ -274,6 +301,9 @@ public abstract partial class DoubleSequence :
         for (ref double d = ref MM.GetReference(span); Next(out double v); d = ref Add(ref d, 1))
             d = v;
     }
+
+    /// <summary>Checks if we can get the length without iterating.</summary>
+    protected virtual bool HasLength => false;
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="Vector"/>.</summary>
     /// <returns>A formated list of double values.</returns>

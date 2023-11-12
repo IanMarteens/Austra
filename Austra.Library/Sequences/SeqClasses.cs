@@ -20,6 +20,14 @@ public abstract partial class DoubleSequence : IFormattable
             }
             return false;
         }
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <returns>The total number of values in the sequence.</returns>
+        public override int Length() =>
+            source.HasLength ? source.Length() : base.Length();
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => source.HasLength;
     }
 
     /// <summary>Implements a sequence filtered by a predicate.</summary>
@@ -59,6 +67,19 @@ public abstract partial class DoubleSequence : IFormattable
             value = default;
             return false;
         }
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <remarks>
+        /// We can calculate the length if both operands has a known length.
+        /// </remarks>
+        /// <returns>The total number of values in the sequence.</returns>
+        public override int Length() => HasLength ? Min(s1.Length(), s2.Length()) : base.Length();
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        /// <remarks>
+        /// We can calculate the length if both operands has a known length.
+        /// </remarks>
+        protected override bool HasLength => s1.HasLength && s2.HasLength;
     }
 
     /// <summary>Implements a sequence of double values based in an integer range.</summary>
@@ -67,12 +88,17 @@ public abstract partial class DoubleSequence : IFormattable
     /// <param name="last">The last value in the sequence.</param>
     private sealed class RangeSequence(int first, int last) : DoubleSequence
     {
+        /// <summary>Calculated length of the sequence.</summary>
+        private readonly int length = last - first + 1;
         /// <summary>Current value.</summary>
         private int current = first;
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => last - current + 1;
+        public override int Length() => length;
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => true;
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
@@ -113,6 +139,9 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
         public override int Length() => steps + 1;
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => true;
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
@@ -195,6 +224,9 @@ public abstract partial class DoubleSequence : IFormattable
         /// <returns>The total number of values in the sequence.</returns>
         public override int Length() => source.Length;
 
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => true;
+
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
         protected override double[] Materialize() => (double[])source;
@@ -211,6 +243,9 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
         public override int Length() => size;
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => true;
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
@@ -248,6 +283,9 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
         public override int Length() => size;
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => true;
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
