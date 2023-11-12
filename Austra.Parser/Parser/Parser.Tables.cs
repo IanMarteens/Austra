@@ -703,6 +703,8 @@ internal sealed partial class Parser
                 ["stats"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Stats)),
                 ["length"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Length)),
                 ["tovector"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.ToVector)),
+                ["sort"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sort)),
+                ["distinct"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Distinct)),
             },
         }.ToFrozenDictionary();
 

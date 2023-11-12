@@ -2,7 +2,8 @@
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence :
-    IEquatable<DoubleSequence>, IFormattable,
+    IFormattable, 
+    IEquatable<DoubleSequence>,
     IEqualityOperators<DoubleSequence, DoubleSequence, bool>,
     IAdditionOperators<DoubleSequence, DoubleSequence, DoubleSequence>,
     IAdditionOperators<DoubleSequence, double, DoubleSequence>,
@@ -17,6 +18,10 @@ public abstract partial class DoubleSequence :
     /// <param name="value">The next number in the sequence.</param>
     /// <returns><see langword="true"/>, when there is a next number.</returns>
     public abstract bool Next(out double value);
+
+    /// <summary>Performs a shallow copy of the sequence.</summary>
+    /// <returns>A shallow copy of the sequence.</returns>
+    public DoubleSequence Clone() => (DoubleSequence)MemberwiseClone();
 
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
@@ -42,7 +47,7 @@ public abstract partial class DoubleSequence :
     /// <param name="last">The last value in the sequence.</param>
     /// <returns>A sequence returning a range of values.</returns>
     public static DoubleSequence Create(int first, int last) =>
-        new RangeSequence(first, last);
+        first <= last ? new RangeSequence(first, last) : new RangeSequenceDesc(first, last);
 
     /// <summary>Creates a sequence from a uniform grid.</summary>
     /// <param name="lower">The first value in the sequence.</param>
@@ -304,6 +309,9 @@ public abstract partial class DoubleSequence :
 
     /// <summary>Checks if we can get the length without iterating.</summary>
     protected virtual bool HasLength => false;
+
+    /// <summary>Checks the sequence has a storage.</summary>
+    protected virtual bool HasStorage => false;
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="Vector"/>.</summary>
     /// <returns>A formated list of double values.</returns>

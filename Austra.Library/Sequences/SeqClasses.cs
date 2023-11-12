@@ -86,25 +86,27 @@ public abstract partial class DoubleSequence : IFormattable
     /// <remarks>Creates a double sequence from an integer range.</remarks>
     /// <param name="first">The first value in the sequence.</param>
     /// <param name="last">The last value in the sequence.</param>
-    private sealed class RangeSequence(int first, int last) : DoubleSequence
+    private class RangeSequence(int first, int last) : DoubleSequence
     {
         /// <summary>Calculated length of the sequence.</summary>
-        private readonly int length = last - first + 1;
+        private readonly int length = Abs(last - first) + 1;
         /// <summary>Current value.</summary>
-        private int current = first;
+        protected int current = first;
+        /// <summary>Last value in the sequence.</summary>
+        protected int last = last;
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => length;
+        public sealed override int Length() => length;
 
         /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
+        protected sealed override bool HasLength => true;
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
-        protected override double[] Materialize()
+        protected sealed override double[] Materialize()
         {
-            double[] result = GC.AllocateUninitializedArray<double>(last - current + 1);
+            double[] result = GC.AllocateUninitializedArray<double>(length);
             Materialize(result.AsSpan());
             return result;
         }
@@ -117,6 +119,27 @@ public abstract partial class DoubleSequence : IFormattable
             if (current <= last)
             {
                 value = current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements a sequence of double values based in an integer range.</summary>
+    /// <remarks>Creates a double sequence from an integer range.</remarks>
+    /// <param name="first">The first value in the sequence.</param>
+    /// <param name="last">The last value in the sequence.</param>
+    private sealed class RangeSequenceDesc(int first, int last) : RangeSequence(first, last)
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current >= last)
+            {
+                value = current--;
                 return true;
             }
             value = default;
@@ -226,6 +249,9 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Checks if we can get the length without iterating.</summary>
         protected override bool HasLength => true;
+
+        /// <summary>Checks the sequence has a storage.</summary>
+        protected override bool HasStorage => true;
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
