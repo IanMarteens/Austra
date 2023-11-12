@@ -1316,7 +1316,9 @@ internal sealed partial class Parser
         }
         // Check the local scope.
         if (locals.TryGetValue(ident, out ParameterExpression? local))
-            return local;
+            return local.Type == typeof(DoubleSequence)
+                ? Expression.Call(local, typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Clone))!)
+                : local;
         // Check macro definitions.
         Definition? def = source.GetDefinition(ident);
         if (def != null)
