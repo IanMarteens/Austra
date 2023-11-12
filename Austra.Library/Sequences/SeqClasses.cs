@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence : IFormattable
@@ -10,6 +8,8 @@ public abstract partial class DoubleSequence : IFormattable
     /// <param name="mapper">The mapping function.</param>
     private sealed class Mapped(DoubleSequence source, Func<double, double> mapper) : DoubleSequence
     {
+        private readonly Func<double, double> mapper = mapper;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -22,6 +22,13 @@ public abstract partial class DoubleSequence : IFormattable
             }
             return false;
         }
+
+        /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
+        /// <remarks>This implementation conflates two mappers into a single instance.</remarks>
+        /// <param name="mapper">The transforming function.</param>
+        /// <returns>The transformed sequence.</returns>
+        public override DoubleSequence Map(Func<double, double> mapper) =>
+            new Mapped(source, x => mapper(this.mapper(x)));
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
@@ -148,6 +155,19 @@ public abstract partial class DoubleSequence : IFormattable
             return this;
         }
 
+        /// <summary>Sorts the content of this sequence.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DoubleSequence Sort() => this;
+
+        /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <returns>A sorted sequence in descending order.</returns>
+        public override DoubleSequence SortDescending() => new RangeSequenceDesc(last, first);
+
+        /// <summary>Gets only the unique values in this sequence.</summary>
+        /// <remarks>This sequence has always unique values.</remarks>
+        /// <returns>A sequence with unique values.</returns>
+        public sealed override DoubleSequence Distinct() => this;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -169,6 +189,14 @@ public abstract partial class DoubleSequence : IFormattable
     /// <param name="last">The last value in the sequence.</param>
     private sealed class RangeSequenceDesc(int first, int last) : RangeSequence(first, last)
     {
+        /// <summary>Sorts the content of this sequence.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DoubleSequence Sort() => new RangeSequence(last, first);
+
+        /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <returns>A sorted sequence in descending order.</returns>
+        public override DoubleSequence SortDescending() => this;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -191,10 +219,10 @@ public abstract partial class DoubleSequence : IFormattable
     /// <param name="steps">The number of steps in the sequence, minus one.</param>
     private sealed class GridSequence(double lower, double upper, int steps) : DoubleSequence
     {
-        /// <summary>Current index in the sequence.</summary>
-        private int current;
         /// <summary>The distance between two steps.</summary>
         private readonly double delta = (upper - lower) / steps;
+        /// <summary>Current index in the sequence.</summary>
+        private int current;
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
@@ -219,6 +247,11 @@ public abstract partial class DoubleSequence : IFormattable
             current = 0;
             return this;
         }
+
+        /// <summary>Gets only the unique values in this sequence.</summary>
+        /// <remarks>This sequence has always unique values.</remarks>
+        /// <returns>A sequence with unique values.</returns>
+        public override DoubleSequence Distinct() => this;
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>

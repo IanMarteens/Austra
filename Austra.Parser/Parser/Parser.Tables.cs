@@ -704,6 +704,8 @@ internal sealed partial class Parser
                 ["length"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Length)),
                 ["tovector"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.ToVector)),
                 ["sort"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sort)),
+                ["sortasc"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sort)),
+                ["sortdesc"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.SortDescending)),
                 ["distinct"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Distinct)),
             },
         }.ToFrozenDictionary();
@@ -993,6 +995,9 @@ internal sealed partial class Parser
                 new("prod", "Gets the product of all values in the sequence"),
                 new("sum", "Gets the sum of all values in the sequence"),
                 new("stats", "Gets the common statistics of the sequence"),
+                new("sort", "Sorts the sequence in ascending order"),
+                new("sortDesc", "Sorts the sequence in descending order"),
+                new("distinct", "Get the unique values in the sequence"),
                 new("length", "Gets the number of values in the sequence"),
                 new("any(x => ", "Existential operator"),
                 new("all(x => ", "Universal operator"),

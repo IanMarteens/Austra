@@ -30,7 +30,7 @@ public abstract partial class DoubleSequence :
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>
-    public DoubleSequence Map(Func<double, double> mapper) =>
+    public virtual DoubleSequence Map(Func<double, double> mapper) =>
         new Mapped(this, mapper);
 
     /// <summary>Transform a sequence acording to the predicate passed as parameter.</summary>
@@ -179,6 +179,8 @@ public abstract partial class DoubleSequence :
     /// <returns>The dot product of the common part.</returns>
     public static double operator*(DoubleSequence s1, DoubleSequence s2)
     {
+        if (!s1.HasStorage && !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x * y).Sum();
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
         int size = Min(a1.Length, a2.Length);
@@ -287,18 +289,34 @@ public abstract partial class DoubleSequence :
     }
 
     /// <summary>Sorts the content of this sequence.</summary>
-    /// <returns>A sorted sequence</returns>
-    public DoubleSequence Sort()
+    /// <returns>A sorted sequence.</returns>
+    public virtual DoubleSequence Sort()
     {
         double[] data = Materialize();
         Array.Sort(data);
         return Create(data);
     }
 
+    /// <summary>Sorts the content of this sequence in descending order.</summary>
+    /// <returns>A sorted sequence in descending order.</returns>
+    public virtual DoubleSequence SortDescending()
+    {
+        double[] data = Materialize();
+        Array.Sort(data, (x, y) => y.CompareTo(x));
+        return Create(data);
+    }
+
     /// <summary>Gets only the unique values in this sequence.</summary>
     /// <returns>A sequence with unique values.</returns>
-    public DoubleSequence Distinct() =>
-        Create(new HashSet<double>(Materialize()).ToArray());
+    public virtual DoubleSequence Distinct()
+    {
+        if (HasStorage)
+            return Create(new HashSet<double>(Materialize()).ToArray());
+        HashSet<double> set = HasLength ? new(Length()) : [];
+        while (Next(out double d))
+            set.Add(d);
+        return Create(set.ToArray());
+    }
 
     /// <summary>Converts this sequence into a vector.</summary>
     /// <returns>A new vector.</returns>
@@ -308,6 +326,17 @@ public abstract partial class DoubleSequence :
     /// <returns>The values as an array.</returns>
     protected virtual double[] Materialize()
     {
+        if (HasLength)
+        {
+            double[] data = GC.AllocateUninitializedArray<double>(Length());
+            ref double rd = ref MM.GetArrayDataReference(data);
+            while (Next(out double value))
+            {
+                rd = value;
+                rd = ref Add(ref rd, 1);
+            }
+            return data;
+        }
         List<double> values = [];
         while (Next(out double value))
             values.Add(value);
@@ -349,7 +378,7 @@ public abstract partial class DoubleSequence :
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a sequence with the same items.</returns>
     public override bool Equals(object? obj) =>
-        obj is DoubleSequence && Equals(obj);
+        obj is DoubleSequence seq && Equals(seq);
 
     /// <summary>Returns the hashcode for this vector.</summary>
     /// <returns>A hashcode summarizing the content of the vector.</returns>
