@@ -1337,7 +1337,13 @@ internal sealed partial class Parser
         // Check the global scope.
         Expression? e = source.GetExpression(ident, isParsingDefinition) ?? ParseGlobals(ident);
         if (e != null)
-            return e;
+        {
+            return e.Type.IsAssignableTo(typeof(DoubleSequence))
+                ? Expression.Call(Expression.Call(e, 
+                    typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Clone))!),
+                    typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Reset))!)
+                : e;
+        }
         if (TryParseMonthYear(ident, out Date d))
             return Expression.Constant(d);
         // Check if we tried to reference a SET variable in a DEF.

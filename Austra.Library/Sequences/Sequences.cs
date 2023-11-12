@@ -23,6 +23,10 @@ public abstract partial class DoubleSequence :
     /// <returns>A shallow copy of the sequence.</returns>
     public DoubleSequence Clone() => (DoubleSequence)MemberwiseClone();
 
+    /// <summary>Resets the sequence.</summary>
+    /// <returns>Echoes this sequence.</returns>
+    public virtual DoubleSequence Reset() => this;
+
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>

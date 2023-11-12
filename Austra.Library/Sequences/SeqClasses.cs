@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Collections.Generic;
+
+namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence : IFormattable
@@ -26,6 +28,14 @@ public abstract partial class DoubleSequence : IFormattable
         public override int Length() =>
             source.HasLength ? source.Length() : base.Length();
 
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            source.Reset();
+            return this;
+        }
+
         /// <summary>Checks if we can get the length without iterating.</summary>
         protected override bool HasLength => source.HasLength;
     }
@@ -44,6 +54,14 @@ public abstract partial class DoubleSequence : IFormattable
                 if (filter(value))
                     return true;
             return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            source.Reset();
+            return this;
         }
     }
 
@@ -66,6 +84,15 @@ public abstract partial class DoubleSequence : IFormattable
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            s1.Reset();
+            s2.Reset();
+            return this;
         }
 
         /// <summary>Gets the total number of values in the sequence.</summary>
@@ -92,6 +119,8 @@ public abstract partial class DoubleSequence : IFormattable
         private readonly int length = Abs(last - first) + 1;
         /// <summary>Current value.</summary>
         protected int current = first;
+        /// <summary>First value in the sequence.</summary>
+        protected int first = first;
         /// <summary>Last value in the sequence.</summary>
         protected int last = last;
 
@@ -109,6 +138,14 @@ public abstract partial class DoubleSequence : IFormattable
             double[] result = GC.AllocateUninitializedArray<double>(length);
             Materialize(result.AsSpan());
             return result;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            current = first;
+            return this;
         }
 
         /// <summary>Gets the next number in the sequence.</summary>
@@ -175,6 +212,14 @@ public abstract partial class DoubleSequence : IFormattable
             return result;
         }
 
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -216,6 +261,14 @@ public abstract partial class DoubleSequence : IFormattable
         /// <remarks>The values array of the series is reversed.</remarks>
         /// <param name="series">The time series.</param>
         public VectorSequence(Series series) : this(series.GetValues().Reverse()) { }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -282,6 +335,14 @@ public abstract partial class DoubleSequence : IFormattable
             return result;
         }
 
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -320,6 +381,14 @@ public abstract partial class DoubleSequence : IFormattable
             double[] result = GC.AllocateUninitializedArray<double>(size);
             Materialize(result.AsSpan());
             return result;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            current = 0;
+            return this;
         }
 
         /// <summary>Gets the next number in the sequence.</summary>
