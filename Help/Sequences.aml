@@ -5,9 +5,9 @@
       <para>Sequences provides most of the operations from real and complex vectors, but avoiding the storage. Sequences are similar to enumerable types in C# with LINQ, and are a requisite for any functional language.</para>
     </introduction>
     <section address="Section1">
-      <title>Examples</title>
+      <title>Motivation</title>
       <content>
-        <para>Let's say we want to calculate factorials. We could do this with a vector:</para>
+        <para>Let's say we want to calculate factorials. AUSTRA is a functional language, so we don't have explicit loops. We could, however, do this with a vector:</para>
         <code language="Austra">
         vector(10, i => i + 1).prod
         </code>
@@ -17,22 +17,38 @@
         </code>
         <para>Since the sequence's values are generated only by demand, there's no need for the internal storage.</para>
       </content>
-      <!-- If a section contains a sections element, its content creates
-           sub-sections.  These are not collapsible.
       <sections>
           <section address="SubSection1">
-              <title>Sub-section 1</title>
+              <title>Sequence constructors</title>
               <content>
-                  <para>Sub-section content.</para>
+                  <para>This code fragment shows some of the available constructors for sequences:</para>
+		          <code language="Austra">
+seq(1, 10)       <markup><font color="DarkGreen">-- Numbers from 1 to 10.</font></markup>
+seq(10, 1)       <markup><font color="DarkGreen">-- The inverted sequence.</font></markup>
+seq::new(1, 10)  <markup><font color="DarkGreen">-- ::new was omitted before.</font></markup>
+seq(0, τ, 128)   <markup><font color="DarkGreen">-- A uniform grid with 128 intervals.</font></markup>
+seq(v)           <markup><font color="DarkGreen">-- A sequence from a vector.</font></markup>
+seq::random(10)  <markup><font color="DarkGreen">-- A sequence with 10 random values.</font></markup>
+seq::nrandom(10) <markup><font color="DarkGreen">-- A sequence with 10 Gaussian random values.</font></markup>
+				  </code>
               </content>
           </section>
           <section address="SubSection2">
-              <title>Sub-section 2</title>
+              <title>Sequence operators</title>
               <content>
-                  <para>Sub-section content.</para>
+                  <para>Sequence operators mimics most of vector's operators.</para>
+		          <code language="Austra">
+seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</font></markup>
+				  </code>
+                  <para>For instance, simple operators can be used to change the underlying distribution of a random sequence.</para>
+		          <code language="Austra">
+seq::random(100) * 2 - 1
+<markup><font color="DarkGreen">-- Check the moments of the above distribution.</font></markup>
+(seq::random(100) * 2 - 1).stats
+				  </code>
               </content>
           </section>
-      </sections> -->
+      </sections>
     </section>
     <relatedTopics>
       <!-- One or more of the following:

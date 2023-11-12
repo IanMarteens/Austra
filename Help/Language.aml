@@ -133,12 +133,12 @@ else msft.mean
       </sections>
     </section>
     <relatedTopics>
+      <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
       <!-- One or more of the following:
            - A local link
            - An external link
            - A code entity reference
 
-      <link xlink:href="Other Topic's ID"/>
       <link xlink:href="Other Topic's ID">Link inner text</link>
 
       <externalLink>

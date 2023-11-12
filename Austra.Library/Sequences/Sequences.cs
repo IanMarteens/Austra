@@ -100,6 +100,8 @@ public abstract partial class DoubleSequence :
     /// <returns>The component by component sum of the sequence and the scalar.</returns>
     public static DoubleSequence operator +(DoubleSequence s, double d)
     {
+        if (!s.HasStorage)
+            return s.Map(x => x + d);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         a.AsSpan().AddV(d, r.AsSpan());
@@ -132,6 +134,8 @@ public abstract partial class DoubleSequence :
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
     public static DoubleSequence operator -(DoubleSequence s, double d)
     {
+        if (!s.HasStorage)
+            return s.Map(x => x - d);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         a.AsSpan().SubV(d, r.AsSpan());
@@ -144,6 +148,8 @@ public abstract partial class DoubleSequence :
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
     public static DoubleSequence operator -(double d, DoubleSequence s)
     {
+        if (!s.HasStorage)
+            return s.Map(x => d - x);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         CommonMatrix.SubV(d, a, r);
@@ -155,6 +161,8 @@ public abstract partial class DoubleSequence :
     /// <returns>The component by component negation.</returns>
     public static DoubleSequence operator -(DoubleSequence s)
     {
+        if (!s.HasStorage)
+            return s.Map(static x => -x);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         a.AsSpan().NegV(r);
@@ -179,6 +187,8 @@ public abstract partial class DoubleSequence :
     /// <returns>The multiplication of the sequence by the scalar.</returns>
     public static DoubleSequence operator *(DoubleSequence s, double d)
     {
+        if (!s.HasStorage)
+            return s.Map(x => d * x);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         a.AsSpan().MulV(d, r.AsSpan());
