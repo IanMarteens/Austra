@@ -38,6 +38,12 @@ seq::random(10).toVector
               </content>
           </section>
           <section address="SubSection2">
+              <title>Methods and properties</title>
+              <content>
+                  <para>Sequence operators mimics most of vector's operators.</para>
+              </content>
+          </section>
+          <section address="SubSection2">
               <title>Sequence operators</title>
               <content>
                   <para>Sequence operators mimics most of vector's operators.</para>
@@ -50,6 +56,16 @@ seq::random(100) * 2 - 1
 <markup><font color="DarkGreen">-- Check the moments of the above distribution.</font></markup>
 (seq::random(100) * 2 - 1).stats
 				  </code>
+				  <alert class="note">
+				  <para>Unary operators for sequences could, in theory, be implemented using <codeInline>map</codeInline>, and binary operators can also be written using <codeInline>map</codeInline>.</para>
+				  <para>However, in most cases, having an explicit operator results in a faster implementation. It is most evident for sequences backed by a vector, but it also happens for other kinds of sequences. For instance, when a range or grid sequence is negated, you can implement the result using another range or grid sequence.</para>
+				  </alert>
+              </content>
+          </section>
+          <section address="SubSection2">
+              <title>Delayed execution</title>
+              <content>
+                  <para>Sequence operators mimics most of vector's operators.</para>
               </content>
           </section>
       </sections>

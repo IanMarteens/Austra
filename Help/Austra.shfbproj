@@ -85,6 +85,8 @@
     <ContentLayout Include="Content Layout.content" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Time series.aml" />
+    <None Include="Vectors.aml" />
     <None Include="Sequences.aml" />
     <None Include="Lambdas.aml" />
     <None Include="LocalVariables.aml" />

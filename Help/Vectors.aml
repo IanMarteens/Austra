@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="aae4328b-9ead-40dc-b407-54e8d0614cd5" revisionNumber="1">
+  <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>AUSTRA provides double-precision vectors, identified by the class <codeInline>vector</codeInline>, and complex double-precision vectors, <codeInline>complexvector</codeInline>. Both data types are implemented using dense storage.</para>
+    </introduction>
+    <section address="Section1">
+      <title>Vector creation</title>
+      <content>
+        <para>A vector is constructed by listing its components inside brackets:</para>
+        <code language="Austra">
+[1, 2, 3, 4]
+		</code>
+		<para>Commas are optional, so they can be omitted:</para>
+        <code language="Austra">
+[1 2 3 4]
+		</code>
+		<para>These class methods are available for creating vectors:</para>
+		<table>
+ 		  <row>
+ 		    <entry><para><codeInline>vector::new</codeInline></para></entry>
+ 		    <entry><para>Overloaded constructor (see below).</para></entry>
+		  </row>
+ 		  <row>
+ 		    <entry><para><codeInline>vector::ones</codeInline></para></entry>
+ 		    <entry><para>Creates a vector filled with ones.</para></entry>
+		  </row>
+ 		  <row>
+ 		    <entry><para><codeInline>vector::random</codeInline></para></entry>
+ 		    <entry><para>Creates a vector with random values from a uniform distribution.</para></entry>
+		  </row>
+ 		  <row>
+ 		    <entry><para><codeInline>vector::nrandom</codeInline></para></entry>
+ 		    <entry><para>Creates a vector with random values from a normal standard distribution.</para></entry>
+		  </row>
+		</table>
+		<para>These are the overloads supported by <codeInline>vector::new</codeInline>:</para>
+        <code language="Austra">
+<markup><font color="DarkGreen">-- Creates a vector with 10 items, all of them zeros.</font></markup>
+vector::new(10)
+<markup><font color="DarkGreen">-- Remember that ::new can be omitted!</font></markup>
+vector(10))
+<markup><font color="DarkGreen">-- Creates a vector like [1 2 3 4 5 6 7 8 9 10]</font></markup>
+vector(10, i => i + 1)
+		</code>
+		<para>The last example shows how to create a vector using a <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">lambda function</link> parameter. This is a more sophisticated example of using a lambda to initialize items in a vector:</para>
+        <code language="Austra">
+<markup><font color="DarkGreen">-- Mimics a periodic function.</font></markup>
+vector(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
+		</code>
+      </content>
+      <sections>
+        <section>
+          <title>Complex vector creation</title>
+          <content>
+			<para>There's no special syntax for complex vector literals, but complex vectors can be
+easily created using the <codeInline>complexvector::new</codeInline> class method and one or two vector
+constructors:</para>
+        	<code language="Austra">
+complexvector::new([1 2 3 4], [4 3 2 1])
+<markup><font color="DarkGreen">-- ::new can be omitted.</font></markup>
+complexvector([1 2 3 4], [4 3 2 1])
+			</code>
+          </content>
+        </section>
+      </sections>
+    </section>
+    <relatedTopics>
+      <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
+      <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
+    </relatedTopics>
+  </developerConceptualDocument>
+</topic>
