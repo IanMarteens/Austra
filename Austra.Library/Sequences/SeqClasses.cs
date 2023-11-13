@@ -107,7 +107,7 @@ public abstract partial class DoubleSequence : IFormattable
         /// We can calculate the length if both operands has a known length.
         /// </remarks>
         /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => HasLength ? Min(s1.Length(), s2.Length()) : base.Length();
+        public override int Length() => HasLength ? Math.Min(s1.Length(), s2.Length()) : base.Length();
 
         /// <summary>Checks if we can get the length without iterating.</summary>
         /// <remarks>
@@ -155,6 +155,10 @@ public abstract partial class DoubleSequence : IFormattable
             return this;
         }
 
+        /// <summary>Negates a sequence without an underlying storage.</summary>
+        /// <returns>The negated sequence.</returns>
+        protected override DoubleSequence Negate() => new RangeSequenceDesc(-first, -last);
+
         /// <summary>Sorts the content of this sequence.</summary>
         /// <returns>A sorted sequence.</returns>
         public override DoubleSequence Sort() => this;
@@ -162,6 +166,14 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Sorts the content of this sequence in descending order.</summary>
         /// <returns>A sorted sequence in descending order.</returns>
         public override DoubleSequence SortDescending() => new RangeSequenceDesc(last, first);
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override double Min() => first;
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override double Max() => last;
 
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
@@ -196,6 +208,18 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Sorts the content of this sequence in descending order.</summary>
         /// <returns>A sorted sequence in descending order.</returns>
         public override DoubleSequence SortDescending() => this;
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override double Min() => last;
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override double Max() => first;
+
+        /// <summary>Negates a sequence without an underlying storage.</summary>
+        /// <returns>The negated sequence.</returns>
+        protected override DoubleSequence Negate() => new RangeSequence(-first, -last);
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -248,10 +272,22 @@ public abstract partial class DoubleSequence : IFormattable
             return this;
         }
 
+        /// <summary>Negates a sequence without an underlying storage.</summary>
+        /// <returns>The negated sequence.</returns>
+        protected override DoubleSequence Negate() => new GridSequence(-lower, -upper, steps);
+
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
         public override DoubleSequence Distinct() => this;
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override double Min() => Math.Min(lower, upper);
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override double Max() => Math.Max(lower, upper);
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -320,6 +356,14 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets all statistics from the values in the secuence.</summary>
         /// <returns>Simple statistics of all the values in the sequence.</returns>
         public override Accumulator Stats() => source.Stats();
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override double Min() => source.Min();
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override double Max() => source.Max();
 
         /// <summary>Gets the sum of all the values in the sequence.</summary>
         /// <returns>The sum of all the values in the sequence.</returns>

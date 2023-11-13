@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Windows.Markup;
+
+namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence :
@@ -93,7 +95,7 @@ public abstract partial class DoubleSequence :
     {
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
-        double[] r = GC.AllocateUninitializedArray<double>(Min(a1.Length, a2.Length));
+        double[] r = GC.AllocateUninitializedArray<double>(Math.Min(a1.Length, a2.Length));
         a1.AsSpan(0, r.Length).AddV(a2.AsSpan(0, r.Length), r);
         return new VectorSequence(r);
     }
@@ -127,7 +129,7 @@ public abstract partial class DoubleSequence :
     {
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
-        double[] r = GC.AllocateUninitializedArray<double>(Min(a1.Length, a2.Length));
+        double[] r = GC.AllocateUninitializedArray<double>(Math.Min(a1.Length, a2.Length));
         a1.AsSpan(0, r.Length).SubV(a2.AsSpan(0, r.Length), r);
         return new VectorSequence(r);
     }
@@ -166,12 +168,16 @@ public abstract partial class DoubleSequence :
     public static DoubleSequence operator -(DoubleSequence s)
     {
         if (!s.HasStorage)
-            return s.Map(static x => -x);
+            return s.Negate();
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         a.AsSpan().NegV(r);
         return new VectorSequence(r);
     }
+
+    /// <summary>Negates a sequence without an underlying storage.</summary>
+    /// <returns>The negated sequence.</returns>
+    protected virtual DoubleSequence Negate() => Map(x => -x);
 
     /// <summary>Calculates the scalar product of the common part of two sequences.</summary>
     /// <param name="s1">First sequence.</param>
@@ -183,7 +189,7 @@ public abstract partial class DoubleSequence :
             return s1.Zip(s2, (x, y) => x * y).Sum();
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
-        int size = Min(a1.Length, a2.Length);
+        int size = Math.Min(a1.Length, a2.Length);
         return a1.AsSpan(0, size).DotProduct(a2.AsSpan(0, size));
     }
 
@@ -286,6 +292,28 @@ public abstract partial class DoubleSequence :
             if (predicate(value))
                 return true;
         return false;
+    }
+
+    /// <summary>Gets the minimum value from the sequence.</summary>
+    /// <returns>The minimum value.</returns>
+    public virtual double Min()
+    {
+        if (!Next(out double value))
+            return double.NaN;
+        while (Next(out double v))
+            value = Math.Min(value, v);
+        return value;
+    }
+
+    /// <summary>Gets the maximum value from the sequence.</summary>
+    /// <returns>The maximum value.</returns>
+    public virtual double Max()
+    {
+        if (!Next(out double value))
+            return double.NaN;
+        while (Next(out double v))
+            value = Math.Max(value, v);
+        return value;
     }
 
     /// <summary>Sorts the content of this sequence.</summary>

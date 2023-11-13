@@ -474,7 +474,8 @@ internal sealed partial class Parser
             Expression e1 = ParseUnary();
             return e1.Type != typeof(Complex) && !IsArithmetic(e1)
                 && !IsVector(e1) && !IsMatrix(e1) && e1.Type != typeof(Series)
-                ? throw Error("Unary operand must be numeric", opPos)
+                && !e1.Type.IsAssignableTo(typeof(DoubleSequence))
+                ? throw Error("Unary operator not supported", opPos)
                 : opKind == Token.Plus ? e1 : Expression.Negate(e1);
         }
         Expression e = ParseFactor();
