@@ -422,7 +422,8 @@ internal sealed partial class Parser
                 typeof(DoubleSequence).MD(nameof(DoubleSequence.Random), typeof(int))),
             ["seq.nrandom"] = new(
                 typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom), typeof(int)),
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom), typeof(int), typeof(double))),
+                typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom), typeof(int), typeof(double)),
+                typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom), typeof(int), typeof(double), typeof(Vector))),
         }.ToFrozenDictionary();
 
     /// <summary>Allowed properties and their implementations.</summary>

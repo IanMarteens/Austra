@@ -1,4 +1,7 @@
-﻿namespace Austra.Library;
+﻿using System.Drawing;
+using System;
+
+namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence : IFormattable
@@ -476,6 +479,65 @@ public abstract partial class DoubleSequence : IFormattable
             if (current < size)
             {
                 value = random.NextDouble();
+                current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements an autoregressive sequence.</summary>
+    /// <param name="length">The length of the sequence.</param>
+    /// <param name="variance">Variance of the sequence.</param>
+    /// <param name="coefficients">Autoregression coefficients.</param>
+    private sealed class ArSequence(int length, double variance, Vector coefficients) : DoubleSequence
+    {
+        /// <summary>The length of the sequence.</summary>
+        private readonly int length = length;
+        /// <summary>The normal random source for noise.</summary>
+        private readonly NormalRandom generator = new(0, variance);
+        /// <summary>Autoregression coefficients.</summary>
+        private readonly double[] coefficients = (double[])coefficients;
+        /// <summary>Buffer for previous terms in the sequence.</summary>
+        private readonly double[] previousTerms = new double[coefficients.Length];
+        /// <summary>The current index in the sequence.</summary>
+        private int current;
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <returns>The total number of values in the sequence.</returns>
+        public override int Length() => length;
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => true;
+
+        /// <summary>Creates an array with all values from the sequence.</summary>
+        /// <returns>The values as an array.</returns>
+        protected override double[] Materialize()
+        {
+            double[] result = GC.AllocateUninitializedArray<double>(length);
+            Materialize(result.AsSpan());
+            return result;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current < length)
+            {
+                value = generator.NextDouble() + coefficients.AsSpan().DotProduct(previousTerms);
+                Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
+                previousTerms[0] = value;
                 current++;
                 return true;
             }
