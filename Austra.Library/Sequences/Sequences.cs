@@ -87,6 +87,13 @@ public abstract partial class DoubleSequence :
     public static DoubleSequence NormalRandom(int size) =>
         new NormalRandomSequence(size, Library.Stats.NormalRandom.Shared);
 
+    /// <summary>Creates a sequence from normal random values.</summary>
+    /// <param name="size">The size of the series.</param>
+    /// <param name="variance">The variance of the normal distribution.</param>
+    /// <returns>The sequence encapsulating the time series.</returns>
+    public static DoubleSequence NormalRandom(int size, double variance) =>
+        new NormalRandomSequence(size, new NormalRandom(0, Sqrt(variance)));
+
     /// <summary>Adds the common part of two sequences.</summary>
     /// <param name="s1">First sequence operand.</param>
     /// <param name="s2">Second sequence operand.</param>
