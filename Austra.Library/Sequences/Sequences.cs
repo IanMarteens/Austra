@@ -441,4 +441,8 @@ public abstract partial class DoubleSequence :
     /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(DoubleSequence? left, DoubleSequence? right) => left?.Equals(right) != true;
+
+    /// <summary>Creates a plot for this sequence.</summary>
+    /// <returns>A plot containing a frozen vector as its dataset.</returns>
+    public Plot<Vector> Plot() => new(ToVector());
 }

@@ -549,6 +549,7 @@ internal sealed partial class Parser
             [new(typeof(DoubleSequence), "sortasc")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sort)),
             [new(typeof(DoubleSequence), "sortdesc")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.SortDescending)),
             [new(typeof(DoubleSequence), "distinct")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Distinct)),
+            [new(typeof(DoubleSequence), "plot")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Plot)),
             [new(typeof(LMatrix), "det")] = typeof(LMatrix).Get(nameof(LMatrix.Determinant)),
             [new(typeof(LMatrix), "trace")] = typeof(LMatrix).Get(nameof(LMatrix.Trace)),
             [new(typeof(LMatrix), "rows")] = typeof(LMatrix).Prop(nameof(LMatrix.Rows)),
@@ -924,6 +925,7 @@ internal sealed partial class Parser
                 new("any(x => ", "Existential operator"),
                 new("all(x => ", "Universal operator"),
                 new("toVector", "Converts the sequence to a vector"),
+                new("plot", "Plots this sequence"),
             ],
         }.ToFrozenDictionary();
 
