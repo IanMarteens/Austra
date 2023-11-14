@@ -43,10 +43,6 @@ public interface IAustraEngine
     /// <returns>A list of variables and definitions.</returns>
     IList<Member> GetRoots(int position, string text);
 
-    /// <summary>Gets a list of root classes.</summary>
-    /// <returns>A list of classes that accepts class methods.</returns>
-    IList<Member> GetRootClasses();
-
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
@@ -286,12 +282,6 @@ public partial class AustraEngine : IAustraEngine
             .OrderBy(x => x.Name)
             .ToList();
     }
-
-    private IList<Member> GetGlobalFunctions() => globalFunctions;
-
-    /// <summary>Gets a list of root classes.</summary>
-    /// <returns>A list of classes that accepts class methods.</returns>
-    public IList<Member> GetRootClasses() => rootClasses;
 
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
     /// <param name="text">Class name to check.</param>

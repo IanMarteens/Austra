@@ -887,8 +887,7 @@ internal sealed partial class Parser
 
     private Expression ParseMethod(Expression e)
     {
-        if (!methods.TryGetValue(e.Type, out var dict) ||
-            !dict.TryGetValue(id, out MethodInfo? mInfo))
+        if (!methods.TryGetValue(new TypeId(e.Type, id.ToLower()), out MethodInfo? mInfo))
             throw Error($"Invalid method: {id}");
         // Skip method name and left parenthesis.
         SkipFunctor();
@@ -982,8 +981,7 @@ internal sealed partial class Parser
 
     private Expression ParseProperty(Expression e)
     {
-        if (!allProps.TryGetValue(e.Type, out Dictionary<string, MethodInfo>? dict) ||
-            !dict.TryGetValue(id, out MethodInfo? mInfo))
+        if (!allProps.TryGetValue(new TypeId(e.Type, id.ToLower()), out var mInfo))
             throw Error($"Invalid property: {id}");
         Move();
         return Expression.Call(e, mInfo);
