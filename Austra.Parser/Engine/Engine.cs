@@ -120,42 +120,6 @@ public interface IAustraEngine
 /// <remarks>It does not supports persistency.</remarks>
 public partial class AustraEngine : IAustraEngine
 {
-    private static readonly Member[] globalFunctions =
-    [
-        new("abs(", "Absolute value"),
-        new("sqrt(", "Squared root"),
-        new("gamma(", "The Gamma function"),
-        new("beta(", "The Beta function"),
-        new("erf(", "Error function"),
-        new("ncdf(", "Normal cummulative function"),
-        new("probit(", "Probit function"),
-        new("log(", "Natural logarithm"),
-        new("log10(", "Base 10 logarithm"),
-        new("exp(", "Exponential function"),
-        new("sin(", "Sine function"),
-        new("cos(", "Cosine function"),
-        new("tan(", "Tangent function"),
-        new("asin(", "Arcsine function"),
-        new("acos(", "Arccosine function"),
-        new("atan(", "Arctangent function"),
-        new("min(", "Minimum function"),
-        new("max(", "Maximum function"),
-        new("round(", "Rounds a real value"),
-        new("pi", "The constant π"),
-        new("e", "The constant e"),
-        new("i", "The imaginary unit"),
-        new("today", "The current date"),
-        new("compare(", "Compares two series or vectors"),
-        new("polyEval(", "Evaluates a polynomial at a given point"),
-        new("polyDerivative(", "Evaluates a polynomial first derivative at a given point"),
-        new("polySolve(", "Returns all real and complex roots of a polynomial"),
-        new ("solve(", "Approximates a root with the Newton-Raphson algorithm"),
-        new("complex(", "Creates a complex number from its real and imaginary components"),
-        new("polar(", "Creates a complex number from its magnitude and phase components"),
-        new("set", "Assigns a value to a variable"),
-        new("let", "Declares local variables"),
-    ];
-
     private readonly Member[] classesAndGlobals;
 
     /// <summary>Creates an evaluation engine from a datasource.</summary>
@@ -163,7 +127,7 @@ public partial class AustraEngine : IAustraEngine
     public AustraEngine(IDataSource source)
     {
         Source = source;
-        classesAndGlobals = [.. Parser.GetRootClasses(), .. globalFunctions];
+        classesAndGlobals = Parser.GetGlobalRoots();
     }
 
     /// <summary>The data source associated with the engine.</summary>

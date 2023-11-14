@@ -1063,7 +1063,10 @@ internal sealed partial class Parser
             members.TryGetValue(new Parser(source, text).ParseType(), out Member[]? list) ? list : [];
     }
 
-    public static Member[] GetRootClasses() => rootClasses;
+    public static Member[] GetGlobalRoots() =>
+        [..rootClasses, ..classMembers["math"], 
+        new("set", "Assigns a value to a variable"),
+        new("let", "Declares local variables")];
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
