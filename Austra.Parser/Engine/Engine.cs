@@ -134,11 +134,6 @@ public partial class AustraEngine : IAustraEngine
         new("vector::", "Allows access to vector constructors"),
         new("seq::", "Allows access to sequence constructors"),
         new("math::", "Allows access to mathematical functions"),
-        /*new("complexvector(", "Default complex vector constructor"),
-        new("matrix(", "Default matrix constructor"),
-        new("series(", "Default series constructor"),
-        new("spline(", "Default spline constructor"),
-        new("vector(", "Default vector constructor"),*/
     ];
 
     private static readonly Member[] globalFunctions =

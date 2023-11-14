@@ -36,6 +36,7 @@
 		<Using Include="Austra.Library.Transforms" />
 		<Using Include="System" />
 		<Using Include="System.Collections.Generic" />
+		<Using Include="System.Collections.Frozen" />
 		<Using Include="System.Diagnostics" />
 		<Using Include="System.Globalization" />
 		<Using Include="System.Linq" />

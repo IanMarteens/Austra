@@ -887,7 +887,7 @@ internal sealed partial class Parser
 
     private Expression ParseMethod(Expression e)
     {
-        if (!methods.TryGetValue(e.Type, out Dictionary<string, MethodInfo>? dict) ||
+        if (!methods.TryGetValue(e.Type, out var dict) ||
             !dict.TryGetValue(id, out MethodInfo? mInfo))
             throw Error($"Invalid method: {id}");
         // Skip method name and left parenthesis.

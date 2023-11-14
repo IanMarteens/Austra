@@ -1,6 +1,4 @@
 using Austra.Library.MVO;
-using System.Collections.Frozen;
-using System.Xml.Schema;
 
 namespace Austra.Parser;
 
@@ -59,10 +57,10 @@ internal sealed partial class Parser
     internal static bool IsClassName(string identifier) => classNames.Contains(identifier);
 
     /// <summary>Allowed series methods.</summary>
-    private static readonly FrozenDictionary<Type, Dictionary<string, MethodInfo>> methods =
-        new Dictionary<Type, Dictionary<string, MethodInfo>>()
+    private static readonly FrozenDictionary<Type, FrozenDictionary<string, MethodInfo>> methods =
+        new Dictionary<Type, FrozenDictionary<string, MethodInfo>>()
         {
-            [typeof(Series)] = new(StringComparer.OrdinalIgnoreCase)
+            [typeof(Series)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["autocorr"] = typeof(Series).Get(nameof(Series.AutoCorrelation)),
                 ["corr"] = typeof(Series).Get(nameof(Series.Correlation)),
@@ -84,22 +82,22 @@ internal sealed partial class Parser
                 ["linearModel"] = typeof(Series).Get(nameof(Series.FullLinearModel)),
                 ["ar"] = typeof(Series).Get(nameof(Series.AutoRegression)),
                 ["arModel"] = typeof(Series).Get(nameof(Series.ARModel)),
-            },
-            [typeof(DateSpline)] = new(StringComparer.OrdinalIgnoreCase)
+            }.ToFrozenDictionary(),
+            [typeof(DateSpline)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["poly"] = typeof(DateSpline).Get(nameof(DateSpline.GetPoly)),
                 ["derivative"] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
                 ["deriv"] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
                 ["der"] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
-            },
-            [typeof(VectorSpline)] = new(StringComparer.OrdinalIgnoreCase)
+            }.ToFrozenDictionary(),
+            [typeof(VectorSpline)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["poly"] = typeof(VectorSpline).Get(nameof(VectorSpline.GetPoly)),
                 ["derivative"] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
                 ["deriv"] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
                 ["der"] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
-            },
-            [typeof(Vector)] = new(StringComparer.OrdinalIgnoreCase)
+            }.ToFrozenDictionary(),
+            [typeof(Vector)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["autocorr"] = typeof(Vector).Get(nameof(Vector.AutoCorrelation)),
                 ["correlogram"] = typeof(Vector).Get(nameof(Vector.Correlogram)),
@@ -114,8 +112,8 @@ internal sealed partial class Parser
                 ["linearModel"] = typeof(Vector).Get(nameof(Vector.FullLinearModel)),
                 ["ar"] = typeof(Vector).Get(nameof(Vector.AutoRegression)),
                 ["arModel"] = typeof(Vector).Get(nameof(Vector.ARModel)),
-            },
-            [typeof(ComplexVector)] = new(StringComparer.OrdinalIgnoreCase)
+            }.ToFrozenDictionary(),
+            [typeof(ComplexVector)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["map"] = typeof(ComplexVector).Get(nameof(ComplexVector.Map)),
                 ["mapreal"] = typeof(ComplexVector).Get(nameof(ComplexVector.MapReal)),
@@ -127,28 +125,28 @@ internal sealed partial class Parser
                 ["filter"] = typeof(ComplexVector).Get(nameof(ComplexVector.Filter)),
                 ["indexof"] = typeof(ComplexVector).GetMethod(nameof(ComplexVector.IndexOf),
                     ComplexArg)!,
-            },
-            [typeof(Date)] = new(StringComparer.OrdinalIgnoreCase)
+            }.ToFrozenDictionary(),
+            [typeof(Date)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["addmonths"] = typeof(Date).GetMethod(nameof(Date.AddMonths), IntArg)!,
                 ["addyears"] = typeof(Date).Get(nameof(Date.AddYears)),
-            },
-            [typeof(Matrix)] = new(StringComparer.OrdinalIgnoreCase)
+            }.ToFrozenDictionary(),
+            [typeof(Matrix)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["getcol"] = typeof(Matrix).GetMethod(nameof(Matrix.GetColumn), IntArg)!,
                 ["getrow"] = typeof(Matrix).GetMethod(nameof(Matrix.GetRow), IntArg)!,
                 ["map"] = typeof(Matrix).Get(nameof(Matrix.Map)),
                 ["any"] = typeof(Matrix).Get(nameof(Matrix.Any)),
                 ["all"] = typeof(Matrix).Get(nameof(Matrix.All)),
-            },
-            [typeof(Polynomial)] = new(StringComparer.OrdinalIgnoreCase)
+            }.ToFrozenDictionary(),
+            [typeof(Polynomial)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["eval"] = typeof(Polynomial).Get(nameof(Polynomial.Eval)),
                 ["derivative"] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
                 ["deriv"] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
                 ["der"] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
-            },
-            [typeof(DoubleSequence)] = new(StringComparer.OrdinalIgnoreCase)
+            }.ToFrozenDictionary(),
+            [typeof(DoubleSequence)] = new Dictionary<string, MethodInfo>(StringComparer.OrdinalIgnoreCase)
             {
                 ["filter"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Filter)),
                 ["map"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Map)),
@@ -156,7 +154,7 @@ internal sealed partial class Parser
                 ["reduce"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Reduce)),
                 ["any"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Any)),
                 ["all"] = typeof(DoubleSequence).Get(nameof(DoubleSequence.All)),
-            },
+            }.ToFrozenDictionary(),
         }.ToFrozenDictionary();
 
     internal readonly struct MethodData

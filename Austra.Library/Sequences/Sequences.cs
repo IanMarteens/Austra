@@ -1,6 +1,4 @@
-﻿using System.Windows.Markup;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence :

@@ -1,7 +1,4 @@
-﻿using System.Drawing;
-using System;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence : IFormattable
