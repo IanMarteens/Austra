@@ -13,14 +13,14 @@ public sealed partial class RootModel : Entity
     /// <summary>Gets the global instance of the root view-model.</summary>
     public static RootModel Instance { get; } = new();
 
-    private static readonly char[] lineChange = new char[] { '\r', '\n', ' ' };
+    private static readonly char[] lineChange = ['\r', '\n', ' '];
 
     /// <summary>Global transient message for the status bar.</summary>
     private string message = "";
     /// <summary>Austra session, containing variables and definitions.</summary>
     private Session? environment;
     /// <summary>The tree of variables, grouped by class. First node are definitions.</summary>
-    private ObservableCollection<ClassNode> classes = new();
+    private ObservableCollection<ClassNode> classes = [];
     /// <summary>Maps names into variable nodes.</summary>
     private readonly Dictionary<string, VarNode> allVars = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>This timer erases the status bar message after a while.</summary>
@@ -132,7 +132,7 @@ public sealed partial class RootModel : Entity
 
     public bool GetHasEnvironment() => environment != null;
 
-    public ObservableCollection<string> History { get; } = new();
+    public ObservableCollection<string> History { get; } = [];
 
     public GridLength FormulaRowHeight
     {
@@ -188,7 +188,7 @@ public sealed partial class RootModel : Entity
         if (environment != null)
         {
             // Fill the Variables tree.
-            List<ClassNode> cList = new();
+            List<ClassNode> cList = [];
             allVars.Clear();
             foreach (var g in environment.DataSource.Variables.GroupBy(t => Describe(t.type)))
             {
@@ -260,9 +260,9 @@ public sealed partial class RootModel : Entity
             Series s => new SeriesNode(cNode, name, s) { Stored = stored },
             Series<double> s => new PercentileNode(cNode, name, s),
             Series<int> s => new CorrelogramNode(cNode, name, s),
-            Tuple<Series, Series> t => new CompareNode(cNode, name, t),
-            Tuple<RVector, RVector> t => new CompareVNode(cNode, name, t),
-            Tuple<ComplexVector, ComplexVector> t => new CompareCVNode(cNode, name, t),
+            Plot<Series> t => new CompareNode(cNode, name, t),
+            Plot<RVector> t => new CompareVNode(cNode, name, t),
+            Plot<ComplexVector> t => new CompareCVNode(cNode, name, t),
             FftModel fft => new FftNode(cNode, name, fft),
             ARSModel m => new ARSNode(cNode, name, m),
             ARVModel m => new ARVNode(cNode, name, m),
@@ -497,9 +497,9 @@ public sealed partial class RootModel : Entity
                         Series s => new SeriesNode(null, typeString, form, s),
                         Series<double> s => new PercentileNode(null, typeString, form, s),
                         Series<int> s => new CorrelogramNode(null, typeString, form, s),
-                        Tuple<Series, Series> t => new CompareNode(null, "Comparison", form, t),
-                        Tuple<RVector, RVector> t => new CompareVNode(null, "Comparison", form, t),
-                        Tuple<ComplexVector, ComplexVector> t => new CompareCVNode(null, "Comparison", form, t),
+                        Plot<Series> t => new CompareNode(null, "Plot", form, t),
+                        Plot<RVector> t => new CompareVNode(null, "Plot", form, t),
+                        Plot<ComplexVector> t => new CompareCVNode(null, "Plot", form, t),
                         FftModel fft => new FftNode(null, typeString, form, fft),
                         ARSModel m1 => new ARSNode(null, typeString, form, m1),
                         ARVModel m2 => new ARVNode(null, typeString, form, m2),

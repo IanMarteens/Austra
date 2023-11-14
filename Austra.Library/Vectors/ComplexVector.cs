@@ -977,4 +977,9 @@ public readonly struct ComplexVector :
     /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(ComplexVector left, ComplexVector right) => !left.Equals(right);
+
+    /// <summary>Creates a plot for this vector.</summary>
+    /// <returns>A plot containing this vector as its dataset.</returns>
+    public Plot<ComplexVector> Plot() => new(this);
+
 }

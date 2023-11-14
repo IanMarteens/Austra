@@ -1377,6 +1377,10 @@ public readonly struct Vector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Vector left, Vector right) => !left.Equals(right);
 
+    /// <summary>Creates a plot for this vector.</summary>
+    /// <returns>A plot containing this vector as its dataset.</returns>
+    public Plot<Vector> Plot() => new(this);
+
     internal (double total, double residuals, double r2) GetSumSquares(Vector other)
     {
         SimpleAccumulator acc = new();

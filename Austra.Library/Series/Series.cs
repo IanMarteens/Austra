@@ -32,7 +32,8 @@ public sealed class Series : Series<Date>,
     IMultiplyOperators<Series, double, Series>,
     IDivisionOperators<Series, double, Series>,
     IUnaryNegationOperators<Series, Series>,
-    IPointwiseOperators<Series>
+    IPointwiseOperators<Series>,
+    IFormattable
 {
     /// <summary>Creates a named time series.</summary>
     /// <param name="name">The name of the series.</param>
@@ -609,6 +610,12 @@ public sealed class Series : Series<Date>,
     /// <summary>Gets a textual representation of the series.</summary>
     /// <returns>A text containing the name and the point count.</returns>
     public override string ToString() => $"{Name}: Series/{Type}/{Freq2Str[(int)Freq]}[{Count}]";
+
+    /// <summary>Gets a textual representation of the series.</summary>
+    /// <param name="format">A format specifier.</param>
+    /// <param name="provider">Supplies culture-specific formatting information.</param>
+    /// <returns>A text containing the name and the point count.</returns>
+    public string ToString(string? format, IFormatProvider? provider = null) => ToString();
 
     private static ReadOnlySpan<string> Freq2Str => new string[]
     {
