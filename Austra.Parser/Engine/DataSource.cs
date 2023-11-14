@@ -34,7 +34,8 @@ public interface IDataSource
 
     /// <summary>Adds a parameterless macro definition to the source.</summary>
     /// <param name="definition">A definition to be added.</param>
-    void AddDefinition(Definition definition);
+    /// <returns>Must echo the incoming definition.</returns>
+    Definition AddDefinition(Definition definition);
 
     /// <summary>Removes a definition, given its name.</summary>
     /// <param name="name">Definition to be deleted.</param>
@@ -144,12 +145,14 @@ public class DataSource : IDataSource
 
     /// <summary>Adds a parameterless macro definition to the source.</summary>
     /// <param name="definition">A definition to be added.</param>
-    public void AddDefinition(Definition definition)
+    /// <returns>The incoming definition.</returns>
+    public Definition AddDefinition(Definition definition)
     {
         lock (defLock)
         {
             definitions[definition.Name] = definition;
             allDefinitions.Add(definition);
+            return definition;
         }
     }
 

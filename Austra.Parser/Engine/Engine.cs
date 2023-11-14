@@ -31,7 +31,7 @@ public interface IAustraEngine
     /// <summary>Validates a definition (no SET clause) and returns its type.</summary>
     /// <param name="definition">An AUSTRA definition.</param>
     /// <param name="description">Textual description.</param>
-    /// <returns>The type resulting from the evaluation.</returns>
+    /// <returns>The new definition.</returns>
     Definition ParseDefinition(string definition, string description);
 
     /// <summary>The data source associated with the engine.</summary>
@@ -197,13 +197,9 @@ public partial class AustraEngine : IAustraEngine
     /// <summary>Validates a definition (no SET clause) and returns its type.</summary>
     /// <param name="definition">An AUSTRA definition.</param>
     /// <param name="description">Textual description.</param>
-    /// <returns>The type resulting from the evaluation.</returns>
-    public Definition ParseDefinition(string definition, string description)
-    {
-        Definition def = new Parser(Source, definition).ParseDefinition(description);
-        Source.AddDefinition(def);
-        return def;
-    }
+    /// <returns>The new definition.</returns>
+    public Definition ParseDefinition(string definition, string description) =>
+        Source.AddDefinition(new Parser(Source, definition).ParseDefinition(description));
 
     /// <summary>Gets a list of root variables.</summary>
     /// <param name="position">The position of the cursor.</param>
