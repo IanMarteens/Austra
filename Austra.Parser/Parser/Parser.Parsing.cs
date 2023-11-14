@@ -620,7 +620,7 @@ internal sealed partial class Parser
                 }
                 break;
             case Token.Functor:
-                if (classNames.Contains(id))
+                if (classMembers.ContainsKey(id))
                 {
                     string className = id.ToLower();
                     SkipFunctor();

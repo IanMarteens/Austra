@@ -48,14 +48,9 @@ internal sealed partial class Parser
         typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
             [typeof(Vector), typeof(double), typeof(Vector)])!;
 
-    private static readonly HashSet<string> classNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "complexvector", "matrix", "math", "model", "series", "vector", "spline", "seq",
-    };
-
     private static readonly Member[] rootClasses =
     [
-        new("complexvector::", "Allows access to complex vector constructors"),
+        new("cvector::", "Allows access to complex vector constructors"),
         new("matrix::", "Allows access to matrix constructors"),
         new("model::", "Allows access to model constructors"),
         new("series::", "Allows access to series constructors"),
@@ -66,7 +61,7 @@ internal sealed partial class Parser
     ];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool IsClassName(string identifier) => classNames.Contains(identifier);
+    internal static bool IsClassName(string identifier) => classMembers.ContainsKey(identifier);
 
     /// <summary>Represents a dictionary key with a type and a string identifier.</summary>
     /// <param name="Type">The type.</param>
@@ -248,15 +243,15 @@ internal sealed partial class Parser
                 typeof(Vector).MD(typeof(int), typeof(Random))),
             ["vector.ones"] = new(
                 typeof(Vector).MD(typeof(int), typeof(One))),
-            ["complexvector.new"] = new(
+            ["cvector.new"] = new(
                 typeof(ComplexVector).MD(VectorArg),
                 typeof(ComplexVector).MD(VectorVectorArg),
                 typeof(ComplexVector).MD(IntArg),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))),
-            ["complexvector.nrandom"] = new(
+            ["cvector.nrandom"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))),
-            ["complexvector.random"] = new(
+            ["cvector.random"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(Random))),
             ["matrix.new"] = new(
                 typeof(Matrix).MD(IntArg),
@@ -952,7 +947,7 @@ internal sealed partial class Parser
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
                 new("ones(", "Creates a vector with ones given a length"),
             ],
-            ["complexvector"] = [
+            ["cvector"] = [
                 new("new(", "Create a complex vector given a size and an optional lambda"),
                 new("random(", "Creates a random complex vector given a length"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
