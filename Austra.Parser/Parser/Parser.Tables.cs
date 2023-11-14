@@ -53,6 +53,18 @@ internal sealed partial class Parser
         "complexvector", "matrix", "math", "model", "series", "vector", "spline", "seq",
     };
 
+    private static readonly Member[] rootClasses =
+    [
+        new("complexvector::", "Allows access to complex vector constructors"),
+        new("matrix::", "Allows access to matrix constructors"),
+        new("model::", "Allows access to model constructors"),
+        new("series::", "Allows access to series constructors"),
+        new("spline::", "Allows access to spline constructors"),
+        new("vector::", "Allows access to vector constructors"),
+        new("seq::", "Allows access to sequence constructors"),
+        new("math::", "Allows access to mathematical functions"),
+    ];
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsClassName(string identifier) => classNames.Contains(identifier);
 
@@ -478,18 +490,18 @@ internal sealed partial class Parser
             [new(typeof(Vector), "first")] = typeof(Vector).Prop(nameof(Vector.First)),
             [new(typeof(Vector), "last")] = typeof(Vector).Prop(nameof(Vector.Last)),
             [new(typeof(Vector), "acf")] = typeof(Vector).Get(nameof(Vector.ACF)),
-            [new(typeof(Accumulator), "count")] = typeof(Accumulator).Prop(nameof(Accumulator.Count)),
-            [new(typeof(Accumulator), "min")] = typeof(Accumulator).Prop(nameof(Accumulator.Minimum)),
-            [new(typeof(Accumulator), "max")] = typeof(Accumulator).Prop(nameof(Accumulator.Maximum)),
-            [new(typeof(Accumulator), "mean")] = typeof(Accumulator).Prop(nameof(Accumulator.Mean)),
-            [new(typeof(Accumulator), "var")] = typeof(Accumulator).Prop(nameof(Accumulator.Variance)),
-            [new(typeof(Accumulator), "varp")] = typeof(Accumulator).Prop(nameof(Accumulator.PopulationVariance)),
-            [new(typeof(Accumulator), "std")] = typeof(Accumulator).Prop(nameof(Accumulator.StandardDeviation)),
-            [new(typeof(Accumulator), "stdp")] = typeof(Accumulator).Prop(nameof(Accumulator.PopulationStandardDeviation)),
-            [new(typeof(Accumulator), "skew")] = typeof(Accumulator).Prop(nameof(Accumulator.Skewness)),
-            [new(typeof(Accumulator), "skewp")] = typeof(Accumulator).Prop(nameof(Accumulator.PopulationSkewness)),
-            [new(typeof(Accumulator), "kurt")] = typeof(Accumulator).Prop(nameof(Accumulator.Kurtosis)),
-            [new(typeof(Accumulator), "kurtp")] = typeof(Accumulator).Prop(nameof(Accumulator.PopulationKurtosis)),
+            [new(typeof(Acc), "count")] = typeof(Acc).Prop(nameof(Acc.Count)),
+            [new(typeof(Acc), "min")] = typeof(Acc).Prop(nameof(Acc.Minimum)),
+            [new(typeof(Acc), "max")] = typeof(Acc).Prop(nameof(Acc.Maximum)),
+            [new(typeof(Acc), "mean")] = typeof(Acc).Prop(nameof(Acc.Mean)),
+            [new(typeof(Acc), "var")] = typeof(Acc).Prop(nameof(Acc.Variance)),
+            [new(typeof(Acc), "varp")] = typeof(Acc).Prop(nameof(Acc.PopulationVariance)),
+            [new(typeof(Acc), "std")] = typeof(Acc).Prop(nameof(Acc.StandardDeviation)),
+            [new(typeof(Acc), "stdp")] = typeof(Acc).Prop(nameof(Acc.PopulationStandardDeviation)),
+            [new(typeof(Acc), "skew")] = typeof(Acc).Prop(nameof(Acc.Skewness)),
+            [new(typeof(Acc), "skewp")] = typeof(Acc).Prop(nameof(Acc.PopulationSkewness)),
+            [new(typeof(Acc), "kurt")] = typeof(Acc).Prop(nameof(Acc.Kurtosis)),
+            [new(typeof(Acc), "kurtp")] = typeof(Acc).Prop(nameof(Acc.PopulationKurtosis)),
             [new(typeof(Matrix), "det")] = typeof(Matrix).Get(nameof(Matrix.Determinant)),
             [new(typeof(Matrix), "chol")] = typeof(Matrix).Get(nameof(Matrix.CholeskyMatrix)),
             [new(typeof(Matrix), "evd")] = typeof(Matrix).GetMethod(nameof(Matrix.EVD), Type.EmptyTypes)!,
@@ -1050,6 +1062,8 @@ internal sealed partial class Parser
         static IList<Member> ExtractType(IDataSource source, string text) =>
             members.TryGetValue(new Parser(source, text).ParseType(), out Member[]? list) ? list : [];
     }
+
+    public static Member[] GetRootClasses() => rootClasses;
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>

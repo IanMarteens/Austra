@@ -120,18 +120,6 @@ public interface IAustraEngine
 /// <remarks>It does not supports persistency.</remarks>
 public partial class AustraEngine : IAustraEngine
 {
-    private static readonly Member[] rootClasses =
-    [
-        new("complexvector::", "Allows access to complex vector constructors"),
-        new("matrix::", "Allows access to matrix constructors"),
-        new("model::", "Allows access to model constructors"),
-        new("series::", "Allows access to series constructors"),
-        new("spline::", "Allows access to spline constructors"),
-        new("vector::", "Allows access to vector constructors"),
-        new("seq::", "Allows access to sequence constructors"),
-        new("math::", "Allows access to mathematical functions"),
-    ];
-
     private static readonly Member[] globalFunctions =
     [
         new("abs(", "Absolute value"),
@@ -175,7 +163,7 @@ public partial class AustraEngine : IAustraEngine
     public AustraEngine(IDataSource source)
     {
         Source = source;
-        classesAndGlobals = [.. rootClasses, .. globalFunctions];
+        classesAndGlobals = [.. Parser.GetRootClasses(), .. globalFunctions];
     }
 
     /// <summary>The data source associated with the engine.</summary>
