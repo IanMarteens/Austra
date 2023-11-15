@@ -97,9 +97,8 @@ internal sealed partial class Parser
     }
 
     /// <summary>Parses a definition and adds it to the source.</summary>
-    /// <param name="description">A description for the definition.</param>
     /// <returns>A new definition, on success.</returns>
-    public Definition ParseDefinition(string description)
+    public Definition ParseDefinition()
     {
         CheckAndMove(Token.Def, "DEF expected");
         if (kind != Token.Id)
@@ -109,6 +108,7 @@ internal sealed partial class Parser
             source[defName] != null)
             throw Error($"{defName} already in use");
         Move();
+        string description = "";
         if (kind == Token.Colon)
         {
             Move();

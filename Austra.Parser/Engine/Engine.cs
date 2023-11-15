@@ -30,9 +30,8 @@ public interface IAustraEngine
 
     /// <summary>Validates a definition (no SET clause) and returns its type.</summary>
     /// <param name="definition">An AUSTRA definition.</param>
-    /// <param name="description">Textual description.</param>
     /// <returns>The new definition.</returns>
-    Definition ParseDefinition(string definition, string description);
+    Definition ParseDefinition(string definition);
 
     /// <summary>The data source associated with the engine.</summary>
     IDataSource Source { get; }
@@ -141,7 +140,7 @@ public partial class AustraEngine : IAustraEngine
         ExecutionTime = GenerationTime = CompileTime = null;
         if (DefineRegex().IsMatch(formula))
         {
-            Definition def = ParseDefinition(formula, "");
+            Definition def = ParseDefinition(formula);
             Define(def);
             return new(def, def.GetType(), def.Name);
         }
@@ -196,10 +195,9 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Validates a definition (no SET clause) and returns its type.</summary>
     /// <param name="definition">An AUSTRA definition.</param>
-    /// <param name="description">Textual description.</param>
     /// <returns>The new definition.</returns>
-    public Definition ParseDefinition(string definition, string description) =>
-        Source.AddDefinition(new Parser(Source, definition).ParseDefinition(description));
+    public Definition ParseDefinition(string definition) =>
+        Source.AddDefinition(new Parser(Source, definition).ParseDefinition());
 
     /// <summary>Gets a list of root variables.</summary>
     /// <param name="position">The position of the cursor.</param>
@@ -330,7 +328,13 @@ public partial class AustraEngine : IAustraEngine
                 Source.Add(s.Name, s);
             }
             foreach (DataDef d in obj.Definitions)
-                ParseDefinition($"def {d.Name} = {d.Text}", d.Description);
+                if (string.IsNullOrWhiteSpace(d.Description))
+                    ParseDefinition($"def {d.Name} = {d.Text}");
+                else
+                {
+                    string description = d.Description.Replace("\"", "\"\"");
+                    ParseDefinition($"def {d.Name}:\"{description}\" = {d.Text}");
+                }
         }
     }
 
