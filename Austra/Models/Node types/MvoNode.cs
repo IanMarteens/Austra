@@ -6,17 +6,23 @@ namespace Austra;
 
 public sealed class MvoNode : VarNode<MvoModel>
 {
-    public MvoNode(ClassNode? parent, string varName, string formula, MvoModel value) :
-        base(parent, varName, formula, "MVO Model", value) =>
+    public MvoNode(string formula, MvoModel value) :
+        base(formula, value) =>
         // Create the frontier.
         Frontier = new("Frontier", null,
             Model.Portfolios.Select(p => p.StdDev).ToArray(),
             Model.Portfolios.Select(p => p.Mean).ToArray(),
             SeriesType.Raw);
 
-    public MvoNode(ClassNode? parent, string varName, MvoModel value) :
-        this(parent, varName, varName, value)
-    { }
+    public MvoNode(ClassNode parent, string varName, MvoModel value) :
+        base(parent, varName, value) =>
+        // Create the frontier.
+        Frontier = new("Frontier", null,
+            Model.Portfolios.Select(p => p.StdDev).ToArray(),
+            Model.Portfolios.Select(p => p.Mean).ToArray(),
+            SeriesType.Raw);
+
+    public override string TypeName => "MVO Model";
 
     public Series<double> Frontier { get; }
 

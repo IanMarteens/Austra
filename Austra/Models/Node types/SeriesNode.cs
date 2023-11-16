@@ -4,18 +4,28 @@ namespace Austra;
 
 public sealed class SeriesNode : VarNode<Series>
 {
-    private static readonly string[] freq2str =
+    private static ReadOnlySpan<string> Freq2str => new string[]
     {
-        ", 1D", ", 1W", ", 2W", ", 1M", ", 2M", ", 3M", ", 6M", ", 1Y", ""
+        ", 1D",
+        ", 1W",
+        ", 2W",
+        ", 1M",
+        ", 2M",
+        ", 3M",
+        ", 6M",
+        ", 1Y",
+        ""
     };
 
-    public SeriesNode(ClassNode? parent, string varName, string formula, Series value) :
-        base(parent, varName, formula, "Series/" + value.Type + freq2str[(int)value.Freq], value)
+    public SeriesNode(string formula, Series value) :
+        base(formula, value)
     { }
 
-    public SeriesNode(ClassNode? parent, string varName, Series value) :
-        this(parent, varName, varName, value)
+    public SeriesNode(ClassNode parent, string varName, Series value) :
+        base(parent, varName, value)
     { }
+
+    public override string TypeName => "Series/" + Model.Type + Freq2str[(int)Model.Freq];
 
     override public void Show() =>
         RootModel.Instance.AppendControl(Formula, Model.ToString(),
@@ -144,7 +154,7 @@ public sealed class SeriesViewModel : Entity
             Content = "Reference:",
             VerticalAlignment = VerticalAlignment.Center,
         });
-        List<string> references = new() { "None", "Moving average", "Moving StdDev", "EWMA" };
+        List<string> references = ["None", "Moving average", "Moving StdDev", "EWMA"];
         if (node.Model.Type == SeriesType.Raw)
             references.Add("Moving return");
         ComboBox combo = new()
@@ -212,14 +222,15 @@ public sealed class SeriesViewModel : Entity
 
 public sealed class PercentileNode : VarNode<Series<double>>
 {
-    public PercentileNode(ClassNode? parent, string varName, string formula, Series<double> value) :
-        base(parent, varName, formula, "Percentiles", value)
+    public PercentileNode(string formula, Series<double> value) :
+        base(formula, value)
     { }
 
-
-    public PercentileNode(ClassNode? parent, string varName, Series<double> value) :
-        this(parent, varName, varName, value)
+    public PercentileNode(ClassNode parent, string varName, Series<double> value) :
+        base(parent, varName, value)
     { }
+
+    public override string TypeName => "Percentiles";
 
     override public void Show() =>
         RootModel.Instance.AppendControl(Formula, Model.ToString(),
@@ -234,14 +245,15 @@ public sealed class PercentileNode : VarNode<Series<double>>
 
 public sealed class CorrelogramNode : VarNode<Series<int>>
 {
-    public CorrelogramNode(ClassNode? parent, string varName, string formula, Series<int> value) :
-        base(parent, varName, formula, "Percentiles", value)
+    public CorrelogramNode(string formula, Series<int> value) :
+        base(formula, value)
     { }
-
 
     public CorrelogramNode(ClassNode? parent, string varName, Series<int> value) :
-        this(parent, varName, varName, value)
+        base(parent, varName, value)
     { }
+
+    public override string TypeName => "Correlogram";
 
     override public void Show() =>
         RootModel.Instance.AppendControl(Formula, Model.ToString(),

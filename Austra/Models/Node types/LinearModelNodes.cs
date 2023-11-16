@@ -2,14 +2,17 @@
 
 public abstract class LinearModelNode<M, T> : VarNode<M> where M : LinearModelBase<T>
 {
-    protected LinearModelNode(ClassNode? parent, string varName, string formula, M value) :
-        base(parent, varName, formula, "Linear model", value)
-    {
-        R2 = value.R2;
-        RSS = value.ResidualSumSquares;
-        TSS = value.TotalSumSquares;
-        StandardError = value.StandardError;
-    }
+    protected LinearModelNode(string formula, M value) :
+        base(formula, value) =>
+        (R2, RSS, TSS, StandardError) =
+            (value.R2, value.ResidualSumSquares, value.TotalSumSquares, value.StandardError);
+
+    protected LinearModelNode(ClassNode parent, string varName, M value) :
+        base(parent, varName, value) =>
+        (R2, RSS, TSS, StandardError) =
+            (value.R2, value.ResidualSumSquares, value.TotalSumSquares, value.StandardError);
+
+    public override string TypeName => "Linear model";
 
     public override Visibility ImageVisibility => Visibility.Visible;
 
@@ -38,13 +41,12 @@ public abstract class LinearModelNode<M, T> : VarNode<M> where M : LinearModelBa
 
 public sealed class LinearSModelNode : LinearModelNode<LinearSModel, Series>
 {
-    public LinearSModelNode(ClassNode? parent, string varName, string formula, LinearSModel value) :
-        base(parent, varName, formula, value)
-    {
-    }
+    public LinearSModelNode(string formula, LinearSModel value) :
+        base(formula, value)
+    { }
 
-    public LinearSModelNode(ClassNode? parent, string varName, LinearSModel value) :
-        this(parent, varName, varName, value)
+    public LinearSModelNode(ClassNode parent, string varName, LinearSModel value) :
+        base(parent, varName, value)
     { }
 
     public override void Show() => Show(
@@ -56,13 +58,12 @@ public sealed class LinearSModelNode : LinearModelNode<LinearSModel, Series>
 
 public sealed class LinearVModelNode : LinearModelNode<LinearVModel, RVector>
 {
-    public LinearVModelNode(ClassNode? parent, string varName, string formula, LinearVModel value) :
-        base(parent, varName, formula, value)
-    {
-    }
+    public LinearVModelNode(string formula, LinearVModel value) :
+        base(formula, value)
+    { }
 
-    public LinearVModelNode(ClassNode? parent, string varName, LinearVModel value) :
-        this(parent, varName, varName, value)
+    public LinearVModelNode(ClassNode parent, string varName, LinearVModel value) :
+        base(parent, varName, value)
     { }
 
     public override void Show() => Show(

@@ -2,8 +2,8 @@
 WriteLine("Benchmarks for AUSTRA");
 
 //BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).RunAllJoined();
-//BenchmarkRunner.Run<ParserBenchmark>();
+//BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).RunAllJoined();
+BenchmarkRunner.Run<ParserBenchmark>();
 //BenchmarkRunner.Run<SplineBenchmark>();
 //BenchmarkRunner.Run<FunctionsBenchmark>();
 //BenchmarkRunner.Run<ParserBenchmark>();

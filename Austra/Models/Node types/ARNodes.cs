@@ -5,14 +5,17 @@
 /// <typeparam name="T">Type of original dataset.</typeparam>
 public abstract class ARNode<M, T> : VarNode<M> where M : ARModelBase<T>
 {
-    protected ARNode(ClassNode? parent, string varName, string formula, M value) :
-        base(parent, varName, formula, "AR(p) model", value)
-    {
-        Degree = value.Degrees;
-        R2 = value.R2;
-        RSS = value.ResidualSumSquares;
-        TSS = value.TotalSumSquares;
-    }
+    protected ARNode(string formula, M value) :
+        base(formula, value) =>
+        (Degree, R2, RSS, TSS) =
+            (value.Degrees, value.R2, value.ResidualSumSquares, value.TotalSumSquares);
+
+    protected ARNode(ClassNode? parent, string varName, M value) :
+        base(parent, varName, value) =>
+        (Degree, R2, RSS, TSS) =
+            (value.Degrees, value.R2, value.ResidualSumSquares, value.TotalSumSquares);
+
+    public override string TypeName => "AR(p) model";
 
     protected void Show(OxyPlot.PlotModel oxyModel)
     {
@@ -42,13 +45,12 @@ public abstract class ARNode<M, T> : VarNode<M> where M : ARModelBase<T>
 /// <summary>An autoregressive model for a time series.</summary>
 public sealed class ARSNode : ARNode<ARSModel, Series>
 {
-    public ARSNode(ClassNode? parent, string varName, string formula, ARSModel value) :
-        base(parent, varName, formula, value)
-    {
-    }
+    public ARSNode(string formula, ARSModel value) :
+        base(formula, value)
+    { }
 
-    public ARSNode(ClassNode? parent, string varName, ARSModel value) :
-        this(parent, varName, varName, value)
+    public ARSNode(ClassNode parent, string varName, ARSModel value) :
+        base(parent, varName, value)
     { }
 
     public override void Show() => Show(
@@ -61,13 +63,12 @@ public sealed class ARSNode : ARNode<ARSModel, Series>
 /// <summary>An autoregressive model for a samples in a vector.</summary>
 public sealed class ARVNode : ARNode<ARVModel, RVector>
 {
-    public ARVNode(ClassNode? parent, string varName, string formula, ARVModel value) :
-        base(parent, varName, formula, value)
-    {
-    }
+    public ARVNode(string formula, ARVModel value) :
+        base(formula, value)
+    { }
 
     public ARVNode(ClassNode? parent, string varName, ARVModel value) :
-        this(parent, varName, varName, value)
+        base(parent, varName, value)
     { }
 
     public override void Show() => Show(

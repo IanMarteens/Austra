@@ -2,13 +2,15 @@
 
 public abstract class CommonVectorNode<T>: VarNode<T> where T: struct
 {
-    protected CommonVectorNode(ClassNode? parent, string varName, string formula, T value) :
-        base(parent, varName, formula, "Vector", value)
+    protected CommonVectorNode(string formula, T value) :
+        base(formula, value)
     { }
 
-    public CommonVectorNode(ClassNode? parent, string varName, T value) :
-        this(parent, varName, varName, value)
+    public CommonVectorNode(ClassNode parent, string varName, T value) :
+        base(parent, varName, value)
     { }
+
+    public override string TypeName => "Vector";
 
     public sealed override Visibility ImageVisibility => Visibility.Visible;
 
@@ -20,12 +22,12 @@ public abstract class CommonVectorNode<T>: VarNode<T> where T: struct
 
 public sealed class VectorNode: CommonVectorNode<RVector>
 {
-    public VectorNode(ClassNode? parent, string varName, string formula, RVector value) :
-        base(parent, varName, formula, value)
+    public VectorNode(string formula, RVector value) :
+        base(formula, value)
     { }
 
-    public VectorNode(ClassNode? parent, string varName, RVector value) :
-        this(parent, varName, varName, value)
+    public VectorNode(ClassNode parent, string varName, RVector value) :
+        base(parent, varName, value)
     { }
 
     public override string Hint => $"{Name} ∊ ℝ({Model.Length})";
@@ -33,12 +35,12 @@ public sealed class VectorNode: CommonVectorNode<RVector>
 
 public sealed class CVectorNode : CommonVectorNode<ComplexVector>
 {
-    public CVectorNode(ClassNode? parent, string varName, string formula, ComplexVector value) :
-        base(parent, varName, formula, value)
+    public CVectorNode(string formula, ComplexVector value) :
+        base(formula, value)
     { }
 
-    public CVectorNode(ClassNode? parent, string varName, ComplexVector value) :
-        this(parent, varName, varName, value)
+    public CVectorNode(ClassNode parent, string varName, ComplexVector value) :
+        base(parent, varName, value)
     { }
 
     public override string Hint => $"{Name} ∊ ℂ({Model.Length})";

@@ -2,13 +2,15 @@
 
 public sealed class EvdNode : VarNode<EVD>
 {
-    public EvdNode(ClassNode? parent, string varName, string formula, EVD value) :
-        base(parent, varName, formula, "EVD", value)
+    public EvdNode(string formula, EVD value) :
+        base(formula, value)
     { }
 
-    public EvdNode(ClassNode? parent, string varName, EVD value) :
-        this(parent, varName, varName, value)
+    public EvdNode(ClassNode parent, string varName, EVD value) :
+        base(parent, varName, value)
     { }
+
+    public override string TypeName => "EVD";
 
     public override Visibility ImageVisibility => Visibility.Visible;
 

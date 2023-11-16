@@ -7,8 +7,13 @@ public abstract class SplineNode<T, A> : VarNode<T>
     where T : Spline<A>
     where A : struct
 {
-    protected SplineNode(ClassNode? parent, string varName, string formula, T value) :
-        base(parent, varName, formula, "Spline", value) => Length = value.Length;
+    protected SplineNode(string formula, T value) :
+        base(formula, value) => Length = value.Length;
+
+    protected SplineNode(ClassNode parent, string varName, T value) :
+        base(parent, varName, value) => Length = value.Length;
+
+    public override string TypeName => "Spline";
 
     public override Visibility ImageVisibility => Visibility.Visible;
 
@@ -84,12 +89,12 @@ public abstract class SplineViewModel<T, A> : Entity
 
 public sealed class DateSplineNode : SplineNode<DateSpline, Date>
 {
-    public DateSplineNode(ClassNode? parent, string varName, string formula, DateSpline value) :
-        base(parent, varName, formula, value)
+    public DateSplineNode(string formula, DateSpline value) :
+        base(formula, value)
     { }
 
-    public DateSplineNode(ClassNode? parent, string varName, DateSpline value) :
-        this(parent, varName, varName, value)
+    public DateSplineNode(ClassNode parent, string varName, DateSpline value) :
+        base(parent, varName, value)
     { }
 
     public override void Show() =>
@@ -135,12 +140,12 @@ public sealed class DateSplineViewModel : SplineViewModel<DateSpline, Date>
 
 public sealed class VectorSplineNode : SplineNode<VectorSpline, double>
 {
-    public VectorSplineNode(ClassNode? parent, string varName, string formula, VectorSpline value) :
-        base(parent, varName, formula, value)
+    public VectorSplineNode(string formula, VectorSpline value) :
+        base(formula, value)
     { }
 
-    public VectorSplineNode(ClassNode? parent, string varName, VectorSpline value) :
-        this(parent, varName, varName, value)
+    public VectorSplineNode(ClassNode parent, string varName, VectorSpline value) :
+        base(parent, varName, value)
     { }
 
     public override void Show() =>

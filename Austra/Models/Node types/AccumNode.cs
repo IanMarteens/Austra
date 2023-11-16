@@ -3,13 +3,15 @@
 /// <summary>A view-model for a running statistics node.</summary>
 public sealed class AccumNode : VarNode<Accumulator>
 {
-    public AccumNode(ClassNode? parent, string varName, string formula, Accumulator value) :
-        base(parent, varName, formula, "Statistics", value)
+    public AccumNode(string formula, Accumulator value) :
+        base(formula, value)
     { }
 
     public AccumNode(ClassNode? parent, string varName, Accumulator value) :
-        this(parent, varName, varName, value)
+        base(parent, varName, value)
     { }
+
+    public override string TypeName => "Statistics";
 
     public override Visibility ImageVisibility => Visibility.Visible;
 

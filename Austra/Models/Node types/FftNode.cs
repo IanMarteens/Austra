@@ -2,12 +2,15 @@
 
 public sealed class FftNode : VarNode<FftModel>
 {
-    public FftNode(ClassNode? parent, string varName, string formula, FftModel value) :
-        base(parent, varName, formula, "FFT", value)
+    public FftNode(string formula, FftModel value) :
+        base(formula, value)
     { }
-    public FftNode(ClassNode? parent, string varName, FftModel value) :
-        this(parent, varName, varName, value)
+
+    public FftNode(ClassNode parent, string varName, FftModel value) :
+        base(parent, varName, value)
     { }
+
+    public override string TypeName => "FFT";
 
     public override void Show() =>
         RootModel.Instance.AppendControl(

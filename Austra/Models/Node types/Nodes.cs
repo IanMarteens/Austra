@@ -3,12 +3,11 @@
 namespace Austra;
 
 /// <summary>Represents a node in the entities tree.</summary>
-public abstract class NodeBase : Entity
+/// <param name="name">The name of the node.</param>
+public abstract class NodeBase(string name) : Entity
 {
     private bool isSelected;
     private bool isExpanded;
-
-    protected NodeBase(string name, string type) => (Name, TypeName) = (name, type);
 
     /// <summary>Gets or set whether the corresponding tree node is selected.</summary>
     public bool IsSelected
@@ -28,29 +27,28 @@ public abstract class NodeBase : Entity
     public virtual void Show() { }
 
     [Category("ID")]
-    public string Name { get; }
+    public string Name { get; } = name;
 
     [Category("ID")]
-    public string TypeName { get; }
+    public abstract string TypeName { get; }
 }
 
 /// <summary>Represents a class node, grouping variables of the same type.</summary>
-public class ClassNode : NodeBase
+/// <param name="className">Descriptive name of the class.</param>
+/// <param name="type">The type of class node.</param>
+public class ClassNode(string className, string type = "Class node") : NodeBase(className)
 {
-    public ClassNode(string className) : this(className, "ClassNode") { }
+    public ObservableCollection<VarNode> Nodes { get; } = [];
 
-    public ClassNode(string className, string type) : base(className, type) =>
-        Order = className switch
+    public override string TypeName { get; } = type;
+
+    public int Order { get; } = className switch
         {
             "Series" => 0,
             "Matrix" => 1,
             "Vector" => 2,
             _ => 3,
         };
-
-    public ObservableCollection<VarNode> Nodes { get; } = new();
-
-    public int Order { get; }
 }
 
 /// <summary>Represents an class node grouping AUSTRA definitions.</summary>
@@ -62,8 +60,8 @@ public class AllDefinitionsNode : ClassNode
 /// <summary>Represents a session variable.</summary>
 public abstract class VarNode : NodeBase
 {
-    protected VarNode(ClassNode? parent, string name, string formula, string type) :
-        base(name, type) =>
+    protected VarNode(ClassNode? parent, string name, string formula) :
+        base(name) =>
         (Parent, Formula) = (parent, formula);
 
     public ClassNode? Parent { get; }
@@ -103,8 +101,11 @@ public abstract class VarNode : NodeBase
 /// <summary>Represents a session variable with a stored value.</summary>
 public abstract class VarNode<T> : VarNode
 {
-    protected VarNode(ClassNode? parent, string name, string formula, string type, T model) :
-        base(parent, name, formula, type) => Model = model;
+    protected VarNode(string formula, T model) :
+        base(null, model?.GetType()?.Name ?? "", formula) => Model = model;
+
+    protected VarNode(ClassNode? parent, string varName, T model) :
+        base(parent, varName, varName) => Model = model;
 
     /// <summary>Gets the value associated to the linked variable.</summary>
     public T Model { get; }
@@ -227,11 +228,10 @@ internal static class OxyExts
 }
 
 /// <summary>A catch-all variable node, for variables that are not of a specific type.</summary>
-public class MiscNode : VarNode
+public class MiscNode(ClassNode parent, string varName, Type type, string value) :
+    VarNode(parent, varName, varName)
 {
-    public MiscNode(ClassNode parent, string varName, Type type, string value) :
-        base(parent, varName, varName, type.Name) =>
-        Value = value;
+    public override string TypeName { get; } = type.Name;
 
     public override void Show()
     {
@@ -246,32 +246,29 @@ public class MiscNode : VarNode
     public override Visibility ImageVisibility => Visibility.Visible;
 
     [Category("Content")]
-    public string Value { get; }
+    public string Value { get; } = value;
 }
 
-public sealed class DefinitionNode : VarNode
+public sealed class DefinitionNode(AllDefinitionsNode parent, Definition def) :
+    VarNode(parent, def.Name, def.Name)
 {
-    public DefinitionNode(AllDefinitionsNode parent, Definition def) :
-        base(parent, def.Name, def.Name, def.Type == typeof(ARSModel) || def.Type == typeof(ARVModel)
-            ? "ARModel"
-            : def.Type == typeof(LinearSModel) || def.Type == typeof(LinearVModel)
-            ? "LinearModel"
-            : def.Type == typeof(FftCModel) || def.Type == typeof(FftRModel)
-            ? "FFT Model"
-            : def.Type.Name)
-    {
-        Body = def.Text;
-        Description = def.Description;
-    }
+    public override string TypeName { get; } =
+        def.Type == typeof(ARSModel) || def.Type == typeof(ARVModel)
+        ? "ARModel"
+        : def.Type == typeof(LinearSModel) || def.Type == typeof(LinearVModel)
+        ? "LinearModel"
+        : def.Type == typeof(FftCModel) || def.Type == typeof(FftRModel)
+        ? "FFT Model"
+        : def.Type.Name;
 
     override public void Show() =>
         RootModel.Instance.Evaluate(Name);
 
     [Category("Content")]
-    public string Body { get; }
+    public string Body { get; } = def.Text;
 
     [Category("Content")]
-    public string Description { get; }
+    public string Description { get; } = def.Description;
 
     public override string Hint => (Description == Name ? TypeName : Description) + Environment.NewLine + Body;
 }

@@ -480,7 +480,7 @@ public sealed partial class RootModel : Entity
                         ClassNode? parent = Classes.FirstOrDefault(c => c.Name == typeName);
                         if (parent == null)
                         {
-                            parent = new ClassNode(typeName);
+                            parent = new(typeName);
                             Classes.Add(parent);
                         }
                         node = CreateVarNode(parent, ansVar, ansType, false);
@@ -495,30 +495,29 @@ public sealed partial class RootModel : Entity
                 else if (ans != null)
                 {
                     string form = CleanFormula(text);
-                    string typeString = ansType?.Name ?? "";
                     VarNode? node = ans switch
                     {
-                        Series s => new SeriesNode(null, typeString, form, s),
-                        Series<double> s => new PercentileNode(null, typeString, form, s),
-                        Series<int> s => new CorrelogramNode(null, typeString, form, s),
-                        Plot<Series> t => new CompareNode(null, "Plot", form, t),
-                        Plot<RVector> t => new CompareVNode(null, "Plot", form, t),
-                        Plot<ComplexVector> t => new CompareCVNode(null, "Plot", form, t),
-                        FftModel fft => new FftNode(null, typeString, form, fft),
-                        ARSModel m1 => new ARSNode(null, typeString, form, m1),
-                        ARVModel m2 => new ARVNode(null, typeString, form, m2),
-                        LinearSModel slm => new LinearSModelNode(null, typeString, form, slm),
-                        LinearVModel vlm => new LinearVModelNode(null, typeString, form, vlm),
-                        DateSpline dsp => new DateSplineNode(null, typeString, form, dsp),
-                        VectorSpline vsp => new VectorSplineNode(null, typeString, form, vsp),
-                        Accumulator acc => new AccumNode(null, typeString, form, acc),
-                        AMatrix m => new MatrixNode(null, typeString, form, m),
-                        LMatrix m => new MatrixNode(null, typeString, form, m),
-                        RMatrix m => new MatrixNode(null, typeString, form, m),
-                        RVector v => new VectorNode(null, typeString, form, v),
-                        ComplexVector v => new CVectorNode(null, typeString, form, v),
-                        EVD evd => new EvdNode(null, typeString, form, evd),
-                        MvoModel mvo => new MvoNode(null, typeString, form, mvo),
+                        Series s => new SeriesNode(form, s),
+                        Series<double> s => new PercentileNode(form, s),
+                        Series<int> s => new CorrelogramNode(form, s),
+                        Plot<Series> t => new CompareNode(form, t),
+                        Plot<RVector> t => new CompareVNode(form, t),
+                        Plot<ComplexVector> t => new CompareCVNode(form, t),
+                        FftModel fft => new FftNode(form, fft),
+                        ARSModel m1 => new ARSNode(form, m1),
+                        ARVModel m2 => new ARVNode(form, m2),
+                        LinearSModel slm => new LinearSModelNode(form, slm),
+                        LinearVModel vlm => new LinearVModelNode(form, vlm),
+                        DateSpline dsp => new DateSplineNode(form, dsp),
+                        VectorSpline vsp => new VectorSplineNode(form, vsp),
+                        Accumulator acc => new AccumNode(form, acc),
+                        AMatrix m => new MatrixNode(form, m),
+                        LMatrix m => new MatrixNode(form, m),
+                        RMatrix m => new MatrixNode(form, m),
+                        RVector v => new VectorNode(form, v),
+                        ComplexVector v => new CVectorNode(form, v),
+                        EVD evd => new EvdNode(form, evd),
+                        MvoModel mvo => new MvoNode(form, mvo),
                         _ => null
                     };
                     if (node != null)

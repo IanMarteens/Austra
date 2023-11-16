@@ -4,27 +4,29 @@ public class MatrixNode : VarNode<AMatrix>
 {
     private readonly sbyte triangularity;
 
-    public MatrixNode(ClassNode? parent, string varName, string formula, AMatrix value) :
-        base(parent, varName, formula, "Matrix", value)
+    public MatrixNode(string formula, AMatrix value) :
+        base(formula, value)
     { }
 
-    public MatrixNode(ClassNode? parent, string varName, AMatrix value) :
-        this(parent, varName, varName, value)
+    public MatrixNode(ClassNode parent, string varName, AMatrix value) :
+        base(parent, varName, value)
     { }
 
-    public MatrixNode(ClassNode? parent, string varName, string formula, LMatrix value) :
-        base(parent, varName, formula, "Matrix", (Matrix)value) => triangularity = -1;
+    public MatrixNode(string formula, LMatrix value) :
+        base(formula, (AMatrix)value) => triangularity = -1;
 
-    public MatrixNode(ClassNode? parent, string varName, LMatrix value) :
-        this(parent, varName, varName, value)
+    public MatrixNode(ClassNode parent, string varName, LMatrix value) :
+        base(parent, varName, (AMatrix)value)
     { }
 
-    public MatrixNode(ClassNode? parent, string varName, string formula, RMatrix value) :
-        base(parent, varName, formula, "Matrix", (Matrix)value) => triangularity = +1;
+    public MatrixNode(string formula, RMatrix value) :
+        base(formula, (AMatrix)value) => triangularity = +1;
 
-    public MatrixNode(ClassNode? parent, string varName, RMatrix value) :
-        this(parent, varName, varName, value)
+    public MatrixNode(ClassNode parent, string varName, RMatrix value) :
+        base(parent, varName, (AMatrix)value)
     { }
+
+    public override string TypeName => "Matrix";
 
     public override Visibility ImageVisibility => Visibility.Visible;
 

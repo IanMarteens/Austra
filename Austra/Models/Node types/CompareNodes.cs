@@ -4,8 +4,12 @@
 /// <typeparam name="T">The type of the compared items.</typeparam>
 public abstract class CompareNodeBase<T> : VarNode<Plot<T>> where T : IFormattable
 {
-    protected CompareNodeBase(ClassNode? parent, string name, string formula, string type, Plot<T> model)
-        : base(parent, name, formula, type, model)
+    protected CompareNodeBase(string formula, Plot<T> model)
+        : base(formula, model)
+    { }
+
+    protected CompareNodeBase(ClassNode? parent, string name, Plot<T> model)
+        : base(parent, name, model)
     { }
 
     public override Visibility ImageVisibility => Visibility.Visible;
@@ -14,17 +18,22 @@ public abstract class CompareNodeBase<T> : VarNode<Plot<T>> where T : IFormattab
 }
 
 /// <summary>Compares two time series.</summary>
-public sealed class CompareNode(ClassNode? parent, string varName, string formula, Plot<Series> value)
-    : CompareNodeBase<Series>(parent, varName, formula, "Series plot", value)
+public sealed class CompareNode : CompareNodeBase<Series>
 {
-    public CompareNode(ClassNode? parent, string varName, Plot<Series> value) :
-        this(parent, varName, varName, value)
+    public CompareNode(string formula, Plot<Series> value) :
+        base(formula, value)
     { }
+
+    public CompareNode(ClassNode? parent, string varName, Plot<Series> value) :
+        base(parent, varName, value)
+    { }
+
+    public override string TypeName => "Series plot";
 
     public override void Show()
     {
         if (Model.HasSecond)
-            RootModel.Instance.AppendControl(Name,
+            RootModel.Instance.AppendControl(Formula,
                 Model.First.ToString() + " vs " + Model.Second!.ToString(),
                 CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
                     .CreateLegend()
@@ -32,7 +41,7 @@ public sealed class CompareNode(ClassNode? parent, string varName, string formul
                     .CreateSeries(Model.Second!, "Second")
                     .CreateView());
         else
-            RootModel.Instance.AppendControl(Name,
+            RootModel.Instance.AppendControl(Formula,
                 Model.First.ToString(),
                 CreateOxyModel(new OxyPlot.Axes.DateTimeAxis())
                     .CreateLegend()
@@ -41,17 +50,22 @@ public sealed class CompareNode(ClassNode? parent, string varName, string formul
     }
 }
 
-public sealed class CompareVNode(ClassNode? parent, string varName, string formula, Plot<RVector> value)
-    : CompareNodeBase<RVector>(parent, varName, formula, "Vector plot", value)
+public sealed class CompareVNode : CompareNodeBase<RVector>
 {
-    public CompareVNode(ClassNode? parent, string varName, Plot<RVector> value) :
-        this(parent, varName, varName, value)
+    public CompareVNode(string formula, Plot<RVector> value) :
+        base(formula, value)
     { }
+
+    public CompareVNode(ClassNode? parent, string varName, Plot<RVector> value) :
+        base(parent, varName, value)
+    { }
+
+    public override string TypeName => "Vector plot";
 
     public override void Show()
     {
         if (Model.HasSecond)
-            RootModel.Instance.AppendControl(Name,
+            RootModel.Instance.AppendControl(Formula,
                 $"ℝ({Model.First.Length}) vs ℝ({Model.Second!.Length})",
                 CreateOxyModel(new OxyPlot.Axes.LinearAxis())
                     .CreateLegend()
@@ -59,7 +73,7 @@ public sealed class CompareVNode(ClassNode? parent, string varName, string formu
                     .CreateStepSeries(Model.Second!, "Second")
                     .CreateView());
         else
-            RootModel.Instance.AppendControl(Name,
+            RootModel.Instance.AppendControl(Formula,
                 $"ℝ({Model.First.Length})",
                 CreateOxyModel(new OxyPlot.Axes.LinearAxis())
                     .CreateLegend()
@@ -68,15 +82,20 @@ public sealed class CompareVNode(ClassNode? parent, string varName, string formu
     }
 }
 
-public sealed class CompareCVNode(ClassNode? parent, string varName, string formula, Plot<ComplexVector> value)
-    : CompareNodeBase<ComplexVector>(parent, varName, formula, "Complex vector plot", value)
+public sealed class CompareCVNode : CompareNodeBase<ComplexVector>
 {
-    public CompareCVNode(ClassNode? parent, string varName, Plot<ComplexVector> value) :
-            this(parent, varName, varName, value)
+    public CompareCVNode(string formula, Plot<ComplexVector> value) :
+        base(formula, value)
     { }
 
+    public CompareCVNode(ClassNode? parent, string varName, Plot<ComplexVector> value) :
+        base(parent, varName, value)
+    { }
+
+    public override string TypeName => "Complex vector plot";
+
     public override void Show() =>
-        RootModel.Instance.AppendControl(Name,
+        RootModel.Instance.AppendControl(Formula,
             Model.HasSecond
                 ? $"ℂ({Model.First.Length}) vs ℂ({Model.Second!.Length})"
                 : $"ℂ({Model.First.Length})",
