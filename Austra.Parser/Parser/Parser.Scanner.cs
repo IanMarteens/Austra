@@ -582,11 +582,15 @@ internal sealed partial class Parser
         ? LambdaHeader1().IsMatch(text.AsSpan()[start..])
         : LambdaHeader2().IsMatch(text.AsSpan()[start..]);
 
-    private static AstException Error(string message, int position) =>
-        new(message, position);
+    private Exception Error(string message, int position) =>
+        abortPosition == int.MaxValue
+        ? new AstException(message, position)
+        : new AbortException(message);
 
-    private AstException Error(string message) =>
-        new(message, start);
+    private Exception Error(string message) =>
+        abortPosition == int.MaxValue
+        ? new AstException(message, start)
+        : new AbortException(message);
 }
 
 /// <summary>Contains extension methods acting on <see cref="Type"/> instances.</summary>
