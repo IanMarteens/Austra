@@ -287,6 +287,15 @@ public abstract partial class DoubleSequence :
         return count;
     }
 
+    /// <summary>Gets the first value in the sequence.</summary>
+    /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
+    public double First()
+    {
+        if (!Next(out double value))
+            return double.NaN;
+        return value;
+    }
+
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
@@ -445,4 +454,10 @@ public abstract partial class DoubleSequence :
     /// <summary>Creates a plot for this sequence.</summary>
     /// <returns>A plot containing a frozen vector as its dataset.</returns>
     public Plot<Vector> Plot() => new(ToVector());
+
+    /// <summary>Creates an AR model from a sequence and a degree.</summary>
+    /// <param name="degree">Number of independent variables in the model.</param>
+    /// <returns>A full autoregressive model.</returns>
+    public ARVModel ARModel(int degree) => new(ToVector(), degree);
+
 }
