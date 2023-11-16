@@ -1,4 +1,5 @@
 ﻿using Austra.Library.MVO;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Austra.Parser;
 
@@ -960,7 +961,11 @@ internal sealed partial class ParserBindings
         return [];
 
         IList<Member> ExtractType(string text) =>
-            members.TryGetValue(new Parser(this, source, text).ParseType(), out Member[]? list) ? list : [];
+            new Parser(this, source, text).ParseType() is var types 
+                && types is not null && types.Length > 0 && types[0] is not null
+                && members.TryGetValue(types[0], out Member[]? list)
+                ? list
+                : [];
     }
 
     /// <summary>Gets a list of class members for a given type.</summary>
@@ -1053,7 +1058,7 @@ internal sealed partial class ParserBindings
     /// <param name="identifier">Property name.</param>
     /// <param name="info">The method info, on success.</param>
     /// <returns><see langword="true"/> if successful.</returns>
-    public bool TryGetProperty(Type type, string identifier, out MethodInfo? info) =>
+    public bool TryGetProperty(Type type, string identifier, [MaybeNullWhen(false)] out MethodInfo info) =>
         allProps.TryGetValue(new TypeId(type, identifier.ToLower()), out info);
 
     /// <summary>Gets an instance method for a given type and identifier.</summary>
@@ -1061,7 +1066,7 @@ internal sealed partial class ParserBindings
     /// <param name="identifier">Method name.</param>
     /// <param name="info">The method info, on success.</param>
     /// <returns><see langword="true"/> if successful.</returns>
-    public bool TryGetMethod(Type type, string identifier, out MethodInfo? info) =>
+    public bool TryGetMethod(Type type, string identifier, [MaybeNullWhen(false)] out MethodInfo info) =>
         methods.TryGetValue(new TypeId(type, identifier.ToLower()), out info);
 
     /// <summary>Gets an class method given the class and method names.</summary>

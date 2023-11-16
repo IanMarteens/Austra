@@ -121,7 +121,10 @@ internal sealed partial class Parser
     private void CheckAndMove(Token kind, string errorMessage)
     {
         if (this.kind != kind)
-            throw new AstException(errorMessage, start);
+            if (abortPosition == int.MaxValue)
+                throw new AstException(errorMessage, start);
+            else
+                throw new AbortException(errorMessage);
         Move();
     }
 

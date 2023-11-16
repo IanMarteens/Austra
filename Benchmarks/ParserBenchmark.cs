@@ -13,19 +13,19 @@ public class ParserBenchmark : BenchmarkControl
     }
 
     [Benchmark]
-    public Type AustraParseMatrixTrace() =>
+    public Type[] AustraParseMatrixTrace() =>
         engine.EvalType("let v = vector::nrandom(16) in (v ^ v).trace");
 
     [Benchmark]
-    public Type AustraParseCholeskyCheck() =>
+    public Type[] AustraParseCholeskyCheck() =>
         engine.EvalType("let m0 = matrix::random(10) + 0.01, sm = m0*m0', c = sm.chol in sm - c*c'");
 
     [Benchmark]
-    public Type AustraParseSimpleSum() =>
+    public Type[] AustraParseSimpleSum() =>
         engine.EvalType("1.0 + 2.0 * 3.0");
 
     [Benchmark]
-    public Type AustraParseFunctionCall() =>
+    public Type[] AustraParseFunctionCall() =>
         engine.EvalType("sin(1) + cos(2)");
 
     [Benchmark]

@@ -398,12 +398,14 @@ public sealed partial class RootModel : Entity
             return;
         try
         {
-            Type result = environment!.Engine.EvalType(text);
+            Type[] result = environment!.Engine.EvalType(text);
             ShowTimesMessage();
-            AppendResult(CleanFormula(text),
-                result == typeof(Series<double>) ? "Series<double>" :
-                result == typeof(Series<int>) ? "Series<int>" :
-                result.Name);
+            AppendResult(
+                CleanFormula(text),
+                string.Join(", ", result.Select(static t =>
+                    t == typeof(Series<double>) ? "Series<double>" :
+                    t == typeof(Series<int>) ? "Series<int>" :
+                    t.Name)));
         }
         catch (AstException e)
         {
@@ -429,6 +431,36 @@ public sealed partial class RootModel : Entity
         {
             var (ans, ansType, ansVar) = environment!.Engine.Eval(text);
             ShowTimesMessage();
+            Queue<AustraAnswer> queue = environment!.Engine.AnswerQueue;
+            while (queue.Count > 0)
+            {
+                AustraAnswer answer = queue.Dequeue();
+                if (allVars.TryGetValue(answer.Variable, out VarNode? node) &&
+                    node is not DefinitionNode)
+                {
+                    node.Parent!.Nodes.Remove(node);
+                    if (node.Parent.Nodes.Count == 0)
+                        Classes.Remove(node.Parent);
+                    allVars.Remove(node.Name);
+                }
+                if (answer.Type != null)
+                {
+                    string typeName = Describe(answer.Type);
+                    ClassNode? parent = Classes.FirstOrDefault(c => c.Name == typeName);
+                    if (parent == null)
+                    {
+                        parent = new(typeName);
+                        Classes.Add(parent);
+                    }
+                    node = CreateVarNode(parent, answer.Variable, answer.Type, false);
+                    if (node != null)
+                    {
+                        parent.Nodes.Add(node);
+                        parent.IsExpanded = true;
+                        node.IsSelected = true;
+                    }
+                }
+            }
 
             if (ans is Definition def)
             {
@@ -459,40 +491,7 @@ public sealed partial class RootModel : Entity
                 if (History.Count == 0 || History[^1] != text)
                     History.Add(text);
                 historyIndex = -1;
-                if (!string.IsNullOrEmpty(ansVar))
-                {
-                    if (allVars.TryGetValue(ansVar, out VarNode? node) &&
-                        node is not DefinitionNode)
-                    {
-                        node.Parent!.Nodes.Remove(node);
-                        if (node.Parent.Nodes.Count == 0)
-                            Classes.Remove(node.Parent);
-                        allVars.Remove(node.Name);
-                    }
-                    if (ansType == null)
-                    {
-                        ans = Environment!.Engine.Source[ansVar];
-                        ansType = ans?.GetType();
-                    }
-                    if (ansType != null)
-                    {
-                        string typeName = Describe(ansType);
-                        ClassNode? parent = Classes.FirstOrDefault(c => c.Name == typeName);
-                        if (parent == null)
-                        {
-                            parent = new(typeName);
-                            Classes.Add(parent);
-                        }
-                        node = CreateVarNode(parent, ansVar, ansType, false);
-                        if (node != null)
-                        {
-                            parent.Nodes.Add(node);
-                            parent.IsExpanded = true;
-                            node.IsSelected = true;
-                        }
-                    }
-                }
-                else if (ans != null)
+                if (string.IsNullOrEmpty(ansVar) && ans != null)
                 {
                     string form = CleanFormula(text);
                     VarNode? node = ans switch

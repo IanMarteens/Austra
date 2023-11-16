@@ -11,28 +11,40 @@ internal sealed partial class Parser
     {
         if (kind == Token.Set)
         {
-            Move();
-            if (kind != Token.Id)
-                throw Error("Left side variable expected");
-            int namePos = start;
-            LeftValue = id;
-            Move();
-            if (kind == Token.Eof)
+            List<Expression> topExpressions = new(8);
+            do
             {
-                source[LeftValue] = null;
-                return Expression.Constant(null);
+                Move();
+                if (kind != Token.Id)
+                    throw Error("Left side variable expected");
+                int namePos = start;
+                string leftValue = id;
+                Move();
+                if (kind == Token.Eof || kind == Token.Comma)
+                    source[leftValue] = null;
+                else
+                {
+                    CheckAndMove(Token.Eq, "= expected");
+                    // Always allow deleting a session variable.
+                    if (source.GetDefinition(leftValue) != null)
+                        throw Error($"{leftValue} already in use", namePos);
+                    topExpressions.Add(ParseFormula(true, leftValue, false));
+                }
             }
-            CheckAndMove(Token.Eq, "= expected");
-            // Always allow deleting a session variable.
-            if (source.GetDefinition(LeftValue) != null)
-                throw Error($"{LeftValue} already in use", namePos);
+            while (kind == Token.Comma);
+            return kind != Token.Eof
+                ? throw Error("Extra input after expression")
+                : topExpressions.Count == 0
+                ? Expression.Constant(null)
+                : Expression.Block(topExpressions);
         }
-        return ParseFormula(true);
+        else
+            return ParseFormula(true, "", true);
     }
 
     /// <summary>Parses a block expression without generating code.</summary>
     /// <returns>The type of the block expression.</returns>
-    public Type ParseType()
+    public Type[] ParseType()
     {
         // Check first for a definition header and skip it.
         if (kind == Token.Def)
@@ -45,17 +57,27 @@ internal sealed partial class Parser
                 CheckAndMove(Token.Str, "Definition description expected");
             }
             CheckAndMove(Token.Eq, "= expected");
+            return [ParseFormula(false, "", true).Type];
         }
         // Check now for a set header and skip it.
         else if (kind == Token.Set)
         {
-            Move();
-            CheckAndMove(Token.Id, "Left side variable expected");
-            if (kind == Token.Eof)
-                return typeof(void);
-            CheckAndMove(Token.Eq, "= expected");
+            List<Type> result = new(8);
+            do
+            {
+                Move();
+                CheckAndMove(Token.Id, "Left side variable expected");
+                if (kind != Token.Eof && kind != Token.Comma)
+                {
+                    CheckAndMove(Token.Eq, "= expected");
+                    result.Add(ParseFormula(false, "", false).Type);
+                }
+            } while (kind == Token.Comma);
+            return kind != Token.Eof
+                ? throw Error("Extra input after expression")
+                : [.. result];
         }
-        return ParseFormula(false).Type;
+        return [ParseFormula(false, "", true).Type];
     }
 
     /// <summary>Parse the formula up to a position and return local variables.</summary>
@@ -120,7 +142,7 @@ internal sealed partial class Parser
         CheckAndMove(Token.Eq, "= expected");
         int first = start;
         isParsingDefinition = true;
-        Expression e = ParseFormula(false);
+        Expression e = ParseFormula(false, "", true);
         if (e.Type == typeof(Series))
             e = typeof(Series).Call(e, nameof(Series.SetName), Expression.Constant(defName));
         Definition def = new(defName, text[first..], description, e);
@@ -129,10 +151,16 @@ internal sealed partial class Parser
         return def;
     }
 
+    /// <summary>Checks if the current token is the <c>SET</c> keyword.</summary>
+    /// <returns><see langword="true"/> if the current token is <c>SET</c>.</returns>
+    public bool IsSet() => kind == Token.Set;
+
     /// <summary>Compiles a block expression.</summary>
     /// <param name="forceCast">Whether to force a cast to object.</param>
+    /// <param name="leftValue">When not empty, contains a variable name.</param>
+    /// <param name="checkEof">Whether to check for extra input.</param>
     /// <returns>A block expression.</returns>
-    private Expression ParseFormula(bool forceCast)
+    private Expression ParseFormula(bool forceCast, string leftValue, bool checkEof)
     {
         if (kind == Token.Let)
         {
@@ -156,10 +184,10 @@ internal sealed partial class Parser
         Expression rvalue = ParseConditional();
         if (forceCast)
             rvalue = Expression.Convert(rvalue, typeof(object));
-        if (LeftValue != "")
-            rvalue = source.SetExpression(LeftValue, rvalue);
+        if (leftValue != "")
+            rvalue = source.SetExpression(leftValue, rvalue);
         topExpressions.Add(rvalue);
-        return kind != Token.Eof
+        return checkEof && kind != Token.Eof
             ? throw Error("Extra input after expression")
             : topLocals.Count == 0 && topExpressions.Count == 1
             ? topExpressions[0]
@@ -337,10 +365,10 @@ internal sealed partial class Parser
                         // Try to optimize matrix transpose multiplying a vector.
                         e2 = opMul == Token.Times && e2.Type == typeof(Matrix)
                             ? (e3.Type == typeof(Vector) && e2 is MethodCallExpression
-                                { Method.Name: nameof(Matrix.Transpose) } mca
+                            { Method.Name: nameof(Matrix.Transpose) } mca
                                 ? Expression.Call(mca.Object, MatrixTransposeMultiply, e3)
                                 : e3.Type == typeof(Matrix) && e3 is MethodCallExpression
-                                    { Method.Name: nameof(Matrix.Transpose) } mcb
+                                { Method.Name: nameof(Matrix.Transpose) } mcb
                                 ? Expression.Call(e2, MatrixMultiplyTranspose, mcb.Object!)
                                 : e2 == e3
                                 ? Expression.Call(e2, typeof(Matrix).Get(nameof(Matrix.Square)))
@@ -891,7 +919,7 @@ internal sealed partial class Parser
             throw Error($"Invalid method: {id}");
         // Skip method name and left parenthesis.
         SkipFunctor();
-        ParameterInfo[] paramInfo = mInfo!.GetParameters();
+        ParameterInfo[] paramInfo = mInfo.GetParameters();
         List<Expression> args = Rent(paramInfo.Length);
         for (int i = 0; i < paramInfo.Length; i++, Move())
         {
@@ -902,7 +930,7 @@ internal sealed partial class Parser
         if (args.Count != paramInfo.Length)
             throw Error("Invalid number of arguments");
         CheckAndMove(Token.RPar, "Right parenthesis expected");
-        Expression result = Expression.Call(e, mInfo!, args);
+        Expression result = Expression.Call(e, mInfo, args);
         Return(args);
         return result;
     }
@@ -981,10 +1009,10 @@ internal sealed partial class Parser
 
     private Expression ParseProperty(Expression e)
     {
-        if (!bindings.TryGetProperty(e.Type, id, out var mInfo))
+        if (!bindings.TryGetProperty(e.Type, id, out MethodInfo? mInfo))
             throw Error($"Invalid property: {id}");
         Move();
-        return Expression.Call(e, mInfo!);
+        return Expression.Call(e, mInfo);
     }
 
     /// <summary>Parses a global function call.</summary>
@@ -1133,12 +1161,12 @@ internal sealed partial class Parser
                 if ((mask & m) != 0 &&
                     Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(info.Methods), j) is var md
                     && md.ExpectedArgs != args.Count)
-                    {
-                        Type? act = args[^1].Type, form = md.Args[^1].GetElementType();
-                        if (md.ExpectedArgs != int.MaxValue ||
-                            form != act && (form != typeof(double) || act != typeof(int)))
-                            mask &= ~m;
-                    }
+                {
+                    Type? act = args[^1].Type, form = md.Args[^1].GetElementType();
+                    if (md.ExpectedArgs != int.MaxValue ||
+                        form != act && (form != typeof(double) || act != typeof(int)))
+                        mask &= ~m;
+                }
             for (int bits = PopCount((uint)mask); bits > 1;)
             {
                 int mth1 = TrailingZeroCount((uint)mask);
@@ -1338,7 +1366,7 @@ internal sealed partial class Parser
         if (e != null)
         {
             return e.Type.IsAssignableTo(typeof(DoubleSequence))
-                ? Expression.Call(Expression.Call(e, 
+                ? Expression.Call(Expression.Call(e,
                     typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Clone))!),
                     typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Reset))!)
                 : e;

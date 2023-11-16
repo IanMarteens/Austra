@@ -1,5 +1,16 @@
 ﻿namespace Austra.Parser;
 
+/// <summary>Listens to variable changes in the session scope.</summary>
+public interface IVariableListener
+{
+    /// <summary>Notifies a variable change.</summary>
+    /// <param name="name">Name of the variable.</param>
+    /// <param name="value">
+    /// Value of new variable, or <see langword="null"/> for variable removal.
+    /// </param>
+    void OnVariableChanged(string name, object? value);
+}
+
 /// <summary>Represents the outer scope in AUSTRA formulas.</summary>
 public interface IDataSource
 {
@@ -70,6 +81,9 @@ public interface IDataSource
     /// <param name="body">An expression returning an object.</param>
     /// <returns>The corresponding lambda expression.</returns>
     Expression<Func<IDataSource, object>> CreateLambda(Expression body);
+
+    /// <summary>References a listener for variable changes in the session scope.</summary>
+    IVariableListener? Listener { get; set; }
 }
 
 /// <summary>A simple, synchronous implementation for the global scope.</summary>
@@ -131,6 +145,8 @@ public class DataSource : IDataSource
             else
                 variables2[name] = value;
             memos.Remove(name);
+            if (name != "ans")
+                Listener?.OnVariableChanged(name, value);
         }
     }
 
@@ -290,4 +306,7 @@ public class DataSource : IDataSource
     /// <returns>The corresponding lambda expression.</returns>
     public Expression<Func<IDataSource, object>> CreateLambda(Expression body) =>
         Expression.Lambda<Func<IDataSource, object>>(body, sourceParameter);
+
+    /// <summary>References a listener for variable changes in the session scope.</summary>
+    public IVariableListener? Listener { get; set; }
 }

@@ -15,7 +15,7 @@ public readonly record struct AustraAnswer(object? Value, Type? Type, string Var
 public readonly record struct Member(string Name, string Description);
 
 /// <summary>Represents the AUSTRA engine.</summary>
-public interface IAustraEngine
+public interface IAustraEngine : IVariableListener
 {
     /// <summary>Parses and evaluates an AUSTRA formula.</summary>
     /// <param name="formula">Any acceptable text for an AUSTRA formula.</param>
@@ -26,10 +26,13 @@ public interface IAustraEngine
     /// <remarks>No code is generated.</remarks>
     /// <param name="formula">Any acceptable text for an AUSTRA formula.</param>
     /// <returns>The type resulting from the evaluation.</returns>
-    Type EvalType(string formula);
+    Type[] EvalType(string formula);
 
     /// <summary>The data source associated with the engine.</summary>
     IDataSource Source { get; }
+
+    /// <summary>Gets the queue of answers.</summary>
+    Queue<AustraAnswer> AnswerQueue { get; }
 
     /// <summary>Gets a list of root variables.</summary>
     /// <param name="position">The position of the cursor.</param>
@@ -122,11 +125,15 @@ public partial class AustraEngine : IAustraEngine
     public AustraEngine(IDataSource source)
     {
         Source = source;
+        Source.Listener = this;
         classesAndGlobals = bindings.GetGlobalRoots();
     }
 
     /// <summary>The data source associated with the engine.</summary>
     public IDataSource Source { get; }
+
+    /// <summary>Gets the queue of answers.</summary>
+    public Queue<AustraAnswer> AnswerQueue { get; } = new();
 
     /// <summary>Parses and evaluates an AUSTRA formula.</summary>
     /// <param name="formula">Any acceptable text for an AUSTRA formula.</param>
@@ -134,6 +141,7 @@ public partial class AustraEngine : IAustraEngine
     public AustraAnswer Eval(string formula)
     {
         ExecutionTime = GenerationTime = CompileTime = null;
+        AnswerQueue.Clear();
         if (DefineRegex().IsMatch(formula))
         {
             Definition def = ParseDefinition(formula);
@@ -153,6 +161,7 @@ public partial class AustraEngine : IAustraEngine
         }
 
         Parser parser = new(bindings, Source, formula);
+        bool isSet = parser.IsSet();
         Stopwatch sw = Stopwatch.StartNew();
         Expression<Func<IDataSource, object>> expression =
             Source.CreateLambda(parser.ParseStatement());
@@ -166,6 +175,8 @@ public partial class AustraEngine : IAustraEngine
         object answer = lambda(Source);
         sw.Stop();
         ExecutionTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
+        if (isSet)
+            return new(null, null, "");    
         Type? lastType = null;
         if (answer != null)
         {
@@ -179,11 +190,11 @@ public partial class AustraEngine : IAustraEngine
     /// <remarks>No code is generated.</remarks>
     /// <param name="formula">Any acceptable text for an AUSTRA formula.</param>
     /// <returns>The type resulting from the evaluation.</returns>
-    public Type EvalType(string formula)
+    public Type[] EvalType(string formula)
     {
         ExecutionTime = GenerationTime = CompileTime = null;
         Stopwatch sw = Stopwatch.StartNew();
-        Type result = new Parser(bindings, Source, formula).ParseType();
+        Type[] result = new Parser(bindings, Source, formula).ParseType();
         sw.Stop();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         return result;
@@ -352,4 +363,12 @@ public partial class AustraEngine : IAustraEngine
         newEngine.DeserializeSource(fileName);
         return newEngine;
     }
+
+    /// <summary>Reacts to changes in the session scope of the datasource.</summary>
+    /// <param name="name">Name of the affected variable.</param>
+    /// <param name="value">
+    /// Value of new variable, or <see langword="null"/> for variable removal.
+    /// </param>
+    void IVariableListener.OnVariableChanged(string name, object? value) =>
+        AnswerQueue.Enqueue(new AustraAnswer(value, value?.GetType(), name));
 }
