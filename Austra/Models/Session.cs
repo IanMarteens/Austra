@@ -18,12 +18,9 @@ public sealed class Session : Entity
 
     public IAustraEngine Engine { get; }
 
-    private sealed class SessionEngine : AustraEngine
+    private sealed class SessionEngine(IDataSource source, string fromFile) : AustraEngine(source)
     {
-        private readonly string fromFile;
-
-        public SessionEngine(IDataSource source, string fromFile) : base(source) =>
-            this.fromFile = fromFile;
+        private readonly string fromFile = fromFile;
 
         public override void Define(Definition definition) =>
             ((IAustraEngine)this).Serialize(fromFile);

@@ -28,11 +28,6 @@ public interface IAustraEngine
     /// <returns>The type resulting from the evaluation.</returns>
     Type EvalType(string formula);
 
-    /// <summary>Validates a definition (no SET clause) and returns its type.</summary>
-    /// <param name="definition">An AUSTRA definition.</param>
-    /// <returns>The new definition.</returns>
-    Definition ParseDefinition(string definition);
-
     /// <summary>The data source associated with the engine.</summary>
     IDataSource Source { get; }
 
@@ -197,7 +192,7 @@ public partial class AustraEngine : IAustraEngine
     /// <summary>Validates a definition (no SET clause) and returns its type.</summary>
     /// <param name="definition">An AUSTRA definition.</param>
     /// <returns>The new definition.</returns>
-    public Definition ParseDefinition(string definition) =>
+    private Definition ParseDefinition(string definition) =>
         Source.AddDefinition(new Parser(bindings, Source, definition).ParseDefinition());
 
     /// <summary>Gets a list of root variables.</summary>
@@ -330,12 +325,20 @@ public partial class AustraEngine : IAustraEngine
                 Source.Add(s.Name, s);
             }
             foreach (DataDef d in obj.Definitions)
-                if (string.IsNullOrWhiteSpace(d.Description))
-                    ParseDefinition($"def {d.Name} = {d.Text}");
-                else
+                try
                 {
-                    string description = d.Description.Replace("\"", "\"\"");
-                    ParseDefinition($"def {d.Name}:\"{description}\" = {d.Text}");
+                    if (string.IsNullOrWhiteSpace(d.Description))
+                        ParseDefinition($"def {d.Name} = {d.Text}");
+                    else
+                    {
+                        string description = d.Description.Replace("\"", "\"\"");
+                        ParseDefinition($"def {d.Name}:\"{description}\" = {d.Text}");
+                    }
+                }
+                catch
+                {
+                    Source.TroubledDefinitions.Add(
+                        new(d.Name, d.Text, d.Description, Expression.Constant(0)));
                 }
         }
     }

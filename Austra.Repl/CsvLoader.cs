@@ -8,8 +8,8 @@ internal static class CsvLoader
     public static IEnumerable<Series> Load(string file)
     {
         bool first = true;
-        List<SeriesHeader> headers = new();
-        List<Date> dates = new();
+        List<SeriesHeader> headers = [];
+        List<Date> dates = [];
         int row = 0;
         foreach (string line in File.ReadLines(file))
         {
@@ -78,7 +78,7 @@ internal static class CsvLoader
                 continue;
             hdr.Values.Reverse();
             Date[] arg = hdr.Offset == 0 ? args : args[..^hdr.Offset];
-            series.Add(new Series(hdr.Name, null, arg, hdr.Values.ToArray(),
+            series.Add(new Series(hdr.Name, null, arg, [.. hdr.Values],
                 SeriesType.Raw, frequency));
         }
         return series;
@@ -103,6 +103,6 @@ internal static class CsvLoader
     {
         public string Name { get; init; } = "";
         public int Offset { get; set; }
-        public List<double> Values { get; } = new();
+        public List<double> Values { get; } = [];
     }
 }

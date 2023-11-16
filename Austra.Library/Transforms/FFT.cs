@@ -46,9 +46,9 @@ public static class FFT
     {
         // Special cases:
         if (n == 1)
-            return new Complex[] { a[0] };
+            return [a[0]];
         if (n == 2)
-            return new Complex[] { a[0] + a[1], a[0] - a[1] };
+            return [a[0] + a[1], a[0] - a[1]];
 
         // Choose between odd-size and even-size FFTs
         Complex[] f = GC.AllocateUninitializedArray<Complex>(n);
@@ -144,7 +144,7 @@ public static class FFT
     {
         // When n=1, FFT is just the identity transform.
         if (n == 1)
-            return new[] { f[0].Real };
+            return [f[0].Real];
 
         // Inverse real FFT is reduced to the inverse real FHT,
         // which is reduced to the forward real FHT,
