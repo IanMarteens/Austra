@@ -119,6 +119,7 @@ public interface IAustraEngine
 /// <remarks>It does not supports persistency.</remarks>
 public partial class AustraEngine : IAustraEngine
 {
+    private readonly ParserBindings bindings = new();
     private readonly Member[] classesAndGlobals;
 
     /// <summary>Creates an evaluation engine from a datasource.</summary>
@@ -126,7 +127,7 @@ public partial class AustraEngine : IAustraEngine
     public AustraEngine(IDataSource source)
     {
         Source = source;
-        classesAndGlobals = Parser.GetGlobalRoots();
+        classesAndGlobals = bindings.GetGlobalRoots();
     }
 
     /// <summary>The data source associated with the engine.</summary>
@@ -156,7 +157,7 @@ public partial class AustraEngine : IAustraEngine
             return new(new UndefineList(dList), typeof(UndefineList), name);
         }
 
-        Parser parser = new(Source, formula);
+        Parser parser = new(bindings, Source, formula);
         Stopwatch sw = Stopwatch.StartNew();
         Expression<Func<IDataSource, object>> expression =
             Source.CreateLambda(parser.ParseStatement());
@@ -187,7 +188,7 @@ public partial class AustraEngine : IAustraEngine
     {
         ExecutionTime = GenerationTime = CompileTime = null;
         Stopwatch sw = Stopwatch.StartNew();
-        Type result = new Parser(Source, formula).ParseType();
+        Type result = new Parser(bindings, Source, formula).ParseType();
         sw.Stop();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         return result;
@@ -197,7 +198,7 @@ public partial class AustraEngine : IAustraEngine
     /// <param name="definition">An AUSTRA definition.</param>
     /// <returns>The new definition.</returns>
     public Definition ParseDefinition(string definition) =>
-        Source.AddDefinition(new Parser(Source, definition).ParseDefinition());
+        Source.AddDefinition(new Parser(bindings, Source, definition).ParseDefinition());
 
     /// <summary>Gets a list of root variables.</summary>
     /// <param name="position">The position of the cursor.</param>
@@ -207,7 +208,8 @@ public partial class AustraEngine : IAustraEngine
     {
         if (position > 0)
         {
-            List<Member> newMembers = new Parser(Source, text).ParseContext(position, out bool parsingHeader);
+            List<Member> newMembers = new Parser(bindings, Source, text)
+                .ParseContext(position, out bool parsingHeader);
             return parsingHeader
                 ? newMembers
                 : [
@@ -232,26 +234,26 @@ public partial class AustraEngine : IAustraEngine
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
     /// <param name="text">Class name to check.</param>
     /// <returns><see langword="true"/> if the text is a valid class name.</returns>
-    public bool IsClass(string text) => Parser.IsClassName(text);
+    public bool IsClass(string text) => bindings.IsClassName(text);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
     public IList<Member> GetMembers(string text) =>
-        Parser.GetMembers(Source, text, out _);
+        bindings.GetMembers(Source, text, out _);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <param name="type">The type of the expression fragment.</param>
     /// <returns>An empty list, if not a valid type.</returns>
     public IList<Member> GetMembers(string text, out Type? type) =>
-        Parser.GetMembers(Source, text, out type);
+        bindings.GetMembers(Source, text, out type);
 
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>Null if not a valid type.</returns>
     public IList<Member> GetClassMembers(string text) =>
-        Parser.GetClassMembers(text);
+        bindings.GetClassMembers(text);
 
     /// <summary>Should load series and definitions from persistent storage.</summary>
     public virtual void Load() { }

@@ -24,6 +24,8 @@ internal sealed class AbortException(string message) : ApplicationException(mess
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
 {
+    /// <summary>Predefined classes and methods.</summary>
+    private readonly ParserBindings bindings;
     /// <summary>Gets the outer scope for variables.</summary>
     private readonly IDataSource source;
     /// <summary>The text being scanned.</summary>
@@ -73,11 +75,12 @@ internal sealed partial class Parser
     private int abortPosition = int.MaxValue;
 
     /// <summary>Initializes a parsing context.</summary>
+    /// <param name="bindings">Predefined classes and methods.</param>
     /// <param name="source">Environment variables.</param>
     /// <param name="text">Text of the formula.</param>
-    public Parser(IDataSource source, string text)
+    public Parser(ParserBindings bindings, IDataSource source, string text)
     {
-        (this.source, this.text, id) = (source, text, "");
+        (this.bindings, this.source, this.text, id) = (bindings, source, text, "");
         Move();
     }
 
@@ -531,20 +534,24 @@ internal sealed partial class Parser
         return false;
     }
 
+    /// <summary>Gets a regex that matches a lambda header with one parameter.</summary>
+    [GeneratedRegex(@"^\w+\s*\=\>")]
+    private static partial Regex LambdaHeader1();
+
+    /// <summary>Gets a regex that matches a lambda header with two parameters.</summary>
+    [GeneratedRegex(@"^\(\s*\w+\s*\,\s*\w+\s*\)\s*\=\>")]
+    private static partial Regex LambdaHeader2();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsLambda() => kind == Token.Id
+        ? LambdaHeader1().IsMatch(text.AsSpan()[start..])
+        : LambdaHeader2().IsMatch(text.AsSpan()[start..]);
+
     private static AstException Error(string message, int position) =>
         new(message, position);
 
     private AstException Error(string message) =>
         new(message, start);
-
-    /// <summary>Internal stub for accessing string internals.</summary>
-    private sealed class Str
-    {
-        /// <summary>The length of the string.</summary>
-        public int Length = 0;
-        /// <summary>The first character in the string.</summary>
-        public char FirstChar;
-    }
 }
 
 /// <summary>Contains extension methods acting on <see cref="Type"/> instances.</summary>
@@ -560,10 +567,10 @@ internal static class ParserExtensions
     public static MethodInfo Prop(this Type type, string property) =>
          type.GetProperty(property)!.GetGetMethod()!;
 
-    public static Parser.MethodData MD(this Type type, params Type[] argTypes) =>
+    public static MethodData MD(this Type type, params Type[] argTypes) =>
         new(type, null, argTypes);
 
-    public static Parser.MethodData MD(this Type type, string member, params Type[] argTypes) =>
+    public static MethodData MD(this Type type, string member, params Type[] argTypes) =>
         new(type, member, argTypes);
 
     /// <summary>

@@ -620,11 +620,11 @@ internal sealed partial class Parser
                 }
                 break;
             case Token.Functor:
-                if (classMembers.ContainsKey(id))
+                if (bindings.IsClassName(id))
                 {
                     string className = id.ToLower();
                     SkipFunctor();
-                    e = !classMethods.TryGetValue(className + ".new", out MethodList info)
+                    e = !bindings.TryGetClassMethod(className + ".new", out MethodList info)
                         ? throw Error($"Invalid class method name: {className}::new")
                         : info.Methods.Length == 1
                         ? ParseClassSingleMethod(info.Methods[0])
@@ -887,11 +887,11 @@ internal sealed partial class Parser
 
     private Expression ParseMethod(Expression e)
     {
-        if (!methods.TryGetValue(new TypeId(e.Type, id.ToLower()), out MethodInfo? mInfo))
+        if (!bindings.TryGetMethod(e.Type, id, out MethodInfo? mInfo))
             throw Error($"Invalid method: {id}");
         // Skip method name and left parenthesis.
         SkipFunctor();
-        ParameterInfo[] paramInfo = mInfo.GetParameters();
+        ParameterInfo[] paramInfo = mInfo!.GetParameters();
         List<Expression> args = Rent(paramInfo.Length);
         for (int i = 0; i < paramInfo.Length; i++, Move())
         {
@@ -902,7 +902,7 @@ internal sealed partial class Parser
         if (args.Count != paramInfo.Length)
             throw Error("Invalid number of arguments");
         CheckAndMove(Token.RPar, "Right parenthesis expected");
-        Expression result = Expression.Call(e, mInfo, args);
+        Expression result = Expression.Call(e, mInfo!, args);
         Return(args);
         return result;
     }
@@ -981,10 +981,10 @@ internal sealed partial class Parser
 
     private Expression ParseProperty(Expression e)
     {
-        if (!allProps.TryGetValue(new TypeId(e.Type, id.ToLower()), out var mInfo))
+        if (!bindings.TryGetProperty(e.Type, id, out var mInfo))
             throw Error($"Invalid property: {id}");
         Move();
-        return Expression.Call(e, mInfo);
+        return Expression.Call(e, mInfo!);
     }
 
     /// <summary>Parses a global function call.</summary>
@@ -993,7 +993,7 @@ internal sealed partial class Parser
     {
         (string function, int pos) = (id.ToLower(), start);
         SkipFunctor();
-        if (classMethods.TryGetValue("math." + function, out MethodList inf))
+        if (bindings.TryGetClassMethod("math." + function, out MethodList inf))
             return inf.Methods.Length == 1
                 ? ParseClassSingleMethod(inf.Methods[0])
                 : ParseClassMultiMethod(inf);
@@ -1015,7 +1015,7 @@ internal sealed partial class Parser
     private Expression ParseClassMethod(string className, string methodName)
     {
         SkipFunctor();
-        if (!classMethods.TryGetValue(className + "." + methodName, out MethodList info))
+        if (!bindings.TryGetClassMethod(className + "." + methodName, out MethodList info))
             throw Error($"Invalid class method name: {className}::{methodName}");
         return info.Methods.Length == 1
             ? ParseClassSingleMethod(info.Methods[0])
