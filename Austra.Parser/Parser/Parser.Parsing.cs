@@ -472,9 +472,9 @@ internal sealed partial class Parser
             (Token opKind, int opPos) = (kind, start);
             Move();
             Expression e1 = ParseUnary();
-            return e1.Type != typeof(Complex) && !IsArithmetic(e1)
-                && !IsVector(e1) && !IsMatrix(e1) && e1.Type != typeof(Series)
-                && !e1.Type.IsAssignableTo(typeof(DoubleSequence))
+            return !IsArithmetic(e1)
+                && !e1.Type.IsAssignableTo(typeof(System.Numerics.IUnaryNegationOperators<,>)
+                    .MakeGenericType(e1.Type, e1.Type))
                 ? throw Error("Unary operator not supported", opPos)
                 : opKind == Token.Plus ? e1 : Expression.Negate(e1);
         }

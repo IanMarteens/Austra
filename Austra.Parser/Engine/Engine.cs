@@ -149,11 +149,11 @@ public partial class AustraEngine : IAustraEngine
         if (match.Success)
         {
             string name = match.Groups["name"].Value;
-            IList<string> dList = Source.DeleteDefinition(name);
-            if (dList.Count == 0)
+            string[] dList = Source.DeleteDefinition(name);
+            if (dList.Length == 0)
                 throw new Exception($"Definition {name} not found.");
             Undefine(dList);
-            return new(dList, dList.GetType(), name);
+            return new(new UndefineList(dList), typeof(UndefineList), name);
         }
 
         Parser parser = new(Source, formula);

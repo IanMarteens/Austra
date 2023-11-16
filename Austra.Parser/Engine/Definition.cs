@@ -29,3 +29,8 @@ public sealed class Definition
     /// <summary>Internal flag for recursive removal.</summary>
     internal bool Flag { get; set; }
 }
+
+/// <summary>Represents a list of definitions to be removed.</summary>
+/// <param name="Definitions">The sorted list of definitions to remove.</param>
+public sealed record class UndefineList(string[] Definitions);
+

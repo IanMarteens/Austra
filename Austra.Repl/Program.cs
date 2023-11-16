@@ -72,28 +72,42 @@ static string GetVersion() =>
 static void EvaluateAndShow(IAustraEngine engine, string line, bool includeTime)
 {
     AustraAnswer answer = engine.Eval(line);
-    if (answer.Value is Definition def)
-        WriteLine($"{def.Name} has been added as a definition.");
-    else if (answer.Value is Tuple<Vector, Vector> tuple)
+    switch (answer.Value)
     {
-        Write(tuple.Item1);
-        Write(tuple.Item2);
+        case null:
+            WriteLine("null");
+            break;
+        case Definition def:
+            WriteLine($"{def.Name} has been added as a definition.");
+            break;
+        case Plot<Vector> tuple:
+            Write(tuple.First);
+            if (tuple.HasSecond)
+                Write(tuple.Second);
+            break;
+        case Plot<ComplexVector> tuple:
+            Write(tuple.First);
+            if (tuple.HasSecond)
+                Write(tuple.Second);
+            break;
+        case Plot<DoubleSequence> tuple:
+            Write(tuple.First);
+            if (tuple.HasSecond)
+                Write(tuple.Second);
+            break;
+        case Plot<Series> tuple:
+            Write(tuple.First);
+            if (tuple.HasSecond)
+                Write(tuple.Second);
+            break;
+        default:
+            string text = answer.Value?.ToString() ?? "";
+            if (!text.EndsWith(Environment.NewLine))
+                WriteLine(text);
+            else
+                Write(text);
+            break;
     }
-    else if (answer.Value is Tuple<ComplexVector, ComplexVector> ctuple)
-    {
-        Write(ctuple.Item1);
-        Write(ctuple.Item2);
-    }
-    else if (answer.Value != null)
-    {
-        string text = answer.Value?.ToString() ?? "";
-        if (!text.EndsWith(Environment.NewLine))
-            WriteLine(text);
-        else
-            Write(text);
-    }
-    else
-        WriteLine("null");
     if (includeTime)
     {
         double? ct = engine.CompileTime;

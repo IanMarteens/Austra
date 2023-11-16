@@ -439,15 +439,15 @@ public sealed partial class RootModel : Entity
                     newNode.IsSelected = true;
                 }
             }
-            else if (ans is IList<string> dList)
+            else if (ans is UndefineList list)
             {
-                foreach (string dn in dList)
+                foreach (string dn in list.Definitions)
                     if (allVars.TryGetValue(dn, out var node))
                     {
                         allVars.Remove(dn);
                         node.Parent!.Nodes.Remove(node);
                     }
-                Message = $"Definitions {string.Join(", ", dList)} removed.";
+                Message = $"Definitions {string.Join(", ", list.Definitions)} removed.";
             }
             else
             {

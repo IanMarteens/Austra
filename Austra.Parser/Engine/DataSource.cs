@@ -39,8 +39,8 @@ public interface IDataSource
 
     /// <summary>Removes a definition, given its name.</summary>
     /// <param name="name">Definition to be deleted.</param>
-    /// <returns>The effective ordered set of definitions to remove.</returns>
-    IList<string> DeleteDefinition(string name);
+    /// <returns>The effective ordered list of definitions to remove.</returns>
+    string[] DeleteDefinition(string name);
 
     /// <summary>Clears all definitions for reloading.</summary>
     void ClearDefinitions();
@@ -158,19 +158,20 @@ public class DataSource : IDataSource
 
     /// <summary>Removes a definition, given its name.</summary>
     /// <param name="name">Name of the definition to remove.</param>
-    /// <returns>The effective ordered set of definitions to remove.</returns>
-    public IList<string> DeleteDefinition(string name)
+    /// <returns>The effective ordered list of definitions to remove.</returns>
+    public string[] DeleteDefinition(string name)
     {
         lock (defLock)
         {
             Stack<Definition> defs = new();
             if (definitions.TryGetValue(name, out Definition? def))
                 Delete(defs, def);
-            List<string> result = new(defs.Count);
+            string[] result = new string[defs.Count];
+            int idx = 0;
             while (defs.Count > 0)
             {
                 Definition d = defs.Pop();
-                result.Add(d.Name);
+                result[idx++] = d.Name;
                 definitions.Remove(d.Name);
                 allDefinitions.Remove(d);
             }
