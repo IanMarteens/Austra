@@ -35,7 +35,11 @@ public sealed partial class RootModel : Entity
     private Visibility showErrorText = Visibility.Collapsed;
     /// <summary>Gets the visibility of the code editor.</summary>
     private Visibility showFormulaEditor = Visibility.Collapsed;
+    /// <summary>Height for the formula editor row. 0 means collapsed.</summary>
     private GridLength formulaRowHeight = new(0);
+    /// <summary>
+    /// Current position in the formula history. -1 means no history, 0 is the last
+    /// </summary>
     private int historyIndex = -1;
 
     /// <summary>Creates a new instance of the root view-model.</summary>
