@@ -56,6 +56,9 @@ internal sealed partial class Parser
     /// <summary>Transient local variable definitions.</summary>
     private readonly Dictionary<string, ParameterExpression> locals =
         new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>New session variables that are not yet defined in the data source.</summary>
+    private readonly Dictionary<string, Expression> pendingSets =
+        new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Controls that only persisted values are used.</summary>
     private bool isParsingDefinition;
     /// <summary>Place holder for the first lambda parameter, if any.</summary>
@@ -100,9 +103,6 @@ internal sealed partial class Parser
         (this.bindings, this.source, this.text, id) = (bindings, source, text, "");
         Move();
     }
-
-    /// <summary>Name of the left side value, if any.</summary>
-    public string LeftValue { get; set; } = "";
 
     /// <summary>Skips two tokens with a single call.</summary>
     private void SkipFunctor()

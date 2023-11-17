@@ -71,6 +71,12 @@ public interface IDataSource
     /// <returns>May return a null expression if the identifier is not defined.</returns>
     Expression? GetExpression(string identifier, bool parsingDefinition);
 
+    /// <summary>Gets an expression tree for a variable not yet created.</summary>
+    /// <param name="identifier">The name of a variable.</param>
+    /// <param name="source">Future value to be assigned to the variable.</param>
+    /// <returns>An expression tree, when the identifier exists.</returns>
+    Expression? GetExpression(string identifier, Expression source);
+
     /// <summary>Gets an expression tree for a given identifier.</summary>
     /// <param name="identifier">The name of a variable.</param>
     /// <param name="value">A new expression for the identifier.</param>
@@ -292,6 +298,17 @@ public class DataSource : IDataSource
                     Expression.Constant(identifier)), val.GetType())
         };
     }
+
+    /// <summary>Gets an expression tree for a variable not yet created.</summary>
+    /// <param name="identifier">The name of a variable.</param>
+    /// <param name="source">Future value to be assigned to the variable.</param>
+    /// <returns>An expression tree, when the identifier exists.</returns>
+    public Expression? GetExpression(string identifier, Expression source) =>
+        source is ConstantExpression
+        ? source
+        : memos[identifier] = Expression.Convert(
+            Expression.Property(sourceParameter, "Item",
+            Expression.Constant(identifier)), source.Type);
 
     /// <summary>Gets an expression tree for a given identifier.</summary>
     /// <param name="identifier">The name of a variable.</param>

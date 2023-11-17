@@ -183,7 +183,7 @@ public partial class AustraEngine : IAustraEngine
             Source["ans"] = answer;
             lastType = answer.GetType();
         }
-        return new(answer, lastType, parser.LeftValue);
+        return new(answer, lastType, "");
     }
 
     /// <summary>Parses an AUSTRA formula and returns its type.</summary>

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
 
 namespace Austra.Parser;
 
@@ -11,7 +12,7 @@ internal sealed partial class Parser
     {
         if (kind == Token.Set)
         {
-            List<Expression> topExpressions = new(8);
+            List<Expression> setExpressions = new(8);
             do
             {
                 Move();
@@ -19,6 +20,8 @@ internal sealed partial class Parser
                     throw Error("Left side variable expected");
                 int namePos = start;
                 string leftValue = id;
+                if (pendingSets.ContainsKey(leftValue))
+                    throw Error($"{leftValue} already in use", namePos);
                 Move();
                 if (kind == Token.Eof || kind == Token.Comma)
                     source[leftValue] = null;
@@ -28,15 +31,18 @@ internal sealed partial class Parser
                     // Always allow deleting a session variable.
                     if (source.GetDefinition(leftValue) != null)
                         throw Error($"{leftValue} already in use", namePos);
-                    topExpressions.Add(ParseFormula(true, leftValue, false));
+                    setExpressions.Add(ParseFormula(true, leftValue, false));
+                    if (setExpressions[^1] is BinaryExpression { NodeType: ExpressionType.Assign } be
+                        && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
+                        pendingSets[leftValue] = ue.Operand;
                 }
             }
             while (kind == Token.Comma);
             return kind != Token.Eof
                 ? throw Error("Extra input after expression")
-                : topExpressions.Count == 0
+                : setExpressions.Count == 0
                 ? Expression.Constant(null)
-                : Expression.Block(topExpressions);
+                : Expression.Block(setExpressions);
         }
         else
             return ParseFormula(true, "", true);
@@ -1362,7 +1368,9 @@ internal sealed partial class Parser
             return local;
         }
         // Check the global scope.
-        Expression? e = source.GetExpression(ident, isParsingDefinition) ?? ParseGlobals(ident);
+        Expression? e = ParsePendingVariables(ident)
+            ?? source.GetExpression(ident, isParsingDefinition)
+            ?? ParseGlobals(ident);
         if (e != null)
         {
             return e.Type.IsAssignableTo(typeof(DoubleSequence))
@@ -1377,6 +1385,11 @@ internal sealed partial class Parser
         if (isParsingDefinition && source[ident] != null)
             throw Error("SET variables cannot be used in persistent definitions", pos);
         throw Error($"Unknown variable: {ident}", pos);
+
+        Expression? ParsePendingVariables(string ident) =>
+            !pendingSets.TryGetValue(ident, out Expression? sourceExpr)
+            ? null
+            : source.GetExpression(ident, sourceExpr);
     }
 
     private Expression? ParseGlobals(string ident) =>
