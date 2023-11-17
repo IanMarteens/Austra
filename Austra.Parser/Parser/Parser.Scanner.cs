@@ -128,10 +128,7 @@ internal sealed partial class Parser : IDisposable
     private void CheckAndMove(Token kind, string errorMessage)
     {
         if (this.kind != kind)
-            if (abortPosition == int.MaxValue)
-                throw new AstException(errorMessage, start);
-            else
-                throw new AbortException(errorMessage);
+            throw Error(errorMessage);
         Move();
     }
 
@@ -315,7 +312,7 @@ internal sealed partial class Parser : IDisposable
                     {
                         ch = Add(ref c, ++i);
                         if (ch == '\0')
-                            throw new AstException("Unterminated string literal", start);
+                            throw Error("Unterminated string literal");
                     }
                     while (ch != '"');
                     if (Add(ref c, i + 1) != '"')
@@ -333,7 +330,7 @@ internal sealed partial class Parser : IDisposable
                     {
                         ch = Add(ref c, i++);
                         if (ch == '\0')
-                            throw new AstException("Unterminated string literal", start);
+                            throw Error("Unterminated string literal");
                     }
                     while (ch != '"');
                     sb.Append(text.AsSpan()[first..(i - 1)]);

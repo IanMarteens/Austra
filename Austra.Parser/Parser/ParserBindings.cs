@@ -5,7 +5,8 @@ namespace Austra.Parser;
 
 /// <summary>A symbol table for predefined classes and methods.</summary>
 /// <remarks>
-/// This class is instantiated from <see cref="AustraEngine"/>.
+/// This class is instantiated from <see cref="AustraEngine"/> and acts
+/// like a singleton for all the lifetime of the session.
 /// </remarks>
 internal sealed partial class ParserBindings
 {
@@ -17,6 +18,8 @@ internal sealed partial class ParserBindings
     private static readonly Type[] VectorArg = [typeof(Vector)];
     /// <summary>Another common argument list in functions.</summary>
     private static readonly Type[] ComplexArg = [typeof(Complex)];
+    /// <summary>Another common argument list in functions: two integer parameters.</summary>
+    private static readonly Type[] IntIntArg = [typeof(int), typeof(int)];
     /// <summary>Another common argument list in functions.</summary>
     private static readonly Type[] DoubleDoubleArg = [typeof(double), typeof(double)];
     /// <summary>Another common argument list in functions.</summary>
@@ -771,7 +774,7 @@ internal sealed partial class ParserBindings
                 typeof(ComplexVector).MD(typeof(int), typeof(Random))),
             ["matrix.new"] = new(
                 typeof(Matrix).MD(IntArg),
-                typeof(Matrix).MD(typeof(int), typeof(int)),
+                typeof(Matrix).MD(IntIntArg),
                 typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
                 typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
             ["matrix.rows"] = new(
@@ -894,11 +897,11 @@ internal sealed partial class ParserBindings
                 typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
             ["math.min"] = new(
                 typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Min), typeof(int), typeof(int)),
+                typeof(Math).MD(nameof(Math.Min), IntIntArg),
                typeof(Math).MD(nameof(Math.Min), DoubleDoubleArg)),
             ["math.max"] = new(
                 typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Max), typeof(int), typeof(int)),
+                typeof(Math).MD(nameof(Math.Max), IntIntArg),
                 typeof(Math).MD(nameof(Math.Max), DoubleDoubleArg)),
             ["math.solve"] = new(
                 typeof(Solver).MD(nameof(Solver.Solve),
@@ -910,7 +913,7 @@ internal sealed partial class ParserBindings
                     typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
                     typeof(double), typeof(int))),
             ["seq.new"] = new(
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.Create), typeof(int), typeof(int)),
+                typeof(DoubleSequence).MD(nameof(DoubleSequence.Create), IntIntArg),
                 typeof(DoubleSequence).MD(nameof(DoubleSequence.Create),
                     typeof(double), typeof(double), typeof(int)),
                 typeof(DoubleSequence).MD(nameof(DoubleSequence.Create), typeof(Vector)),
