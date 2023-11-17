@@ -1086,6 +1086,7 @@ internal sealed partial class ParserBindings
     private readonly record struct TypeId(Type Type, string Id);
 }
 
+/// <summary>Represents a single method overload.</summary>
 internal readonly struct MethodData
 {
     public const uint Mλ1 = 1u, Mλ2 = 2u;
@@ -1122,6 +1123,9 @@ internal readonly struct MethodData
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint GetMask(int typeId) => (TypeMask >> (typeId * 2)) & 3u;
 
+    /// <summary>Creates an expression that calls the method.</summary>
+    /// <param name="actualArguments">Actual arguments.</param>
+    /// <returns>A expression node for calling either a static method or a constructor.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Expression GetExpression(List<Expression> actualArguments) =>
         MInfo != null
