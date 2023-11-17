@@ -11,44 +11,36 @@ internal sealed partial class Parser
     {
         if (kind != Token.Set)
             return ParseFormula(true, "", true);
-        List<Expression> setExpressions = source.Rent(8);
-        try
+        do
         {
-            do
+            Move();
+            if (kind != Token.Id)
+                throw Error("Left side variable expected");
+            int namePos = start;
+            string leftValue = id;
+            if (pendingSets.ContainsKey(leftValue))
+                throw Error($"{leftValue} already in use", namePos);
+            Move();
+            if (kind == Token.Eof || kind == Token.Comma)
+                source[leftValue] = null;
+            else
             {
-                Move();
-                if (kind != Token.Id)
-                    throw Error("Left side variable expected");
-                int namePos = start;
-                string leftValue = id;
-                if (pendingSets.ContainsKey(leftValue))
+                CheckAndMove(Token.Eq, "= expected");
+                // Always allow deleting a session variable.
+                if (source.GetDefinition(leftValue) != null)
                     throw Error($"{leftValue} already in use", namePos);
-                Move();
-                if (kind == Token.Eof || kind == Token.Comma)
-                    source[leftValue] = null;
-                else
-                {
-                    CheckAndMove(Token.Eq, "= expected");
-                    // Always allow deleting a session variable.
-                    if (source.GetDefinition(leftValue) != null)
-                        throw Error($"{leftValue} already in use", namePos);
-                    setExpressions.Add(ParseFormula(true, leftValue, false));
-                    if (setExpressions[^1] is BinaryExpression { NodeType: ExpressionType.Assign } be
-                        && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
-                        pendingSets[leftValue] = ue.Operand;
-                }
+                setExpressions.Add(ParseFormula(true, leftValue, false));
+                if (setExpressions[^1] is BinaryExpression { NodeType: ExpressionType.Assign } be
+                    && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
+                    pendingSets[leftValue] = ue.Operand;
             }
-            while (kind == Token.Comma);
-            return kind != Token.Eof
-                ? throw Error("Extra input after expression")
-                : setExpressions.Count == 0
-                ? Expression.Constant(null)
-                : Expression.Block(setExpressions);
         }
-        finally
-        {
-            source.Return(setExpressions);
-        }
+        while (kind == Token.Comma);
+        return kind != Token.Eof
+            ? throw Error("Extra input after expression")
+            : setExpressions.Count == 0
+            ? Expression.Constant(null)
+            : Expression.Block(setExpressions);
     }
 
     /// <summary>Parses a block expression without generating code.</summary>

@@ -4,7 +4,7 @@ using static System.Runtime.CompilerServices.Unsafe;
 namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
-internal sealed partial class Parser
+internal sealed partial class Parser : IDisposable
 {
     /// <summary>Another common argument list in functions.</summary>
     private static readonly Type[] VectorVectorArg = [typeof(Vector), typeof(Vector)];
@@ -40,7 +40,6 @@ internal sealed partial class Parser
         typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
             [typeof(Vector), typeof(double), typeof(Vector)])!;
 
-
     /// <summary>Predefined classes and methods.</summary>
     private readonly ParserBindings bindings;
     /// <summary>Gets the outer scope for variables.</summary>
@@ -56,6 +55,7 @@ internal sealed partial class Parser
     /// <summary>Transient local variable definitions.</summary>
     private readonly Dictionary<string, ParameterExpression> locals =
         new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<Expression> setExpressions;
     /// <summary>New session variables that are not yet defined in the data source.</summary>
     private readonly Dictionary<string, Expression> pendingSets =
         new(StringComparer.OrdinalIgnoreCase);
@@ -68,8 +68,6 @@ internal sealed partial class Parser
     /// <summary>Are we parsing a lambda header?</summary>
     private bool parsingLambdaHeader;
 
-    /// <summary>An expression list pool.</summary>
-    private readonly Stack<List<Expression>> listPool = new(4);
     /// <summary>Used by the scanner to build string literals.</summary>
     private StringBuilder? sb;
     /// <summary>Gets the type of the current lexeme.</summary>
@@ -102,7 +100,15 @@ internal sealed partial class Parser
     {
         (this.bindings, this.source, this.text, id) = (bindings, source, text, "");
         letExpressions = source.Rent(8);
+        setExpressions = source.Rent(8);
         Move();
+    }
+
+    /// <summary>Returns allocated resources to the pool, in the data source.</summary>
+    public void Dispose()
+    {
+        source.Return(setExpressions);
+        source.Return(letExpressions);
     }
 
     /// <summary>Skips two tokens with a single call.</summary>

@@ -160,7 +160,7 @@ public partial class AustraEngine : IAustraEngine
             return new(new UndefineList(dList), typeof(UndefineList), name);
         }
 
-        Parser parser = new(bindings, Source, formula);
+        using Parser parser = CreateParser(formula);
         bool isSet = parser.IsSet();
         Stopwatch sw = Stopwatch.StartNew();
         Expression<Func<IDataSource, object>> expression =
@@ -194,7 +194,8 @@ public partial class AustraEngine : IAustraEngine
     {
         ExecutionTime = GenerationTime = CompileTime = null;
         Stopwatch sw = Stopwatch.StartNew();
-        Type[] result = new Parser(bindings, Source, formula).ParseType();
+        using Parser parser = CreateParser(formula);
+        Type[] result = parser.ParseType();
         sw.Stop();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         return result;
@@ -203,8 +204,11 @@ public partial class AustraEngine : IAustraEngine
     /// <summary>Validates a definition (no SET clause) and returns its type.</summary>
     /// <param name="definition">An AUSTRA definition.</param>
     /// <returns>The new definition.</returns>
-    private Definition ParseDefinition(string definition) =>
-        Source.AddDefinition(new Parser(bindings, Source, definition).ParseDefinition());
+    private Definition ParseDefinition(string definition)
+    {
+        using Parser parser = CreateParser(definition);
+        return Source.AddDefinition(parser.ParseDefinition());
+    }
 
     /// <summary>Gets a list of root variables.</summary>
     /// <param name="position">The position of the cursor.</param>
@@ -214,8 +218,8 @@ public partial class AustraEngine : IAustraEngine
     {
         if (position > 0)
         {
-            List<Member> newMembers = new Parser(bindings, Source, text)
-                .ParseContext(position, out bool parsingHeader);
+            using Parser parser = CreateParser(text);
+            List<Member> newMembers = parser.ParseContext(position, out bool parsingHeader);
             return parsingHeader
                 ? newMembers
                 : [
@@ -371,4 +375,12 @@ public partial class AustraEngine : IAustraEngine
     /// </param>
     void IVariableListener.OnVariableChanged(string name, object? value) =>
         AnswerQueue.Enqueue(new AustraAnswer(value, value?.GetType(), name));
+
+    /// <summary>
+    /// Creates a new parser using the current bindings and the current datasource.
+    /// </summary>
+    /// <param name="text">Text to parse.</param>
+    /// <returns>A new instance of a parser.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Parser CreateParser(string text) => new(bindings, Source, text);
 }

@@ -935,10 +935,7 @@ internal sealed partial class ParserBindings
     /// <param name="text">An expression fragment.</param>
     /// <param name="type">The type of the expression fragment.</param>
     /// <returns>A list of pairs member name/description.</returns>
-    public IList<Member> GetMembers(
-        IDataSource source,
-        string text,
-        out Type? type)
+    public IList<Member> GetMembers(IDataSource source, string text, out Type? type)
     {
         ReadOnlySpan<char> trimmedText = ExtractObjectPath(text);
         if (!trimmedText.IsEmpty)
@@ -960,12 +957,15 @@ internal sealed partial class ParserBindings
         type = null;
         return [];
 
-        IList<Member> ExtractType(string text) =>
-            new Parser(this, source, text).ParseType() is var types 
+        IList<Member> ExtractType(string text)
+        {
+            using Parser parser = new(this, source, text);
+            return parser.ParseType() is var types
                 && types is not null && types.Length > 0 && types[0] is not null
                 && members.TryGetValue(types[0], out Member[]? list)
                 ? list
                 : [];
+        }
     }
 
     /// <summary>Gets a list of class members for a given type.</summary>
@@ -1129,6 +1129,7 @@ internal readonly struct MethodData
         : Expression.New(CInfo!, actualArguments);
 }
 
+/// <summary>Represents a set of overloaded methods.</summary>
 internal readonly struct MethodList
 {
     public MethodData[] Methods { get; }
@@ -1150,8 +1151,14 @@ internal readonly struct MethodList
     }
 }
 
+/// <summary>
+/// Tells the compiler to add a constant <c>0d</c> argument to a method call.
+/// </summary>
 internal sealed class Zero { }
 
+/// <summary>
+/// Tells the compiler to add a constant <c>1d</c> argument to a method call.
+/// </summary>
 internal sealed class One { }
 
 /// <summary>Internal stub for accessing string internals.</summary>
