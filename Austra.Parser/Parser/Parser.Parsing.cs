@@ -1,5 +1,4 @@
-﻿using System.Net.NetworkInformation;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace Austra.Parser;
 
