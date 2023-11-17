@@ -9,9 +9,11 @@ internal sealed partial class Parser
     /// <returns>A block expression.</returns>
     public Expression ParseStatement()
     {
-        if (kind == Token.Set)
+        if (kind != Token.Set)
+            return ParseFormula(true, "", true);
+        List<Expression> setExpressions = source.Rent(8);
+        try
         {
-            List<Expression> setExpressions = new(8);
             do
             {
                 Move();
@@ -43,8 +45,10 @@ internal sealed partial class Parser
                 ? Expression.Constant(null)
                 : Expression.Block(setExpressions);
         }
-        else
-            return ParseFormula(true, "", true);
+        finally
+        {
+            source.Return(setExpressions);
+        }
     }
 
     /// <summary>Parses a block expression without generating code.</summary>
@@ -179,8 +183,8 @@ internal sealed partial class Parser
                 CheckAndMove(Token.Eq, "= expected");
                 Expression init = ParseConditional();
                 ParameterExpression le = Expression.Variable(init.Type, localId);
-                topLocals.Add(le);
-                topExpressions.Add(Expression.Assign(le, init));
+                letLocals.Add(le);
+                letExpressions.Add(Expression.Assign(le, init));
                 locals[localId] = le;
             }
             while (kind == Token.Comma);
@@ -191,12 +195,12 @@ internal sealed partial class Parser
             rvalue = Expression.Convert(rvalue, typeof(object));
         if (leftValue != "")
             rvalue = source.SetExpression(leftValue, rvalue);
-        topExpressions.Add(rvalue);
+        letExpressions.Add(rvalue);
         return checkEof && kind != Token.Eof
             ? throw Error("Extra input after expression")
-            : topLocals.Count == 0 && topExpressions.Count == 1
-            ? topExpressions[0]
-            : Expression.Block(topLocals, topExpressions);
+            : letLocals.Count == 0 && letExpressions.Count == 1
+            ? letExpressions[0]
+            : Expression.Block(letLocals, letExpressions);
     }
 
     /// <summary>Compiles a ternary conditional expression.</summary>
@@ -925,7 +929,7 @@ internal sealed partial class Parser
         // Skip method name and left parenthesis.
         SkipFunctor();
         ParameterInfo[] paramInfo = mInfo.GetParameters();
-        List<Expression> args = Rent(paramInfo.Length);
+        List<Expression> args = source.Rent(paramInfo.Length);
         for (int i = 0; i < paramInfo.Length; i++, Move())
         {
             args.Add(ParseByType(paramInfo[i].ParameterType));
@@ -936,7 +940,7 @@ internal sealed partial class Parser
             throw Error("Invalid number of arguments");
         CheckAndMove(Token.RPar, "Right parenthesis expected");
         Expression result = Expression.Call(e, mInfo, args);
-        Return(args);
+        source.Return(args);
         return result;
     }
 
@@ -1058,7 +1062,7 @@ internal sealed partial class Parser
     private Expression ParseClassSingleMethod(in MethodData method)
     {
         Type[] types = method.Args;
-        List<Expression> args = Rent(types.Length);
+        List<Expression> args = source.Rent(types.Length);
         for (int i = 0; i < types.Length; i++, Move())
         {
             args.Add(ParseByType(types[i]));
@@ -1075,7 +1079,7 @@ internal sealed partial class Parser
             }
         }
         Expression result = method.GetExpression(args);
-        Return(args);
+        source.Return(args);
         CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
         return result;
     }
@@ -1087,7 +1091,7 @@ internal sealed partial class Parser
         if (expected == typeof(Index))
             return ParseIndex();
         if (expected.IsArray && expected.GetElementType() is Type subType)
-            for (List<Expression> items = Rent(16); ; Move())
+            for (List<Expression> items = source.Rent(16); ; Move())
             {
                 Expression it = ParseLightConditional();
                 if (it.Type != subType)
@@ -1096,7 +1100,7 @@ internal sealed partial class Parser
                 if (kind != Token.Comma)
                 {
                     Expression result = subType.Make(items);
-                    Return(items);
+                    source.Return(items);
                     return result;
                 }
             }
@@ -1114,7 +1118,7 @@ internal sealed partial class Parser
 
     private Expression ParseClassMultiMethod(in MethodList info)
     {
-        List<Expression> args = Rent(16);
+        List<Expression> args = source.Rent(16);
         List<int> starts = new(16);
         // All overloads are alive at start.
         int mask = (0x1 << info.Methods.Length) - 1;
@@ -1231,7 +1235,7 @@ internal sealed partial class Parser
         }
         CheckAndMove(Token.RPar, "Right parenthesis expected in class method call");
         Expression result = mth.GetExpression(args);
-        Return(args);
+        source.Return(args);
         return result;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1246,7 +1250,7 @@ internal sealed partial class Parser
     private Expression ParseVectorLiteral()
     {
         Move();
-        List<Expression> items = Rent(16);
+        List<Expression> items = source.Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
         for (; ; )
         {
@@ -1318,7 +1322,7 @@ internal sealed partial class Parser
                     Expression.Constant(items.Count / period), Expression.Constant(period), args)
                 : typeof(Vector).New(args);
         }
-        Return(items);
+        source.Return(items);
         return result;
     }
 
@@ -1361,8 +1365,8 @@ internal sealed partial class Parser
             if (!locals.TryGetValue(ident1, out local))
             {
                 locals.Add(ident1, local = Expression.Parameter(def.Type, ident));
-                topLocals.Add(local);
-                topExpressions.Add(Expression.Assign(local, def.Expression));
+                letLocals.Add(local);
+                letExpressions.Add(Expression.Assign(local, def.Expression));
             }
             return local;
         }

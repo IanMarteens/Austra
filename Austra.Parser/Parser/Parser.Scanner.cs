@@ -50,9 +50,9 @@ internal sealed partial class Parser
     /// <summary>Referenced definitions.</summary>
     private readonly HashSet<Definition> references = [];
     /// <summary>All top-level locals, from LET clauses.</summary>
-    private readonly List<ParameterExpression> topLocals = new(8);
+    private readonly List<ParameterExpression> letLocals = new(8);
     /// <summary>Top-level local asignment expressions.</summary>
-    private readonly List<Expression> topExpressions = new(8);
+    private readonly List<Expression> letExpressions;
     /// <summary>Transient local variable definitions.</summary>
     private readonly Dictionary<string, ParameterExpression> locals =
         new(StringComparer.OrdinalIgnoreCase);
@@ -101,6 +101,7 @@ internal sealed partial class Parser
     public Parser(ParserBindings bindings, IDataSource source, string text)
     {
         (this.bindings, this.source, this.text, id) = (bindings, source, text, "");
+        letExpressions = source.Rent(8);
         Move();
     }
 
@@ -497,17 +498,6 @@ internal sealed partial class Parser
         return day <= Date.DaysInMonth(y, m) ? date + day - 1
             : throw new AstException("Invalid day of month", position);
     }
-
-    private List<Expression> Rent(int length)
-    {
-        if (listPool.Count == 0)
-            return new(length);
-        List<Expression> list = listPool.Pop();
-        list.Clear();
-        return list;
-    }
-
-    private void Return(List<Expression> list) => listPool.Push(list);
 
     /// <summary>Checks if the expression's type is either a double or an integer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

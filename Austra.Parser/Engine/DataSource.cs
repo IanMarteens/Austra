@@ -88,6 +88,15 @@ public interface IDataSource
     /// <returns>The corresponding lambda expression.</returns>
     Expression<Func<IDataSource, object>> CreateLambda(Expression body);
 
+    /// <summary>Gets a list of expressions from the pool, or creates a new one.</summary>
+    /// <param name="length">Preferred list capacity, when creating anew.</param>
+    /// <returns>Either a list from the pool or a newly created one.</returns>
+    List<Expression> Rent(int length);
+
+    /// <summary>Returns a list to the pool. The list is cleared here.</summary>
+    /// <param name="list">The expression list for recycling.</param>
+    public void Return(List<Expression> list);
+
     /// <summary>References a listener for variable changes in the session scope.</summary>
     IVariableListener? Listener { get; set; }
 }
@@ -110,6 +119,8 @@ public class DataSource : IDataSource
     private readonly List<Definition> allDefinitions = [];
     /// <summary>Memoized expressions.</summary>
     private readonly Dictionary<string, Expression> memos = [];
+    /// <summary>An expression list pool.</summary>
+    private readonly Stack<List<Expression>> listPool = new(4);
     /// <summary>Synchronizes access to definitions.</summary>
     private readonly object defLock = new();
 
@@ -323,6 +334,20 @@ public class DataSource : IDataSource
     /// <returns>The corresponding lambda expression.</returns>
     public Expression<Func<IDataSource, object>> CreateLambda(Expression body) =>
         Expression.Lambda<Func<IDataSource, object>>(body, sourceParameter);
+
+    /// <summary>Gets a list of expressions from the pool, or creates a new one.</summary>
+    /// <param name="length">Preferred list capacity, when creating anew.</param>
+    /// <returns>Either a list from the pool or a newly created one.</returns>
+    public List<Expression> Rent(int length) =>
+        listPool.Count == 0 ? new(length) : listPool.Pop();
+
+    /// <summary>Returns a list to the pool. The list is cleared here.</summary>
+    /// <param name="list">The expression list for recycling.</param>
+    public void Return(List<Expression> list)
+    {
+        list.Clear();
+        listPool.Push(list);
+    }
 
     /// <summary>References a listener for variable changes in the session scope.</summary>
     public IVariableListener? Listener { get; set; }
