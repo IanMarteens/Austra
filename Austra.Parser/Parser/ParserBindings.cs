@@ -4,6 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace Austra.Parser;
 
 /// <summary>A symbol table for predefined classes and methods.</summary>
+/// <remarks>
+/// This class is instantiated from <see cref="AustraEngine"/>.
+/// </remarks>
 internal sealed partial class ParserBindings
 {
     /// <summary>Most common argument list in functions.</summary>
@@ -731,6 +734,10 @@ internal sealed partial class ParserBindings
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(Vector)),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
 
+    /// <summary>Information for class methods.</summary>
+    /// <remarks>
+    /// An AUSTRA class method may be implemented either by a static method or by a constructor.
+    /// </remarks>
     private readonly FrozenDictionary<string, MethodList> classMethods =
         new Dictionary<string, MethodList>()
         {
@@ -1091,21 +1098,20 @@ internal readonly struct MethodData
 {
     public const uint Mλ1 = 1u, Mλ2 = 2u;
 
+    /// <summary>Either the constructor or the static method for this overload.</summary>
+    private readonly MethodBase mInfo;
+    /// <summary>Bit mask for marking arguments that are lambda expressions.</summary>
+    private readonly uint typeMask;
+    /// <summary>Formal parameters for this method overload.</summary>
     public Type[] Args { get; }
-    public uint TypeMask { get; }
     public int ExpectedArgs { get; }
-    public MethodInfo? MInfo { get; }
-    public ConstructorInfo? CInfo { get; }
 
     public MethodData(Type implementor, string? memberName, params Type[] args)
     {
         Args = args;
         for (int i = 0, m = 0; i < args.Length; i++, m += 2)
-        {
-            Type t1 = args[i];
-            if (t1.IsAssignableTo(typeof(Delegate)))
-                TypeMask |= (t1.GetGenericArguments().Length == 2 ? Mλ1 : Mλ2) << m;
-        }
+            if (args[i] is var t1 && t1.IsAssignableTo(typeof(Delegate)))
+                typeMask |= (t1.GetGenericArguments().Length == 2 ? Mλ1 : Mλ2) << m;
         Type t = Args[^1];
         ExpectedArgs = t.IsArray
             ? int.MaxValue
@@ -1113,24 +1119,23 @@ internal readonly struct MethodData
             ? Args.Length - 1
             : Args.Length;
         Args[^1] = t == typeof(Zero) || t == typeof(One) ? typeof(double) : t;
-        if (memberName != null)
-            MInfo = implementor.GetMethod(memberName, Args);
-        else
-            CInfo = implementor.GetConstructor(Args)!;
+        mInfo = memberName != null
+            ? implementor.GetMethod(memberName, Args)!
+            : implementor.GetConstructor(Args)!;
         Args[^1] = t;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public uint GetMask(int typeId) => (TypeMask >> (typeId * 2)) & 3u;
+    public uint GetMask(int typeId) => (typeMask >> (typeId * 2)) & 3u;
 
     /// <summary>Creates an expression that calls the method.</summary>
     /// <param name="actualArguments">Actual arguments.</param>
     /// <returns>A expression node for calling either a static method or a constructor.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Expression GetExpression(List<Expression> actualArguments) =>
-        MInfo != null
-        ? Expression.Call(MInfo, actualArguments)
-        : Expression.New(CInfo!, actualArguments);
+        mInfo.IsConstructor
+        ? Expression.New((ConstructorInfo)mInfo, actualArguments)
+        : Expression.Call((MethodInfo)mInfo, actualArguments);
 }
 
 /// <summary>Represents a set of overloaded methods.</summary>
