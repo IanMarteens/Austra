@@ -120,6 +120,8 @@ public partial class AustraEngine : IAustraEngine
     private readonly ParserBindings bindings = new();
     /// <summary>The list of classes and global variables, for code completion.</summary>
     private readonly Member[] classesAndGlobals;
+    /// <summary>The last value returned by the engine.</summary>
+    private object? lastValue;
 
     /// <summary>Creates an evaluation engine from a datasource.</summary>
     /// <param name="source">A scope for variables.</param>
@@ -142,6 +144,7 @@ public partial class AustraEngine : IAustraEngine
     {
         ExecutionTime = GenerationTime = CompileTime = null;
         AnswerQueue.Clear();
+        lastValue = null;
         if (DefineRegex().IsMatch(formula))
         {
             Definition def = ParseDefinition(formula);
@@ -176,6 +179,8 @@ public partial class AustraEngine : IAustraEngine
         lambda(Source);
         sw.Stop();
         ExecutionTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
+        if (lastValue != null)
+            Source["ans"] = lastValue;
     }
 
     /// <summary>Parses an AUSTRA formula and returns its type.</summary>
@@ -370,8 +375,11 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>The listener should enqueue one answer from a script.</summary>
     /// <param name="value">The result to enqueue.</param>
-    void IVariableListener.Enqueue(object? value) =>
+    void IVariableListener.Enqueue(object? value)
+    {
         AnswerQueue.Enqueue(new AustraAnswer(value, value?.GetType(), ""));
+        lastValue = value ?? lastValue;
+    }
 
     /// <summary>
     /// Creates a new parser using the current bindings and the current datasource.
