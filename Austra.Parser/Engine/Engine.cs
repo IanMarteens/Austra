@@ -7,7 +7,15 @@ namespace Austra.Parser;
 /// <param name="Value">The returned value.</param>
 /// <param name="Type">The type of the returned value.</param>
 /// <param name="Variable">If a variable has been defined, this is its name.</param>
-public readonly record struct AustraAnswer(object? Value, Type? Type, string Variable);
+public readonly record struct AustraAnswer(object? Value, Type? Type, string Variable)
+{
+    /// <summary>Create an answer from a value and deduce its type from the value.</summary>
+    /// <param name="value">The value to be returned.</param>
+    /// <param name="variable">Optional variable name.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public AustraAnswer(object? value, string variable = "")
+        : this(value, value?.GetType(), variable) { }
+}
 
 /// <summary>Represents a member with its description for code completion.</summary>
 /// <param name="Name">The text of the member.</param>
@@ -149,7 +157,7 @@ public partial class AustraEngine : IAustraEngine
         {
             Definition def = ParseDefinition(formula);
             Define(def);
-            AnswerQueue.Enqueue(new(def, def.GetType(), def.Name));
+            AnswerQueue.Enqueue(new(def, def.Name));
             return;
         }
 
@@ -161,7 +169,7 @@ public partial class AustraEngine : IAustraEngine
             if (dList.Length == 0)
                 throw new Exception($"Definition {name} not found.");
             Undefine(dList);
-            AnswerQueue.Enqueue(new(new UndefineList(dList), typeof(UndefineList), name));
+            AnswerQueue.Enqueue(new(new UndefineList(dList), name));
             return;
         }
 
@@ -371,13 +379,13 @@ public partial class AustraEngine : IAustraEngine
     /// Value of new variable, or <see langword="null"/> for variable removal.
     /// </param>
     void IVariableListener.OnVariableChanged(string name, object? value) =>
-        AnswerQueue.Enqueue(new AustraAnswer(value, value?.GetType(), name));
+        AnswerQueue.Enqueue(new AustraAnswer(value, name));
 
     /// <summary>The listener should enqueue one answer from a script.</summary>
     /// <param name="value">The result to enqueue.</param>
     void IVariableListener.Enqueue(object? value)
     {
-        AnswerQueue.Enqueue(new AustraAnswer(value, value?.GetType(), ""));
+        AnswerQueue.Enqueue(new AustraAnswer(value));
         lastValue = value ?? lastValue;
     }
 
