@@ -167,7 +167,6 @@ public partial class AustraEngine : IAustraEngine
         }
 
         using Parser parser = CreateParser(formula);
-        bool isSet = parser.IsSet();
         Stopwatch sw = Stopwatch.StartNew();
         Expression<Func<IDataSource, object>> expression =
             Source.CreateLambda(parser.ParseStatement());
@@ -181,15 +180,12 @@ public partial class AustraEngine : IAustraEngine
         object answer = lambda(Source);
         sw.Stop();
         ExecutionTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
-        if (isSet)
-            return AustraAnswer.Empty;
-        Type? lastType = null;
         if (answer != null)
         {
             Source["ans"] = answer;
-            lastType = answer.GetType();
+            return new(answer, answer.GetType(), "");
         }
-        return new(answer, lastType, "");
+        return AustraAnswer.Empty;
     }
 
     /// <summary>Parses an AUSTRA formula and returns its type.</summary>

@@ -126,8 +126,13 @@ public class DataSource : IDataSource
     /// <summary>
     /// Gets a property reference to the <see cref="IDataSource.Listener"/> property.
     /// </summary>
-    private readonly PropertyInfo listernerProperty =
-        typeof(IDataSource).GetProperty("Listener")!;
+    private readonly PropertyInfo listenerProperty =
+        typeof(IDataSource).GetProperty(nameof(IDataSource.Listener))!;
+    /// <summary>
+    /// Gets a property reference to the <see cref="IVariableListener.Enqueue"/> method.
+    /// </summary>
+    private readonly MethodInfo listenerEnqueue =
+        typeof(IVariableListener).GetMethod(nameof(IVariableListener.Enqueue))!;
     /// <summary>First scope of session variables.</summary>
     private readonly Dictionary<string, Series> variables;
     /// <summary>Outer scope of session variables.</summary>
@@ -355,7 +360,10 @@ public class DataSource : IDataSource
     /// <returns>
     /// Another expression tree calling the <see cref="Listener"/> for enqueuing the answer.
     /// </returns>
-    public Expression GetEnqueueExpression(Expression answer) => answer;
+    public Expression GetEnqueueExpression(Expression answer) =>
+        Expression.Call(
+            Expression.Property(sourceParameter, listenerProperty),
+            listenerEnqueue, answer);
 
     /// <summary>Creates a lambda expression from a given body.</summary>
     /// <param name="body">An expression returning an object.</param>

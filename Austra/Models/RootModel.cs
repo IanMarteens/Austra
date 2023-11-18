@@ -1,5 +1,6 @@
 ﻿using Austra.Parser;
 using Microsoft.Win32;
+using System.Diagnostics.Eventing.Reader;
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -430,15 +431,13 @@ public sealed partial class RootModel : Entity
             return;
         try
         {
-            var (ans, ansType, ansVar) = environment!.Engine.Eval(text);
+            environment!.Engine.Eval(text);
             ShowTimesMessage();
-            Queue<AustraAnswer> queue = environment!.Engine.AnswerQueue;
-            while (queue.Count > 0)
+            for (Queue<AustraAnswer> queue = environment.Engine.AnswerQueue; queue.Count > 0; )
             {
                 AustraAnswer answer = queue.Dequeue();
                 if (answer.Value is Definition def)
                 {
-                    Message = $"Definition {def.Name.ToUpperInvariant()} of type {def.Type.Name} added.";
                     AllDefinitionsNode? allDefs = Classes.OfType<AllDefinitionsNode>().FirstOrDefault();
                     if (allDefs != null)
                     {
@@ -448,6 +447,7 @@ public sealed partial class RootModel : Entity
                         allDefs.IsExpanded = true;
                         newNode.IsSelected = true;
                     }
+                    Message = $"Definition {def.Name.ToUpperInvariant()} of type {def.Type.Name} added.";
                 }
                 else if (answer.Value is UndefineList list)
                 {
@@ -459,7 +459,7 @@ public sealed partial class RootModel : Entity
                         }
                     Message = $"Definitions {string.Join(", ", list.Definitions)} removed.";
                 }
-                else
+                else if (!string.IsNullOrEmpty(answer.Variable))
                 {
                     if (allVars.TryGetValue(answer.Variable, out VarNode? node) &&
                         node is not DefinitionNode)
@@ -487,46 +487,48 @@ public sealed partial class RootModel : Entity
                         }
                     }
                 }
-            }
-
-            Editor.SelectAll();
-            if (History.Count == 0 || History[^1] != text)
-                History.Add(text);
-            historyIndex = -1;
-            if (string.IsNullOrEmpty(ansVar) && ans != null)
-            {
-                string form = CleanFormula(text);
-                VarNode? node = ans switch
+                else
                 {
-                    Series s => new SeriesNode(form, s),
-                    Series<double> s => new PercentileNode(form, s),
-                    Series<int> s => new CorrelogramNode(form, s),
-                    Plot<Series> t => new CompareNode(form, t),
-                    Plot<RVector> t => new CompareVNode(form, t),
-                    Plot<ComplexVector> t => new CompareCVNode(form, t),
-                    FftModel fft => new FftNode(form, fft),
-                    ARSModel m1 => new ARSNode(form, m1),
-                    ARVModel m2 => new ARVNode(form, m2),
-                    LinearSModel slm => new LinearSModelNode(form, slm),
-                    LinearVModel vlm => new LinearVModelNode(form, vlm),
-                    DateSpline dsp => new DateSplineNode(form, dsp),
-                    VectorSpline vsp => new VectorSplineNode(form, vsp),
-                    Accumulator acc => new AccumNode(form, acc),
-                    AMatrix m => new MatrixNode(form, m),
-                    LMatrix m => new MatrixNode(form, m),
-                    RMatrix m => new MatrixNode(form, m),
-                    RVector v => new VectorNode(form, v),
-                    ComplexVector v => new CVectorNode(form, v),
-                    EVD evd => new EvdNode(form, evd),
-                    MvoModel mvo => new MvoNode(form, mvo),
-                    _ => null
-                };
-                if (node != null)
-                    node.Show();
-                else if (ans != null)
-                {
-                    AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : form, ans.ToString());
-                    return;
+                    Editor.SelectAll();
+                    if (History.Count == 0 || History[^1] != text)
+                        History.Add(text);
+                    historyIndex = -1;
+                    if (answer.Value != null)
+                    {
+                        string form = CleanFormula(text);
+                        VarNode? node = answer.Value switch
+                        {
+                            Series s => new SeriesNode(form, s),
+                            Series<double> s => new PercentileNode(form, s),
+                            Series<int> s => new CorrelogramNode(form, s),
+                            Plot<Series> t => new CompareNode(form, t),
+                            Plot<RVector> t => new CompareVNode(form, t),
+                            Plot<ComplexVector> t => new CompareCVNode(form, t),
+                            FftModel fft => new FftNode(form, fft),
+                            ARSModel m1 => new ARSNode(form, m1),
+                            ARVModel m2 => new ARVNode(form, m2),
+                            LinearSModel slm => new LinearSModelNode(form, slm),
+                            LinearVModel vlm => new LinearVModelNode(form, vlm),
+                            DateSpline dsp => new DateSplineNode(form, dsp),
+                            VectorSpline vsp => new VectorSplineNode(form, vsp),
+                            Accumulator acc => new AccumNode(form, acc),
+                            AMatrix m => new MatrixNode(form, m),
+                            LMatrix m => new MatrixNode(form, m),
+                            RMatrix m => new MatrixNode(form, m),
+                            RVector v => new VectorNode(form, v),
+                            ComplexVector v => new CVectorNode(form, v),
+                            EVD evd => new EvdNode(form, evd),
+                            MvoModel mvo => new MvoNode(form, mvo),
+                            _ => null
+                        };
+                        if (node != null)
+                            node.Show();
+                        else
+                        {
+                            AppendResult(form, answer.Value.ToString());
+                            return;
+                        }
+                    }
                 }
             }
         }
