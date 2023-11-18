@@ -11,8 +11,8 @@ public interface IVariableListener
     void OnVariableChanged(string name, object? value);
 
     /// <summary>The listener should enqueue one answer from a script.</summary>
-    /// <param name="answer">The result to enqueue.</param>
-    void Enqueue(AustraAnswer answer);
+    /// <param name="value">The result to enqueue.</param>
+    void Enqueue(object? value);
 }
 
 /// <summary>Represents the outer scope in AUSTRA formulas.</summary>
@@ -97,7 +97,7 @@ public interface IDataSource
     /// <summary>Creates a lambda expression from a given body.</summary>
     /// <param name="body">An expression returning an object.</param>
     /// <returns>The corresponding lambda expression.</returns>
-    Expression<Func<IDataSource, object>> CreateLambda(Expression body);
+    Expression<Action<IDataSource>> CreateLambda(Expression body);
 
     /// <summary>Gets a list of expressions from the pool, or creates a new one.</summary>
     /// <param name="length">Preferred list capacity, when creating anew.</param>
@@ -368,8 +368,8 @@ public class DataSource : IDataSource
     /// <summary>Creates a lambda expression from a given body.</summary>
     /// <param name="body">An expression returning an object.</param>
     /// <returns>The corresponding lambda expression.</returns>
-    public Expression<Func<IDataSource, object>> CreateLambda(Expression body) =>
-        Expression.Lambda<Func<IDataSource, object>>(body, sourceParameter);
+    public Expression<Action<IDataSource>> CreateLambda(Expression body) =>
+        Expression.Lambda<Action<IDataSource>>(body, sourceParameter);
 
     /// <summary>Gets a list of expressions from the pool, or creates a new one.</summary>
     /// <param name="length">Preferred list capacity, when creating anew.</param>

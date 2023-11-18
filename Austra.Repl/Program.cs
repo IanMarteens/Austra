@@ -71,43 +71,44 @@ static string GetVersion() =>
 
 static void EvaluateAndShow(IAustraEngine engine, string line, bool includeTime)
 {
-    AustraAnswer answer = engine.Eval(line);
-    switch (answer.Value)
-    {
-        case null:
-            WriteLine("null");
-            break;
-        case Definition def:
-            WriteLine($"{def.Name} has been added as a definition.");
-            break;
-        case Plot<Vector> tuple:
-            Write(tuple.First);
-            if (tuple.HasSecond)
-                Write(tuple.Second);
-            break;
-        case Plot<ComplexVector> tuple:
-            Write(tuple.First);
-            if (tuple.HasSecond)
-                Write(tuple.Second);
-            break;
-        case Plot<DoubleSequence> tuple:
-            Write(tuple.First);
-            if (tuple.HasSecond)
-                Write(tuple.Second);
-            break;
-        case Plot<Series> tuple:
-            Write(tuple.First);
-            if (tuple.HasSecond)
-                Write(tuple.Second);
-            break;
-        default:
-            string text = answer.Value?.ToString() ?? "";
-            if (!text.EndsWith(Environment.NewLine))
-                WriteLine(text);
-            else
-                Write(text);
-            break;
-    }
+    engine.Eval(line);
+    for (Queue<AustraAnswer> q = engine.AnswerQueue; q.TryDequeue(out AustraAnswer answer);)
+        switch (answer.Value)
+        {
+            case null:
+                WriteLine("null");
+                break;
+            case Definition def:
+                WriteLine($"{def.Name} has been added as a definition.");
+                break;
+            case Plot<Vector> tuple:
+                Write(tuple.First);
+                if (tuple.HasSecond)
+                    Write(tuple.Second);
+                break;
+            case Plot<ComplexVector> tuple:
+                Write(tuple.First);
+                if (tuple.HasSecond)
+                    Write(tuple.Second);
+                break;
+            case Plot<DoubleSequence> tuple:
+                Write(tuple.First);
+                if (tuple.HasSecond)
+                    Write(tuple.Second);
+                break;
+            case Plot<Series> tuple:
+                Write(tuple.First);
+                if (tuple.HasSecond)
+                    Write(tuple.Second);
+                break;
+            default:
+                string text = answer.Value?.ToString() ?? "";
+                if (!text.EndsWith(Environment.NewLine))
+                    WriteLine(text);
+                else
+                    Write(text);
+                break;
+        }
     if (includeTime)
     {
         double? ct = engine.CompileTime;

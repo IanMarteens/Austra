@@ -15,7 +15,7 @@ internal sealed partial class Parser
     public Expression ParseStatement()
     {
         if (kind != Token.Set)
-            return ParseFormula(true, "", true);
+            return source.GetEnqueueExpression(ParseFormula("", true, true));
         do
         {
             Move();
@@ -34,7 +34,7 @@ internal sealed partial class Parser
                 // Always allow deleting a session variable.
                 if (source.GetDefinition(leftValue) != null)
                     throw Error($"{leftValue} already in use", namePos);
-                setExpressions.Add(ParseFormula(true, leftValue, false));
+                setExpressions.Add(ParseFormula(leftValue, true, false));
                 if (setExpressions[^1] is BinaryExpression { NodeType: ExpressionType.Assign } be
                     && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
                     pendingSets[leftValue] = ue.Operand;
@@ -52,7 +52,7 @@ internal sealed partial class Parser
     /// <returns>The type of the block expression.</returns>
     public Type[] ParseType()
     {
-        // Check first for a definition header and skip it.
+        // Check first for a definition header and parse it.
         if (kind == Token.Def)
         {
             Move();
@@ -63,10 +63,10 @@ internal sealed partial class Parser
                 CheckAndMove(Token.Str, "Definition description expected");
             }
             CheckAndMove(Token.Eq, "= expected");
-            return [ParseFormula(false, "", true).Type];
+            return [ParseFormula("", false, true).Type];
         }
-        // Check now for a set header and skip it.
-        else if (kind == Token.Set)
+        // Check now for a set header and parse it.
+        if (kind == Token.Set)
         {
             List<Type> result = new(8);
             do
@@ -76,14 +76,14 @@ internal sealed partial class Parser
                 if (kind != Token.Eof && kind != Token.Comma)
                 {
                     CheckAndMove(Token.Eq, "= expected");
-                    result.Add(ParseFormula(false, "", false).Type);
+                    result.Add(ParseFormula("", false, false).Type);
                 }
             } while (kind == Token.Comma);
             return kind != Token.Eof
                 ? throw Error("Extra input after expression")
                 : [.. result];
         }
-        return [ParseFormula(false, "", true).Type];
+        return [ParseFormula("", false, true).Type];
     }
 
     /// <summary>Parse the formula up to a position and return local variables.</summary>
@@ -148,7 +148,7 @@ internal sealed partial class Parser
         CheckAndMove(Token.Eq, "= expected");
         int first = start;
         isParsingDefinition = true;
-        Expression e = ParseFormula(false, "", true);
+        Expression e = ParseFormula("", false, true);
         if (e.Type == typeof(Series))
             e = typeof(Series).Call(e, nameof(Series.SetName), Expression.Constant(defName));
         Definition def = new(defName, text[first..], description, e);
@@ -162,11 +162,11 @@ internal sealed partial class Parser
     public bool IsSet() => kind == Token.Set;
 
     /// <summary>Compiles a block expression.</summary>
-    /// <param name="forceCast">Whether to force a cast to object.</param>
     /// <param name="leftValue">When not empty, contains a variable name.</param>
+    /// <param name="forceCast">Whether to force a cast to object.</param>
     /// <param name="checkEof">Whether to check for extra input.</param>
     /// <returns>A block expression.</returns>
-    private Expression ParseFormula(bool forceCast, string leftValue, bool checkEof)
+    private Expression ParseFormula(string leftValue, bool forceCast, bool checkEof)
     {
         if (kind == Token.Let)
         {

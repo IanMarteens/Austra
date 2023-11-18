@@ -406,6 +406,7 @@ public sealed partial class RootModel : Entity
                 string.Join(", ", result.Select(static t =>
                     t == typeof(Series<double>) ? "Series<double>" :
                     t == typeof(Series<int>) ? "Series<int>" :
+                    t.IsGenericType ? GetFriendlyName(t) :
                     t.Name)));
         }
         catch (AstException e)
@@ -421,6 +422,16 @@ public sealed partial class RootModel : Entity
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
+
+        static string GetFriendlyName(Type t)
+        {
+            string result = t.Name;
+            int i = result.IndexOf('`');
+            if (i >= 0)
+                result = result[..i] + "<" +
+                    string.Join(", ", t.GetGenericArguments().Select(GetFriendlyName)) + ">";
+            return result;
+        }
     }
 
     public void Evaluate(string text)
@@ -432,9 +443,8 @@ public sealed partial class RootModel : Entity
         {
             environment!.Engine.Eval(text);
             ShowTimesMessage();
-            for (Queue<AustraAnswer> queue = environment.Engine.AnswerQueue; queue.Count > 0; )
-            {
-                AustraAnswer answer = queue.Dequeue();
+            for (Queue<AustraAnswer> queue = environment.Engine.AnswerQueue;
+                queue.TryDequeue(out AustraAnswer answer);)
                 if (answer.Value is Definition def)
                 {
                     AllDefinitionsNode? allDefs = Classes.OfType<AllDefinitionsNode>().FirstOrDefault();
@@ -523,13 +533,9 @@ public sealed partial class RootModel : Entity
                         if (node != null)
                             node.Show();
                         else
-                        {
                             AppendResult(form, answer.Value.ToString());
-                            return;
-                        }
                     }
                 }
-            }
         }
         catch (AstException e)
         {

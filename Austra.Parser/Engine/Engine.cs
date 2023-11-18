@@ -7,11 +7,7 @@ namespace Austra.Parser;
 /// <param name="Value">The returned value.</param>
 /// <param name="Type">The type of the returned value.</param>
 /// <param name="Variable">If a variable has been defined, this is its name.</param>
-public readonly record struct AustraAnswer(object? Value, Type? Type, string Variable)
-{
-    /// <summary>Represents an empty answer.</summary>
-    public static readonly AustraAnswer Empty = new(null, null, "");
-}
+public readonly record struct AustraAnswer(object? Value, Type? Type, string Variable);
 
 /// <summary>Represents a member with its description for code completion.</summary>
 /// <param name="Name">The text of the member.</param>
@@ -23,8 +19,7 @@ public interface IAustraEngine : IVariableListener
 {
     /// <summary>Parses and evaluates an AUSTRA formula.</summary>
     /// <param name="formula">Any acceptable text for an AUSTRA formula.</param>
-    /// <returns>The result of the evaluation.</returns>
-    AustraAnswer Eval(string formula);
+    void Eval(string formula);
 
     /// <summary>Parses an AUSTRA formula and returns its type.</summary>
     /// <remarks>No code is generated.</remarks>
@@ -121,7 +116,9 @@ public interface IAustraEngine : IVariableListener
 /// <remarks>It does not supports persistency.</remarks>
 public partial class AustraEngine : IAustraEngine
 {
+    /// <summary>Global bindings for the parser.</summary>
     private readonly ParserBindings bindings = new();
+    /// <summary>The list of classes and global variables, for code completion.</summary>
     private readonly Member[] classesAndGlobals;
 
     /// <summary>Creates an evaluation engine from a datasource.</summary>
@@ -141,8 +138,7 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Parses and evaluates an AUSTRA formula.</summary>
     /// <param name="formula">Any acceptable text for an AUSTRA formula.</param>
-    /// <returns>The result of the evaluation.</returns>
-    public AustraAnswer Eval(string formula)
+    public void Eval(string formula)
     {
         ExecutionTime = GenerationTime = CompileTime = null;
         AnswerQueue.Clear();
@@ -151,7 +147,7 @@ public partial class AustraEngine : IAustraEngine
             Definition def = ParseDefinition(formula);
             Define(def);
             AnswerQueue.Enqueue(new(def, def.GetType(), def.Name));
-            return AustraAnswer.Empty;
+            return;
         }
 
         Match match = UndefineRegex().Match(formula);
@@ -163,29 +159,23 @@ public partial class AustraEngine : IAustraEngine
                 throw new Exception($"Definition {name} not found.");
             Undefine(dList);
             AnswerQueue.Enqueue(new(new UndefineList(dList), typeof(UndefineList), name));
-            return AustraAnswer.Empty;
+            return;
         }
 
         using Parser parser = CreateParser(formula);
         Stopwatch sw = Stopwatch.StartNew();
-        Expression<Func<IDataSource, object>> expression =
+        Expression<Action<IDataSource>> expression =
             Source.CreateLambda(parser.ParseStatement());
         sw.Stop();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         sw.Restart();
-        Func<IDataSource, object> lambda = expression.Compile();
+        Action<IDataSource> lambda = expression.Compile();
         sw.Stop();
         GenerationTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         sw.Restart();
-        object answer = lambda(Source);
+        lambda(Source);
         sw.Stop();
         ExecutionTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
-        if (answer != null)
-        {
-            Source["ans"] = answer;
-            return new(answer, answer.GetType(), "");
-        }
-        return AustraAnswer.Empty;
     }
 
     /// <summary>Parses an AUSTRA formula and returns its type.</summary>
@@ -379,9 +369,9 @@ public partial class AustraEngine : IAustraEngine
         AnswerQueue.Enqueue(new AustraAnswer(value, value?.GetType(), name));
 
     /// <summary>The listener should enqueue one answer from a script.</summary>
-    /// <param name="answer">The result to enqueue.</param>
-    void IVariableListener.Enqueue(AustraAnswer answer) =>
-        AnswerQueue.Enqueue(answer);
+    /// <param name="value">The result to enqueue.</param>
+    void IVariableListener.Enqueue(object? value) =>
+        AnswerQueue.Enqueue(new AustraAnswer(value, value?.GetType(), ""));
 
     /// <summary>
     /// Creates a new parser using the current bindings and the current datasource.

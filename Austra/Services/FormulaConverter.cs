@@ -10,10 +10,12 @@ public class FormulaConverter : IValueConverter
         string formula = (string)value;
         try
         {
-            var ans = RootModel.Instance.Environment!.Engine.Eval(formula);
-            if (ans.Type == typeof(double) || ans.Type == typeof(int))
-                return System.Convert.ToDecimal(ans.Value!);
-            return 0M;
+            Parser.IAustraEngine engine = RootModel.Instance.Environment!.Engine;
+            RootModel.Instance.Environment!.Engine.Eval(formula);
+            return engine.AnswerQueue.Count == 1 && engine.AnswerQueue.Dequeue() is var ans
+                && (ans.Type == typeof(double) || ans.Type == typeof(int))
+                ? System.Convert.ToDecimal(ans.Value!)
+                : 0M;
         }
         catch
         {

@@ -29,14 +29,14 @@ public class ParserBenchmark : BenchmarkControl
         engine.EvalType("sin(1) + cos(2)");
 
     [Benchmark]
-    public double AustraEvalMatrixTrace() =>
-        (double)engine.Eval("let v = vector::nrandom(16) in (v ^ v).trace").Value;
+    public void AustraEvalMatrixTrace() =>
+        engine.Eval("let v = vector::nrandom(16) in (v ^ v).trace");
 
     [Benchmark]
-    public double AustraEvalSimpleSum() =>
-        (double)engine.Eval("1.0 + 2.0 * 3.0").Value;
+    public void AustraEvalSimpleSum() =>
+        engine.Eval("1.0 + 2.0 * 3.0");
 
     [Benchmark]
-    public double AustraEvalFunctionCall() =>
-        (double)engine.Eval("sin(1) + cos(2)").Value;
+    public void AustraEvalFunctionCall() =>
+        engine.Eval("sin(1) + cos(2)");
 }
