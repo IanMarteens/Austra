@@ -123,6 +123,11 @@ public class DataSource : IDataSource
     /// <summary>Gets a parameter referencing a <see cref="IDataSource"/>.</summary>
     private readonly ParameterExpression sourceParameter =
         Expression.Parameter(typeof(IDataSource), "datasource");
+    /// <summary>
+    /// Gets a property reference to the <see cref="IDataSource.Listener"/> property.
+    /// </summary>
+    private readonly PropertyInfo listernerProperty =
+        typeof(IDataSource).GetProperty("Listener")!;
     /// <summary>First scope of session variables.</summary>
     private readonly Dictionary<string, Series> variables;
     /// <summary>Outer scope of session variables.</summary>
