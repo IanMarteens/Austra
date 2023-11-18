@@ -7,7 +7,11 @@ namespace Austra.Parser;
 /// <param name="Value">The returned value.</param>
 /// <param name="Type">The type of the returned value.</param>
 /// <param name="Variable">If a variable has been defined, this is its name.</param>
-public readonly record struct AustraAnswer(object? Value, Type? Type, string Variable);
+public readonly record struct AustraAnswer(object? Value, Type? Type, string Variable)
+{
+    /// <summary>Represents an empty answer.</summary>
+    public static readonly AustraAnswer Empty = new(null, null, "");
+}
 
 /// <summary>Represents a member with its description for code completion.</summary>
 /// <param name="Name">The text of the member.</param>
@@ -146,7 +150,8 @@ public partial class AustraEngine : IAustraEngine
         {
             Definition def = ParseDefinition(formula);
             Define(def);
-            return new(def, def.GetType(), def.Name);
+            AnswerQueue.Enqueue(new(def, def.GetType(), def.Name));
+            return AustraAnswer.Empty;
         }
 
         Match match = UndefineRegex().Match(formula);
@@ -157,7 +162,8 @@ public partial class AustraEngine : IAustraEngine
             if (dList.Length == 0)
                 throw new Exception($"Definition {name} not found.");
             Undefine(dList);
-            return new(new UndefineList(dList), typeof(UndefineList), name);
+            AnswerQueue.Enqueue(new(new UndefineList(dList), typeof(UndefineList), name));
+            return AustraAnswer.Empty;
         }
 
         using Parser parser = CreateParser(formula);
@@ -176,7 +182,7 @@ public partial class AustraEngine : IAustraEngine
         sw.Stop();
         ExecutionTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         if (isSet)
-            return new(null, null, "");    
+            return AustraAnswer.Empty;
         Type? lastType = null;
         if (answer != null)
         {

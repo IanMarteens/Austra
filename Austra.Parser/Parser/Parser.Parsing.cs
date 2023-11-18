@@ -1,10 +1,15 @@
-﻿using System.Runtime.InteropServices;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
 {
+    /// <summary>Compiles a list of statements and returns the resulting expression.</summary>
+    /// <returns>A block expression, most usually.</returns>
+    public Expression ParseScript()
+    {
+        return Expression.Constant(null);
+    }
+
     /// <summary>Compiles a block expression.</summary>
     /// <returns>A block expression.</returns>
     public Expression ParseStatement()

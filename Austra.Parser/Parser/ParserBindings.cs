@@ -1,7 +1,4 @@
-﻿using Austra.Library.MVO;
-using System.Diagnostics.CodeAnalysis;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>A symbol table for predefined classes and methods.</summary>
 /// <remarks>

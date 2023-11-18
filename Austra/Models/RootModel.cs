@@ -41,6 +41,7 @@ public sealed partial class RootModel : Entity
     /// Current position in the formula history. -1 means no history, 0 is the last
     /// </summary>
     private int historyIndex = -1;
+    private string savedHistory = "";
 
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
@@ -435,97 +436,97 @@ public sealed partial class RootModel : Entity
             while (queue.Count > 0)
             {
                 AustraAnswer answer = queue.Dequeue();
-                if (allVars.TryGetValue(answer.Variable, out VarNode? node) &&
-                    node is not DefinitionNode)
+                if (answer.Value is Definition def)
                 {
-                    node.Parent!.Nodes.Remove(node);
-                    if (node.Parent.Nodes.Count == 0)
-                        Classes.Remove(node.Parent);
-                    allVars.Remove(node.Name);
-                }
-                if (answer.Type != null)
-                {
-                    string typeName = Describe(answer.Type);
-                    ClassNode? parent = Classes.FirstOrDefault(c => c.Name == typeName);
-                    if (parent == null)
+                    Message = $"Definition {def.Name.ToUpperInvariant()} of type {def.Type.Name} added.";
+                    AllDefinitionsNode? allDefs = Classes.OfType<AllDefinitionsNode>().FirstOrDefault();
+                    if (allDefs != null)
                     {
-                        parent = new(typeName);
-                        Classes.Add(parent);
+                        DefinitionNode newNode = new(allDefs, def);
+                        allVars[newNode.Name] = newNode;
+                        allDefs.Nodes.Add(newNode);
+                        allDefs.IsExpanded = true;
+                        newNode.IsSelected = true;
                     }
-                    node = CreateVarNode(parent, answer.Variable, answer.Type, false);
-                    if (node != null)
+                }
+                else if (answer.Value is UndefineList list)
+                {
+                    foreach (string dn in list.Definitions)
+                        if (allVars.TryGetValue(dn, out VarNode? oldNode))
+                        {
+                            allVars.Remove(dn);
+                            oldNode.Parent!.Nodes.Remove(oldNode);
+                        }
+                    Message = $"Definitions {string.Join(", ", list.Definitions)} removed.";
+                }
+                else
+                {
+                    if (allVars.TryGetValue(answer.Variable, out VarNode? node) &&
+                        node is not DefinitionNode)
                     {
-                        parent.Nodes.Add(node);
-                        parent.IsExpanded = true;
-                        node.IsSelected = true;
+                        node.Parent!.Nodes.Remove(node);
+                        if (node.Parent.Nodes.Count == 0)
+                            Classes.Remove(node.Parent);
+                        allVars.Remove(node.Name);
+                    }
+                    if (answer.Type != null)
+                    {
+                        string typeName = Describe(answer.Type);
+                        ClassNode? parent = Classes.FirstOrDefault(c => c.Name == typeName);
+                        if (parent == null)
+                        {
+                            parent = new(typeName);
+                            Classes.Add(parent);
+                        }
+                        VarNode? varNode = CreateVarNode(parent, answer.Variable, answer.Type, false);
+                        if (varNode != null)
+                        {
+                            parent.Nodes.Add(varNode);
+                            parent.IsExpanded = true;
+                            varNode.IsSelected = true;
+                        }
                     }
                 }
             }
 
-            if (ans is Definition def)
+            Editor.SelectAll();
+            if (History.Count == 0 || History[^1] != text)
+                History.Add(text);
+            historyIndex = -1;
+            if (string.IsNullOrEmpty(ansVar) && ans != null)
             {
-                Message = $"Definition {def.Name.ToUpperInvariant()} of type {def.Type.Name} added.";
-                AllDefinitionsNode? allDefs = Classes.OfType<AllDefinitionsNode>().FirstOrDefault();
-                if (allDefs != null)
+                string form = CleanFormula(text);
+                VarNode? node = ans switch
                 {
-                    DefinitionNode newNode = new(allDefs, def);
-                    allVars[newNode.Name] = newNode;
-                    allDefs.Nodes.Add(newNode);
-                    allDefs.IsExpanded = true;
-                    newNode.IsSelected = true;
-                }
-            }
-            else if (ans is UndefineList list)
-            {
-                foreach (string dn in list.Definitions)
-                    if (allVars.TryGetValue(dn, out var node))
-                    {
-                        allVars.Remove(dn);
-                        node.Parent!.Nodes.Remove(node);
-                    }
-                Message = $"Definitions {string.Join(", ", list.Definitions)} removed.";
-            }
-            else
-            {
-                Editor.SelectAll();
-                if (History.Count == 0 || History[^1] != text)
-                    History.Add(text);
-                historyIndex = -1;
-                if (string.IsNullOrEmpty(ansVar) && ans != null)
+                    Series s => new SeriesNode(form, s),
+                    Series<double> s => new PercentileNode(form, s),
+                    Series<int> s => new CorrelogramNode(form, s),
+                    Plot<Series> t => new CompareNode(form, t),
+                    Plot<RVector> t => new CompareVNode(form, t),
+                    Plot<ComplexVector> t => new CompareCVNode(form, t),
+                    FftModel fft => new FftNode(form, fft),
+                    ARSModel m1 => new ARSNode(form, m1),
+                    ARVModel m2 => new ARVNode(form, m2),
+                    LinearSModel slm => new LinearSModelNode(form, slm),
+                    LinearVModel vlm => new LinearVModelNode(form, vlm),
+                    DateSpline dsp => new DateSplineNode(form, dsp),
+                    VectorSpline vsp => new VectorSplineNode(form, vsp),
+                    Accumulator acc => new AccumNode(form, acc),
+                    AMatrix m => new MatrixNode(form, m),
+                    LMatrix m => new MatrixNode(form, m),
+                    RMatrix m => new MatrixNode(form, m),
+                    RVector v => new VectorNode(form, v),
+                    ComplexVector v => new CVectorNode(form, v),
+                    EVD evd => new EvdNode(form, evd),
+                    MvoModel mvo => new MvoNode(form, mvo),
+                    _ => null
+                };
+                if (node != null)
+                    node.Show();
+                else if (ans != null)
                 {
-                    string form = CleanFormula(text);
-                    VarNode? node = ans switch
-                    {
-                        Series s => new SeriesNode(form, s),
-                        Series<double> s => new PercentileNode(form, s),
-                        Series<int> s => new CorrelogramNode(form, s),
-                        Plot<Series> t => new CompareNode(form, t),
-                        Plot<RVector> t => new CompareVNode(form, t),
-                        Plot<ComplexVector> t => new CompareCVNode(form, t),
-                        FftModel fft => new FftNode(form, fft),
-                        ARSModel m1 => new ARSNode(form, m1),
-                        ARVModel m2 => new ARVNode(form, m2),
-                        LinearSModel slm => new LinearSModelNode(form, slm),
-                        LinearVModel vlm => new LinearVModelNode(form, vlm),
-                        DateSpline dsp => new DateSplineNode(form, dsp),
-                        VectorSpline vsp => new VectorSplineNode(form, vsp),
-                        Accumulator acc => new AccumNode(form, acc),
-                        AMatrix m => new MatrixNode(form, m),
-                        LMatrix m => new MatrixNode(form, m),
-                        RMatrix m => new MatrixNode(form, m),
-                        RVector v => new VectorNode(form, v),
-                        ComplexVector v => new CVectorNode(form, v),
-                        EVD evd => new EvdNode(form, evd),
-                        MvoModel mvo => new MvoNode(form, mvo),
-                        _ => null
-                    };
-                    if (node != null)
-                        node.Show();
-                    else if (ans != null)
-                    {
-                        AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : form, ans.ToString());
-                        return;
-                    }
+                    AppendResult(!string.IsNullOrEmpty(ansVar) ? ansVar : form, ans.ToString());
+                    return;
                 }
             }
         }
@@ -543,8 +544,6 @@ public sealed partial class RootModel : Entity
             timer.Start();
         }
     }
-
-    private string savedHistory = "";
 
     private void ExecHistoryUp()
     {
@@ -646,7 +645,7 @@ public sealed partial class RootModel : Entity
         if (props.ShowCompileTime)
             if (engine.CompileTime is not null)
                 if (engine.GenerationTime is not null)
-                    msg = "Compile: " + engine.FormatTime(engine.CompileTime.Value) + 
+                    msg = "Compile: " + engine.FormatTime(engine.CompileTime.Value) +
                         ", code generation: " + engine.FormatTime(engine.GenerationTime.Value);
                 else
                     msg = "Compile: " + engine.FormatTime(engine.CompileTime.Value);

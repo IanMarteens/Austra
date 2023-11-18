@@ -32,17 +32,20 @@
 	<ItemGroup>
 		<Using Include="Austra.Library" />
 		<Using Include="Austra.Library.Dates" />
+		<Using Include="Austra.Library.MVO" />
 		<Using Include="Austra.Library.Stats" />
 		<Using Include="Austra.Library.Transforms" />
 		<Using Include="System" />
 		<Using Include="System.Collections.Generic" />
 		<Using Include="System.Collections.Frozen" />
 		<Using Include="System.Diagnostics" />
+		<Using Include="System.Diagnostics.CodeAnalysis" />
 		<Using Include="System.Globalization" />
 		<Using Include="System.Linq" />
 		<Using Include="System.Linq.Expressions" />
 		<Using Include="System.Reflection" />
 		<Using Include="System.Runtime.CompilerServices" />
+		<Using Include="System.Runtime.InteropServices" />
 		<Using Include="System.Text" />
 		<Using Include="System.Text.RegularExpressions" />
 		<Using Include="Austra.Library.Stats.Accumulator" Alias="Acc" />
