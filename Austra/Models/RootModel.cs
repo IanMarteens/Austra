@@ -1,6 +1,5 @@
 ﻿using Austra.Parser;
 using Microsoft.Win32;
-using System.Diagnostics.Eventing.Reader;
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
