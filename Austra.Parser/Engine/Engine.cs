@@ -382,6 +382,11 @@ public partial class AustraEngine : IAustraEngine
     void IVariableListener.OnVariableChanged(string name, object? value) =>
         AnswerQueue.Enqueue(new AustraAnswer(value, value?.GetType(), name));
 
+    /// <summary>The listener should enqueue one answer from a script.</summary>
+    /// <param name="answer">The result to enqueue.</param>
+    void IVariableListener.Enqueue(AustraAnswer answer) =>
+        AnswerQueue.Enqueue(answer);
+
     /// <summary>
     /// Creates a new parser using the current bindings and the current datasource.
     /// </summary>

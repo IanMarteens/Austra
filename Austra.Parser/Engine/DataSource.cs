@@ -9,6 +9,10 @@ public interface IVariableListener
     /// Value of new variable, or <see langword="null"/> for variable removal.
     /// </param>
     void OnVariableChanged(string name, object? value);
+
+    /// <summary>The listener should enqueue one answer from a script.</summary>
+    /// <param name="answer">The result to enqueue.</param>
+    void Enqueue(AustraAnswer answer);
 }
 
 /// <summary>Represents the outer scope in AUSTRA formulas.</summary>
@@ -83,6 +87,13 @@ public interface IDataSource
     /// <returns>An assignment expression.</returns>
     Expression SetExpression(string identifier, Expression value);
 
+    /// <summary>Gets an expression tree for enqueuing an answer from a script.</summary>
+    /// <param name="answer">The expression tree with an answer.</param>
+    /// <returns>
+    /// Another expression tree calling the <see cref="Listener"/> for enqueuing the answer.
+    /// </returns>
+    Expression GetEnqueueExpression(Expression answer);
+
     /// <summary>Creates a lambda expression from a given body.</summary>
     /// <param name="body">An expression returning an object.</param>
     /// <returns>The corresponding lambda expression.</returns>
@@ -98,6 +109,11 @@ public interface IDataSource
     public void Return(List<Expression> list);
 
     /// <summary>References a listener for variable changes in the session scope.</summary>
+    /// <remarks>
+    /// This property effectively decouples the engine from the datasource.
+    /// The engine is responsible for setting the listener, and the datasource
+    /// use the listener mainly from enqueing answers from scripts.
+    /// </remarks>
     IVariableListener? Listener { get; set; }
 }
 
@@ -328,6 +344,13 @@ public class DataSource : IDataSource
     public Expression SetExpression(string identifier, Expression value) =>
         Expression.Assign(Expression.Property(sourceParameter, "Item",
             Expression.Constant(identifier)), value);
+
+    /// <summary>Gets an expression tree for enqueuing an answer from a script.</summary>
+    /// <param name="answer">The expression tree with an answer.</param>
+    /// <returns>
+    /// Another expression tree calling the <see cref="Listener"/> for enqueuing the answer.
+    /// </returns>
+    public Expression GetEnqueueExpression(Expression answer) => answer;
 
     /// <summary>Creates a lambda expression from a given body.</summary>
     /// <param name="body">An expression returning an object.</param>
