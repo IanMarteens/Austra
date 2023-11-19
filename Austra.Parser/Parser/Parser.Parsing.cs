@@ -154,11 +154,12 @@ internal sealed partial class Parser
                 throw Error("Left side variable expected");
             int namePos = start;
             string leftValue = id;
-            if (pendingSets.ContainsKey(leftValue))
-                throw Error($"{leftValue} already in use", namePos);
             Move();
-            if (kind == Token.Eof || kind == Token.Comma)
+            if (kind == Token.Eof || kind == Token.Comma || kind == Token.Semicolon)
+            {
                 source[leftValue] = null;
+                pendingSets.Remove(leftValue);
+            }
             else
             {
                 CheckAndMove(Token.Eq, "= expected");
