@@ -41,6 +41,9 @@ public interface IAustraEngine : IVariableListener
     /// <summary>Gets the queue of answers.</summary>
     Queue<AustraAnswer> AnswerQueue { get; }
 
+    /// <summary>Gets the queue of fragment's ranges.</summary>
+    Queue<Range> RangeQueue { get; }
+
     /// <summary>Gets a list of root variables.</summary>
     /// <param name="position">The position of the cursor.</param>
     /// <param name="text">The text of the expression.</param>
@@ -145,6 +148,9 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Gets the queue of answers.</summary>
     public Queue<AustraAnswer> AnswerQueue { get; } = new();
+
+    /// <summary>Gets the queue of fragment's ranges.</summary>
+    public Queue<Range> RangeQueue { get; } = new();
 
     /// <summary>Parses and evaluates an AUSTRA formula.</summary>
     /// <param name="formula">Any acceptable text for an AUSTRA formula.</param>
@@ -388,6 +394,10 @@ public partial class AustraEngine : IAustraEngine
         AnswerQueue.Enqueue(new AustraAnswer(value));
         lastValue = value ?? lastValue;
     }
+
+    /// <summary>The listener should enqueue a text range from a script.</summary>
+    /// <param name="range">The range to enqueue.</param>
+    void IVariableListener.EnqueueRange(Range range) => RangeQueue.Enqueue(range);
 
     /// <summary>
     /// Creates a new parser using the current bindings and the current datasource.

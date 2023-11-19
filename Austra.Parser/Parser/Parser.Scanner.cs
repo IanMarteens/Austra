@@ -56,6 +56,7 @@ internal sealed partial class Parser : IDisposable
     private readonly Dictionary<string, ParameterExpression> locals =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly List<Expression> setExpressions;
+    private readonly List<Expression> scriptExpressions;
     /// <summary>New session variables that are not yet defined in the data source.</summary>
     private readonly Dictionary<string, Expression> pendingSets =
         new(StringComparer.OrdinalIgnoreCase);
@@ -101,12 +102,14 @@ internal sealed partial class Parser : IDisposable
         (this.bindings, this.source, this.text, id) = (bindings, source, text, "");
         letExpressions = source.Rent(8);
         setExpressions = source.Rent(8);
+        scriptExpressions = source.Rent(8);
         Move();
     }
 
     /// <summary>Returns allocated resources to the pool, in the data source.</summary>
     public void Dispose()
     {
+        source.Return(scriptExpressions);
         source.Return(setExpressions);
         source.Return(letExpressions);
     }

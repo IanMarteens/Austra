@@ -441,9 +441,11 @@ public sealed partial class RootModel : Entity
             return;
         try
         {
-            environment!.Engine.Eval(text);
+            IAustraEngine engine = environment!.Engine;
+            engine.Eval(text);
             ShowTimesMessage();
-            for (Queue<AustraAnswer> queue = environment.Engine.AnswerQueue;
+            bool firstAnswer = true;
+            for (Queue<AustraAnswer> queue = engine.AnswerQueue;
                 queue.TryDequeue(out AustraAnswer answer);)
                 if (answer.Value is Definition def)
                 {
@@ -498,13 +500,18 @@ public sealed partial class RootModel : Entity
                 }
                 else
                 {
-                    Editor.SelectAll();
-                    if (History.Count == 0 || History[^1] != text)
-                        History.Add(text);
-                    historyIndex = -1;
+                    if (firstAnswer)
+                    {
+                        Editor.SelectAll();
+                        if (History.Count == 0 || History[^1] != text)
+                            History.Add(text);
+                        historyIndex = -1;
+                        firstAnswer = false;
+                    }
                     if (answer.Value != null)
                     {
-                        string form = CleanFormula(text);
+                        string form = CleanFormula(engine.RangeQueue.TryDequeue(out Range range) 
+                            ? text[range] : text);
                         VarNode? node = answer.Value switch
                         {
                             Series s => new SeriesNode(form, s),

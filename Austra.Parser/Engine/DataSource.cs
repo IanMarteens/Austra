@@ -13,6 +13,10 @@ public interface IVariableListener
     /// <summary>The listener should enqueue one answer from a script.</summary>
     /// <param name="value">The result to enqueue.</param>
     void Enqueue(object? value);
+
+    /// <summary>The listener should enqueue a text range from a script.</summary>
+    /// <param name="range">The range to enqueue.</param>
+    void EnqueueRange(Range range);
 }
 
 /// <summary>Represents the outer scope in AUSTRA formulas.</summary>

@@ -3,49 +3,34 @@
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
 {
-    /// <summary>Compiles a list of statements and returns the resulting expression.</summary>
-    /// <returns>A block expression, most usually.</returns>
-    public Expression ParseScript()
-    {
-        return Expression.Constant(null);
-    }
-
-    /// <summary>Compiles a block expression.</summary>
+    /// <summary>Compiles a list of statements into a block expression.</summary>
     /// <returns>A block expression.</returns>
     public Expression ParseStatement()
     {
-        if (kind != Token.Set)
-            return source.GetEnqueueExpression(ParseFormula("", true, true));
-        do
+        for (; kind != Token.Eof; Move())
         {
-            Move();
-            if (kind != Token.Id)
-                throw Error("Left side variable expected");
-            int namePos = start;
-            string leftValue = id;
-            if (pendingSets.ContainsKey(leftValue))
-                throw Error($"{leftValue} already in use", namePos);
-            Move();
-            if (kind == Token.Eof || kind == Token.Comma)
-                source[leftValue] = null;
-            else
-            {
-                CheckAndMove(Token.Eq, "= expected");
-                // Always allow deleting a session variable.
-                if (source.GetDefinition(leftValue) != null)
-                    throw Error($"{leftValue} already in use", namePos);
-                setExpressions.Add(ParseFormula(leftValue, true, false));
-                if (setExpressions[^1] is BinaryExpression { NodeType: ExpressionType.Assign } be
-                    && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
-                    pendingSets[leftValue] = ue.Operand;
-            }
+            if (kind != Token.Semicolon)
+                if (kind != Token.Set)
+                {
+                    int from = start;
+                    Expression e = ParseFormula("", true, false);
+                    int to = kind == Token.Eof ? start + 1 : start;
+                    scriptExpressions.Add(source.GetEnqueueExpression(e));
+                    source.Listener?.EnqueueRange(new Range(from, to));
+                }
+                else
+                    scriptExpressions.Add(ParseAssignment());
+            if (kind != Token.Semicolon)
+                break;
         }
-        while (kind == Token.Comma);
-        return kind != Token.Eof
-            ? throw Error("Extra input after expression")
-            : setExpressions.Count == 0
-            ? Expression.Constant(null)
-            : Expression.Block(setExpressions);
+        if (kind != Token.Eof)
+            throw Error("Extra input after expression");
+        return scriptExpressions.Count switch
+        {
+            0 => Expression.Constant(null),
+            1 => scriptExpressions[0],
+            _ => Expression.Block(scriptExpressions),
+        };
     }
 
     /// <summary>Parses a block expression without generating code.</summary>
@@ -157,11 +142,45 @@ internal sealed partial class Parser
         return def;
     }
 
-    /// <summary>Checks if the current token is the <c>SET</c> keyword.</summary>
-    /// <returns><see langword="true"/> if the current token is <c>SET</c>.</returns>
-    public bool IsSet() => kind == Token.Set;
+    /// <summary>Compiles an assignment statement.</summary>
+    /// <returns>A block expression.</returns>
+    private Expression ParseAssignment()
+    {
+        do
+        {
+            // Skip either the SET keyword or the comma.
+            Move();
+            if (kind != Token.Id)
+                throw Error("Left side variable expected");
+            int namePos = start;
+            string leftValue = id;
+            if (pendingSets.ContainsKey(leftValue))
+                throw Error($"{leftValue} already in use", namePos);
+            Move();
+            if (kind == Token.Eof || kind == Token.Comma)
+                source[leftValue] = null;
+            else
+            {
+                CheckAndMove(Token.Eq, "= expected");
+                // Always allow deleting a session variable.
+                if (source.GetDefinition(leftValue) != null)
+                    throw Error($"{leftValue} already in use", namePos);
+                setExpressions.Add(ParseFormula(leftValue, true, false));
+                if (setExpressions[^1] is BinaryExpression { NodeType: ExpressionType.Assign } be
+                    && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
+                    pendingSets[leftValue] = ue.Operand;
+            }
+        }
+        while (kind == Token.Comma);
+        return setExpressions.Count switch
+        {
+            0 => Expression.Constant(null),
+            1 => setExpressions[0],
+            _ => Expression.Block(setExpressions)
+        };
+    }
 
-    /// <summary>Compiles a block expression.</summary>
+    /// <summary>Compiles a formula that returns a result.</summary>
     /// <param name="leftValue">When not empty, contains a variable name.</param>
     /// <param name="forceCast">Whether to force a cast to object.</param>
     /// <param name="checkEof">Whether to check for extra input.</param>
