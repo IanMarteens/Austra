@@ -3,7 +3,7 @@
 /// <summary>An abstract autoregressive model.</summary>
 /// <typeparam name="M">Type of model.</typeparam>
 /// <typeparam name="T">Type of original dataset.</typeparam>
-public abstract class ARNode<M, T> : VarNode<M> where M : ARModelBase<T>
+public abstract class ARNode<M, T> : VarNode<M> where M : ARModel<T>
 {
     protected ARNode(string formula, M value) :
         base(formula, value) =>

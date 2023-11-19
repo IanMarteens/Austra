@@ -15,7 +15,4 @@ public sealed class EvdNode : VarNode<EVD>
     public override Visibility ImageVisibility => Visibility.Visible;
 
     public override string ImageSource => "/images/evd.png";
-
-    public override void Show() =>
-        RootModel.Instance.AppendResult(Formula, Model.ToString());
 }

@@ -4,28 +4,55 @@
     <introduction>
       <para>AUSTRA is a functional language, so it has a functional technique for declaring what in a procedural language would be temporal or local variables.</para>
     </introduction>
-    <!-- Add one or more top-level section elements.  These are collapsible.
-         If using <autoOutline />, add an address attribute to identify it
-         and specify a title so that it can be jumped to with a hyperlink. -->
     <section address="Section1">
       <title>LET clauses</title>
       <content>
         <para>The functional technique for declaring local variables in a formula is the <legacyBold>let</legacyBold> clause.</para>
         <code language="Austra">
-let m = matrix::lrandom(5),
+<markup><b>let</b></markup> m = matrix::lrandom(5),
     m1 = m * m',
-    c = m1.chol in
+    c = m1.chol <markup><b>in</b></markup>
     (c * c' - m1).aMax
         </code>
         <para>In the above example, a lower triangular random matrix is computed, and it is
 multiplied by its transpose. Then, the Cholesky transform is calculated and finally
 we check that the transform is valid, evaluating the absolute maximum of the
 matrix difference.</para>
-<para>The <codeInline>m</codeInline>, <codeInline>m1</codeInline> and <codeInline>c</codeInline> variables only exist while the formula is being evaluated.</para>
+		<para>The <codeInline>m</codeInline>, <codeInline>m1</codeInline> and <codeInline>c</codeInline> variables only exist while the formula is being evaluated.
+		As the example shows, each variable defined in the <codeInline>let</codeInline> clause can use any of the previously declared variables in the same clause.
+		</para>
+      </content>
+    </section>
+    <section address="Section2">
+      <title>Script-scoped LET clauses</title>
+      <content>
+        <para>When writing several statements in a script, <codeInline>let/in</codeInline> clauses are valid only for the statement they precede, but not for other statements:</para>
+        <code language="Austra">
+<markup><b>let</b></markup> m = matrix::lrandom(5),
+    m1 = m * m',
+    c = m1.chol <markup><b>in</b></markup>
+    (c * c' - m1).aMax;
+<markup><font color="DarkGreen">-- The next statement cannot use "m".</font></markup>
+m
+        </code>
+        <para>If you need a local variable to be available for all statements that follow in a script, you must use a variant of <codeInline>let</codeInline> which does not terminates with an <codeInline>in</codeInline> keyword, but with a semicolon:</para>
+        <code language="Austra">
+<markup><b>let</b></markup> m = matrix::lrandom(5);
+<markup><font color="DarkGreen">-- Now, "m" is available for the rest of the script.</font><br/></markup>
+<markup><b>let</b></markup> m1 = m * m',
+    c = m1.chol <markup><b>in</b></markup>
+    (c * c' - m1).aMax;
+<markup><font color="DarkGreen">-- The next statement is valid.</font></markup>
+m
+        </code>
       </content>
     </section>
     <relatedTopics>
     	<link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
+      <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
+      <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
+      <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
+      <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
     </relatedTopics>
   </developerConceptualDocument>
 </topic>

@@ -15,9 +15,6 @@ public abstract class CommonVectorNode<T>: VarNode<T> where T: struct
     public sealed override Visibility ImageVisibility => Visibility.Visible;
 
     public sealed override string ImageSource => "/images/vector.png";
-
-    public sealed override void Show() =>
-        RootModel.Instance.AppendResult(Formula, Model.ToString());
 }
 
 public sealed class VectorNode: CommonVectorNode<RVector>

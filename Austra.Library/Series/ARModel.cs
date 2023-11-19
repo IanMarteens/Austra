@@ -2,7 +2,7 @@
 
 /// <summary>Represents an autoregressive model.</summary>
 /// <typeparam name="T">The type of the data source.</typeparam>
-public abstract class ARModelBase<T>: IFormattable
+public abstract class ARModel<T>: IFormattable
 {
     /// <summary>The Yule-Walker matrix.</summary>
     protected Matrix matrix;
@@ -14,7 +14,7 @@ public abstract class ARModelBase<T>: IFormattable
     /// </summary>
     /// <param name="original">The original source.</param>
     /// <param name="degrees">Degrees.</param>
-    protected ARModelBase(T original, int degrees) =>
+    protected ARModel(T original, int degrees) =>
         (Original, Degrees, Prediction) = (original, degrees, default!);
 
     /// <summary>Gets the data source.</summary>
@@ -73,7 +73,7 @@ public abstract class ARModelBase<T>: IFormattable
 }
 
 /// <summary>Represents an autoregressive model from a series.</summary>
-public sealed class ARSModel : ARModelBase<Series>
+public sealed class ARSModel : ARModel<Series>
 {
     /// <summary>
     /// Initializes an autoregressive model from a series and a number of degrees.
@@ -95,7 +95,7 @@ public sealed class ARSModel : ARModelBase<Series>
 }
 
 /// <summary>Represents an autoregressive model from a vector.</summary>
-public sealed class ARVModel: ARModelBase<Vector>
+public sealed class ARVModel: ARModel<Vector>
 {
     /// <summary>
     /// Initializes an autoregressive model from a vector and a number of degrees.

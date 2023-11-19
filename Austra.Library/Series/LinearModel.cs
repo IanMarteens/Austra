@@ -2,12 +2,12 @@
 
 /// <summary>Represents the result of a linear regression.</summary>
 /// <typeparam name="T">The type of the data source.</typeparam>
-public abstract class LinearModelBase<T>: IFormattable
+public abstract class LinearModel<T>: IFormattable
 {
     /// <summary>Initializes and computes a linear regression model.</summary>
     /// <param name="original">The samples to be predicted.</param>
     /// <param name="variables">The names of the samples used as predictors.</param>
-    protected LinearModelBase(T original, IReadOnlyList<string> variables) => 
+    protected LinearModel(T original, IReadOnlyList<string> variables) => 
         (Original, Variables, Prediction) = (original, variables, default!);
 
     /// <summary>The samples to be explained.</summary>
@@ -39,13 +39,11 @@ public abstract class LinearModelBase<T>: IFormattable
     protected (Vector, Cholesky) ComputeWeights(Vector[] mRows, Vector rightSide)
     {
         Matrix x = new(mRows);
-        Matrix x1x = x.MultiplyTranspose(x);
-        Cholesky c = x1x.Cholesky();
+        Cholesky c = x.MultiplyTranspose(x).Cholesky();
         return (c.Solve(x * rightSide), c);
     }
 
-    /// <summary>Gets a textual representation of the model.
-    /// </summary>
+    /// <summary>Gets a textual representation of the model.</summary>
     /// <returns>The calculated lineal combination, and the R² statistics.</returns>
     public sealed override string ToString() => ToString("G6", null);
 
@@ -86,7 +84,7 @@ public abstract class LinearModelBase<T>: IFormattable
 }
 
 /// <summary>Represents the result of a linear regression from series.</summary>
-public sealed class LinearSModel : LinearModelBase<Series>
+public sealed class LinearSModel : LinearModel<Series>
 {
     /// <summary>Initializes and computes a linear regression model.</summary>
     /// <param name="original">The series to be predicted.</param>
@@ -119,7 +117,7 @@ public sealed class LinearSModel : LinearModelBase<Series>
 }
 
 /// <summary>Represents the result of a linear regression from vectors.</summary>
-public sealed class LinearVModel : LinearModelBase<Vector>
+public sealed class LinearVModel : LinearModel<Vector>
 {
     /// <summary>Initializes and computes a linear regression model.</summary>
     /// <param name="original">Data to be predicted.</param>

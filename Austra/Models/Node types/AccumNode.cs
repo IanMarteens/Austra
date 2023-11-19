@@ -15,8 +15,6 @@ public sealed class AccumNode : VarNode<Accumulator>
 
     public override Visibility ImageVisibility => Visibility.Visible;
 
-    public override void Show() => RootModel.Instance.AppendResult(Formula, Model.ToString());
-
     [Category("Stats")]
     public long Count => Model.Count;
 

@@ -1,6 +1,6 @@
 ﻿namespace Austra;
 
-public abstract class LinearModelNode<M, T> : VarNode<M> where M : LinearModelBase<T>
+public abstract class LinearModelNode<M, T> : VarNode<M> where M : LinearModel<T>
 {
     protected LinearModelNode(string formula, M value) :
         base(formula, value) =>

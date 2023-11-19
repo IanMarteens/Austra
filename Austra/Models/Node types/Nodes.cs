@@ -109,6 +109,9 @@ public abstract class VarNode<T> : VarNode
 
     /// <summary>Gets the value associated to the linked variable.</summary>
     public T Model { get; }
+
+    /// <summary>Shows the formula and the text of the result in the main window.</summary>
+    public override void Show() => RootModel.Instance.AppendResult(Formula, Model!.ToString());
 }
 
 /// <summary>Extension methods for OxyPlot models.</summary>

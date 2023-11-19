@@ -1,6 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Contains dataset information for plots.</summary>
+/// <typeparam name="T">The type of the contained datasets.</typeparam>
 public class Plot<T> : IFormattable where T: IFormattable
 {
     /// <summary>First element to be plotted.</summary>
