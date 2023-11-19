@@ -158,6 +158,7 @@ public partial class AustraEngine : IAustraEngine
     {
         ExecutionTime = GenerationTime = CompileTime = null;
         AnswerQueue.Clear();
+        RangeQueue.Clear();
         lastValue = null;
         if (DefineRegex().IsMatch(formula))
         {
@@ -204,6 +205,9 @@ public partial class AustraEngine : IAustraEngine
     public Type[] EvalType(string formula)
     {
         ExecutionTime = GenerationTime = CompileTime = null;
+        AnswerQueue.Clear();
+        RangeQueue.Clear();
+        lastValue = null;
         Stopwatch sw = Stopwatch.StartNew();
         using Parser parser = CreateParser(formula);
         Type[] result = parser.ParseType();

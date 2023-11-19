@@ -94,8 +94,8 @@ internal sealed partial class Parser
         else
         {
             result = new(locals.Count + 2);
-            foreach (var local in locals)
-                result.Add(new(local.Key, "Local variable"));
+            foreach (string local in locals.Keys)
+                result.Add(new(local, "Local variable"));
             if (lambdaParameter != null)
             {
                 if (!string.IsNullOrEmpty(lambdaParameter.Name))
@@ -225,6 +225,8 @@ internal sealed partial class Parser
         }
         finally
         {
+            locals.Clear();
+            letLocals.Clear();
             letExpressions.Clear();
         }
     }
