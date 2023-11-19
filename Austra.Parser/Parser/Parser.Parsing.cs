@@ -13,7 +13,7 @@ internal sealed partial class Parser
                 if (kind != Token.Set)
                 {
                     int from = start;
-                    Expression e = ParseFormula("", true, false);
+                    Expression e = ParseFormula("", true);
                     int to = kind == Token.Eof ? start + 1 : start;
                     scriptExpressions.Add(source.GetEnqueueExpression(e));
                     source.Listener?.EnqueueRange(new Range(from, to));
@@ -61,7 +61,7 @@ internal sealed partial class Parser
                 if (kind != Token.Eof && kind != Token.Comma)
                 {
                     CheckAndMove(Token.Eq, "= expected");
-                    result.Add(ParseFormula("", false, false).Type);
+                    result.Add(ParseFormula("", false).Type);
                 }
             } while (kind == Token.Comma);
             return kind != Token.Eof
@@ -133,7 +133,9 @@ internal sealed partial class Parser
         CheckAndMove(Token.Eq, "= expected");
         int first = start;
         isParsingDefinition = true;
-        Expression e = ParseFormula("", false, true);
+        Expression e = ParseFormula("", false);
+        if (kind != Token.Eof)
+            throw Error("Extra input after expression");
         if (e.Type == typeof(Series))
             e = typeof(Series).Call(e, nameof(Series.SetName), Expression.Constant(defName));
         Definition def = new(defName, text[first..], description, e);
@@ -157,7 +159,7 @@ internal sealed partial class Parser
             Move();
             if (kind == Token.Eof || kind == Token.Comma || kind == Token.Semicolon)
             {
-                source[leftValue] = null;
+                setExpressions.Add(source.SetExpression(leftValue, Expression.Constant(null)));
                 pendingSets.Remove(leftValue);
             }
             else
@@ -166,7 +168,7 @@ internal sealed partial class Parser
                 // Always allow deleting a session variable.
                 if (source.GetDefinition(leftValue) != null)
                     throw Error($"{leftValue} already in use", namePos);
-                setExpressions.Add(ParseFormula(leftValue, true, false));
+                setExpressions.Add(ParseFormula(leftValue, true));
                 if (setExpressions[^1] is BinaryExpression { NodeType: ExpressionType.Assign } be
                     && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
                     pendingSets[leftValue] = ue.Operand;
@@ -186,38 +188,45 @@ internal sealed partial class Parser
     /// <param name="forceCast">Whether to force a cast to object.</param>
     /// <param name="checkEof">Whether to check for extra input.</param>
     /// <returns>A block expression.</returns>
-    private Expression ParseFormula(string leftValue, bool forceCast, bool checkEof)
+    private Expression ParseFormula(string leftValue, bool forceCast, bool checkEof = false)
     {
-        if (kind == Token.Let)
+        try
         {
-            do
+            if (kind == Token.Let)
             {
-                Move();
-                if (kind != Token.Id)
-                    throw Error("Identifier expected");
-                string localId = id;
-                Move();
-                CheckAndMove(Token.Eq, "= expected");
-                Expression init = ParseConditional();
-                ParameterExpression le = Expression.Variable(init.Type, localId);
-                letLocals.Add(le);
-                letExpressions.Add(Expression.Assign(le, init));
-                locals[localId] = le;
+                do
+                {
+                    Move();
+                    if (kind != Token.Id)
+                        throw Error("Identifier expected");
+                    string localId = id;
+                    Move();
+                    CheckAndMove(Token.Eq, "= expected");
+                    Expression init = ParseConditional();
+                    ParameterExpression le = Expression.Variable(init.Type, localId);
+                    letLocals.Add(le);
+                    letExpressions.Add(Expression.Assign(le, init));
+                    locals[localId] = le;
+                }
+                while (kind == Token.Comma);
+                CheckAndMove(Token.In, "IN expected");
             }
-            while (kind == Token.Comma);
-            CheckAndMove(Token.In, "IN expected");
+            Expression rvalue = ParseConditional();
+            if (forceCast)
+                rvalue = Expression.Convert(rvalue, typeof(object));
+            if (leftValue != "")
+                rvalue = source.SetExpression(leftValue, rvalue);
+            letExpressions.Add(rvalue);
+            return checkEof && kind != Token.Eof
+                ? throw Error("Extra input after expression")
+                : letLocals.Count == 0 && letExpressions.Count == 1
+                ? letExpressions[0]
+                : Expression.Block(letLocals, letExpressions);
         }
-        Expression rvalue = ParseConditional();
-        if (forceCast)
-            rvalue = Expression.Convert(rvalue, typeof(object));
-        if (leftValue != "")
-            rvalue = source.SetExpression(leftValue, rvalue);
-        letExpressions.Add(rvalue);
-        return checkEof && kind != Token.Eof
-            ? throw Error("Extra input after expression")
-            : letLocals.Count == 0 && letExpressions.Count == 1
-            ? letExpressions[0]
-            : Expression.Block(letLocals, letExpressions);
+        finally
+        {
+            letExpressions.Clear();
+        }
     }
 
     /// <summary>Compiles a ternary conditional expression.</summary>
