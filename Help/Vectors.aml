@@ -57,7 +57,7 @@ vector(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
 easily created using the <codeInline>complexvector::new</codeInline> class method and one or two vector
 constructors:</para>
         	<code language="Austra">
-complexvector::new([1 2 3 4], [4 3 2 1])
+complexvector::new([1 2 3 4], [4 3 2 1]);
 <markup><font color="DarkGreen">-- ::new can be omitted.</font></markup>
 complexvector([1 2 3 4], [4 3 2 1])
 			</code>

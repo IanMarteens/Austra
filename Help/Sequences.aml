@@ -23,18 +23,18 @@
               <content>
                   <para>This code fragment shows some of the available constructors for sequences:</para>
 		          <code language="Austra">
-seq(1, 10)       <markup><font color="DarkGreen">-- Numbers from 1 to 10.</font></markup>
-seq(10, 1)       <markup><font color="DarkGreen">-- The inverted sequence.</font></markup>
-seq::new(1, 10)  <markup><font color="DarkGreen">-- ::new was omitted before.</font></markup>
-seq(0, τ, 128)   <markup><font color="DarkGreen">-- A uniform grid with 128 intervals.</font></markup>
-seq(v)           <markup><font color="DarkGreen">-- A sequence from a vector.</font></markup>
-seq::random(10)  <markup><font color="DarkGreen">-- A sequence with 10 random values.</font></markup>
-seq::nrandom(10) <markup><font color="DarkGreen">-- A sequence with 10 Gaussian random values.</font></markup>
+seq(1, 10);       <markup><font color="DarkGreen">-- Numbers from 1 to 10.</font></markup>
+seq(10, 1);       <markup><font color="DarkGreen">-- The inverted sequence.</font></markup>
+seq::new(1, 10);  <markup><font color="DarkGreen">-- ::new was omitted before.</font></markup>
+seq(0, τ, 128);   <markup><font color="DarkGreen">-- A uniform grid with 128 intervals.</font></markup>
+seq(v);           <markup><font color="DarkGreen">-- A sequence from a vector.</font></markup>
+seq::random(10);  <markup><font color="DarkGreen">-- A sequence with 10 random values.</font></markup>
+seq::nrandom(10)  <markup><font color="DarkGreen">-- A sequence with 10 Gaussian random values.</font></markup>
 				  </code>
 				  <para><codeInline>seq::nrandom</codeInline> is overloaded so you can specify either a variance for the sequence, keeping a zero mean, or a variance and a vector of <newTerm>autoregressive</newTerm> coefficients:</para>
 		          <code language="Austra">
 <markup><font color="DarkGreen">-- A thousand samples from a normal distribution with variance = 2.</font></markup>
-seq::nrandom(1000, 2)
+seq::nrandom(1000, 2);
 <markup><font color="DarkGreen">-- An autoregressive process of order three.</font></markup>
 seq::nrandom(1000, 1, [0.1, 0.05, 0.01])
 				  </code>
@@ -66,12 +66,35 @@ seq::random(10).toVector
  		    <entry><para>Transforms items with the help of a lambda function.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>vector::zip</codeInline></para></entry>
+ 		    <entry><para><codeInline>seq::zip</codeInline></para></entry>
  		    <entry><para>Combines two sequences using a lambda function.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>vector::reduce</codeInline></para></entry>
+ 		    <entry><para><codeInline>seq::reduce</codeInline></para></entry>
  		    <entry><para>Conflates all values in a sequence using a lambda.</para></entry>
+		  </row>
+		</table>
+		<para>Properties are methods without parameters, that can be called without parentheses. These are the supported properties:</para>
+		<table>
+ 		  <row>
+ 		    <entry><para><codeInline>seq::sort</codeInline></para></entry>
+ 		    <entry><para>Sorts values in ascending order.</para></entry>
+		  </row>
+ 		  <row>
+ 		    <entry><para><codeInline>seq::sortDesc</codeInline></para></entry>
+ 		    <entry><para>Sorts values in descending order.</para></entry>
+		  </row>
+ 		  <row>
+ 		    <entry><para><codeInline>seq::distinct</codeInline></para></entry>
+ 		    <entry><para>Select unique values in the sequence, with no predefined order.</para></entry>
+		  </row>
+ 		  <row>
+ 		    <entry><para><codeInline>seq::sum</codeInline></para></entry>
+ 		    <entry><para>Sums all values in the sequence.</para></entry>
+		  </row>
+ 		  <row>
+ 		    <entry><para><codeInline>seq::prod</codeInline></para></entry>
+ 		    <entry><para>Multiplies all values in the sequence.</para></entry>
 		  </row>
 		</table>
               </content>
@@ -85,7 +108,7 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 				  </code>
                   <para>For instance, simple operators can be used to change the underlying distribution of a random sequence.</para>
 		          <code language="Austra">
-seq::random(100) * 2 - 1
+seq::random(100) * 2 - 1;
 <markup><font color="DarkGreen">-- Check the moments of the above distribution.</font></markup>
 (seq::random(100) * 2 - 1).stats
 				  </code>
@@ -98,13 +121,32 @@ seq::random(100) * 2 - 1
           <section address="SubSection2">
               <title>Delayed execution</title>
               <content>
-                  <para>Sequence operators mimics most of vector's operators.</para>
+                  <para>Sequence are modeled after .NET LINQ enumerables, and so many other functional libraries. One of the most interesting features of these libraries is <newTerm>delayed execution</newTerm>.</para>
+                  <para>Applying a method or an operator on a sequence does not means that it will automatically scan the sequence values. Let's start with a simple example:</para>
+		          <code language="Austra">
+-seq(1, 1000)
+				  </code>
+                  <para>The above code first creates a sequence that will enumerate numbers from 1 to 1000. Creating the sequence means creating a small instance of an internal class that can be called later to yield the values in the sequence. The unary minus, however, take that sequence generator and returns another generator that yields values in descending order, from the interval <math>[-10, -1]</math>. It does not forces yet the sequence enumeration. Actually, enumeration takes place as the last operation, as you hit F5 in the AUSTRA desktop, as the application needs to print the values created by the expression. The same would happen with this expression, that plots the sequence as a series:</para>
+		          <code language="Austra">
+-seq(1, 1000).plot
+				  </code>
+				  <para>It is the <codeInline>plot</codeInline> method the trigger which starts the internal loop for generating all the values. You could even intercalate another method call before the plot, without triggering enumeration:</para>
+		          <code language="Austra">
+<markup><font color="DarkGreen">-- Sort the negated values in ascending order.</font></markup>
+-seq(1, 1000).sort.plot;
+<markup><font color="DarkGreen">-- Square values, select multiples of three and sort descending.</font></markup>
+seq(1, 1000).map(x => x^2).filter(x => x % 3 = 0).sortDesc.plot;
+<markup><font color="DarkGreen">-- Methods like sum, prod, any, all or first can also trigger evaluation.</font></markup>
+seq(1, 100).filter(x => x % 2 = 0).map(x => x^2).sum
+				  </code>
               </content>
           </section>
       </sections>
     </section>
     <relatedTopics>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
+      <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
+      <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
     </relatedTopics>
   </developerConceptualDocument>

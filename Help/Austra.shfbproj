@@ -94,4 +94,14 @@
     <None Include="Language.aml" />
     <None Include="Welcome.aml" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="s002.png">
+      <ImageId>s002</ImageId>
+      <AlternateText>s 002</AlternateText>
+    </Image>
+    <Image Include="s001.png">
+      <ImageId>s001</ImageId>
+      <AlternateText>s 001</AlternateText>
+    </Image>
+  </ItemGroup>
 </Project>

@@ -5,7 +5,7 @@
       <para>Lambda functions are inline-defined anonymous functions that can be used as parameters in normal methods and class method calls.</para>
     </introduction>
     <section address="Section1">
-      <title>Usage</title>
+      <title>Lambda functions with one parameter</title>
       <content>
         <para>Series and vectors, for instance, has an <codeInline>all</codeInline> method to check if all their numeric values satisfies an arbitrary condition. The condition is the only parameter of the method, and must be passed as a lambda function. Let's say we have an <codeInline>aapl_prices</codeInline> persistent variable holding a series of prices. We can verify that all those prices are positive using this formula:</para>
         <code language="Austra">
@@ -36,44 +36,64 @@ values from a series, so that no one is greater than 1000:</para>
         <code language="Austra">
 prices.map(x => min(x, 1000))
 		</code>
+		<para>In all cases, the type of the parameter of the lambda is determined by the method the lambda is passed, and so is the returned type. AUSTRA adds any required conversion, as when a double is required for the result and an integer expression is being returned. Regarding the name of the lambda's parameter, you can use any name you like, keeping in mind that it will shadow any predefined identifier inside the lambda function's body.</para>
+      </content>
+    </section>
+    <section address="Section2">
+      <title>Lambda functions with two parameters</title>
+      <content>
+        <para>Some methods require lambda arguments with more than one parameter. When a lambda requires two or more parameters, their names must be enclosed inside parenthesis, and must be separated by commas.</para>
+        <para>That is the case of the <codeInline>zip</codeInline> method, from <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">series</link>, <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">vectors</link>, and <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">sequences</link>, that combines two data samples into a single one:</para>
+        <code language="Austra">
+        aapl_prices.zip((x, y) => max(x, y))
+        </code>
+        <para><codeInline>zip</codeInline> can act on arguments with different lengths, so it only acts in the common part of both. It generates a new series, vector or sequence, and each item will be the combined value created by the lambda function. In the above example, it will be the maximum price for each common date.</para>
+      </content>
+    </section>
+    <section>
+      <title>Captured variables</title>
+      <content>
+      <para>The <codeInline>ncdf()</codeInline> method of a <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">series</link> takes a real value and classifies it according to its
+position in the normal distribution implicitly defined by the series. By definition, it
+is a value between 0 and 1. Even better, ncdf() is monotonic: if <math>x &lt; y</math>, then
+<math>s.ncdf(x) &lt; s.ncdf(y)</math>. All this means that this method is a nice way to compress an
+arbitrary series so all their values lie between 0 and 1, while preserving the shape
+of the series.</para>
+		<para>This formula does the trick:</para>
+        <code language="Austra">
+aapl.map(x => aapl.ncdf(x))
+        </code>
+<para>Nothing remarkable here: <codeInline>aapl</codeInline> is a global identifier, and it should not surprise us
+that we can use it both in the main formula and in the nested lambda. This is the
+original series:</para>
+		<mediaLink>
+			<image placement="near" xlink:href="s001"/>
+		</mediaLink>
+		<para>And this is the compressed series:</para>
+		<mediaLink>
+			<image placement="near" xlink:href="s002"/>
+		</mediaLink>
+		<para>Please note that the main difference between both charts is the range of values.</para>
+		<para>What if what we really wanted was the compressed series with the simple returns
+of prices? Not a big deal. This, obviously, works:</para>
+        <code language="Austra">
+aapl.rets.map(x => aapl.rets.ncdf(x))
+		</code>
+<para>But we can do it much better, using a <codeInline>let</codeInline> clause:</para>
+        <code language="Austra">
+<markup><b>let</b></markup> a = aapl.rets <markup><b>in</b></markup>
+  a.map(x => a.ncdf(x))
+		</code>
+<para>Though <codeInline>a</codeInline> is a local variable defined in the main body of the formula, we still can
+reference it from our nested lambda function. This way, we avoid recalculating the returns of the series in the lambda's body.</para>
       </content>
     </section>
     <relatedTopics>
-      <!-- One or more of the following:
-           - A local link
-           - An external link
-           - A code entity reference
-
-      <link xlink:href="Other Topic's ID"/>
-      <link xlink:href="Other Topic's ID">Link inner text</link>
-
-      <externalLink>
-          <linkText>Link text</linkText>
-          <linkAlternateText>Optional alternate link text</linkAlternateText>
-          <linkUri>URI</linkUri>
-      </externalLink>
-
-      <codeEntityReference>API member ID</codeEntityReference>
-
-      Examples:
-
-      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8270" />
-      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8278">Some other topic</link>
-
-      <externalLink>
-          <linkText>SHFB on GitHub</linkText>
-          <linkAlternateText>Go to GitHub</linkAlternateText>
-          <linkUri>https://GitHub.com/EWSoftware/SHFB</linkUri>
-      </externalLink>
-
-      <codeEntityReference>T:TestDoc.TestClass</codeEntityReference>
-      <codeEntityReference>P:TestDoc.TestClass.SomeProperty</codeEntityReference>
-      <codeEntityReference>M:TestDoc.TestClass.#ctor</codeEntityReference>
-      <codeEntityReference>M:TestDoc.TestClass.#ctor(System.String,System.Int32)</codeEntityReference>
-      <codeEntityReference>M:TestDoc.TestClass.ToString</codeEntityReference>
-      <codeEntityReference>M:TestDoc.TestClass.FirstMethod</codeEntityReference>
-      <codeEntityReference>M:TestDoc.TestClass.SecondMethod(System.Int32,System.String)</codeEntityReference>
-      -->
+	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
+      <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
+      <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
+      <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
+      <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
     </relatedTopics>
   </developerConceptualDocument>
 </topic>
