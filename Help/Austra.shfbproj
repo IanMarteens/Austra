@@ -95,6 +95,14 @@
     <None Include="Welcome.aml" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="w002.png">
+      <ImageId>w002</ImageId>
+      <AlternateText>w 002</AlternateText>
+    </Image>
+    <Image Include="w001.png">
+      <ImageId>w001</ImageId>
+      <AlternateText>w 001</AlternateText>
+    </Image>
     <Image Include="s002.png">
       <ImageId>s002</ImageId>
       <AlternateText>s 002</AlternateText>

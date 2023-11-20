@@ -50,10 +50,13 @@ internal sealed partial class Parser : IDisposable
     private readonly HashSet<Definition> references = [];
     /// <summary>All top-level locals, from LET clauses.</summary>
     private readonly List<ParameterExpression> letLocals = new(8);
+    private readonly List<ParameterExpression> scriptLetLocals = new(8);
     /// <summary>Top-level local asignment expressions.</summary>
     private readonly List<Expression> letExpressions;
     /// <summary>Transient local variable definitions.</summary>
     private readonly Dictionary<string, ParameterExpression> locals =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ParameterExpression> scriptLocals =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly List<Expression> setExpressions;
     private readonly List<Expression> scriptExpressions;

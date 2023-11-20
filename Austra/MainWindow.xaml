@@ -93,127 +93,140 @@
                             Command="{x:Static SystemCommands.CloseWindowCommand}"/>
                 </StackPanel>
             </Grid>
-            <Menu DockPanel.Dock="Top" Background="#FF202020">
-                <Menu.Resources>
-                    <Style TargetType="MenuItem">
-                        <Setter Property="FontSize" Value="12"/>
-                        <Setter Property="Foreground" Value="#FFC8C8C8"/>
-                        <Setter Property="Padding" Value="0,0,0,1"/>
-                    </Style>
-                </Menu.Resources>
-                <MenuItem Header="_File">
-                    <MenuItem Header="_New">
-                        <MenuItem.Icon>
-                            <Image Source="/images/new.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
+            <Grid Height="Auto" DockPanel.Dock="Top" Background="#FF202020">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Menu Grid.Column="0" Background="#FF202020">
+                    <Menu.Resources>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="Foreground" Value="#FFC8C8C8"/>
+                            <Setter Property="Padding" Value="0,0,0,1"/>
+                        </Style>
+                    </Menu.Resources>
+                    <MenuItem Header="_File">
+                        <MenuItem Header="_New">
+                            <MenuItem.Icon>
+                                <Image Source="/images/new.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="_Open" Command="ApplicationCommands.Open">
+                            <MenuItem.Icon>
+                                <Image Source="/images/open.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator Background="#FF707070" Height="1"/>
+                        <MenuItem Header="Close all" Command="{Binding CloseAllCommand}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/closeAll.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator Background="#FF707070" Height="1"/>
+                        <MenuItem Header="E_xit" Command="ApplicationCommands.Close">
+                            <MenuItem.Icon>
+                                <Image Source="/images/exit.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </MenuItem>
-                    <MenuItem Header="_Open" Command="ApplicationCommands.Open">
-                        <MenuItem.Icon>
-                            <Image Source="/images/open.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
+                    <MenuItem Header="_Edit">
+                        <MenuItem Header="_Undo" Command="Undo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/undo.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="_Redo" Command="Redo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/redo.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator Background="#FF707070" Height="1"/>
+                        <MenuItem Header="Cu_t" Command="Cut" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/cut.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="_Copy" Command="Copy" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/copy.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="_Paste" Command="Paste" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/paste.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="_Delete" Command="Delete" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/delete.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator Background="#FF707070" Height="1"/>
+                        <MenuItem Header="Select _all" Command="SelectAll" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/selectAll.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator Background="#FF707070" Height="1"/>
+                        <MenuItem Header="History up" Command="{Binding HistoryUpCommand}" InputGestureText="F7">
+                            <MenuItem.Icon>
+                                <Image Source="/images/histUp.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="History down" Command="{Binding HistoryDownCommand}" InputGestureText="Ctrl+F7">
+                            <MenuItem.Icon>
+                                <Image Source="/images/histDown.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </MenuItem>
-                    <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="Close all" Command="{Binding CloseAllCommand}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/closeAll.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
+                    <MenuItem Header="_Run">
+                        <MenuItem Header="_Execute" Command="{Binding EvaluateCommand}" InputGestureText="F5">
+                            <MenuItem.Icon>
+                                <Image Source="/images/play.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="_Check type" InputGestureText="Ctrl+F5" Command="{Binding CheckTypeCommand}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/playt.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Clear _results" Command="{Binding ClearCommand}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/clearResults.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </MenuItem>
-                    <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="E_xit" Command="ApplicationCommands.Close">
-                        <MenuItem.Icon>
-                            <Image Source="/images/exit.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
+                    <MenuItem Header="_Tools">
+                        <MenuItem Header="_Options" Command="{Binding OptionsCommand}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/options.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </MenuItem>
-                </MenuItem>
-                <MenuItem Header="_Edit">
-                    <MenuItem Header="_Undo" Command="Undo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/undo.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
+                    <MenuItem Header="_Help">
+                        <MenuItem Header="_Help" Command="Help" CommandTarget="{Binding ElementName=avalon}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/help.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator Background="#FF707070" Height="1"/>
+                        <MenuItem Header="_About" Command="{Binding AboutCommand}">
+                            <MenuItem.Icon>
+                                <Image Source="/images/info.png" Width="15" Height="Auto"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </MenuItem>
-                    <MenuItem Header="_Redo" Command="Redo" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/redo.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="Cu_t" Command="Cut" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/cut.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="_Copy" Command="Copy" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/copy.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="_Paste" Command="Paste" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/paste.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="_Delete" Command="Delete" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/delete.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="Select _all" Command="SelectAll" CommandTarget="{Binding ElementName=avalon, Path=TextArea}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/selectAll.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="History up" Command="{Binding HistoryUpCommand}" InputGestureText="F7">
-                        <MenuItem.Icon>
-                            <Image Source="/images/histUp.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="History down" Command="{Binding HistoryDownCommand}" InputGestureText="Ctrl+F7">
-                        <MenuItem.Icon>
-                            <Image Source="/images/histDown.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </MenuItem>
-                <MenuItem Header="_Run">
-                    <MenuItem Header="_Execute" Command="{Binding EvaluateCommand}" InputGestureText="F5">
-                        <MenuItem.Icon>
-                            <Image Source="/images/play.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="_Check type" InputGestureText="Ctrl+F5" Command="{Binding CheckTypeCommand}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/playt.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator/>
-                    <MenuItem Header="Clear _results" Command="{Binding ClearCommand}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/clearResults.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </MenuItem>
-                <MenuItem Header="_Tools">
-                    <MenuItem Header="_Options" Command="{Binding OptionsCommand}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/options.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </MenuItem>
-                <MenuItem Header="_Help">
-                    <MenuItem Header="_Help" Command="Help" CommandTarget="{Binding ElementName=avalon}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/help.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator Background="#FF707070" Height="1"/>
-                    <MenuItem Header="_About" Command="{Binding AboutCommand}">
-                        <MenuItem.Icon>
-                            <Image Source="/images/info.png" Width="15" Height="Auto"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </MenuItem>
-            </Menu>
+                </Menu>
+                <Button Grid.Column="1" Height="Auto" Padding="0" Margin="0" Background="Transparent" BorderThickness="0" Command="Help">
+                    <Image Source="/images/help.png" Width="12" Height="Auto"/>
+                </Button>
+                <Button Grid.Column="2" Height="Auto" Padding="4 0 2 0" Margin="0" Background="Transparent" BorderThickness="0" Command="{Binding AboutCommand}">
+                    <Image Source="/images/info.png" Width="13" Height="Auto"/>
+                </Button>
+            </Grid>
             <ToolBar DockPanel.Dock="Top">
                 <Button Command="ApplicationCommands.Open" ToolTip="Loads a session from a file">
                     <StackPanel Orientation="Horizontal">

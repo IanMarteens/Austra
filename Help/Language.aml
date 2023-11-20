@@ -103,6 +103,14 @@ else msft.mean
               <title>Global variables</title>
               <content>
                   <para>Global variables come in two flavors: persistent variables and session variables. Persistent variables come mostly from an external source, like a JSON file, a database or an external service. In this AUSTRA version, those persisted variables are always time series, because they have a predictable serialization format. This design decision, of course, may change at some point of the evolution of the library.</para>
+                  <para>For instance, when I open the AUSTRA application in my system, it automatically loads a set of series and definitions that are stored in a subfolder <newTerm>Austra</newTerm> of my <newTerm>Documents</newTerm> folder, in a file named <newTerm>data.austra</newTerm>, and its main windows looks something like this:</para>
+                  <mediaLink><image placement="near" xlink:href="w001"/></mediaLink>
+                  <para>Persistent series are shown below a <newTerm>Series</newTerm> node. I can type the name of any of these variables in the Code Editor:</para>
+                  <code language="Austra">
+                  aaa
+                  </code>                  
+                  <para>When I press <codeInline>F5</codeInline>, AUSTRA translates the expression and immediately shows the content of the <codeInline>aaa</codeInline> series:</para>
+                  <mediaLink><image placement="near" xlink:href="w002"/></mediaLink>
                   <para>Session variables, as their name indicates, are defined inside a user session and die with the session.</para>
               </content>
           </section>

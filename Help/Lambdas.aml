@@ -23,7 +23,7 @@ inside the (0, 1) interval:</para>
         <code language="Austra">
 prices.all(value => 0 &lt; value &lt; 1)
 		</code>
-		<para>Notice that in this new example, we have used another value for the "arbitrary given value".</para>
+		<para>Notice that in this new example, we have used another name for the "arbitrary given value": <codeInline>value</codeInline> instead of <codeInline>x</codeInline>. This renaming has no effect in the formula.</para>
 		<para>This example shows how to use the related method <codeInline>any</codeInline>:</para>
         <code language="Austra">
 prices.any(x => x >= 1)
@@ -55,10 +55,9 @@ prices.map(x => min(x, 1000))
       <content>
       <para>The <codeInline>ncdf()</codeInline> method of a <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">series</link> takes a real value and classifies it according to its
 position in the normal distribution implicitly defined by the series. By definition, it
-is a value between 0 and 1. Even better, ncdf() is monotonic: if <math>x &lt; y</math>, then
+is a value between 0 and 1. Even better, <codeInline>ncdf()</codeInline> is monotonic: if <math>x &lt; y</math>, then
 <math>s.ncdf(x) &lt; s.ncdf(y)</math>. All this means that this method is a nice way to compress an
-arbitrary series so all their values lie between 0 and 1, while preserving the shape
-of the series.</para>
+arbitrary series so all their values lie between 0 and 1, while preserving the shape of the series.</para>
 		<para>This formula does the trick:</para>
         <code language="Austra">
 aapl.map(x => aapl.ncdf(x))
@@ -86,6 +85,10 @@ aapl.rets.map(x => aapl.rets.ncdf(x))
 		</code>
 <para>Though <codeInline>a</codeInline> is a local variable defined in the main body of the formula, we still can
 reference it from our nested lambda function. This way, we avoid recalculating the returns of the series in the lambda's body.</para>
+		<alert class="note">
+			<para>The <codeInline>series.ncdf(x)</codeInline> method assumes that values in the serie can be described by a normal distribution. This is almost never true.</para>
+			<para>A most useful related method is <codeInline>series.movingNcdf(points)</codeInline>, which calculates the <codeInline>ncdf</codeInline> for each value in the series, but calculates the two parameters that defines a normal distribution from a configurable interval of points preceding each calculation.</para>
+		</alert>
       </content>
     </section>
     <relatedTopics>

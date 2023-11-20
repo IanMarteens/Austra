@@ -641,13 +641,16 @@ public sealed partial class RootModel : Entity
         CloseCompletion();
     }
 
-    private static string CleanFormula(string s)
+    private static string CleanFormula(string s) =>
+        string.Join(" ",
+            s.Split(System.Environment.NewLine,
+                StringSplitOptions.RemoveEmptyEntries).Select(RemoveComment));
+
+    private static string RemoveComment(string line)
     {
-        var m = SetRegex().Match(s);
-        return (m.Success ? m.Groups["name"].Value : s).
-            Replace("\r\n", " ").
-            Replace(" \t", " ").
-            Replace("\t", " ").TrimEnd(lineChange);
+        line = line.TrimStart();
+        int idx = line.IndexOf("--");
+        return idx < 0 ? line : line[..idx].TrimEnd();
     }
 
     /// <summary>Shows the compiling and execution time in the status bar.</summary>

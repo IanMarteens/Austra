@@ -14,9 +14,12 @@ internal sealed partial class Parser
                 {
                     int from = start;
                     Expression e = ParseFormula("", true);
-                    int to = kind == Token.Eof ? start + 1 : start;
-                    scriptExpressions.Add(source.GetEnqueueExpression(e));
-                    source.Listener?.EnqueueRange(new Range(from, to));
+                    if (e is not ConstantExpression { Value: null })
+                    {
+                        int to = kind == Token.Eof ? start + 1 : start;
+                        scriptExpressions.Add(source.GetEnqueueExpression(e));
+                        source.Listener?.EnqueueRange(new Range(from, to));
+                    }
                 }
                 else
                     scriptExpressions.Add(ParseAssignment());
@@ -28,8 +31,8 @@ internal sealed partial class Parser
         return scriptExpressions.Count switch
         {
             0 => Expression.Constant(null),
-            1 => scriptExpressions[0],
-            _ => Expression.Block(scriptExpressions),
+            1 when scriptLetLocals.Count == 0 => scriptExpressions[0],
+            _ => Expression.Block(scriptLetLocals, scriptExpressions),
         };
     }
 
@@ -48,27 +51,50 @@ internal sealed partial class Parser
                 CheckAndMove(Token.Str, "Definition description expected");
             }
             CheckAndMove(Token.Eq, "= expected");
-            return [ParseFormula("", false, true).Type];
-        }
-        // Check now for a set header and parse it.
-        if (kind == Token.Set)
-        {
-            List<Type> result = new(8);
-            do
-            {
-                Move();
-                CheckAndMove(Token.Id, "Left side variable expected");
-                if (kind != Token.Eof && kind != Token.Comma)
-                {
-                    CheckAndMove(Token.Eq, "= expected");
-                    result.Add(ParseFormula("", false).Type);
-                }
-            } while (kind == Token.Comma);
+            Expression e = ParseFormula("", false);
             return kind != Token.Eof
                 ? throw Error("Extra input after expression")
-                : [.. result];
+                : ([e.Type]);
         }
-        return [ParseFormula("", false, true).Type];
+        List<Type> result = new(8);
+        for (; kind != Token.Eof; Move())
+        {
+            if (kind != Token.Semicolon)
+                if (kind != Token.Set)
+                {
+                    int from = start;
+                    Expression e = ParseFormula("", false);
+                    if (e is not ConstantExpression { Value: null })
+                        result.Add(e.Type);
+                }
+                else
+                {
+                    do
+                    {
+                        // Skip either the SET keyword or the comma.
+                        Move();
+                        string leftValue = id;
+                        CheckAndMove(Token.Id, "Left side variable expected");
+                        if (kind != Token.Eof && kind != Token.Comma && kind != Token.Semicolon)
+                        {
+                            CheckAndMove(Token.Eq, "= expected");
+                            Expression e = ParseFormula(leftValue, true);
+                            if (e is BinaryExpression { NodeType: ExpressionType.Assign } be
+                                && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
+                            {
+                                pendingSets[leftValue] = ue.Operand;
+                                result.Add(ue.Operand.Type);
+                            }
+                        }
+                    }
+                    while (kind == Token.Comma);
+                }
+            if (kind != Token.Semicolon)
+                break;
+        }
+        return kind != Token.Eof
+            ? throw Error("Extra input after expression")
+            : [.. result];
     }
 
     /// <summary>Parse the formula up to a position and return local variables.</summary>
@@ -83,29 +109,21 @@ internal sealed partial class Parser
             ParseType();
         }
         catch { /* Ignore */ }
-        finally
+        if (parsingHeader = parsingLambdaHeader)
+            return [];
+        List<Member> result = new(locals.Count + scriptLocals.Count + 2);
+        foreach (KeyValuePair<string, ParameterExpression> pair in locals)
+            result.Add(new(pair.Key, $"Local variable: {pair.Value.Type.Name}"));
+        foreach (KeyValuePair<string, ParameterExpression> pair in scriptLocals)
+            if (!locals.ContainsKey(pair.Key))
+                result.Add(new(pair.Key, $"Local variable: {pair.Value.Type.Name}"));
+        if (lambdaParameter != null)
         {
-            abortPosition = int.MaxValue;
+            if (!string.IsNullOrEmpty(lambdaParameter.Name))
+                result.Add(new(lambdaParameter.Name, "Lambda parameter"));
+            if (lambdaParameter2 != null && !string.IsNullOrEmpty(lambdaParameter2.Name))
+                result.Add(new(lambdaParameter2.Name, "Lambda parameter"));
         }
-        parsingHeader = parsingLambdaHeader;
-        List<Member> result;
-        if (parsingHeader)
-            result = [];
-        else
-        {
-            result = new(locals.Count + 2);
-            foreach (string local in locals.Keys)
-                result.Add(new(local, "Local variable"));
-            if (lambdaParameter != null)
-            {
-                if (!string.IsNullOrEmpty(lambdaParameter.Name))
-                    result.Add(new(lambdaParameter.Name, "Lambda parameter"));
-                if (lambdaParameter2 != null && !string.IsNullOrEmpty(lambdaParameter2.Name))
-                    result.Add(new(lambdaParameter2.Name, "Lambda parameter"));
-            }
-        }
-        parsingLambdaHeader = false;
-        lambdaParameter = lambdaParameter2 = null;
         return result;
     }
 
@@ -209,6 +227,16 @@ internal sealed partial class Parser
                     locals[localId] = le;
                 }
                 while (kind == Token.Comma);
+                if (kind == Token.Semicolon)
+                {
+                    foreach (var pair in locals)
+                        scriptLocals[pair.Key] = pair.Value;
+                    scriptLetLocals.AddRange(letLocals);
+                    scriptExpressions.AddRange(letExpressions);
+                    return checkEof && kind != Token.Eof
+                        ? throw Error("Extra input after expression")
+                        : Expression.Constant(null);
+                }
                 CheckAndMove(Token.In, "IN expected");
             }
             Expression rvalue = ParseConditional();
@@ -1379,7 +1407,8 @@ internal sealed partial class Parser
                 return lambdaParameter2;
         }
         // Check the local scope.
-        if (locals.TryGetValue(ident, out ParameterExpression? local))
+        if (scriptLocals.TryGetValue(ident, out ParameterExpression? local) ||
+            locals.TryGetValue(ident, out local))
             return local.Type == typeof(DoubleSequence)
                 ? Expression.Call(local, typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Clone))!)
                 : local;
