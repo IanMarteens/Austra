@@ -1,4 +1,7 @@
-﻿namespace Austra.Library;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence : IFormattable
@@ -154,6 +157,19 @@ public abstract partial class DoubleSequence : IFormattable
             ? new RangeSequenceDesc(last, first)[idx.Value - 1]
             : this[idx.Value];
 
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DoubleSequence this[Range range]
+        {
+            get
+            {
+                (int offset, int length) = range.GetOffsetAndLength(Length());
+                return new RangeSequence(
+                    first + offset, first + (offset + length - 1));
+            }
+        }
+
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
         protected sealed override double[] Materialize()
@@ -249,6 +265,19 @@ public abstract partial class DoubleSequence : IFormattable
             ? new RangeSequence(last, first)[idx.Value - 1]
             : this[idx.Value];
 
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DoubleSequence this[Range range]
+        {
+            get
+            {
+                (int offset, int length) = range.GetOffsetAndLength(Length());
+                return new RangeSequenceDesc(
+                    first - offset, first - (offset + length - 1));
+            }
+        }
+
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
         public override double Min() => last;
@@ -320,6 +349,40 @@ public abstract partial class DoubleSequence : IFormattable
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
         public override DoubleSequence Distinct() => this;
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override double this[int index] =>
+            (uint)index < Length() ? lower + index * delta : throw new IndexOutOfRangeException();
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="idx">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        public override double this[Index idx]
+        {
+            get
+            {
+                int i = idx.GetOffset(Length());
+                return (uint)i < Length() ? lower + i * delta : throw new IndexOutOfRangeException();
+            }
+        }
+
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DoubleSequence this[Range range]
+        {
+            get
+            {
+                (int offset, int length) = range.GetOffsetAndLength(Length());
+                return new GridSequence(
+                    lower + offset * delta, lower + (offset + length - 1) * delta, length - 1);
+            }
+        }
 
         /// <summary>Gets the first value in the sequence.</summary>
         /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
