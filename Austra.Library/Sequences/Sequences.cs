@@ -12,7 +12,8 @@ public abstract partial class DoubleSequence :
     IMultiplyOperators<DoubleSequence, DoubleSequence, double>,
     IMultiplyOperators<DoubleSequence, double, DoubleSequence>,
     IDivisionOperators<DoubleSequence, double, DoubleSequence>,
-    IUnaryNegationOperators<DoubleSequence, DoubleSequence>
+    IUnaryNegationOperators<DoubleSequence, DoubleSequence>,
+    IPointwiseOperators<DoubleSequence>
 {
     /// <summary>Gets the next number in the sequence.</summary>
     /// <param name="value">The next number in the sequence.</param>
@@ -236,6 +237,18 @@ public abstract partial class DoubleSequence :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DoubleSequence operator /(DoubleSequence s, double d) => s * (1d / d);
 
+    /// <summary>Item by item multiplication of two sequences.</summary>
+    /// <param name="other">The second sequence.</param>
+    /// <returns>A sequence with all the multiplication results.</returns>
+    public DoubleSequence PointwiseMultiply(DoubleSequence other) =>
+        new Zipped(this, other, (x, y) => x * y);
+
+    /// <summary>Item by item division of sequences.</summary>
+    /// <param name="other">The second sequence.</param>
+    /// <returns>A sequence with all the quotient results.</returns>
+    public DoubleSequence PointwiseDivide(DoubleSequence other) =>
+        new Zipped(this, other, (x, y) => x / y);
+
     /// <summary>Gets all statistics from the values in the secuence.</summary>
     /// <returns>Simple statistics of all the values in the sequence.</returns>
     public virtual Accumulator Stats()
@@ -289,11 +302,21 @@ public abstract partial class DoubleSequence :
 
     /// <summary>Gets the first value in the sequence.</summary>
     /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
-    public double First()
+    public virtual double First()
     {
         if (!Next(out double value))
             return double.NaN;
         return value;
+    }
+
+    /// <summary>Gets the last value in the sequence.</summary>
+    /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
+    public virtual double Last()
+    {
+        double saved = double.NaN;
+        while (Next(out double value))
+            saved = value;
+        return saved;
     }
 
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>

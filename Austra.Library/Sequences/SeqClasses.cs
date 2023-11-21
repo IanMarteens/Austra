@@ -167,6 +167,14 @@ public abstract partial class DoubleSequence : IFormattable
         /// <returns>A sorted sequence in descending order.</returns>
         public override DoubleSequence SortDescending() => new RangeSequenceDesc(last, first);
 
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
+        public override double First() => first;
+
+        /// <summary>Gets the last value in the sequence.</summary>
+        /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
+        public override double Last() => last;
+
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
         public override double Min() => first;
@@ -281,6 +289,14 @@ public abstract partial class DoubleSequence : IFormattable
         /// <returns>A sequence with unique values.</returns>
         public override DoubleSequence Distinct() => this;
 
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
+        public override double First() => lower;
+
+        /// <summary>Gets the last value in the sequence.</summary>
+        /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
+        public override double Last() => upper;
+
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
         public override double Min() => Math.Min(lower, upper);
@@ -356,6 +372,14 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets all statistics from the values in the secuence.</summary>
         /// <returns>Simple statistics of all the values in the sequence.</returns>
         public override Accumulator Stats() => source.Stats();
+
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
+        public override double First() => source[0];
+
+        /// <summary>Gets the last value in the sequence.</summary>
+        /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
+        public override double Last() => source[^1];
 
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
