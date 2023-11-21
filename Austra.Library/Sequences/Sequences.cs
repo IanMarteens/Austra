@@ -127,6 +127,11 @@ public abstract partial class DoubleSequence :
     /// <returns>The value at the given position.</returns>
     public virtual double this[Index idx] => idx.IsFromEnd ? Materialize()[idx] : this[idx.Value];
 
+    /// <summary>Gets a range from the sequence.</summary>
+    /// <param name="range">A range inside the sequence.</param>
+    /// <returns>The sequence for the given range.</returns>
+    public virtual DoubleSequence this[Range range] => new VectorSequence(Materialize()[range]);
+
     /// <summary>Adds the common part of two sequences.</summary>
     /// <param name="s1">First sequence operand.</param>
     /// <param name="s2">Second sequence operand.</param>

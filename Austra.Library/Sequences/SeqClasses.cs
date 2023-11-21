@@ -123,7 +123,7 @@ public abstract partial class DoubleSequence : IFormattable
     private class RangeSequence(int first, int last) : DoubleSequence
     {
         /// <summary>Calculated length of the sequence.</summary>
-        private readonly int length = Abs(last - first) + 1;
+        protected readonly int length = Abs(last - first) + 1;
         /// <summary>Current value.</summary>
         protected int current = first;
         /// <summary>First value in the sequence.</summary>
@@ -137,6 +137,22 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Checks if we can get the length without iterating.</summary>
         protected sealed override bool HasLength => true;
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override double this[int index] =>
+            (uint)index < length ? first + index : throw new IndexOutOfRangeException();
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="idx">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        public override double this[Index idx] => idx.IsFromEnd 
+            ? new RangeSequenceDesc(last, first)[idx.Value - 1]
+            : this[idx.Value];
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
@@ -216,6 +232,22 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Sorts the content of this sequence in descending order.</summary>
         /// <returns>A sorted sequence in descending order.</returns>
         public override DoubleSequence SortDescending() => this;
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override double this[int index] =>
+            (uint)index < length ? first - index : throw new IndexOutOfRangeException();
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="idx">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        public override double this[Index idx] => idx.IsFromEnd
+            ? new RangeSequence(last, first)[idx.Value - 1]
+            : this[idx.Value];
 
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
@@ -381,6 +413,11 @@ public abstract partial class DoubleSequence : IFormattable
         /// <param name="idx">A position inside the sequence.</param>
         /// <returns>The value at the given position.</returns>
         public override double this[Index idx] => source[idx];
+
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DoubleSequence this[Range range] => new VectorSequence(source[range]);
 
         /// <summary>Gets all statistics from the values in the secuence.</summary>
         /// <returns>Simple statistics of all the values in the sequence.</returns>

@@ -780,6 +780,7 @@ internal sealed partial class Parser
                     Move();
                     e = IsVector(e) || e.Type == typeof(Series<int>)
                         || e.Type.IsAssignableTo(typeof(FftModel))
+                        || e.Type.IsAssignableTo(typeof(DoubleSequence))
                         ? ParseIndexer(e, true)
                         : IsMatrix(e)
                         ? ParseMatrixIndexer(e)
