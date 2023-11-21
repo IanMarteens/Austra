@@ -369,6 +369,19 @@ public abstract partial class DoubleSequence : IFormattable
             return false;
         }
 
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override double this[int index] => source[index];
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="idx">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        public override double this[Index idx] => source[idx];
+
         /// <summary>Gets all statistics from the values in the secuence.</summary>
         /// <returns>Simple statistics of all the values in the sequence.</returns>
         public override Accumulator Stats() => source.Stats();

@@ -103,6 +103,30 @@ public abstract partial class DoubleSequence :
         ? throw new VectorLengthException()
         : new ArSequence(size, variance, coefficients);
 
+    /// <summary>Gets the value at the specified index.</summary>
+    /// <param name="index">A position inside the sequence.</param>
+    /// <returns>The value at the given position.</returns>
+    /// <exception cref="IndexOutOfRangeException">
+    /// When <paramref name="index"/> is out of range.
+    /// </exception>
+    public virtual double this[int index]
+    {
+        get
+        {
+            while (index-- > 0)
+                if (!Next(out _))
+                    throw new IndexOutOfRangeException();
+            if (!Next(out double value))
+                throw new IndexOutOfRangeException();
+            return value;
+        }
+    }
+
+    /// <summary>Gets the value at the specified index.</summary>
+    /// <param name="idx">A position inside the sequence.</param>
+    /// <returns>The value at the given position.</returns>
+    public virtual double this[Index idx] => idx.IsFromEnd ? Materialize()[idx] : this[idx.Value];
+
     /// <summary>Adds the common part of two sequences.</summary>
     /// <param name="s1">First sequence operand.</param>
     /// <param name="s2">Second sequence operand.</param>
@@ -240,14 +264,30 @@ public abstract partial class DoubleSequence :
     /// <summary>Item by item multiplication of two sequences.</summary>
     /// <param name="other">The second sequence.</param>
     /// <returns>A sequence with all the multiplication results.</returns>
-    public DoubleSequence PointwiseMultiply(DoubleSequence other) =>
-        new Zipped(this, other, (x, y) => x * y);
+    public DoubleSequence PointwiseMultiply(DoubleSequence other)
+    {
+        if (!HasStorage && !other.HasStorage)
+            return new Zipped(this, other, (x, y) => x * y);
+        double[] a1 = Materialize();
+        double[] a2 = other.Materialize();
+        int size = Math.Min(a1.Length, a2.Length);
+        return new VectorSequence(a1.AsSpan(size).MulV(a2.AsSpan(size)));
+    }
 
     /// <summary>Item by item division of sequences.</summary>
     /// <param name="other">The second sequence.</param>
     /// <returns>A sequence with all the quotient results.</returns>
-    public DoubleSequence PointwiseDivide(DoubleSequence other) =>
-        new Zipped(this, other, (x, y) => x / y);
+    public DoubleSequence PointwiseDivide(DoubleSequence other)
+    {
+        {
+            if (!HasStorage && !other.HasStorage)
+                return new Zipped(this, other, (x, y) => x / y);
+            double[] a1 = Materialize();
+            double[] a2 = other.Materialize();
+            int size = Math.Min(a1.Length, a2.Length);
+            return new VectorSequence(a1.AsSpan(size).DivV(a2.AsSpan(size)));
+        }
+    }
 
     /// <summary>Gets all statistics from the values in the secuence.</summary>
     /// <returns>Simple statistics of all the values in the sequence.</returns>

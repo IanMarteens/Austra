@@ -39,6 +39,12 @@ internal sealed partial class Parser : IDisposable
     private static readonly MethodInfo MatrixCombine =
         typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
             [typeof(Vector), typeof(double), typeof(Vector)])!;
+    /// <summary>Method for cloning sequences.</summary>
+    private static readonly MethodInfo SeqClone =
+        typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Clone))!;
+    /// <summary>Method for restarting sequences.</summary>
+    private static readonly MethodInfo SeqReset =
+        typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Reset))!;
 
     /// <summary>Predefined classes and methods.</summary>
     private readonly ParserBindings bindings;

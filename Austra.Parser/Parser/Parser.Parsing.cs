@@ -1411,7 +1411,7 @@ internal sealed partial class Parser
         if (scriptLocals.TryGetValue(ident, out ParameterExpression? local) ||
             locals.TryGetValue(ident, out local))
             return local.Type == typeof(DoubleSequence)
-                ? Expression.Call(local, typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Clone))!)
+                ? Expression.Call(local, SeqClone)
                 : local;
         // Check macro definitions.
         Definition? def = source.GetDefinition(ident);
@@ -1435,9 +1435,7 @@ internal sealed partial class Parser
         if (e != null)
         {
             return e.Type.IsAssignableTo(typeof(DoubleSequence))
-                ? Expression.Call(Expression.Call(e,
-                    typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Clone))!),
-                    typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Reset))!)
+                ? Expression.Call(Expression.Call(e, SeqClone), SeqReset)
                 : e;
         }
         if (TryParseMonthYear(ident, out Date d))
