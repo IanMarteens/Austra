@@ -87,6 +87,8 @@ public enum Token
     Mod,
     /// <summary>The caret ^ is the power operator.</summary>
     Caret,
+    /// <summary>A superscripted 2.</summary>
+    Caret2,
     /// <summary>The equal sign, doubling as the assignment operator.</summary>
     Eq,
     /// <summary>The non-equal sign.</summary>

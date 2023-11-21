@@ -572,14 +572,15 @@ internal sealed partial class Parser
                 : opKind == Token.Plus ? e1 : Expression.Negate(e1);
         }
         Expression e = ParseFactor();
-        return kind == Token.Caret ? ParsePower(e) : e;
+        return kind == Token.Caret || kind == Token.Caret2 ? ParsePower(e) : e;
     }
 
     private Expression ParsePower(Expression e)
     {
         int pos = start;
+        Token k = kind;
         Move();
-        Expression e1 = ParseFactor();
+        Expression e1 = k == Token.Caret ? ParseFactor() : Expression.Constant(2);
         if (IsArithmetic(e) && IsArithmetic(e1))
             return OptimizePowerOf() ? e : Expression.Power(ToDouble(e), ToDouble(e1));
         if (e.Type == typeof(Complex))
@@ -686,7 +687,7 @@ internal sealed partial class Parser
                         e = IntToDouble(e);
                     else if (e.Type != typeof(double) && e.Type != typeof(Complex))
                         throw Error("Variable must be numeric", pos);
-                    if (kind == Token.Caret)
+                    if (kind == Token.Caret || kind == Token.Caret2)
                         e = ParsePower(e);
                     e = Expression.Multiply(e1, e);
                 }
@@ -707,7 +708,7 @@ internal sealed partial class Parser
                         Move();
                         e = ParseProperty(e);
                     }
-                    if (kind == Token.Caret)
+                    if (kind == Token.Caret || kind == Token.Caret2)
                         e = ParsePower(e);
                     e = Expression.Multiply(e1, e);
                 }

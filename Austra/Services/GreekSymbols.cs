@@ -23,6 +23,7 @@ internal static class GreekSymbols
         [Key.T] = 'τ',
         [Key.U] = 'Θ',
         [Key.Z] = 'ζ',
+        [Key.D2] = '²',
     };
     private static readonly Dictionary<Key, char> tmgUp = new()
     {

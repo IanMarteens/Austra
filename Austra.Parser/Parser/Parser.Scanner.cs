@@ -267,6 +267,7 @@ internal sealed partial class Parser : IDisposable
                 case '/': kind = Token.Div; return;
                 case '%': kind = Token.Mod; return;
                 case '^': kind = Token.Caret; return;
+                case '²': kind = Token.Caret2; return;
                 case '\'': kind = Token.Transpose; return;
                 case '\\': kind = Token.Backslash; return;
                 case '-':
