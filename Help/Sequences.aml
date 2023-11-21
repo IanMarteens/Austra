@@ -113,7 +113,7 @@ seq::random(100) * 2 - 1;
 (seq::random(100) * 2 - 1).stats
 				  </code>
 				  <alert class="note">
-				  <para>Unary operators for sequences could, in theory, be implemented using <codeInline>map</codeInline>, and binary operators can also be written using <codeInline>map</codeInline>.</para>
+				  <para>Unary operators for sequences could, in theory, be implemented using <codeInline>map</codeInline>, and binary operators can also be written using <codeInline>zip</codeInline>.</para>
 				  <para>However, in most cases, having an explicit operator results in a faster implementation. It is most evident for sequences backed by a vector, but it also happens for other kinds of sequences. For instance, when a range or grid sequence is negated, you can implement the result using another range or grid sequence.</para>
 				  </alert>
               </content>

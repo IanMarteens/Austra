@@ -2,7 +2,18 @@
 <topic id="9acf5b7b-21bb-4894-bfa5-a86c67852fd9" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA is a very efficient mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models. Both, library and language, also support vectors, matrices, transforms and the most frequently used operations from linear algebra, statistics, and probability.</para>
+		<table>
+			<row>
+			<entry>
+              <para>AUSTRA is a very efficient mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models.</para>
+              <para>Both, library and language, also support vectors, matrices, transforms and the most frequently used operations from linear algebra, statistics, and probability.</para>
+              <para>The library code is hardware-accelerated, using all resources provided by the CPU. The language compiler is also an optimizing compiler, detecting common expression patterns and substituting them by more efficient method calls, whenever possible.</para>
+			</entry>
+			<entry>
+			  <mediaLink><image placement="near" xlink:href="ostara"/></mediaLink>
+			</entry>
+			</row>
+        </table>
     </introduction>
     <!-- Add one or more top-level section elements.  These are collapsible.
          If using <autoOutline />, add an address attribute to identify it
@@ -12,7 +23,7 @@
       <content>
         <para>Austra contains three main features:</para>
         <list class="ordered">
-        <listItem><link xlink:href="#Design">The Austra library</link>, written in C# and .NET Core 7/8.</listItem>
+        <listItem>The <codeEntityReference qualifyHint="false">N:Austra.Library</codeEntityReference>, written in C# and .NET Core 7/8.</listItem>
         <listItem><link xlink:href="04ea4168-169f-488a-9250-41bdab54e5e6">The Austra language</link>: a simple formula oriented language for testing and exploring the library.</listItem>
         <listItem>The Austra application: a desktop application, written in WPF for Windows, providing a code editor with syntax highlighting and code completion, for trying the language.</listItem>
         </list>

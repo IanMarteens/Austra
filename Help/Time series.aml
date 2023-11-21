@@ -14,6 +14,22 @@
       </content>
       <sections>
         <section>
+          <title>Additional information in series</title>
+          <content>
+            <para>Since one of the goals of AUSTRA is to deal with financial time series, there is a number of optional properties that can be stored in a series:</para>
+            <definitionTable>
+			  <definedTerm>Name</definedTerm>
+			  <definition><para>The name of the series is the name that is used by the parser to locate a series. For this reason, the series' name must be a valid identifier.</para></definition>
+			  <definedTerm>Ticker</definedTerm>
+			  <definition><para>However, it's frequent for series to be identified by traders by their tickers, which is the name assigned by the provider of the series. A ticker is not necessarily a valid identifier, so we provide two different fields, one for the name and the second for a ticker. Tickers can be empty.</para></definition>
+			  <definedTerm>Frequency</definedTerm>
+			  <definition><para>Each series has an associated frequency, which can be daily, weekly, biweekly, monthly, bimonthly, quarterly, semestral, yearly, or undefined. The library, at run time, checks that both operands in a binary operation have always the same frequency.</para></definition>
+			  <definedTerm>Type</definedTerm>
+			  <definition><para>In addition, each series has a type that can be either <codeInline>Raw</codeInline>, <codeInline>Rets</codeInline>, <codeInline>Logs</codeInline>, <codeInline>MixedRets</codeInline>, or <codeInline>Mixed</codeInline>.</para></definition>
+            </definitionTable>
+          </content>
+        </section>
+        <section>
           <title>Series versus vectors</title>
           <content>
             <para><link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vector</link> operations check, at run time, that the operands have the same length. The

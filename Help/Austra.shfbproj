@@ -19,7 +19,7 @@
     <!-- SHFB properties -->
     <FrameworkVersion>.NET Core/.NET Standard/.NET 5.0+</FrameworkVersion>
     <OutputPath>Help\</OutputPath>
-    <HtmlHelpName>Documentation</HtmlHelpName>
+    <HtmlHelpName>austra</HtmlHelpName>
     <Language>en-US</Language>
     <DocumentationSources>
       <DocumentationSource sourceFile="..\Austra.Library\bin\Release\net8.0\Austra.Library.dll" />
@@ -27,9 +27,9 @@
       <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net8.0\Austra.Parser.xml" />
       <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net8.0\Austra.Parser.dll" />
     </DocumentationSources>
-    <HelpFileFormat>HtmlHelp1, MSHelpViewer, Website</HelpFileFormat>
+    <HelpFileFormat>Website</HelpFileFormat>
     <SyntaxFilters>C#</SyntaxFilters>
-    <PresentationStyle>VS2013</PresentationStyle>
+    <PresentationStyle>Default2022</PresentationStyle>
     <CleanIntermediates>True</CleanIntermediates>
     <KeepLogFile>True</KeepLogFile>
     <DisableCodeBlockComponent>False</DisableCodeBlockComponent>
@@ -95,6 +95,10 @@
     <None Include="Welcome.aml" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="ostara.png">
+      <ImageId>ostara</ImageId>
+      <AlternateText>ostara</AlternateText>
+    </Image>
     <Image Include="w002.png">
       <ImageId>w002</ImageId>
       <AlternateText>w 002</AlternateText>
