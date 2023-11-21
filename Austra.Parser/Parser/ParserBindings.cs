@@ -27,12 +27,12 @@ internal sealed partial class ParserBindings
     /// <summary>Code completion descriptors for root classes.</summary>
     private readonly Member[] rootClasses =
     [
-        new("cvector::", "Allows access to complex vector constructors"),
+        new("cvec::", "Allows access to complex vector constructors"),
         new("matrix::", "Allows access to matrix constructors"),
         new("model::", "Allows access to model constructors"),
         new("series::", "Allows access to series constructors"),
         new("spline::", "Allows access to spline constructors"),
-        new("vector::", "Allows access to vector constructors"),
+        new("vec::", "Allows access to vector constructors"),
         new("seq::", "Allows access to sequence constructors"),
         new("math::", "Allows access to mathematical functions"),
     ];
@@ -56,13 +56,13 @@ internal sealed partial class ParserBindings
                 new("mvo(", "Creates a model for a Mean Variance Optimizer"),
                 new("plot(", "Plots vectors, series and sequences"),
             ],
-            ["vector"] = [
+            ["vec"] = [
                 new("new(", "Create a vector given a length and an optional lambda"),
                 new("random(", "Creates a random vector given a length"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
                 new("ones(", "Creates a vector with ones given a length"),
             ],
-            ["cvector"] = [
+            ["cvec"] = [
                 new("new(", "Create a complex vector given a size and an optional lambda"),
                 new("random(", "Creates a random complex vector given a length"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
@@ -750,26 +750,26 @@ internal sealed partial class ParserBindings
                 typeof(VectorSpline).MD(VectorVectorArg),
                 typeof(VectorSpline).MD(
                     typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))),
-            ["vector.new"] = new(
+            ["vec.new"] = new(
                 typeof(Vector).MD(IntArg),
                 typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
                 typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
                 typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))),
-            ["vector.nrandom"] = new(
+            ["vec.nrandom"] = new(
                 typeof(Vector).MD(typeof(int), typeof(NormalRandom))),
-            ["vector.random"] = new(
+            ["vec.random"] = new(
                 typeof(Vector).MD(typeof(int), typeof(Random))),
-            ["vector.ones"] = new(
+            ["vec.ones"] = new(
                 typeof(Vector).MD(typeof(int), typeof(One))),
-            ["cvector.new"] = new(
+            ["cvec.new"] = new(
                 typeof(ComplexVector).MD(VectorArg),
                 typeof(ComplexVector).MD(VectorVectorArg),
                 typeof(ComplexVector).MD(IntArg),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, Complex>)),
                 typeof(ComplexVector).MD(typeof(int), typeof(Func<int, ComplexVector, Complex>))),
-            ["cvector.nrandom"] = new(
+            ["cvec.nrandom"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))),
-            ["cvector.random"] = new(
+            ["cvec.random"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(Random))),
             ["matrix.new"] = new(
                 typeof(Matrix).MD(IntArg),
