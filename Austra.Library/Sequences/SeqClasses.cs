@@ -165,8 +165,7 @@ public abstract partial class DoubleSequence : IFormattable
             get
             {
                 (int offset, int length) = range.GetOffsetAndLength(Length());
-                return new RangeSequence(
-                    first + offset, first + (offset + length - 1));
+                return new RangeSequence(first + offset, first + (offset + length - 1));
             }
         }
 
