@@ -39,7 +39,7 @@
       	  <code language="Austra">
 <markup><b>def</b></markup> sm_cov = matrix::covariance(aapl, msft, hog, dax);
 <markup><b>def</b></markup> sm_ret = [1, 0.9, 1.2, 0.8];
-<markup><b>def</b></markup> cxMvo = model::mvo(sm_ret, sm_cov, vector(4), vector::ones(4))
+<markup><b>def</b></markup> cxMvo = model::mvo(sm_ret, sm_cov, vec(4), vec::ones(4))
       	  </code>
       	  <para>In this case, removing either <codeInline>sm_cov</codeInline> or <codeInline>sm_ret</codeInline>, would also remove <codeInline>cxMvo</codeInline>.</para>
       	  </content>
@@ -49,7 +49,7 @@
       	  <content>
       	  <para>Let's say we make this definition:</para>
       	  <code language="Austra">
-<markup><b>def</b></markup> extProduct = vector::random(4) ^ vector::random(4)
+<markup><b>def</b></markup> extProduct = vec::random(4) ^ vec::random(4)
       	  </code>
       	  <para>This definition calls twice a class method that creates a random vector. The caret operator, <codeInline>^</codeInline>, combines those two vectors in a 4x4 matrix. Executing this definitions two times in a row gives, as expected, different results:</para>
       	  <code language="Austra">
@@ -93,6 +93,11 @@ extProduct! = extProduct
     </section>
     <relatedTopics>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
+      <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
+      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetics</link>
+      <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
+      <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
+      <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
     </relatedTopics>
   </developerConceptualDocument>
 </topic>

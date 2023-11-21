@@ -2,7 +2,7 @@
 <topic id="aae4328b-9ead-40dc-b407-54e8d0614cd5" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA provides double-precision vectors, identified by the class <codeInline>vector</codeInline>, and complex double-precision vectors, <codeInline>cvector</codeInline>. Both data types are implemented using dense storage.</para>
+      <para>AUSTRA provides double-precision vectors, identified by the class <codeInline>vec</codeInline>, and complex double-precision vectors, <codeInline>cvec</codeInline>. Both data types are implemented using dense storage.</para>
     </introduction>
     <section address="Section1">
       <title>Vector creation</title>
@@ -18,39 +18,39 @@
 		<para>These class methods are available for creating vectors:</para>
 		<table>
  		  <row>
- 		    <entry><para><codeInline>vector::new</codeInline></para></entry>
+ 		    <entry><para><codeInline>vec::new</codeInline></para></entry>
  		    <entry><para>Overloaded constructor (see below).</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>vector::ones</codeInline></para></entry>
+ 		    <entry><para><codeInline>vec::ones</codeInline></para></entry>
  		    <entry><para>Creates a vector filled with ones.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>vector::random</codeInline></para></entry>
+ 		    <entry><para><codeInline>vec::random</codeInline></para></entry>
  		    <entry><para>Creates a vector with random values from a uniform distribution.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>vector::nrandom</codeInline></para></entry>
+ 		    <entry><para><codeInline>vec::nrandom</codeInline></para></entry>
  		    <entry><para>Creates a vector with random values from a normal standard distribution.</para></entry>
 		  </row>
 		</table>
 		<para>These are the overloads supported by <codeInline>vector::new</codeInline>:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- Creates a vector with 10 items, all of them zeros.</font></markup>
-vector::new(10);
+vec::new(10);
 <markup><font color="DarkGreen">-- Remember that ::new can be omitted!</font></markup>
-vector(10));
+vec(10));
 <markup><font color="DarkGreen">-- Creates a vector like [1 2 3 4 5 6 7 8 9 10]</font></markup>
-vector(10, i => i + 1)
+vec(10, i => i + 1)
 		</code>
 		<para>The last example shows how to create a vector using a <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">lambda function</link> parameter. This is a more sophisticated example of using a lambda to initialize items in a vector:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- Mimics a periodic function.</font></markup>
-vector(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
+vec(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
 		</code>
-        <para><codeInline>vector::new</codeInline> can also be used to create a linear combination of vectors:</para>
+        <para><codeInline>vec::new</codeInline> can also be used to create a linear combination of vectors:</para>
         <code language="Austra">
-vector([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
+vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
 		</code>
 		<para>The first parameter contains weights, and the remaining parameters are the vectors that will be linearly combined. If there is an extra value in the weights, as in the example, it is used as an independent term. The above expression is equivalent to this one:</para>
         <code language="Austra">
@@ -62,49 +62,50 @@ vector([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
 			scalar * vector1 + vector2;
 			scalar1 * vector1 + scalar2 * vector2;
 		</code>
-		<para>Both these expressions are reduced to calls to one of the overloads of the method <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Vector.MultiplyAdd(Austra.Library.Vector,Austra.Library.Vector)</codeEntityReference>. These methods are internally optimized to use a single temporary buffer, instead of the two buffers of a naïve implementation, and both of them use FMA fused operations when available. Of course, the method underlying the above presented <codeInline>vector::new</codeInline> constructor is even better optimized and runs several faster than even the optimized versions of lineal composition.</para>
+		<para>Both these expressions are reduced to calls to one of the overloads of the method <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Vector.MultiplyAdd(Austra.Library.Vector,Austra.Library.Vector)</codeEntityReference>. These methods are internally optimized to use a single temporary buffer, instead of the two buffers of a naïve implementation, and both of them use FMA fused operations when available. Of course, the method underlying the above presented <codeInline>vec::new</codeInline> constructor is even better optimized and runs several faster than even the optimized versions of lineal composition.</para>
       </content>
     </section>
     <section>
       <title>Complex vectors</title>
       <content>
-		<para>There's no special syntax for complex vector literals, but complex vectors can be easily created using the <codeInline>cvector::new</codeInline> class method and one or two vector constructors:</para>
+		<para>There's no special syntax for complex vector literals, but complex vectors can be easily created using the <codeInline>cvec::new</codeInline> class method and one or two vector constructors:</para>
         <code language="Austra">
-cvector::new([1 2 3 4], [4 3 2 1]);
+cvec::new([1 2 3 4], [4 3 2 1]);
 <markup><font color="DarkGreen">-- ::new can be omitted.</font></markup>
-cvector([1 2 3 4], [4 3 2 1])
+cvec([1 2 3 4], [4 3 2 1])
 		</code>
 		<para>These class methods are available for creating complex vectors:</para>
 		<table>
  		  <row>
- 		      <entry><para><codeInline>cvector::new</codeInline></para></entry>
+ 		      <entry><para><codeInline>cvec::new</codeInline></para></entry>
 			  <entry><para>Overloaded constructor (see below).</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>cvector::random</codeInline></para></entry>
+ 		    <entry><para><codeInline>cvec::random</codeInline></para></entry>
  		    <entry><para>Creates a complex vector with random values from a uniform distribution.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>cvector::nrandom</codeInline></para></entry>
+ 		    <entry><para><codeInline>cvec::nrandom</codeInline></para></entry>
  		    <entry><para>Creates a complex vector with random values from a normal standard distribution.</para></entry>
 		  </row>
 		</table>
 		<para>These are the overloads supported by <codeInline>vector::new</codeInline>:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- Creates a complex vector with 10 zeros.</font></markup>
-cvector(10);
+cvec(10);
 <markup><font color="DarkGreen">-- Creates a complex vector from one real vector.</font></markup>
-cvector([1, 2, 3]);
+cvec([1, 2, 3]);
 <markup><font color="DarkGreen">-- Creates a complex vector from two real vectors.</font></markup>
-cvector([1, 2, 3], [3, 2, 1]);
+cvec([1, 2, 3], [3, 2, 1]);
 <markup><font color="DarkGreen">-- Creates a complex vector with a lambda function.</font></markup>
-cvector(10, i => polar(2π*i/10));
+cvec(10, i => polar(2π*i/10));
 <markup><font color="DarkGreen">-- The lambda function includes access to the complex vector.</font></markup>
-cvector(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
+cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 	    </code>
 	  </content>
     </section>
     <relatedTopics>
+      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetics</link>
       <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
     </relatedTopics>

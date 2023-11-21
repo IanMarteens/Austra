@@ -133,8 +133,8 @@ else msft.mean
                   <para>Of course, there are more classes than <codeInline>math</codeInline>, and we can use their class methods for creating new objects:</para>
                   <code language="Austra">
                   matrix::random(10);
-                  vector::new(10);
-                  vector(10)
+                  vec::new(10);
+                  vec(10)
                   </code>
                   <para>As the last example shows, when you call a <codeInline>new</codeInline> method on a class, you can omit the <codeInline>::new</codeInline> part and use just the class name as synonym.</para>
               </content>
@@ -145,6 +145,7 @@ else msft.mean
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
       <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
+      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetics</link>
       <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
       <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>

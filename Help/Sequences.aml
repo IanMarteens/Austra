@@ -9,7 +9,7 @@
       <content>
         <para>Let's say we want to calculate factorials. AUSTRA is a functional language, so we don't have explicit loops. We could, however, do this with a vector:</para>
         <code language="Austra">
-        vector(10, i => i + 1).prod
+        vec(10, i => i + 1).prod
         </code>
         <para>The above code works fine, but it forces the library to allocate one array of ten items. This is the alternative, using a sequence:</para>
         <code language="Austra">
@@ -146,6 +146,7 @@ seq(1, 100).filter(x => x % 2 = 0).map(x => x^2).sum
     <relatedTopics>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
       <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
+      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetics</link>
       <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
     </relatedTopics>
