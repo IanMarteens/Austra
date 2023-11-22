@@ -35,6 +35,8 @@ public enum Token
     Then,
     /// <summary>Keyword <c>else</c> for conditional expressions.</summary>
     Else,
+    /// <summary>Keyword <c>elif</c> for conditional expressions.</summary>
+    Elif,
     /// <summary>Keyword <c>in</c> for <c>let</c> clauses.</summary>
     In,
     /// <summary>Keyword <c>true</c>, as a boolean constant.</summary>

@@ -372,6 +372,7 @@ internal sealed partial class Parser : IDisposable
         const ulong kAnd = 'A' | ('N' << 16) | ((ulong)'D' << 32);
         const ulong kDef = 'D' | ('E' << 16) | ((ulong)'F' << 32);
         const ulong kElse = 'e' | ('l' << 16) | ((ulong)'s' << 32) | ((ulong)'e' << 48);
+        const ulong kElif = 'e' | ('l' << 16) | ((ulong)'i' << 32) | ((ulong)'f' << 48);
         const uint kIf = 'i' | ('f' << 16);
         const uint kIn = 'i' | ('n' << 16);
         const ulong kFalse = 'f' | ('a' << 16) | ((ulong)'l' << 32) | ((ulong)'s' << 48);
@@ -404,6 +405,7 @@ internal sealed partial class Parser : IDisposable
             4 => (As<char, ulong>(ref c) | 0x0020_0020_0020_0020) switch
             {
                 kElse => Token.Else,
+                kElif => Token.Elif,
                 kThen => Token.Then,
                 kTrue => Token.True,
                 _ => Token.Id,
@@ -428,7 +430,8 @@ internal sealed partial class Parser : IDisposable
         'd' =>
             text[1..].Equals("ef", StringComparison.OrdinalIgnoreCase) ? Token.Def : Token.Id,
         'e' =>
-            text[1..].Equals("lse", StringComparison.OrdinalIgnoreCase) ? Token.Else : Token.Id,
+            text[1..].Equals("lse", StringComparison.OrdinalIgnoreCase) ? Token.Else
+            : text[1..].Equals("lif", StringComparison.OrdinalIgnoreCase) ? Token.Elif : Token.Id,
         'f' =>
             text[1..].Equals("alse", StringComparison.OrdinalIgnoreCase) ? Token.False : Token.Id,
         'i' =>
