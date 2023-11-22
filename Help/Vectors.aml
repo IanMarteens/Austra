@@ -34,7 +34,7 @@
  		    <entry><para>Creates a vector with random values from a normal standard distribution.</para></entry>
 		  </row>
 		</table>
-		<para>These are the overloads supported by <codeInline>vector::new</codeInline>:</para>
+		<para>These are the overloads supported by <codeInline>vec::new</codeInline>:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- Creates a vector with 10 items, all of them zeros.</font></markup>
 vec::new(10);
@@ -89,7 +89,7 @@ cvec([1 2 3 4], [4 3 2 1])
  		    <entry><para>Creates a complex vector with random values from a normal standard distribution.</para></entry>
 		  </row>
 		</table>
-		<para>These are the overloads supported by <codeInline>vector::new</codeInline>:</para>
+		<para>These are the overloads supported by <codeInline>cvec::new</codeInline>:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- Creates a complex vector with 10 zeros.</font></markup>
 cvec(10);
@@ -105,7 +105,8 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 	  </content>
     </section>
     <relatedTopics>
-      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetics</link>
+      <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
+      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetic</link>
       <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
     </relatedTopics>
