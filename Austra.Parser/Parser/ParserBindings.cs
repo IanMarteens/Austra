@@ -112,7 +112,7 @@ internal sealed partial class ParserBindings
                 new("sin(", "Sine function"),
                 new("solve(", "Newton-Raphson solver"),
                 new("sqrt(", "Squared root"),
-                new("τ", "Twice π"),
+                new("tau", "Twice π"),
                 new("tan(", "Tangent function"),
                 new("today", "Gets the current date"),
             ]

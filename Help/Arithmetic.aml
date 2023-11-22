@@ -1,0 +1,384 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="e22b4127-e7a9-47ca-bd1c-7ac81efcc051" revisionNumber="1">
+  <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>AUSTRA arithmetic is basically the same as on most programming languages. Our language supports:</para>
+      <list class="bullet">
+        <listItem><para>32 bits integers, represented by the <codeInline>int</codeInline> type.</para></listItem>
+        <listItem><para>64 bits double-precision reals, represented by the <codeInline>double</codeInline> type.</para></listItem>
+        <listItem><para>2x64 bits double-precision complex values, represented by the <codeInline>complex</codeInline> type.</para></listItem>
+      </list>
+    </introduction>
+    <section address="Section1">
+      <title>Operators</title>
+      <content>
+        <para>These are the operators available for integers and reals:</para>
+        <table>
+          <row>
+        	<entry><para><codeInline>+</codeInline></para></entry>
+        	<entry><para>Addition. Can also be used as a unary operator.</para></entry>
+          </row>
+          <row>
+        	<entry><para><codeInline>-</codeInline></para></entry>
+        	<entry><para>Subtraction. Can also be used as a unary operator for negation.</para></entry>
+          </row>
+          <row>
+        	<entry><para><codeInline>*</codeInline></para></entry>
+        	<entry><para>Multiplication.</para></entry>
+          </row>
+          <row>
+        	<entry><para><codeInline>/</codeInline></para></entry>
+        	<entry><para>Both real and integer division.</para></entry>
+          </row>
+          <row>
+        	<entry><para><codeInline>%</codeInline></para></entry>
+        	<entry><para>Both integer and real remainders.</para></entry>
+          </row>
+          <row>
+        	<entry><para><codeInline>^</codeInline></para></entry>
+        	<entry><para>Power: <codeInline>2^3 = 8</codeInline>, <codeInline>9^0.5 = 3</codeInline>.</para></entry>
+          </row>
+        </table>
+        <para>Most of them may also be used with complex numbers.</para>
+        <para>Though the power operator works both for integer, real and complex numbers, the
+compiler optimizes the special cases when the power is <math>2</math>, <math>3</math> and <math>4</math>, so equalities
+like this exactly holds:</para>
+		<code language="Austra">
+i^2 = -1
+		</code>
+<para>The multiplication operator can be elided when the first operand is a real or an
+integer and it is immediately followed by an identifier:</para>
+		<code language="Austra">
+2pi = 2 * pi
+2x^2 + 3x + 1 = 2*x^2 + 3*x + 1
+1/2x = 1 / (2*x)
+		</code>
+		<para>AUSTRA also recognizes a superscript <math>2</math> (<codeInline>²</codeInline>) as an operator to square a value:</para>
+		<code language="Austra">
+2x² + 3x + 1 = 2*x^2 + 3*x + 1
+		</code>
+		<para>The AUSTRA code editor simplifies typing this operator with the keys combination (Ctrl+G, 2).</para>
+		<sections>
+		  <section address="Section2">
+		    <title>Comparisons</title>
+		    <content>
+		    <para>These operators are used for comparing all compatible operands:</para>
+		    <table>
+		      <row>
+		        <entry><para><codeInline>=</codeInline></para></entry>
+		        <entry><para>Equality.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>!=</codeInline></para></entry>
+		        <entry><para>Inequality.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>&lt;&gt;</codeInline></para></entry>
+		        <entry><para>A synonym for the inequality operator.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>&lt;</codeInline></para></entry>
+		        <entry><para>Less than.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>&lt;=</codeInline></para></entry>
+		        <entry><para>Less than or equal to.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>&gt;</codeInline></para></entry>
+		        <entry><para>Greater than.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>&gt;=</codeInline></para></entry>
+		        <entry><para>Greater than or equal to.</para></entry>
+		      </row>
+		    </table>
+		    <para>Comparisons can be fused for numeric operands using the following syntax:</para>
+		    <code language="Austra">
+sqrt(pi) &lt;= pi &lt;= pi²
+            </code>
+			<para>Fused ranges only require combining same-direction comparisons. For instance, <codeInline>&lt;=</codeInline>
+and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInline> and <codeInline>&gt;</codeInline> are not.</para>
+		    </content>
+		  </section>
+		  <section address="Section2A">
+		    <title>Complex properties</title>
+		    <content>
+		    <para>When you have a complex value in your hands, you can drill into it using a dot and a property name, to extract information about the poor little value:</para>
+		    <table>
+		      <row>
+		        <entry><para><codeInline>real</codeInline></para></entry>
+		        <entry><para>The real part of the complex.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>imaginary</codeInline></para></entry>
+		        <entry><para>The imaginary part of the complex.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>magnitude</codeInline></para></entry>
+		        <entry><para>A magnitude, i.e., the distance to <codeInline>complex(0, 0)</codeInline>.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>phase</codeInline></para></entry>
+		        <entry><para>The phase, in radians.</para></entry>
+		      </row>
+		    </table>
+		    <code language="Austra">
+<markup><b>let</b></markup> c = complex(3, 4) <markup><b>in</b></markup>
+	c = c.real + c.imaginary * i
+            </code>
+		    <para>If typing <codeInline>magnitude</codeInline> is too hard for your nerves, you can use <codeInline>mag</codeInline> as an accepted synonym. <codeInline>real</codeInline> can be shortened to <codeInline>re</codeInline>, and <codeInline>imag</codeInline> and even <codeInline>im</codeInline> can be used instead of <codeInline>imaginary</codeInline>. Since my heart is cold and empty for <codeInline>phase</codeInline>, on the other hand, there is no diminutive for that fellow.</para>
+		    </content>
+		  </section>
+		</sections>
+      </content>
+    </section>
+    <section address="Section3">
+      <title>The math class</title>
+      <content>
+        <para>The <codeInline>math</codeInline> class groups methods and properties dealing with arithmetic operations. Most of these features come straight from the C#'s <codeEntityReference qualifyHint="false">T:System.Math</codeEntityReference> and <codeEntityReference qualifyHint="false">T:System.Numerics.Complex</codeEntityReference>, but it also incorporate other functions that are used in statistics and probabilities.</para>
+        <para>Our <codeInline>math</codeInline> is special in that the class prefix is assumed when not present in a function or property call:</para>
+		    <code language="Austra">
+<markup><font color="DarkGreen">-- Write like this is you are a sucker for pain.</font></markup>
+math::sin(math::pi/4) = math::sqrt(2)/2;
+<markup><font color="DarkGreen">-- Standard people use this style.</font></markup>
+sin(pi/4) = sqrt(2)/2
+            </code>
+        <para>Why, for the love of Mike, have we sunken all those definition inside the <codeInline>math</codeInline> class? It is easy to explain with two points: we did not want to pollute the global name space with lots and lots of symbols, in the first place. Some mathematically-oriented language do just this: everything is a global function, so, at some point, you must come with very clever but cryptic names for your own stuff. Nonetheless, we can omit the class name for the most used names. The second point is related: somebody can shadow one of these global names, such <codeInline>i</codeInline> or <codeInline>max</codeInline>. In those cases, you still have the long and winding road of prefixing the shadowed name with its class name, and nothing is lost.</para>
+        <para>These are the methods or functions provided by this class. Most of them work both with integer, real and complex parameters:</para>
+		    <table>
+		      <row>
+		        <entry><para><codeInline>abs</codeInline></para></entry>
+		        <entry><para>Absolute value</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>acos</codeInline></para></entry>
+		        <entry><para>The angle whose cosine is the specified parameter.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>asin</codeInline></para></entry>
+		        <entry><para>The angle whose sine is the specified parameter.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>atan(x)</codeInline>, <codeInline>atan(x, y)</codeInline></para></entry>
+		        <entry><para>The angle whose tangent is the specified parameter.</para>
+		        <para>The version with two parameters is equivalent to <codeEntityReference qualifyHint="false" autoUpgrade="true">M:System.Math.Atan2(System.Double,System.Double)</codeEntityReference>.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>beta(x, y)</codeInline></para></entry>
+		        <entry><para>Biparametric Euler integral of the first kind.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>cbrt</codeInline></para></entry>
+		        <entry><para>Cubic root.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>complex</codeInline></para></entry>
+		        <entry><para>Creates a complex number from one or two real values.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>cos</codeInline></para></entry>
+		        <entry><para>The cosine function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>cosh</codeInline></para></entry>
+		        <entry><para>The hyperbolic cosine function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>erf</codeInline></para></entry>
+		        <entry><para>The error function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>exp</codeInline></para></entry>
+		        <entry><para>The exponential function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>gamma</codeInline></para></entry>
+		        <entry><para>The gamma function: an extension of factorials for real numbers.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>lnGamma</codeInline></para></entry>
+		        <entry><para>The natural logarithm of the gamma function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>log</codeInline></para></entry>
+		        <entry><para>The natural logarithm function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>log10</codeInline></para></entry>
+		        <entry><para>Base 10 logarithms.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>max</codeInline></para></entry>
+		        <entry><para>The maximum of its two parameters. It also works with dates.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>min</codeInline></para></entry>
+		        <entry><para>The minimum of its two parameters. It also works with dates.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>ncdf</codeInline></para></entry>
+		        <entry><para>Normal cumulative distribution function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>polar</codeInline></para></entry>
+		        <entry><para>Creates a complex from its circular coordinates.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>probit</codeInline></para></entry>
+		        <entry><para>The inverse of the cumulative of the standard normal distribution.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>round(d)</codeInline></para></entry>
+		        <entry><para>Rounds a real to the nearest integer.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>round(d, i)</codeInline></para></entry>
+		        <entry><para>Rounds a real to a number of decimals.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>sign</codeInline></para></entry>
+		        <entry><para>Returns the sign of the argument.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>sin</codeInline></para></entry>
+		        <entry><para>The sine function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>sinh</codeInline></para></entry>
+		        <entry><para>The hyperbolic sine function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>sqrt</codeInline></para></entry>
+		        <entry><para>The square root.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>tan</codeInline></para></entry>
+		        <entry><para>The tangent function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>tanh</codeInline></para></entry>
+		        <entry><para>The hyperbolic tangent function.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>trunc</codeInline></para></entry>
+		        <entry><para>Truncates a real value.</para></entry>
+		      </row>
+		    </table>
+		<para>These are the properties (parameterless functions) and constants provided by <codeInline>math</codeInline>:</para>
+		    <table>
+		      <row>
+		        <entry><para><codeInline>e</codeInline></para></entry>
+		        <entry><para>Euler's constant.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>i</codeInline></para></entry>
+		        <entry><para>The imaginary unit.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>nrandom</codeInline></para></entry>
+		        <entry><para>A random number from the standard normal distribution.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>pearl</codeInline></para></entry>
+		        <entry><para>An Easter Egg. Just try me!</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>pi, π</codeInline></para></entry>
+		        <entry><para>Don't be irrational: be trascendent.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>random</codeInline></para></entry>
+		        <entry><para>A random number from a uniform distribution between 0 and 1.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>tau, τ</codeInline></para></entry>
+		        <entry><para>Twice π.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>today</codeInline></para></entry>
+		        <entry><para>The current date.</para></entry>
+		      </row>
+		    </table>
+		<sections>
+		  <section address="Section4">
+		    <title>Polynomials and solvers</title>
+		    <content>
+		    <table>
+		      <row>
+		        <entry><para><codeInline>solve</codeInline></para></entry>
+		        <entry><para>A simple Newton-Raphson solver. See below for details.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>polyEval</codeInline></para></entry>
+		        <entry><para>Evaluates a polynomial given a real or complex argument.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>polyDerivative</codeInline></para></entry>
+		        <entry><para>Evaluates the first derivative of a polynomial at a real or complex argument.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>polySolve</codeInline></para></entry>
+		        <entry><para>Calculates all the roots of a polynomial.</para></entry>
+		      </row>
+		    </table>
+		    <para>The Newton-Raphson solver is a function accepting from three up to five arguments:</para>
+		    <code language="Austra">
+solve(x => sin(x) - 1, x => cos(x), 0, 1e-9, 100)
+			</code>
+			<para>The first two arguments are lambda functions: one for the function we want to
+solve for a root, and the second for the first derivative of that function. Please note
+that <codeInline>solve</codeInline> does not verify that the lambda function and its derivative lambda
+match. The third argument is required, and represents the initial guess to start
+running the algorithm. Again, a bad guess may make the algorithm fail.</para>
+<para>The fourth and fifth arguments can be omitted. The fourth parameter is the desired
+accuracy, and when omitted, it defaults to <codeInline>1e-9</codeInline>. The last parameter is the
+maximum numbers of iterations, which by default is <codeInline>100</codeInline>.</para>
+<para>The <codeInline>polyEval</codeInline> function takes either a complex or a real as its first argument, and a
+list of coefficients, either in a single vector or as a list of real values, and evaluates
+the polynomial at the supplied value:</para>
+		    <code language="Austra">
+<markup><b>let</b></markup> x1 = complex(-1, sqrt(2)), x2 = x1';
+<markup><font color="DarkGreen">-- 1, 2, 3 represents the polynomial x² + 2x + 3</font></markup>
+polyEval(x1, 1, 2, 3);
+<markup><font color="DarkGreen">-- Coefficients can be grouped in a vector.</font></markup>
+polyEval(x2, [1, 2, 3]);
+			</code>
+			<para>The inverse of <codeInline>polyEval</codeInline> is the <codeInline>polySolve</codeInline> function. It takes either a vector or a list of reals and considers them as
+the coefficients of a polynomial. The first value is the coefficient of the highest
+degree term. For instance, the vector <codeInline>[1, 2, 3, 4]</codeInline> stands for the polynomial <math>x^3 + 2*x^2 + 3*x + 4</math>. This function can throw an exception if it does not know how to handle a given
+polynomial, or when there are no available roots. The returned value is always a
+complex vector, even when all roots are real-valued. For instance:</para>
+		    <code language="Austra">
+polySolve(1, 2, 3)
+			</code>
+			<para>You can check the accuracy of the answers from the solver using this trick:</para>
+		    <code language="Austra">
+<markup><b>let</b></markup> poly = [1, 2, 3] <markup><b>in</b></markup>
+  polySolve(poly).all(c => abs(polyEval(c, poly)) &lt;= 1e-15)
+			</code>
+			<para>Of course, the accuracy of the roots may vary according to the polynomial.</para>
+<para>A close relative of <codeInline>polyEval</codeInline> is <codeInline>polyDerivative</codeInline>, which calculates the derivative of a
+given polynomial at the specified argument:</para>
+		    <code language="Austra">
+<markup><b>let</b></markup> v = [1, 2, 3, 4];
+polyEval(2, v) = 26;
+polyDerivative(2, v) = 23
+			</code>
+<para><codeInline>polyDerivative</codeInline> can be useful when finding a real root for a polynomial using the
+Newton-Raphson algorithm.</para>
+			  </content>
+		    </section>
+		</sections>
+      </content>
+     </section>
+    <relatedTopics>
+	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
+      <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
+      <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
+      <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
+      <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
+      <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
+    </relatedTopics>
+  </developerConceptualDocument>
+</topic>

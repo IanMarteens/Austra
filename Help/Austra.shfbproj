@@ -85,7 +85,7 @@
     <ContentLayout Include="Content Layout.content" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Arithmetics.aml" />
+    <None Include="Arithmetic.aml" />
     <None Include="Time series.aml" />
     <None Include="Vectors.aml" />
     <None Include="Sequences.aml" />

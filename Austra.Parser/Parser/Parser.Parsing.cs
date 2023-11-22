@@ -1460,6 +1460,7 @@ internal sealed partial class Parser
             "e" => Expression.Constant(Math.E),
             "i" => ImExpr,
             "pi" => PiExpr,
+            "tau" => Expression.Constant(Math.Tau),
             "today" => Expression.Constant(Date.Today),
             "pearl" => Expression.Call(typeof(Functions).Get(nameof(Functions.Austra))),
             "random" => Expression.Call(typeof(Functions).GetMethod(nameof(Functions.Random))!),
