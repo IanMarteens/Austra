@@ -22,9 +22,9 @@
 			  <definition><para>The name of the series is the name that is used by the parser to locate a series. For this reason, the series' name must be a valid identifier.</para></definition>
 			  <definedTerm>Ticker</definedTerm>
 			  <definition><para>However, it's frequent for series to be identified by traders by their tickers, which is the name assigned by the provider of the series. A ticker is not necessarily a valid identifier, so we provide two different fields, one for the name and the second for a ticker. Tickers can be empty.</para></definition>
-			  <definedTerm>Frequency</definedTerm>
+			  <definedTerm><codeEntityReference qualifyHint="false">T:Austra.Library.Frequency</codeEntityReference></definedTerm>
 			  <definition><para>Each series has an associated frequency, which can be daily, weekly, biweekly, monthly, bimonthly, quarterly, semestral, yearly, or undefined. The library, at run time, checks that both operands in a binary operation have always the same frequency.</para></definition>
-			  <definedTerm>Type</definedTerm>
+			  <definedTerm><codeEntityReference qualifyHint="false">T:Austra.Library.SeriesType</codeEntityReference></definedTerm>
 			  <definition><para>In addition, each series has a type that can be either <codeInline>Raw</codeInline>, <codeInline>Rets</codeInline>, <codeInline>Logs</codeInline>, <codeInline>MixedRets</codeInline>, or <codeInline>Mixed</codeInline>.</para></definition>
             </definitionTable>
           </content>
@@ -37,6 +37,44 @@ same behaviour would be hard to enforce for series. On one hand, each series can
 have a different first available date. On the other hand, even series with the same
 frequency could have reported values at different days of the week or the month,
 and still, it could be interesting to mix them.</para>
+			<para>So, the rules for mixing two series in an operation are:</para>
+			<list class="bullet">
+			  <listItem><para>They must have the same frequency, and their frequencies are checked at runtime.</para></listItem>
+			  <listItem><para>However, they may have different lengths. If this is the case, the shorter length is chosen for the result.</para></listItem>
+			  <listItem><para>The points of the series are aligned according to their most recent points.</para></listItem>
+			  <listItem><para>The list of dates assigned to the result series is chosen arbitrarily from the first operand.</para></listItem>
+			</list>
+          </content>
+        </section>
+        <section>
+          <title>Class methods</title>
+          <content>
+            <para>There is only one constructor for series:</para>
+			<table>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>series::new</codeInline></para></entry>
+ 		    	<entry><para>Creates a linear combination of series.</para></entry>
+		  	  </row>
+			</table>
+			<para>The first parameter of <codeInline>series::new</codeInline> must be a vector of weights, and from that point on, a list of series must be included. This class method creates a linear combination of series. The length of the weights
+vector can be equal to the number of series or the number of series plus one. For instance:</para>
+			<code language="Austra">
+series([0.1, 0.9], aapl, msft);
+<markup><font color="DarkGreen">-- The above code is equivalent to this:</font></markup>
+0.1 * aapl + 0.9 * msft
+			</code>
+			<para>If we add another item to the vector, it will act as an independent term:</para>
+			<code language="Austra">
+series([0.5, 0.1, 0.9], aapl, msft);
+<markup><font color="DarkGreen">-- The above code is equivalent to this:</font></markup>
+0.5 + 0.1 * aapl + 0.9 * msft
+			</code>
+          </content>
+        </section>
+        <section>
+          <title>Series properties</title>
+          <content>
+            <para>These properties are applied to instances of series:</para>
           </content>
         </section>
       </sections>
