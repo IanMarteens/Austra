@@ -75,6 +75,128 @@ series([0.5, 0.1, 0.9], aapl, msft);
           <title>Series properties</title>
           <content>
             <para>These properties are applied to instances of series:</para>
+			<table>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>acf</codeInline></para></entry>
+ 		    	<entry><para>The AutoCorrelation Function.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>amax</codeInline></para></entry>
+ 		    	<entry><para>Gets the maximum of the absolute values.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>amin</codeInline></para></entry>
+ 		    	<entry><para>Gets the minimum of the absolute values.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>count</codeInline></para></entry>
+ 		    	<entry><para>Gets the number of values in the series.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>fft</codeInline></para></entry>
+ 		    	<entry><para>Gets the Fast Fourier Transform of the values.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>first</codeInline></para></entry>
+ 		    	<entry><para>Gets the first point in the series (the oldest one).</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>fit</codeInline></para></entry>
+ 		    	<entry><para>Gets a vector with two coefficients for a linear fit.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>kurt</codeInline></para></entry>
+ 		    	<entry><para>Get the kurtosis.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>kurtp</codeInline></para></entry>
+ 		    	<entry><para>Get the kurtosis of the population.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>last</codeInline></para></entry>
+ 		    	<entry><para>Gets the last point in the series (the newest one).</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>linearFit</codeInline></para></entry>
+ 		    	<entry><para>Gets a line fitting the original series.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>logs</codeInline></para></entry>
+ 		    	<entry><para>Gets the logarithmic returns.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>max</codeInline></para></entry>
+ 		    	<entry><para>Get the maximum value from the series.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>mean</codeInline></para></entry>
+ 		    	<entry><para>Gets the average of the values.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>min</codeInline></para></entry>
+ 		    	<entry><para>Get the minimum value from the series.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>movingRet</codeInline></para></entry>
+ 		    	<entry><para></para>Gets the moving monthly/yearly return.</entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>ncdf</codeInline></para></entry>
+ 		    	<entry><para>Gets the percentile of the last value.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>perc</codeInline></para></entry>
+ 		    	<entry><para>Gets the percentiles of the series.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>random</codeInline></para></entry>
+ 		    	<entry><para>Creates a random series from a normal distribution.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>rets</codeInline></para></entry>
+ 		    	<entry><para>Gets the linear returns.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>skew</codeInline></para></entry>
+ 		    	<entry><para>Gets the skewness.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>skewp</codeInline></para></entry>
+ 		    	<entry><para>Gets the skewness of the population.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>stats</codeInline></para></entry>
+ 		    	<entry><para>Gets all statistics in one call.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>std</codeInline></para></entry>
+ 		    	<entry><para>Gets the standard deviation.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>stdp</codeInline></para></entry>
+ 		    	<entry><para>Gets the standard deviation of the population.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>sum</codeInline></para></entry>
+ 		    	<entry><para>Gets the sum of all values</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>type</codeInline></para></entry>
+ 		    	<entry><para>Gets the type of the series</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>var</codeInline></para></entry>
+ 		    	<entry><para>Gets the variance</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>varp</codeInline></para></entry>
+ 		    	<entry><para>Gets the variance of the population</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>values</codeInline></para></entry>
+ 		    	<entry><para>Gets the underlying vector of values.</para></entry>
+		  	  </row>
+			</table>
           </content>
         </section>
       </sections>
