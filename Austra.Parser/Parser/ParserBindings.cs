@@ -318,6 +318,7 @@ internal sealed partial class ParserBindings
             ],
             [typeof(ComplexVector)] = [
                 new("amax", "Gets the maximum absolute value"),
+                new("amin", "Gets the minimum absolute value"),
                 new("distinct", "Gets a new vector with distinct values"),
                 new("fft", "Performs a Fast Fourier Transform"),
                 new("first", "Gets the first item from the vector"),
@@ -429,6 +430,7 @@ internal sealed partial class ParserBindings
             [new(typeof(Complex), "magnitude")] = typeof(Complex).Prop(nameof(Complex.Magnitude)),
             [new(typeof(Complex), "mag")] = typeof(Complex).Prop(nameof(Complex.Magnitude)),
             [new(typeof(Complex), "phase")] = typeof(Complex).Prop(nameof(Complex.Phase)),
+
             [new(typeof(FftRModel), "amplitudes")] = typeof(FftModel).Prop(nameof(FftModel.Amplitudes)),
             [new(typeof(FftRModel), "magnitudes")] = typeof(FftModel).Prop(nameof(FftModel.Amplitudes)),
             [new(typeof(FftRModel), "phases")] = typeof(FftModel).Prop(nameof(FftModel.Phases)),
@@ -527,6 +529,7 @@ internal sealed partial class ParserBindings
             [new(typeof(Matrix), "stats")] = typeof(Matrix).Get(nameof(Matrix.Stats)),
 
             [new(typeof(ComplexVector), "amax")] = typeof(ComplexVector).Get(nameof(ComplexVector.AbsMax)),
+            [new(typeof(ComplexVector), "amin")] = typeof(ComplexVector).Get(nameof(ComplexVector.AbsMin)),
             [new(typeof(ComplexVector), "amplitudes")] = typeof(ComplexVector).Get(nameof(ComplexVector.Magnitudes)),
             [new(typeof(ComplexVector), "distinct")] = typeof(ComplexVector).Get(nameof(ComplexVector.Distinct)),
             [new(typeof(ComplexVector), "fft")] = typeof(ComplexVector).Get(nameof(ComplexVector.Fft)),

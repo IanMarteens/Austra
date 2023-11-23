@@ -753,6 +753,34 @@ public readonly struct ComplexVector :
         return result;
     }
 
+    /// <summary>Gets minimum absolute magnitude in the vector.</summary>
+    /// <remarks>This operation can be hardware-accelerated.</remarks>
+    /// <returns>The value in the cell with the smaller amplitude.</returns>
+    public double AbsMin()
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Ensures(Contract.Result<double>() >= 0);
+
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
+        int i = 0;
+        double result = 0;
+        if (Avx.IsSupported)
+        {
+            V4d min = V4.Create(double.PositiveInfinity);
+            for (int top = Length & Simd.MASK4; i < top; i += 4)
+            {
+                V4d v = V4.LoadUnsafe(ref Add(ref p, i));
+                V4d w = V4.LoadUnsafe(ref Add(ref q, i));
+                min = Avx.Min(min, Avx.Sqrt((v * v).MultiplyAdd(w, w)));
+            }
+            result = min.Min();
+        }
+        for (; i < re.Length; i++)
+            result = Min(result, Sqrt(re[i] * re[i] + im[i] * im[i]));
+        return result;
+    }
+
     /// <summary>
     /// Gets a vector containing the phases of the complex numbers in this vector.
     /// </summary>

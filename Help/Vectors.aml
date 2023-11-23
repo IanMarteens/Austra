@@ -207,6 +207,10 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
  		    	<entry><para>Gets the maximum of the absolute values.</para></entry>
 		  	  </row>
  		  	  <row>
+ 		    	<entry><para><codeInline>amin</codeInline></para></entry>
+ 		    	<entry><para>Gets the minimum of the absolute values.</para></entry>
+		  	  </row>
+ 		  	  <row>
  		    	<entry><para><codeInline>distinct</codeInline></para></entry>
  		    	<entry><para>Gets a new vector with the unique values from the original one.</para></entry>
 		  	  </row>
