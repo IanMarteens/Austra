@@ -50,50 +50,50 @@ seq::random(10).toVector
                   <para>These are the methods that can be used with a sequence:</para>
 		<table>
  		  <row>
- 		    <entry><para><codeInline>seq::any</codeInline></para></entry>
+ 		    <entry><para><codeInline>any</codeInline></para></entry>
  		    <entry><para>Checks if there is a item in the sequence satisfying a predicate.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::all</codeInline></para></entry>
+ 		    <entry><para><codeInline>all</codeInline></para></entry>
  		    <entry><para>Checks if all items in the sequence satisfy a predicate.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::filter</codeInline></para></entry>
+ 		    <entry><para><codeInline>filter</codeInline></para></entry>
  		    <entry><para>Returns items of the original sequence satisfying a predicate.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::map</codeInline></para></entry>
+ 		    <entry><para><codeInline>map</codeInline></para></entry>
  		    <entry><para>Transforms items with the help of a lambda function.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::zip</codeInline></para></entry>
+ 		    <entry><para><codeInline>zip</codeInline></para></entry>
  		    <entry><para>Combines two sequences using a lambda function.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::reduce</codeInline></para></entry>
+ 		    <entry><para><codeInline>reduce</codeInline></para></entry>
  		    <entry><para>Conflates all values in a sequence using a lambda.</para></entry>
 		  </row>
 		</table>
 		<para>Properties are methods without parameters, that can be called without parentheses. These are the supported properties:</para>
 		<table>
  		  <row>
- 		    <entry><para><codeInline>seq::sort</codeInline></para></entry>
+ 		    <entry><para><codeInline>sort</codeInline></para></entry>
  		    <entry><para>Sorts values in ascending order.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::sortDesc</codeInline></para></entry>
+ 		    <entry><para><codeInline>sortDesc</codeInline></para></entry>
  		    <entry><para>Sorts values in descending order.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::distinct</codeInline></para></entry>
+ 		    <entry><para><codeInline>distinct</codeInline></para></entry>
  		    <entry><para>Select unique values in the sequence, with no predefined order.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::sum</codeInline></para></entry>
+ 		    <entry><para><codeInline>sum</codeInline></para></entry>
  		    <entry><para>Sums all values in the sequence.</para></entry>
 		  </row>
  		  <row>
- 		    <entry><para><codeInline>seq::prod</codeInline></para></entry>
+ 		    <entry><para><codeInline>prod</codeInline></para></entry>
  		    <entry><para>Multiplies all values in the sequence.</para></entry>
 		  </row>
 		</table>

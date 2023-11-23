@@ -827,7 +827,7 @@ internal sealed partial class Parser
     {
         bool fromEnd1 = false;
         Expression e1 = kind == Token.Colon && allowSlice
-            ? Expression.Constant(0)
+            ? ZeroExpr
             : ParseIndex(ref fromEnd1);
         if (allowSlice && kind == Token.Colon)
         {
@@ -971,7 +971,7 @@ internal sealed partial class Parser
         }
         e1 ??= e2!.Type == typeof(Date)
             ? Expression.Constant(Date.Zero)
-            : Expression.Constant(0);
+            : ZeroExpr;
         e2 ??= e1.Type == typeof(Date)
             ? Expression.Constant(new Date(3000, 1, 1))
             : Expression.Constant(int.MaxValue);
@@ -1077,7 +1077,13 @@ internal sealed partial class Parser
     private Expression ParseProperty(Expression e)
     {
         if (!bindings.TryGetProperty(e.Type, id, out MethodInfo? mInfo))
-            throw Error($"Invalid property: {id}");
+            if (e.Type == typeof(double) && id.Equals("toint", StringComparison.OrdinalIgnoreCase))
+            {
+                Move();
+                return Expression.Convert(e, typeof(int));
+            }
+            else
+                throw Error($"Invalid property: {id}");
         Move();
         return Expression.Call(e, mInfo);
     }
@@ -1305,9 +1311,16 @@ internal sealed partial class Parser
                 && (actual == et || et == typeof(double) && actual == typeof(int));
     }
 
+    /// <summary>Parses a vector or matrix literal.</summary>
+    /// <returns>An expression creating the vector or the matrix.</returns>
     private Expression ParseVectorLiteral()
     {
         Move();
+        if (kind == Token.RBra)
+        {
+            Move();
+            return typeof(Vector).New(ZeroExpr);
+        }
         List<Expression> items = source.Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
         for (; ; )

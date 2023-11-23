@@ -93,7 +93,7 @@ public abstract partial class DoubleSequence :
     public static DoubleSequence NormalRandom(int size, double variance) =>
         new NormalRandomSequence(size, new NormalRandom(0, Sqrt(variance)));
 
-    /// <summary>Creates a sequence from normal random values.</summary>
+    /// <summary>Creates an autoregressive (AR) sequence.</summary>
     /// <param name="size">The size of the series.</param>
     /// <param name="variance">The variance of the normal distribution.</param>
     /// <param name="coefficients">Autoregressive coefficients.</param>
@@ -102,6 +102,17 @@ public abstract partial class DoubleSequence :
         coefficients.Length == 0
         ? throw new VectorLengthException()
         : new ArSequence(size, variance, coefficients);
+
+    /// <summary>Creates a moving average (MA) sequence.</summary>
+    /// <param name="size">The size of the series.</param>
+    /// <param name="variance">The variance of the normal distribution.</param>
+    /// <param name="mean">The independent term, that determines the mean.</param>
+    /// <param name="coefficients">Moving average coefficients.</param>
+    /// <returns>The sequence encapsulating the time series.</returns>
+    public static DoubleSequence NormalRandom(int size, double variance, double mean, Vector coefficients) =>
+        coefficients.Length == 0
+        ? throw new VectorLengthException()
+        : new MaSequence(size, variance, mean, coefficients);
 
     /// <summary>Gets the value at the specified index.</summary>
     /// <param name="index">A position inside the sequence.</param>
@@ -138,6 +149,8 @@ public abstract partial class DoubleSequence :
     /// <returns>The component by component sum of the sequences.</returns>
     public static DoubleSequence operator+(DoubleSequence s1, DoubleSequence s2)
     {
+        if (!s1.HasStorage && !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x + y);
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(Math.Min(a1.Length, a2.Length));
@@ -172,6 +185,8 @@ public abstract partial class DoubleSequence :
     /// <returns>The component by component subtraction of the sequences.</returns>
     public static DoubleSequence operator -(DoubleSequence s1, DoubleSequence s2)
     {
+        if (!s1.HasStorage && !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x - y);
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(Math.Min(a1.Length, a2.Length));
@@ -245,12 +260,17 @@ public abstract partial class DoubleSequence :
     public static DoubleSequence operator *(DoubleSequence s, double d)
     {
         if (!s.HasStorage)
-            return s.Map(x => d * x);
+            return s.Scale(d);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         a.AsSpan().MulV(d, r.AsSpan());
         return new VectorSequence(r);
     }
+
+    /// <summary>Scales a sequence without an underlying storage.</summary>
+    /// <param name="d">The scalar multiplier.</param>
+    /// <returns>The scaled sequence.</returns>
+    protected virtual DoubleSequence Scale(double d) => Map(x => x * d);
 
     /// <summary>Multiplies a scalar value by a sequence.</summary>
     /// <param name="d">Scalar multiplicand.</param>
@@ -523,9 +543,17 @@ public abstract partial class DoubleSequence :
     /// <returns>A plot containing a frozen vector as its dataset.</returns>
     public Plot<Vector> Plot() => new(ToVector());
 
+    /// <summary>Computes autocorrelation for all lags.</summary>
+    /// <returns>Pairs lags/autocorrelation.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Series<int> ACF() => ToVector().ACF();
+
     /// <summary>Creates an AR model from a sequence and a degree.</summary>
     /// <param name="degree">Number of independent variables in the model.</param>
     /// <returns>A full autoregressive model.</returns>
     public ARVModel ARModel(int degree) => new(ToVector(), degree);
 
+    /// <summary>Computes the real discrete Fourier transform.</summary>
+    /// <returns>The spectrum.</returns>
+    public FftRModel Fft() => new(FFT.Transform(Materialize()));
 }

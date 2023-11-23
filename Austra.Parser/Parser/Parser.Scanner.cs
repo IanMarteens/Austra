@@ -21,6 +21,8 @@ internal sealed partial class Parser : IDisposable
     private static readonly ConstantExpression FalseExpr = Expression.Constant(false);
     /// <summary>The <see cref="Expression"/> for <see langword="true"/>.</summary>
     private static readonly ConstantExpression TrueExpr = Expression.Constant(true);
+    /// <summary>The <see cref="Expression"/> for <c>0</c>.</summary>
+    private static readonly ConstantExpression ZeroExpr = Expression.Constant(0);
     /// <summary>The <see cref="Expression"/> for <see cref="Complex.ImaginaryOne"/>.</summary>
     private static readonly ConstantExpression ImExpr = Expression.Constant(Complex.ImaginaryOne);
     /// <summary>The <see cref="Expression"/> for <see cref="Math.PI"/>.</summary>

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
 public abstract partial class DoubleSequence : IFormattable
@@ -344,6 +341,12 @@ public abstract partial class DoubleSequence : IFormattable
         /// <returns>The negated sequence.</returns>
         protected override DoubleSequence Negate() => new GridSequence(-lower, -upper, steps);
 
+        /// <summary>Scales a sequence without an underlying storage.</summary>
+        /// <param name="d">The scalar multiplier.</param>
+        /// <returns>The scaled sequence.</returns>
+        protected override DoubleSequence Scale(double d) =>
+            new GridSequence(lower * d, upper * d, steps);
+
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
@@ -671,6 +674,68 @@ public abstract partial class DoubleSequence : IFormattable
                 value = generator.NextDouble() + coefficients.AsSpan().DotProduct(previousTerms);
                 Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
                 previousTerms[0] = value;
+                current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+    /// <summary>Implements moving average sequence.</summary>
+    /// <param name="length">The length of the sequence.</param>
+    /// <param name="variance">Variance of the sequence.</param>
+    /// <param name="mean">Mean term.</param>
+    /// <param name="coefficients">Moving average coefficients.</param>
+    private sealed class MaSequence(int length, double variance, double mean, Vector coefficients) : DoubleSequence
+    {
+        /// <summary>The length of the sequence.</summary>
+        private readonly int length = length;
+        /// <summary>The normal random source for noise.</summary>
+        private readonly NormalRandom generator = new(0, variance);
+        /// <summary>The mean term.</summary>
+        private readonly double mean = mean;
+        /// <summary>Autoregression coefficients.</summary>
+        private readonly double[] coefficients = (double[])coefficients;
+        /// <summary>Buffer for previous terms in the sequence.</summary>
+        private readonly double[] previousTerms = new double[coefficients.Length];
+        /// <summary>The current index in the sequence.</summary>
+        private int current;
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <returns>The total number of values in the sequence.</returns>
+        public override int Length() => length;
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => true;
+
+        /// <summary>Creates an array with all values from the sequence.</summary>
+        /// <returns>The values as an array.</returns>
+        protected override double[] Materialize()
+        {
+            double[] result = GC.AllocateUninitializedArray<double>(length);
+            Materialize(result.AsSpan());
+            return result;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DoubleSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current < length)
+            {
+                double innovation = generator.NextDouble();
+                value = mean + innovation + coefficients.AsSpan().DotProduct(previousTerms);
+                Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
+                previousTerms[0] = innovation;
                 current++;
                 return true;
             }
