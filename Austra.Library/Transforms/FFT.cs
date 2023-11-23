@@ -45,6 +45,8 @@ public static class FFT
     public static unsafe Complex[] Transform(double[] a, int n)
     {
         // Special cases:
+        if (n == 0)
+            return [];
         if (n == 1)
             return [a[0]];
         if (n == 2)
@@ -129,7 +131,7 @@ public static class FFT
     /// <summary>Forward real Fast Fourier Transform.</summary>
     /// <param name="a">Samples to be transformed.</param>
     /// <returns>The transformed samples.</returns>
-    public static Complex[] Transform(double[] a) => Transform(a, a.Length);
+    public static Complex[] Transform(double[] a) => Transform(a, a?.Length ?? 0);
 
     /// <summary>Inverse real Fast Fourier Transform.</summary>
     /// <remarks>

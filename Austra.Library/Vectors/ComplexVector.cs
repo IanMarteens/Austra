@@ -122,7 +122,7 @@ public readonly struct ComplexVector :
     {
         ref double p = ref MM.GetArrayDataReference(re);
         ref double q = ref MM.GetArrayDataReference(im);
-        if (V4.IsHardwareAccelerated)
+        if (V4.IsHardwareAccelerated && re.Length >= V4d.Count)
         {
             ref double r = ref As<Complex, double>(ref MM.GetArrayDataReference(values));
             int t = values.Length - V4d.Count;
