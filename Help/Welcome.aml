@@ -34,6 +34,22 @@
               <content>
                   <para>The library has been designed as a set of mostly inmmutable types, for facilitating their concurrent use. Most of the methods are hardware-accelerated, either using managed references, SIMD operations or both. Memory pinning, and raw pointers, have been reduced to the minimum, in order to ease the garbage collector's work.</para>
                   <para>Using immutable vectors, series and matrices has one drawback, and it is more stress for the garbage collector. For that reason, we offer combined operations, like other libraries do, to fuse several linear operations into one, when possible. The AUSTRA parser detects most of these cases for optimizing them.</para>
+                  <sections>
+                    <section>
+                      <title>Time series</title>
+                      <content>
+						<para>The kernel of Austra was an implementation of the Mean-Variance optimizer. This means that time series were implemented before vectors and matrices.</para>
+						<para>Series are collections of pairs date/value, and they are sorted by date. Values can be used as vectors, but there are some differences. Vector operations check, at run time, that the operands have the same length. The same behavior would be hard to enforce for series. On one hand, each series can have a different first available date. On the other hand, even series with the same frequency could have reported values at different days of the week or the month, and still, it could be interesting to mix them.</para>
+                      </content>
+                    </section>
+                    <section>
+                      <title>Fast Fourier Transform</title>
+                      <content>
+						<para>Austra implements a pretty decent FFT algorithm, compared to most popular managed implementations. It uses the Cooley-Tukey algorithm, and it's optimized for small sizes. Small primes are handled either with Bluestein's or Rader's algorithm, depending on the size.</para>
+						<para>In any case, there is still room for improvement, and it's planned to be optimized in the future. AVX prefers structs of arrays over arrays of structures, and this preference obviously applies to complex arithmetic: it's more efficient to represent the real and the imaginary parts of a list of complex numbers in separate arrays.</para>
+                      </content>
+                    </section>
+                  </sections>
               </content>
           </section>
       </sections>
