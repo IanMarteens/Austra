@@ -527,44 +527,53 @@ public abstract partial class DoubleSequence : IFormattable
         protected override double[] Materialize() => (double[])source;
     }
 
-    /// <summary>Implements a sequence using random values.</summary>
-    /// <param name="size">Size of the sequence.</param>
-    /// <param name="random">Random generator.</param>
-    private sealed class RandomSequence(int size, Random random) : DoubleSequence
+    /// <summary>
+    /// Implements a sequence of double values based in a generator function.
+    /// </summary>
+    /// <param name="length">Number of items in the sequence.</param>
+    private abstract class GenerativeSequence(int length): DoubleSequence
     {
+        /// <summary>The length of the sequence.</summary>
+        protected readonly int length = length;
         /// <summary>The current index in the sequence.</summary>
-        private int current;
+        protected int current;
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => size;
+        public sealed override int Length() => length;
 
         /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected override double[] Materialize()
-        {
-            double[] result = GC.AllocateUninitializedArray<double>(size);
-            Materialize(result.AsSpan());
-            return result;
-        }
+        protected sealed override bool HasLength => true;
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
+        public sealed override DoubleSequence Reset()
         {
             current = 0;
             return this;
         }
 
+        /// <summary>Creates an array with all values from the sequence.</summary>
+        /// <returns>The values as an array.</returns>
+        protected sealed override double[] Materialize()
+        {
+            double[] result = GC.AllocateUninitializedArray<double>(length);
+            Materialize(result.AsSpan());
+            return result;
+        }
+    }
+
+    /// <summary>Implements a sequence using random values.</summary>
+    /// <param name="length">Size of the sequence.</param>
+    /// <param name="random">Random generator.</param>
+    private sealed class RandomSequence(int length, Random random) : GenerativeSequence(length)
+    {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
         public override bool Next(out double value)
         {
-            if (current < size)
+            if (current < length)
             {
                 value = random.NextDouble();
                 current++;
@@ -576,43 +585,17 @@ public abstract partial class DoubleSequence : IFormattable
     }
 
     /// <summary>Implements a sequence using normal random values.</summary>
-    /// <param name="size">Size of the sequence.</param>
+    /// <param name="length">Size of the sequence.</param>
     /// <param name="random">Random generator.</param>
-    private sealed class NormalRandomSequence(int size, NormalRandom random) : DoubleSequence
+    private sealed class NormalRandomSequence(int length, NormalRandom random) :
+        GenerativeSequence(length)
     {
-        /// <summary>The current index in the sequence.</summary>
-        private int current;
-
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => size;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected override double[] Materialize()
-        {
-            double[] result = GC.AllocateUninitializedArray<double>(size);
-            Materialize(result.AsSpan());
-            return result;
-        }
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
-
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
         public override bool Next(out double value)
         {
-            if (current < size)
+            if (current < length)
             {
                 value = random.NextDouble();
                 current++;
@@ -627,42 +610,15 @@ public abstract partial class DoubleSequence : IFormattable
     /// <param name="length">The length of the sequence.</param>
     /// <param name="variance">Variance of the sequence.</param>
     /// <param name="coefficients">Autoregression coefficients.</param>
-    private sealed class ArSequence(int length, double variance, Vector coefficients) : DoubleSequence
+    private sealed class ArSequence(int length, double variance, Vector coefficients) :
+        GenerativeSequence(length)
     {
-        /// <summary>The length of the sequence.</summary>
-        private readonly int length = length;
         /// <summary>The normal random source for noise.</summary>
         private readonly NormalRandom generator = new(0, variance);
         /// <summary>Autoregression coefficients.</summary>
         private readonly double[] coefficients = (double[])coefficients;
         /// <summary>Buffer for previous terms in the sequence.</summary>
         private readonly double[] previousTerms = new double[coefficients.Length];
-        /// <summary>The current index in the sequence.</summary>
-        private int current;
-
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected override double[] Materialize()
-        {
-            double[] result = GC.AllocateUninitializedArray<double>(length);
-            Materialize(result.AsSpan());
-            return result;
-        }
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -686,10 +642,9 @@ public abstract partial class DoubleSequence : IFormattable
     /// <param name="variance">Variance of the sequence.</param>
     /// <param name="mean">Mean term.</param>
     /// <param name="coefficients">Moving average coefficients.</param>
-    private sealed class MaSequence(int length, double variance, double mean, Vector coefficients) : DoubleSequence
+    private sealed class MaSequence(int length, double variance, double mean, Vector coefficients) :
+        GenerativeSequence(length)
     {
-        /// <summary>The length of the sequence.</summary>
-        private readonly int length = length;
         /// <summary>The normal random source for noise.</summary>
         private readonly NormalRandom generator = new(0, variance);
         /// <summary>The mean term.</summary>
@@ -698,32 +653,6 @@ public abstract partial class DoubleSequence : IFormattable
         private readonly double[] coefficients = (double[])coefficients;
         /// <summary>Buffer for previous terms in the sequence.</summary>
         private readonly double[] previousTerms = new double[coefficients.Length];
-        /// <summary>The current index in the sequence.</summary>
-        private int current;
-
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected override double[] Materialize()
-        {
-            double[] result = GC.AllocateUninitializedArray<double>(length);
-            Materialize(result.AsSpan());
-            return result;
-        }
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
