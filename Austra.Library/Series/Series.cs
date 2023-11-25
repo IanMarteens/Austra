@@ -315,7 +315,7 @@ public sealed class Series : Series<Date>,
         {
             double v = values[c - i];
             acc += v;
-            acc2 += v * v;
+            acc2 = FusedMultiplyAdd(v, v, acc2);
             newValues[c - i] = Sqrt((acc2 - acc * acc / (i + 1)) / i);
         }
         double inv = 1.0 / points;
@@ -326,7 +326,7 @@ public sealed class Series : Series<Date>,
             double oldV = values[c - i + points];
             acc += newV - oldV;
             // Yes, I'm clever!
-            acc2 += (newV + oldV) * (newV - oldV);
+            acc2 = FusedMultiplyAdd(newV + oldV, newV - oldV, acc2);
             newValues[c - i] = Sqrt((acc2 - acc * acc * inv) * inv1);
         }
         return new(Name + ".MOVINGSTD", Ticker, newValues, this);
@@ -349,7 +349,7 @@ public sealed class Series : Series<Date>,
         {
             double v = values[c - i];
             acc += v;
-            acc2 += v * v;
+            acc2 = FusedMultiplyAdd(v, v, acc2);
             double mean = acc / (i + 1);
             double std = Sqrt(2 * (acc2 - acc * mean) / i);
             newValues[c - i] = std == 0.0 ? 0.5 : 0.5 * (1 + Functions.Erf((v - mean) / std));
@@ -362,7 +362,7 @@ public sealed class Series : Series<Date>,
             double oldV = values[c - i + points];
             acc += newV - oldV;
             // Yes, I'm clever!
-            acc2 += (newV + oldV) * (newV - oldV);
+            acc2 = FusedMultiplyAdd(newV + oldV, newV - oldV, acc2);
             double mean = acc * inv;
             double std = Sqrt((acc2 - acc * mean) * inv1);
             newValues[c - i] = 0.5 * (1 + Functions.Erf((newV - mean) / std));

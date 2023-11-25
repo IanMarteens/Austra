@@ -17,18 +17,14 @@ public enum SeriesType
 
 /// <summary>Represents a point in a series.</summary>
 /// <typeparam name="T">Represents the type of the abscissa.</typeparam>
-public readonly struct Point<T> where T : struct, IComparable<T>
+/// <param name="arg">Argument.</param>
+/// <param name="value">Point's value.</param>
+public readonly struct Point<T>(T arg, double value) where T : struct, IComparable<T>
 {
     /// <summary>Gets the argument from the point.</summary>
-    public T Arg { get; }
+    public T Arg { get; } = arg;
     /// <summary>Gets the value at the point's date.</summary>
-    public double Value { get; }
-
-    /// <summary>Creates a point in a series.</summary>
-    /// <param name="arg">Argument.</param>
-    /// <param name="value">Point's value.</param>
-    public Point(T arg, double value) =>
-        (Arg, Value) = (arg, value);
+    public double Value { get; } = value;
 
     /// <summary>Checks if the argument is a point with the same values.</summary>
     /// <param name="obj">Object to compare.</param>
@@ -55,8 +51,7 @@ public readonly struct Point<T> where T : struct, IComparable<T>
 
     /// <summary>Gets a text representation of the point.</summary>
     /// <returns>A string containing the argument and its associated value.</returns>
-    public override string ToString() =>
-        $"[{Arg}: {Value}]";
+    public override string ToString() => $"[{Arg}: {Value}]";
 }
 
 /// <summary>Represents a named series.</summary>
