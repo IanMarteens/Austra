@@ -79,15 +79,15 @@ series([0.5, 0.1, 0.9], aapl, msft);
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>amax</codeInline></para></entry>
- 		    	<entry><para>Gets the maximum of the absolute values.</para></entry>
+ 		    	<entry><para>Gets the maximum of the absolute values. See <see cref="M:Austra.Library.Series`1.AbsMax" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>amin</codeInline></para></entry>
- 		    	<entry><para>Gets the minimum of the absolute values.</para></entry>
+ 		    	<entry><para>Gets the minimum of the absolute values. See <see cref="M:Austra.Library.Series`1.AbsMin" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>count</codeInline></para></entry>
- 		    	<entry><para>Gets the number of values in the series.</para></entry>
+ 		    	<entry><para>Gets the number of values in the series. See <see cref="P:Austra.Library.Series`1.Count" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>fft</codeInline></para></entry>
@@ -95,7 +95,7 @@ series([0.5, 0.1, 0.9], aapl, msft);
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>first</codeInline></para></entry>
- 		    	<entry><para>Gets the first point in the series (the oldest one).</para></entry>
+ 		    	<entry><para>Gets the first point in the series (the oldest one). See <see cref="P:Austra.Library.Series`1.First" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>fit</codeInline></para></entry>
@@ -103,15 +103,15 @@ series([0.5, 0.1, 0.9], aapl, msft);
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>kurt</codeInline></para></entry>
- 		    	<entry><para>Get the kurtosis.</para></entry>
+ 		    	<entry><para>Get the kurtosis. See <see cref="P:Austra.Library.Series`1.Kurtosis" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>kurtp</codeInline></para></entry>
- 		    	<entry><para>Get the kurtosis of the population.</para></entry>
+ 		    	<entry><para>Get the kurtosis of the population. See <see cref="P:Austra.Library.Series`1.PopulationKurtosis" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>last</codeInline></para></entry>
- 		    	<entry><para>Gets the last point in the series (the newest one).</para></entry>
+ 		    	<entry><para>Gets the last point in the series (the newest one). See <see cref="P:Austra.Library.Series`1.Last" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linearFit</codeInline></para></entry>
@@ -119,23 +119,23 @@ series([0.5, 0.1, 0.9], aapl, msft);
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>logs</codeInline></para></entry>
- 		    	<entry><para>Gets the logarithmic returns.</para></entry>
+ 		    	<entry><para>Gets the logarithmic returns. See <see cref="M:Austra.Library.Series.AsLogReturns" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>max</codeInline></para></entry>
- 		    	<entry><para>Get the maximum value from the series.</para></entry>
+ 		    	<entry><para>Get the maximum value from the series. See <see cref="P:Austra.Library.Series`1.Maximum" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>mean</codeInline></para></entry>
- 		    	<entry><para>Gets the average of the values.</para></entry>
+ 		    	<entry><para>Gets the average of the values. See <see cref="P:Austra.Library.Series`1.Mean" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>min</codeInline></para></entry>
- 		    	<entry><para>Get the minimum value from the series.</para></entry>
+ 		    	<entry><para>Get the minimum value from the series. See <see cref="P:Austra.Library.Series`1.Minimum" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>movingRet</codeInline></para></entry>
- 		    	<entry><para></para>Gets the moving monthly/yearly return.</entry>
+ 		    	<entry><para></para>Gets the moving monthly/yearly return. See <see cref="M:Austra.Library.Series.MovingRet" />.</entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ncdf</codeInline></para></entry>
@@ -143,7 +143,7 @@ series([0.5, 0.1, 0.9], aapl, msft);
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>perc</codeInline></para></entry>
- 		    	<entry><para>Gets the percentiles of the series.</para></entry>
+ 		    	<entry><para>Gets the percentiles of the series. See <see cref="M:Austra.Library.Series`1.Percentiles" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>random</codeInline></para></entry>
@@ -151,43 +151,43 @@ series([0.5, 0.1, 0.9], aapl, msft);
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>rets</codeInline></para></entry>
- 		    	<entry><para>Gets the linear returns.</para></entry>
+ 		    	<entry><para>Gets the linear returns. See <see cref="M:Austra.Library.Series.AsReturns" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>skew</codeInline></para></entry>
- 		    	<entry><para>Gets the skewness.</para></entry>
+ 		    	<entry><para>Gets the skewness. See <see cref="P:Austra.Library.Series`1.Skewness" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>skewp</codeInline></para></entry>
- 		    	<entry><para>Gets the skewness of the population.</para></entry>
+ 		    	<entry><para>Gets the skewness of the population. See <see cref="P:Austra.Library.Series`1.PopulationSkewness" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>stats</codeInline></para></entry>
- 		    	<entry><para>Gets all statistics in one call.</para></entry>
+ 		    	<entry><para>Gets all statistics in one call. See <see cref="P:Austra.Library.Series`1.Stats" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>std</codeInline></para></entry>
- 		    	<entry><para>Gets the standard deviation.</para></entry>
+ 		    	<entry><para>Gets the standard deviation. See <see cref="P:Austra.Library.Series`1.StandardDeviation" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>stdp</codeInline></para></entry>
- 		    	<entry><para>Gets the standard deviation of the population.</para></entry>
+ 		    	<entry><para>Gets the standard deviation of the population. See <see cref="P:Austra.Library.Series`1.PopulationStandardDeviation" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sum</codeInline></para></entry>
- 		    	<entry><para>Gets the sum of all values</para></entry>
+ 		    	<entry><para>Gets the sum of all values. See <see cref="M:Austra.Library.Series`1.Sum" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>type</codeInline></para></entry>
- 		    	<entry><para>Gets the type of the series.</para></entry>
+ 		    	<entry><para>Gets the type of the series. See <see cref="P:Austra.Library.Series`1.Type" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>var</codeInline></para></entry>
- 		    	<entry><para>Gets the variance.</para></entry>
+ 		    	<entry><para>Gets the variance. See <see cref="P:Austra.Library.Series`1.Variance" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>varp</codeInline></para></entry>
- 		    	<entry><para>Gets the variance of the population.</para></entry>
+ 		    	<entry><para>Gets the variance of the population. See <see cref="P:Austra.Library.Series`1.PopulationVariance" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>values</codeInline></para></entry>

@@ -36,10 +36,30 @@
                   <para>Using immutable vectors, series and matrices has one drawback, and it is more stress for the garbage collector. For that reason, we offer combined operations, like other libraries do, to fuse several linear operations into one, when possible. The AUSTRA parser detects most of these cases for optimizing them.</para>
                   <sections>
                     <section>
+                      <title>Matrix factorizations</title>
+                      <content>
+						<para>Austra provides classes for the following matrix factorizations:</para>
+						<list class="bullet">
+						  <listItem>Lower-Upper (LU) Factorization.</listItem>
+						  <listItem>Cholesky Factorization.</listItem>
+						  <listItem>Eigenvalues Decomposition (EVD).</listItem>
+						</list>
+						<para><see cref="M:Austra.Library.Matrix.Solve(Austra.Library.Vector)" /> and <see cref="M:Austra.Library.Matrix.Solve(Austra.Library.Matrix)" /> uses the LU factorization internally.</para>
+                      </content>
+                    </section>
+                    <section>
                       <title>Time series</title>
                       <content>
 						<para>The kernel of Austra was an implementation of the Mean-Variance optimizer. This means that time series were implemented before vectors and matrices.</para>
 						<para>Series are collections of pairs date/value, and they are sorted by date. Values can be used as vectors, but there are some differences. Vector operations check, at run time, that the operands have the same length. The same behavior would be hard to enforce for series. On one hand, each series can have a different first available date. On the other hand, even series with the same frequency could have reported values at different days of the week or the month, and still, it could be interesting to mix them.</para>
+                      </content>
+                    </section>
+                    <section>
+                      <title>Polynomials and root finding</title>
+                      <content>
+						<para>The <see cref="T:Austra.Library.Polynomials" /> static class provides methods for polynomial evaluation and root finding. The <see cref="T:Austra.Library.Solver" /> class implements a simple variant of the Newton-Raphson method for root finding.</para>
+						<para>There's also a <see cref="M:Austra.Library.Polynomials.PolyEval(System.Numerics.Complex,Austra.Library.Vector)" /> for evaluating polynomials using the Horner's method, and a <see cref="M:Austra.Library.Polynomials.PolySolve(Austra.Library.Vector)" /> for analytically finding roots whenever possible, and using eigenvalues of the Frobenius matrix in the general case. There's even a <see cref="M:Austra.Library.Polynomials.PolyDerivative(System.Numerics.Complex,Austra.Library.Vector)" /> for computing the derivative of a polynomial at a given abscissa.</para>
+						<para>Natural cubic splines has also been implemented, both for series and for functions, using a grid. You can even calculate the derivative of a spline at any point in the supported range.</para>
                       </content>
                     </section>
                     <section>
