@@ -83,14 +83,14 @@ public sealed class ARSModel : ARModel<Series>
     public ARSModel(Series original, int degrees) : base(original, degrees)
     {
         Coefficients = original.AutoRegression(degrees, out matrix, out correlations);
-        double[] newValues = Predict((double[])original.GetValues().Reverse());
+        double[] newValues = Predict((double[])original.Values.Reverse());
         Array.Reverse(newValues);
         Prediction = new(
             original.Name + ".AR(" + degrees + ")",
             original.Ticker,
             original.args, newValues, original);
         (TotalSumSquares, ResidualSumSquares, R2) =
-            Original.GetValues().GetSumSquares(Prediction.GetValues());
+            Original.Values.GetSumSquares(Prediction.Values);
     }
 }
 

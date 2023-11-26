@@ -191,7 +191,7 @@ series([0.5, 0.1, 0.9], aapl, msft);
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>values</codeInline></para></entry>
- 		    	<entry><para>Gets the underlying vector of values. See <see cref="M:Austra.Library.Series`1.GetValues" />.</para></entry>
+ 		    	<entry><para>Gets the underlying vector of values. See <see cref="P:Austra.Library.Series`1.Values" />.</para></entry>
 		  	  </row>
 			</table>
           </content>

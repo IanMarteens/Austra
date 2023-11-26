@@ -339,7 +339,7 @@ public partial class AustraEngine : IAustraEngine
             Source.AllDefinitions.Select(d => new DataDef(d.Name, d.Text, d.Description)).ToList(),
             Source.Series.Select(s =>
                 new DataSeries(s.Name, s.Ticker, (int)s.Type, (int)s.Freq, s.Args.ToArray(),
-                    s.Values.ToArray())).ToList()));
+                    s.EnumValues.ToArray())).ToList()));
 
     /// <summary>Deserializes a datasource from an UTF-8 file.</summary>
     /// <param name="fileName">An UTF-8 file previously serialized.</param>

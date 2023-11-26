@@ -442,7 +442,7 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Creates a sequence of doubles from the values in a series.</summary>
         /// <remarks>The values array of the series is reversed.</remarks>
         /// <param name="series">The time series.</param>
-        public VectorSequence(Series series) : this(series.GetValues().Reverse()) { }
+        public VectorSequence(Series series) : this(series.Values.Reverse()) { }
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>

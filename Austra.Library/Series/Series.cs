@@ -423,41 +423,41 @@ public sealed class Series : Series<Date>,
     /// <param name="d">A scalar value.</param>
     /// <returns>A new series with increased values.</returns>
     public static Series operator +(Series s, double d) =>
-        new(s.Name, s.Ticker, (double[])(s.GetValues() + d), s);
+        new(s.Name, s.Ticker, (double[])(s.Values + d), s);
 
     /// <summary>Adds a scalar to a series.</summary>
     /// <param name="d">A scalar value.</param>
     /// <param name="s">The series.</param>
     /// <returns>A new series with increased values.</returns>
     public static Series operator +(double d, Series s) =>
-        new(s.Name, s.Ticker, (double[])(s.GetValues() + d), s);
+        new(s.Name, s.Ticker, (double[])(s.Values + d), s);
 
     /// <summary>Subtracts a fixed scalar value from a series.</summary>
     /// <param name="s">The series.</param>
     /// <param name="d">A scalar value.</param>
     /// <returns>A new series with decreased values.</returns>
     public static Series operator -(Series s, double d) =>
-        new(s.Name, s.Ticker, (double[])(s.GetValues() - d), s);
+        new(s.Name, s.Ticker, (double[])(s.Values - d), s);
 
     /// <summary>Subtracts series from a fixed scalar value.</summary>
     /// <param name="d">A scalar value.</param>
     /// <param name="s">The series.</param>
     /// <returns>A new series negated and then increased values.</returns>
     public static Series operator -(double d, Series s) =>
-        new(s.Name, s.Ticker, (double[])(d - s.GetValues()), s);
+        new(s.Name, s.Ticker, (double[])(d - s.Values), s);
 
     /// <summary>Negates values from a series.</summary>
     /// <param name="s">The series operand.</param>
     /// <returns>Pointwise negation.</returns>
     public static Series operator -(Series s) =>
-        new("-" + s.Name, s.Ticker, (double[])-s.GetValues(), s);
+        new("-" + s.Name, s.Ticker, (double[])-s.Values, s);
 
     /// <summary>Scales values from a series.</summary>
     /// <param name="d">Scale factor.</param>
     /// <param name="s">Series to scale.</param>
     /// <returns>A new scaled series.</returns>
     public static Series operator *(double d, Series s) =>
-        new(s.Name + "*", s.Ticker, (double[])(s.GetValues() * d), s);
+        new(s.Name + "*", s.Ticker, (double[])(s.Values * d), s);
 
     /// <summary>Scales values from a series.</summary>
     /// <param name="s">Series to scale.</param>
@@ -600,12 +600,12 @@ public sealed class Series : Series<Date>,
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-    public bool All(Func<double, bool> predicate) => GetValues().All(predicate);
+    public bool All(Func<double, bool> predicate) => Values.All(predicate);
 
     /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-    public bool Any(Func<double, bool> predicate) => GetValues().Any(predicate);
+    public bool Any(Func<double, bool> predicate) => Values.Any(predicate);
 
     /// <summary>Gets a textual representation of the series.</summary>
     /// <returns>A text containing the name and the point count.</returns>

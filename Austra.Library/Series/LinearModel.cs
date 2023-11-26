@@ -105,7 +105,7 @@ public sealed class LinearSModel : LinearModel<Series>
             new(original.Count == size ? original.values : original.values[0..size]));
         Prediction = Series.Combine(Weights, predictors);
         (TotalSumSquares, ResidualSumSquares, R2) =
-            Original.GetValues().GetSumSquares(Prediction.GetValues());
+            Original.Values.GetSumSquares(Prediction.Values);
         double s2 = ResidualSumSquares / (size - predictors.Length - 1);
         StandardError = Sqrt(s2);
         Matrix olsVariance = s2 * chol.Solve(Matrix.Identity(predictors.Length + 1));

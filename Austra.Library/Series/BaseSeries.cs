@@ -96,12 +96,11 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     public IEnumerable<T> Args => args;
 
     /// <summary>Gets the list of values from the series.</summary>
-    public IEnumerable<double> Values => values;
+    public IEnumerable<double> EnumValues => values;
 
     /// <summary>Gets the values array as a vector.</summary>
-    /// <returns>The values array as a vector.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector GetValues() => values;
+    [JsonIgnore]
+    public Vector Values => values;
 
     /// <summary>Gets the number of points in the series.</summary>
     [JsonIgnore]
@@ -615,7 +614,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <param name="correlations">The correlations.</param>
     /// <returns>The coefficients of the AR(degree) model.</returns>
     internal Vector AutoRegression(int degree, out Matrix matrix, out Vector correlations) =>
-        GetValues().Reverse().AutoRegression(degree, out matrix, out correlations);
+        Values.Reverse().AutoRegression(degree, out matrix, out correlations);
 
     /// <summary>Calculates the sum of the series values.</summary>
     /// <returns>The sum of all series values.</returns>
