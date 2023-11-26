@@ -4,6 +4,7 @@ public class SeriesBenchmark : BenchmarkControl
 {
     private readonly Series aapl, msft, dax;
     private readonly Vector weights;
+    private static readonly double[] values = [0.5, 0.3, 0.2];
 
     public SeriesBenchmark()
     {
@@ -19,7 +20,7 @@ public class SeriesBenchmark : BenchmarkControl
         aapl = new Series("AAPL", null, args, (double[])ar1, SeriesType.Raw, Frequency.Daily);
         msft = new Series("MSFT", null, args, (double[])ar2, SeriesType.Raw, Frequency.Daily);
         dax = new Series("DAX", null, args, (double[])ar3, SeriesType.Raw, Frequency.Daily);
-        weights = new(new double[] { 0.5, 0.3, 0.2 });
+        weights = new(values);
     }
 
     [Benchmark]

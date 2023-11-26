@@ -71,11 +71,11 @@ vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>abs</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with absolute values.</para></entry>
+ 		    	<entry><para>Gets a new vector with absolute values. See <see cref="M:Austra.Library.Vector.Abs" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>acf</codeInline></para></entry>
- 		    	<entry><para>The AutoCorrelation Function.</para></entry>
+ 		    	<entry><para>The AutoCorrelation Function. See <see cref="M:Austra.Library.Vector.ACF" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>amax</codeInline></para></entry>
@@ -91,7 +91,7 @@ vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>fft</codeInline></para></entry>
- 		    	<entry><para>Gets the Fast Fourier Transform of the values.</para></entry>
+ 		    	<entry><para>Gets the Fast Fourier Transform of the values. See <see cref="M:Austra.Library.Vector.Fft" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>first</codeInline></para></entry>
@@ -123,7 +123,7 @@ vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>plot</codeInline></para></entry>
- 		    	<entry><para>Shows the vector in a chart.</para></entry>
+ 		    	<entry><para>Shows the vector in a chart. See <see cref="M:Austra.Library.Vector.Plot" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>prod</codeInline></para></entry>
@@ -147,7 +147,7 @@ vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>stats</codeInline></para></entry>
- 		    	<entry><para>Gets all statistics in one call.</para></entry>
+ 		    	<entry><para>Gets all statistics in one call. See <see cref="M:Austra.Library.Vector.Stats" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sum</codeInline></para></entry>
@@ -163,55 +163,55 @@ vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>all</codeInline></para></entry>
- 		    	<entry><para>Checks if all items satisfy a lambda predicate.</para></entry>
+ 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <see cref="M:Austra.Library.Vector.All(System.Func{System.Double,System.Boolean})" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>any</codeInline></para></entry>
- 		    	<entry><para>Checks if exists an item satisfying a lambda predicate.</para></entry>
+ 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <see cref="M:Austra.Library.Vector.Any(System.Func{System.Double,System.Boolean})" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ar</codeInline></para></entry>
- 		    	<entry><para>Gets the autoregression coefficients for a given <codeInline>p</codeInline>.</para></entry>
+ 		    	<entry><para>Gets the autoregression coefficients for a given <codeInline>p</codeInline>. See <see cref="M:Austra.Library.Vector.AutoRegression(System.Int32)" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>arModel</codeInline></para></entry>
- 		    	<entry><para>Creates a full AR(p) model.</para></entry>
+ 		    	<entry><para>Creates a full AR(p) model. See <see cref="M:Austra.Library.Vector.ARModel(System.Int32)" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>autocorr</codeInline></para></entry>
- 		    	<entry><para>Gets the autocorrelation given a lag.</para></entry>
+ 		    	<entry><para>Gets the autocorrelation given a lag. See <see cref="M:Austra.Library.Vector.AutoCorrelation(System.Int32)" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>correlogram</codeInline></para></entry>
- 		    	<entry><para>Gets all autocorrelations up to a given lag.</para></entry>
+ 		    	<entry><para>Gets all autocorrelations up to a given lag. See <see cref="M:Austra.Library.Vector.Correlogram(System.Int32)" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>filter</codeInline></para></entry>
- 		    	<entry><para>Filters items by value.</para></entry>
+ 		    	<entry><para>Filters items by value. See <see cref="M:Austra.Library.Vector.Filter(System.Func{System.Double,System.Boolean})" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>indexOf</codeInline></para></entry>
- 		    	<entry><para>Returns the first index where a value is stored.</para></entry>
+ 		    	<entry><para>Returns the first index where a value is stored. See <see cref="M:Austra.Library.Vector.IndexOf(System.Double)" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linear</codeInline></para></entry>
- 		    	<entry><para>Gets the regression coefficients given a list of vectors.</para></entry>
+ 		    	<entry><para>Gets the regression coefficients given a list of vectors. See <see cref="M:Austra.Library.Vector.LinearModel(Austra.Library.Vector[])" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linearModel</codeInline></para></entry>
- 		    	<entry><para>Creates a full linear model from a list of vectors.</para></entry>
+ 		    	<entry><para>Creates a full linear model from a list of vectors. See <see cref="M:Austra.Library.Vector.FullLinearModel(Austra.Library.Vector[])" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>map</codeInline></para></entry>
- 		    	<entry><para>Pointwise transformation of the items in a vector.</para></entry>
+ 		    	<entry><para>Pointwise transformation of the items in a vector. See <see cref="M:Austra.Library.Vector.Map(System.Func{System.Double,System.Double})" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>reduce</codeInline></para></entry>
- 		    	<entry><para>Reduces all items in a vector to a single value.</para></entry>
+ 		    	<entry><para>Reduces all items in a vector to a single value. See <see cref="M:Austra.Library.Vector.Reduce(System.Double,System.Func{System.Double,System.Double,System.Double})" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>zip</codeInline></para></entry>
- 		    	<entry><para></para>Combines two vectors using a lambda function.</entry>
+ 		    	<entry><para></para>Combines two vectors using a lambda function. See <see cref="M:Austra.Library.Vector.Zip(Austra.Library.Vector,System.Func{System.Double,System.Double,System.Double})" />.</entry>
 		  	  </row>
 			</table>
 			</content>
@@ -333,44 +333,44 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 			</table>
 			</content>
 		  </section>
-		  		  <section>
-		    <title>Vector methods</title>
-		    <content>
-		      <para>These are the methods supported by a vector instance:</para>
-			<table>
- 		  	  <row>
- 		    	<entry><para><codeInline>all</codeInline></para></entry>
- 		    	<entry><para>Checks if all items satisfy a lambda predicate.</para></entry>
-		  	  </row>
- 		  	  <row>
- 		    	<entry><para><codeInline>any</codeInline></para></entry>
- 		    	<entry><para>Checks if exists an item satisfying a lambda predicate.</para></entry>
-		  	  </row>
- 		  	  <row>
- 		    	<entry><para><codeInline>filter</codeInline></para></entry>
- 		    	<entry><para>Filters items by value.</para></entry>
-		  	  </row>
- 		  	  <row>
- 		    	<entry><para><codeInline>indexOf</codeInline></para></entry>
- 		    	<entry><para>Returns the first index where a value is stored.</para></entry>
-		  	  </row>
- 		  	  <row>
- 		    	<entry><para><codeInline>map</codeInline></para></entry>
- 		    	<entry><para>Pointwise transformation of the items in a vector.</para></entry>
-		  	  </row>
- 		  	  <row>
- 		    	<entry><para><codeInline>mapReal</codeInline></para></entry>
- 		    	<entry><para>Pointwise transformation of the items in a vector. Returns a real vector.</para></entry>
-		  	  </row>
- 		  	  <row>
- 		    	<entry><para><codeInline>reduce</codeInline></para></entry>
- 		    	<entry><para>Reduces all items in a vector to a single value.</para></entry>
-		  	  </row>
- 		  	  <row>
- 		    	<entry><para><codeInline>zip</codeInline></para></entry>
- 		    	<entry><para></para>Combines two vectors using a lambda function.</entry>
-		  	  </row>
-			</table>
+		  	<section>
+		      <title>Complex vector methods</title>
+		    	<content>
+		      	  <para>These are the methods supported by a complex vector instance:</para>
+				  <table>
+ 		  	  		<row>
+ 		    		  <entry><para><codeInline>all</codeInline></para></entry>
+ 		    		  <entry><para>Checks if all items satisfy a lambda predicate. See <see cref="M:Austra.Library.ComplexVector.All(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
+		  	  		</row>
+ 		  	  		<row>
+ 		    		  <entry><para><codeInline>any</codeInline></para></entry>
+ 		    		  <entry><para>Checks if exists an item satisfying a lambda predicate. See <see cref="M:Austra.Library.ComplexVector.Any(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
+		  	  		</row>
+ 		  	  		<row>
+ 		    		  <entry><para><codeInline>filter</codeInline></para></entry>
+ 		    		  <entry><para>Filters items by value. See <see cref="M:Austra.Library.ComplexVector.Filter(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
+		  	  		</row>
+ 		  	  		<row>
+ 		    		  <entry><para><codeInline>indexOf</codeInline></para></entry>
+ 		    		  <entry><para>Returns the first index where a value is stored. See <see cref="M:Austra.Library.ComplexVector.IndexOf(System.Numerics.Complex)" />.</para></entry>
+		  	  		</row>
+ 		  	  		<row>
+ 		    		  <entry><para><codeInline>map</codeInline></para></entry>
+ 		    		  <entry><para>Pointwise transformation of the items in a vector. See <see cref="M:Austra.Library.ComplexVector.Map(System.Func{System.Numerics.Complex,System.Numerics.Complex})" />.</para></entry>
+		  	  		</row>
+ 		  	  		<row>
+ 		    		  <entry><para><codeInline>mapReal</codeInline></para></entry>
+ 		    		  <entry><para>Pointwise transformation of the items in a vector. Returns a real vector. See <see cref="M:Austra.Library.ComplexVector.MapReal(System.Func{System.Numerics.Complex,System.Double})" />.</para></entry>
+		  	  		</row>
+ 		  	  		<row>
+ 		    		  <entry><para><codeInline>reduce</codeInline></para></entry>
+ 		    		  <entry><para>Reduces all items in a vector to a single value. See <see cref="M:Austra.Library.ComplexVector.Reduce(System.Numerics.Complex,System.Func{System.Numerics.Complex,System.Numerics.Complex,System.Numerics.Complex})" />.</para></entry>
+		  	  		</row>
+ 		  	  		<row>
+ 		    		  <entry><para><codeInline>zip</codeInline></para></entry>
+ 		    		  <entry><para></para>Combines two vectors using a lambda function. See <see cref="M:Austra.Library.ComplexVector.Zip(Austra.Library.ComplexVector,System.Func{System.Numerics.Complex,System.Numerics.Complex,System.Numerics.Complex})" />.</entry>
+		  	  		</row>
+				  </table>
 			</content>
 		  </section>
 	    </sections>
