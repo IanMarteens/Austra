@@ -91,7 +91,7 @@ static void EvaluateAndShow(IAustraEngine engine, string line, bool includeTime)
                 if (tuple.HasSecond)
                     Write(tuple.Second);
                 break;
-            case Plot<DoubleSequence> tuple:
+            case Plot<DSequence> tuple:
                 Write(tuple.First);
                 if (tuple.HasSecond)
                     Write(tuple.Second);

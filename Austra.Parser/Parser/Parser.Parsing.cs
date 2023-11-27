@@ -780,7 +780,7 @@ internal sealed partial class Parser
                     Move();
                     e = IsVector(e) || e.Type == typeof(Series<int>)
                         || e.Type.IsAssignableTo(typeof(FftModel))
-                        || e.Type.IsAssignableTo(typeof(DoubleSequence))
+                        || e.Type.IsAssignableTo(typeof(DSequence))
                         || e.Type.IsAssignableTo(typeof(CSequence))
                         ? ParseIndexer(e, true)
                         : IsMatrix(e)
@@ -1425,7 +1425,7 @@ internal sealed partial class Parser
         // Check the local scope.
         if (scriptLocals.TryGetValue(ident, out ParameterExpression? local) ||
             locals.TryGetValue(ident, out local))
-            return local.Type == typeof(DoubleSequence)
+            return local.Type == typeof(DSequence)
                 ? Expression.Call(local, SeqClone)
                 : local.Type == typeof(CSequence)
                 ? Expression.Call(local, CSeqClone)
@@ -1451,7 +1451,7 @@ internal sealed partial class Parser
             ?? ParseGlobals(ident);
         if (e != null)
         {
-            return e.Type.IsAssignableTo(typeof(DoubleSequence))
+            return e.Type.IsAssignableTo(typeof(DSequence))
                 ? Expression.Call(Expression.Call(e, SeqClone), SeqReset)
                 : e.Type.IsAssignableTo(typeof(CSequence))
                 ? Expression.Call(Expression.Call(e, CSeqClone), CSeqReset)

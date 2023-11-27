@@ -1,12 +1,12 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
-public abstract partial class DoubleSequence : IFormattable
+public abstract partial class DSequence : IFormattable
 {
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="mapper">The mapping function.</param>
-    private sealed class Mapped(DoubleSequence source, Func<double, double> mapper) : DoubleSequence
+    private sealed class Mapped(DSequence source, Func<double, double> mapper) : DSequence
     {
         private readonly Func<double, double> mapper = mapper;
 
@@ -27,7 +27,7 @@ public abstract partial class DoubleSequence : IFormattable
         /// <remarks>This implementation conflates two mappers into a single instance.</remarks>
         /// <param name="mapper">The transforming function.</param>
         /// <returns>The transformed sequence.</returns>
-        public override DoubleSequence Map(Func<double, double> mapper) =>
+        public override DSequence Map(Func<double, double> mapper) =>
             new Mapped(source, x => mapper(this.mapper(x)));
 
         /// <summary>Gets the total number of values in the sequence.</summary>
@@ -37,7 +37,7 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
+        public override DSequence Reset()
         {
             source.Reset();
             return this;
@@ -50,7 +50,7 @@ public abstract partial class DoubleSequence : IFormattable
     /// <summary>Implements a sequence filtered by a predicate.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="filter">The filtering lambda.</param>
-    private sealed class Filtered(DoubleSequence source, Func<double, bool> filter) : DoubleSequence
+    private sealed class Filtered(DSequence source, Func<double, bool> filter) : DSequence
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -65,7 +65,7 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
+        public override DSequence Reset()
         {
             source.Reset();
             return this;
@@ -76,8 +76,8 @@ public abstract partial class DoubleSequence : IFormattable
     /// <param name="s1">First sequence.</param>
     /// <param name="s2">Second sequence.</param>
     /// <param name="zipper">The joining function.</param>
-    private sealed class Zipped(DoubleSequence s1, DoubleSequence s2,
-        Func<double, double, double> zipper) : DoubleSequence
+    private sealed class Zipped(DSequence s1, DSequence s2,
+        Func<double, double, double> zipper) : DSequence
     {
         /// <summary>Gets the next number in the computed sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -95,7 +95,7 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
+        public override DSequence Reset()
         {
             s1.Reset();
             s2.Reset();
@@ -120,7 +120,7 @@ public abstract partial class DoubleSequence : IFormattable
     /// <remarks>Creates a double sequence from an integer range.</remarks>
     /// <param name="first">The first value in the sequence.</param>
     /// <param name="last">The last value in the sequence.</param>
-    private class RangeSequence(int first, int last) : DoubleSequence
+    private class RangeSequence(int first, int last) : DSequence
     {
         /// <summary>Calculated length of the sequence.</summary>
         protected readonly int length = Abs(last - first) + 1;
@@ -157,7 +157,7 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets a range from the sequence.</summary>
         /// <param name="range">A range inside the sequence.</param>
         /// <returns>The sequence for the given range.</returns>
-        public override DoubleSequence this[Range range]
+        public override DSequence this[Range range]
         {
             get
             {
@@ -177,7 +177,7 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
+        public override DSequence Reset()
         {
             current = first;
             return this;
@@ -185,15 +185,15 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Negates a sequence without an underlying storage.</summary>
         /// <returns>The negated sequence.</returns>
-        protected override DoubleSequence Negate() => new RangeSequenceDesc(-first, -last);
+        protected override DSequence Negate() => new RangeSequenceDesc(-first, -last);
 
         /// <summary>Sorts the content of this sequence.</summary>
         /// <returns>A sorted sequence.</returns>
-        public override DoubleSequence Sort() => this;
+        public override DSequence Sort() => this;
 
         /// <summary>Sorts the content of this sequence in descending order.</summary>
         /// <returns>A sorted sequence in descending order.</returns>
-        public override DoubleSequence SortDescending() => new RangeSequenceDesc(last, first);
+        public override DSequence SortDescending() => new RangeSequenceDesc(last, first);
 
         /// <summary>Gets the first value in the sequence.</summary>
         /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
@@ -214,7 +214,7 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
-        public sealed override DoubleSequence Distinct() => this;
+        public sealed override DSequence Distinct() => this;
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -239,11 +239,11 @@ public abstract partial class DoubleSequence : IFormattable
     {
         /// <summary>Sorts the content of this sequence.</summary>
         /// <returns>A sorted sequence.</returns>
-        public override DoubleSequence Sort() => new RangeSequence(last, first);
+        public override DSequence Sort() => new RangeSequence(last, first);
 
         /// <summary>Sorts the content of this sequence in descending order.</summary>
         /// <returns>A sorted sequence in descending order.</returns>
-        public override DoubleSequence SortDescending() => this;
+        public override DSequence SortDescending() => this;
 
         /// <summary>Gets the value at the specified index.</summary>
         /// <param name="index">A position inside the sequence.</param>
@@ -264,7 +264,7 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets a range from the sequence.</summary>
         /// <param name="range">A range inside the sequence.</param>
         /// <returns>The sequence for the given range.</returns>
-        public override DoubleSequence this[Range range]
+        public override DSequence this[Range range]
         {
             get
             {
@@ -284,7 +284,7 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Negates a sequence without an underlying storage.</summary>
         /// <returns>The negated sequence.</returns>
-        protected override DoubleSequence Negate() => new RangeSequence(-first, -last);
+        protected override DSequence Negate() => new RangeSequence(-first, -last);
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -306,7 +306,7 @@ public abstract partial class DoubleSequence : IFormattable
     /// <param name="lower">The first value in the sequence.</param>
     /// <param name="upper">The last value in the sequence.</param>
     /// <param name="steps">The number of steps in the sequence, minus one.</param>
-    private sealed class GridSequence(double lower, double upper, int steps) : DoubleSequence
+    private sealed class GridSequence(double lower, double upper, int steps) : DSequence
     {
         /// <summary>The distance between two steps.</summary>
         private readonly double delta = (upper - lower) / steps;
@@ -331,7 +331,7 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
+        public override DSequence Reset()
         {
             current = 0;
             return this;
@@ -339,18 +339,18 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Negates a sequence without an underlying storage.</summary>
         /// <returns>The negated sequence.</returns>
-        protected override DoubleSequence Negate() => new GridSequence(-lower, -upper, steps);
+        protected override DSequence Negate() => new GridSequence(-lower, -upper, steps);
 
         /// <summary>Scales a sequence without an underlying storage.</summary>
         /// <param name="d">The scalar multiplier.</param>
         /// <returns>The scaled sequence.</returns>
-        protected override DoubleSequence Scale(double d) =>
+        protected override DSequence Scale(double d) =>
             new GridSequence(lower * d, upper * d, steps);
 
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
-        public override DoubleSequence Distinct() => this;
+        public override DSequence Distinct() => this;
 
         /// <summary>Gets the value at the specified index.</summary>
         /// <param name="index">A position inside the sequence.</param>
@@ -376,7 +376,7 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets a range from the sequence.</summary>
         /// <param name="range">A range inside the sequence.</param>
         /// <returns>The sequence for the given range.</returns>
-        public override DoubleSequence this[Range range]
+        public override DSequence this[Range range]
         {
             get
             {
@@ -430,7 +430,7 @@ public abstract partial class DoubleSequence : IFormattable
 
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
-    private sealed class VectorSequence(Vector source) : DoubleSequence
+    private sealed class VectorSequence(Vector source) : DSequence
     {
         /// <summary>Current index in the sequence.</summary>
         private int current;
@@ -446,7 +446,7 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public override DoubleSequence Reset()
+        public override DSequence Reset()
         {
             current = 0;
             return this;
@@ -482,7 +482,7 @@ public abstract partial class DoubleSequence : IFormattable
         /// <summary>Gets a range from the sequence.</summary>
         /// <param name="range">A range inside the sequence.</param>
         /// <returns>The sequence for the given range.</returns>
-        public override DoubleSequence this[Range range] => new VectorSequence(source[range]);
+        public override DSequence this[Range range] => new VectorSequence(source[range]);
 
         /// <summary>Gets all statistics from the values in the secuence.</summary>
         /// <returns>Simple statistics of all the values in the sequence.</returns>
@@ -531,7 +531,7 @@ public abstract partial class DoubleSequence : IFormattable
     /// Implements a sequence of double values based in a generator function.
     /// </summary>
     /// <param name="length">Number of items in the sequence.</param>
-    private abstract class GenerativeSequence(int length): DoubleSequence
+    private abstract class GenerativeSequence(int length): DSequence
     {
         /// <summary>The length of the sequence.</summary>
         protected readonly int length = length;
@@ -547,7 +547,7 @@ public abstract partial class DoubleSequence : IFormattable
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public sealed override DoubleSequence Reset()
+        public sealed override DSequence Reset()
         {
             current = 0;
             return this;

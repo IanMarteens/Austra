@@ -399,7 +399,7 @@ internal sealed partial class ParserBindings
                 new("derivative", "Gets the derivative at a point between 0 and 1"),
                 new("eval", "Evaluates the polynomial at a point between 0 and 1"),
             ],
-            [typeof(DoubleSequence)] = [
+            [typeof(DSequence)] = [
                 new("distinct", "Get the unique values in the sequence"),
                 new("fft", "Performs a Fast Fourier Transform"),
                 new("first", "Gets the first value in the sequence"),
@@ -575,23 +575,23 @@ internal sealed partial class ParserBindings
             [new(typeof(ComplexVector), "sqr")] = typeof(ComplexVector).Get(nameof(ComplexVector.Squared)),
             [new(typeof(ComplexVector), "sum")] = typeof(ComplexVector).Get(nameof(ComplexVector.Sum)),
 
-            [new(typeof(DoubleSequence), "acf")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.ACF)),
-            [new(typeof(DoubleSequence), "distinct")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Distinct)),
-            [new(typeof(DoubleSequence), "first")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.First)),
-            [new(typeof(DoubleSequence), "fft")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Fft)),
-            [new(typeof(DoubleSequence), "last")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Last)),
-            [new(typeof(DoubleSequence), "length")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Length)),
-            [new(typeof(DoubleSequence), "min")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Min)),
-            [new(typeof(DoubleSequence), "max")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Max)),
-            [new(typeof(DoubleSequence), "plot")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Plot)),
-            [new(typeof(DoubleSequence), "prod")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Product)),
-            [new(typeof(DoubleSequence), "product")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Product)),
-            [new(typeof(DoubleSequence), "sort")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sort)),
-            [new(typeof(DoubleSequence), "sortasc")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sort)),
-            [new(typeof(DoubleSequence), "sortdesc")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.SortDescending)),
-            [new(typeof(DoubleSequence), "stats")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Stats)),
-            [new(typeof(DoubleSequence), "sum")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sum)),
-            [new(typeof(DoubleSequence), "tovector")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.ToVector)),
+            [new(typeof(DSequence), "acf")] = typeof(DSequence).Get(nameof(DSequence.ACF)),
+            [new(typeof(DSequence), "distinct")] = typeof(DSequence).Get(nameof(DSequence.Distinct)),
+            [new(typeof(DSequence), "first")] = typeof(DSequence).Get(nameof(DSequence.First)),
+            [new(typeof(DSequence), "fft")] = typeof(DSequence).Get(nameof(DSequence.Fft)),
+            [new(typeof(DSequence), "last")] = typeof(DSequence).Get(nameof(DSequence.Last)),
+            [new(typeof(DSequence), "length")] = typeof(DSequence).Get(nameof(DSequence.Length)),
+            [new(typeof(DSequence), "min")] = typeof(DSequence).Get(nameof(DSequence.Min)),
+            [new(typeof(DSequence), "max")] = typeof(DSequence).Get(nameof(DSequence.Max)),
+            [new(typeof(DSequence), "plot")] = typeof(DSequence).Get(nameof(DSequence.Plot)),
+            [new(typeof(DSequence), "prod")] = typeof(DSequence).Get(nameof(DSequence.Product)),
+            [new(typeof(DSequence), "product")] = typeof(DSequence).Get(nameof(DSequence.Product)),
+            [new(typeof(DSequence), "sort")] = typeof(DSequence).Get(nameof(DSequence.Sort)),
+            [new(typeof(DSequence), "sortasc")] = typeof(DSequence).Get(nameof(DSequence.Sort)),
+            [new(typeof(DSequence), "sortdesc")] = typeof(DSequence).Get(nameof(DSequence.SortDescending)),
+            [new(typeof(DSequence), "stats")] = typeof(DSequence).Get(nameof(DSequence.Stats)),
+            [new(typeof(DSequence), "sum")] = typeof(DSequence).Get(nameof(DSequence.Sum)),
+            [new(typeof(DSequence), "tovector")] = typeof(DSequence).Get(nameof(DSequence.ToVector)),
 
             [new(typeof(CSequence), "distinct")] = typeof(CSequence).Get(nameof(CSequence.Distinct)),
             [new(typeof(CSequence), "first")] = typeof(CSequence).Get(nameof(CSequence.First)),
@@ -755,13 +755,13 @@ internal sealed partial class ParserBindings
             [new(typeof(Polynomial), "deriv")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
             [new(typeof(Polynomial), "der")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
 
-            [new(typeof(DoubleSequence), "filter")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Filter)),
-            [new(typeof(DoubleSequence), "map")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Map)),
-            [new(typeof(DoubleSequence), "zip")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Zip)),
-            [new(typeof(DoubleSequence), "reduce")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Reduce)),
-            [new(typeof(DoubleSequence), "any")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Any)),
-            [new(typeof(DoubleSequence), "all")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.All)),
-            [new(typeof(DoubleSequence), "armodel")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.ARModel)),
+            [new(typeof(DSequence), "filter")] = typeof(DSequence).Get(nameof(DSequence.Filter)),
+            [new(typeof(DSequence), "map")] = typeof(DSequence).Get(nameof(DSequence.Map)),
+            [new(typeof(DSequence), "zip")] = typeof(DSequence).Get(nameof(DSequence.Zip)),
+            [new(typeof(DSequence), "reduce")] = typeof(DSequence).Get(nameof(DSequence.Reduce)),
+            [new(typeof(DSequence), "any")] = typeof(DSequence).Get(nameof(DSequence.Any)),
+            [new(typeof(DSequence), "all")] = typeof(DSequence).Get(nameof(DSequence.All)),
+            [new(typeof(DSequence), "armodel")] = typeof(DSequence).Get(nameof(DSequence.ARModel)),
 
             [new(typeof(CSequence), "filter")] = typeof(CSequence).Get(nameof(CSequence.Filter)),
             [new(typeof(CSequence), "map")] = typeof(CSequence).Get(nameof(CSequence.Map)),
@@ -777,13 +777,13 @@ internal sealed partial class ParserBindings
         typeof(Series<Date>).MD(nameof(Series.CovarianceMatrix), typeof(Series[])));
     private static readonly MethodList MatrixCorrelation = new(
         typeof(Series<Date>).MD(nameof(Series.CorrelationMatrix), typeof(Series[])));
-    private static readonly MethodList ModelCompare = new(
+    private static readonly MethodList ModelPlot = new(
         typeof(Plot<Vector>).MD(VectorVectorArg),
         typeof(Plot<Vector>).MD(VectorArg),
         typeof(Plot<ComplexVector>).MD(typeof(ComplexVector), typeof(ComplexVector)),
         typeof(Plot<ComplexVector>).MD(typeof(ComplexVector)),
         typeof(Plot<Series>).MD(typeof(Series), typeof(Series)),
-        typeof(Plot<Series>).MD(typeof(Series), typeof(Series)));
+        typeof(Plot<Series>).MD(typeof(Series)));
     private static readonly MethodList PolyDerivative = new(
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), DoubleVectorArg),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
@@ -855,7 +855,7 @@ internal sealed partial class ParserBindings
             ["matrix.covariance"] = MatrixCovariance,
             ["matrix.corr"] = MatrixCorrelation,
             ["matrix.correlation"] = MatrixCorrelation,
-            ["model.plot"] = ModelCompare,
+            ["model.plot"] = ModelPlot,
             ["model.mvo"] = new(
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
                 typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
@@ -941,7 +941,7 @@ internal sealed partial class ParserBindings
             ["math.round"] = new(
                 typeof(Math).MD(nameof(Math.Round), DoubleArg),
                 typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
-            ["math.plot"] = ModelCompare,
+            ["math.plot"] = ModelPlot,
             ["math.complex"] = new(
                 typeof(Complex).MD(DoubleDoubleArg),
                 typeof(Complex).MD(typeof(double), typeof(Zero))),
@@ -966,20 +966,20 @@ internal sealed partial class ParserBindings
                     typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
                     typeof(double), typeof(int))),
             ["seq.new"] = new(
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.Create), IntIntArg),
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.Create),
+                typeof(DSequence).MD(nameof(DSequence.Create), IntIntArg),
+                typeof(DSequence).MD(nameof(DSequence.Create),
                     typeof(double), typeof(double), typeof(int)),
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.Create), typeof(Vector)),
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.Create), typeof(Series))),
+                typeof(DSequence).MD(nameof(DSequence.Create), typeof(Vector)),
+                typeof(DSequence).MD(nameof(DSequence.Create), typeof(Series))),
             ["seq.random"] = new(
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.Random), typeof(int))),
+                typeof(DSequence).MD(nameof(DSequence.Random), typeof(int))),
             ["seq.nrandom"] = new(
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom), typeof(int)),
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom),
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom), typeof(int)),
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
                     typeof(int), typeof(double)),
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom),
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
                     typeof(int), typeof(double), typeof(Vector)),
-                typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom),
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
                     typeof(int), typeof(double),  typeof(double), typeof(Vector))),
             ["cseq.new"] = new(
                 typeof(CSequence).MD(nameof(CSequence.Create), typeof(ComplexVector))),

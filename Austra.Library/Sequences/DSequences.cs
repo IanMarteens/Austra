@@ -1,25 +1,25 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
-public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
+public abstract partial class DSequence : Sequence<double, DSequence>,
     IFormattable, 
-    IEquatable<DoubleSequence>,
-    IEqualityOperators<DoubleSequence, DoubleSequence, bool>,
-    IAdditionOperators<DoubleSequence, DoubleSequence, DoubleSequence>,
-    IAdditionOperators<DoubleSequence, double, DoubleSequence>,
-    ISubtractionOperators<DoubleSequence, DoubleSequence, DoubleSequence>,
-    ISubtractionOperators<DoubleSequence, double, DoubleSequence>,
-    IMultiplyOperators<DoubleSequence, DoubleSequence, double>,
-    IMultiplyOperators<DoubleSequence, double, DoubleSequence>,
-    IDivisionOperators<DoubleSequence, double, DoubleSequence>,
-    IUnaryNegationOperators<DoubleSequence, DoubleSequence>,
-    IPointwiseOperators<DoubleSequence>
+    IEquatable<DSequence>,
+    IEqualityOperators<DSequence, DSequence, bool>,
+    IAdditionOperators<DSequence, DSequence, DSequence>,
+    IAdditionOperators<DSequence, double, DSequence>,
+    ISubtractionOperators<DSequence, DSequence, DSequence>,
+    ISubtractionOperators<DSequence, double, DSequence>,
+    IMultiplyOperators<DSequence, DSequence, double>,
+    IMultiplyOperators<DSequence, double, DSequence>,
+    IDivisionOperators<DSequence, double, DSequence>,
+    IUnaryNegationOperators<DSequence, DSequence>,
+    IPointwiseOperators<DSequence>
 {
     /// <summary>Creates a sequence from a range.</summary>
     /// <param name="first">The first value in the sequence.</param>
     /// <param name="last">The last value in the sequence.</param>
     /// <returns>A sequence returning a range of values.</returns>
-    public static DoubleSequence Create(int first, int last) =>
+    public static DSequence Create(int first, int last) =>
         first <= last ? new RangeSequence(first, last) : new RangeSequenceDesc(first, last);
 
     /// <summary>Creates a sequence from a uniform grid.</summary>
@@ -27,38 +27,38 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="upper">The last value in the sequence.</param>
     /// <param name="steps">The number of steps in the sequence, minus one.</param>
     /// <returns>A sequence returning a uniform grid of values.</returns>
-    public static DoubleSequence Create(double lower, double upper, int steps) =>
+    public static DSequence Create(double lower, double upper, int steps) =>
         new GridSequence(lower, upper, steps);
 
     /// <summary>Creates a sequence from a vector.</summary>
     /// <param name="vector">The vector containing the sequence's values.</param>
     /// <returns>The sequence encapsulating the vector.</returns>
-    public static DoubleSequence Create(Vector vector) =>
+    public static DSequence Create(Vector vector) =>
         new VectorSequence(vector);
 
     /// <summary>Creates a sequence from a time series.</summary>
     /// <param name="series">The series containing the sequence's values.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DoubleSequence Create(Series series) =>
+    public static DSequence Create(Series series) =>
         new VectorSequence(series);
 
     /// <summary>Creates a sequence from random values.</summary>
     /// <param name="size">The size of the series.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DoubleSequence Random(int size) =>
+    public static DSequence Random(int size) =>
         new RandomSequence(size, System.Random.Shared);
 
     /// <summary>Creates a sequence from normal random values.</summary>
     /// <param name="size">The size of the series.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DoubleSequence NormalRandom(int size) =>
+    public static DSequence NormalRandom(int size) =>
         new NormalRandomSequence(size, Library.Stats.NormalRandom.Shared);
 
     /// <summary>Creates a sequence from normal random values.</summary>
     /// <param name="size">The size of the series.</param>
     /// <param name="variance">The variance of the normal distribution.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DoubleSequence NormalRandom(int size, double variance) =>
+    public static DSequence NormalRandom(int size, double variance) =>
         new NormalRandomSequence(size, new NormalRandom(0, Sqrt(variance)));
 
     /// <summary>Creates an autoregressive (AR) sequence.</summary>
@@ -66,7 +66,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="variance">The variance of the normal distribution.</param>
     /// <param name="coefficients">Autoregressive coefficients.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DoubleSequence NormalRandom(int size, double variance, Vector coefficients) =>
+    public static DSequence NormalRandom(int size, double variance, Vector coefficients) =>
         coefficients.Length == 0
         ? throw new VectorLengthException()
         : new ArSequence(size, variance, coefficients);
@@ -77,7 +77,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="mean">The independent term, that determines the mean.</param>
     /// <param name="coefficients">Moving average coefficients.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DoubleSequence NormalRandom(int size, double variance, double mean, Vector coefficients) =>
+    public static DSequence NormalRandom(int size, double variance, double mean, Vector coefficients) =>
         coefficients.Length == 0
         ? throw new VectorLengthException()
         : new MaSequence(size, variance, mean, coefficients);
@@ -85,20 +85,20 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>
-    public override DoubleSequence Map(Func<double, double> mapper) =>
+    public override DSequence Map(Func<double, double> mapper) =>
         new Mapped(this, mapper);
 
     /// <summary>Transform a sequence acording to the predicate passed as parameter.</summary>
     /// <param name="filter">A predicate for selecting surviving values</param>
     /// <returns>The filtered sequence.</returns>
-    public override DoubleSequence Filter(Func<double, bool> filter) =>
+    public override DSequence Filter(Func<double, bool> filter) =>
         new Filtered(this, filter);
 
     /// <summary>Joins the common part of two sequence with the help of a lambda.</summary>
     /// <param name="other">The second sequence.</param>
     /// <param name="zipper">The joining sequence.</param>
     /// <returns>The combined sequence.</returns>
-    public override DoubleSequence Zip(DoubleSequence other, Func<double, double, double> zipper) =>
+    public override DSequence Zip(DSequence other, Func<double, double, double> zipper) =>
         new Zipped(this, other, zipper);
 
     /// <summary>Gets the value at the specified index.</summary>
@@ -109,13 +109,13 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <summary>Gets a range from the sequence.</summary>
     /// <param name="range">A range inside the sequence.</param>
     /// <returns>The sequence for the given range.</returns>
-    public override DoubleSequence this[Range range] => new VectorSequence(Materialize()[range]);
+    public override DSequence this[Range range] => new VectorSequence(Materialize()[range]);
 
     /// <summary>Adds the common part of two sequences.</summary>
     /// <param name="s1">First sequence operand.</param>
     /// <param name="s2">Second sequence operand.</param>
     /// <returns>The component by component sum of the sequences.</returns>
-    public static DoubleSequence operator+(DoubleSequence s1, DoubleSequence s2)
+    public static DSequence operator+(DSequence s1, DSequence s2)
     {
         if (!s1.HasStorage && !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x + y);
@@ -130,7 +130,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="s">Sequence operand.</param>
     /// <param name="d">Scalar operand.</param>
     /// <returns>The component by component sum of the sequence and the scalar.</returns>
-    public static DoubleSequence operator +(DoubleSequence s, double d)
+    public static DSequence operator +(DSequence s, double d)
     {
         if (!s.HasStorage)
             return s.Map(x => x + d);
@@ -145,13 +145,13 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="s">Sequence operand.</param>
     /// <returns>The component by component sum of the scalar and the sequence.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DoubleSequence operator +(double d, DoubleSequence s) => s + d;
+    public static DSequence operator +(double d, DSequence s) => s + d;
 
     /// <summary>Subtracts the common part of two sequences.</summary>
     /// <param name="s1">Sequence minuend.</param>
     /// <param name="s2">Sequence subtrahend.</param>
     /// <returns>The component by component subtraction of the sequences.</returns>
-    public static DoubleSequence operator -(DoubleSequence s1, DoubleSequence s2)
+    public static DSequence operator -(DSequence s1, DSequence s2)
     {
         if (!s1.HasStorage && !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x - y);
@@ -166,7 +166,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="s">Sequence minuend.</param>
     /// <param name="d">Scalar subtrahend.</param>
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
-    public static DoubleSequence operator -(DoubleSequence s, double d)
+    public static DSequence operator -(DSequence s, double d)
     {
         if (!s.HasStorage)
             return s.Map(x => x - d);
@@ -180,7 +180,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="s">Sequence minuend.</param>
     /// <param name="d">Scalar subtrahend.</param>
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
-    public static DoubleSequence operator -(double d, DoubleSequence s)
+    public static DSequence operator -(double d, DSequence s)
     {
         if (!s.HasStorage)
             return s.Map(x => d - x);
@@ -193,7 +193,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <summary>Negates a sequence.</summary>
     /// <param name="s">The sequence operand.</param>
     /// <returns>The component by component negation.</returns>
-    public static DoubleSequence operator -(DoubleSequence s)
+    public static DSequence operator -(DSequence s)
     {
         if (!s.HasStorage)
             return s.Negate();
@@ -205,13 +205,13 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
 
     /// <summary>Negates a sequence without an underlying storage.</summary>
     /// <returns>The negated sequence.</returns>
-    protected virtual DoubleSequence Negate() => Map(x => -x);
+    protected virtual DSequence Negate() => Map(x => -x);
 
     /// <summary>Calculates the scalar product of the common part of two sequences.</summary>
     /// <param name="s1">First sequence.</param>
     /// <param name="s2">Second sequence.</param>
     /// <returns>The dot product of the common part.</returns>
-    public static double operator*(DoubleSequence s1, DoubleSequence s2)
+    public static double operator*(DSequence s1, DSequence s2)
     {
         if (!s1.HasStorage && !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x * y).Sum();
@@ -225,7 +225,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="s">Sequence multiplicand.</param>
     /// <param name="d">A scalar multiplier.</param>
     /// <returns>The multiplication of the sequence by the scalar.</returns>
-    public static DoubleSequence operator *(DoubleSequence s, double d)
+    public static DSequence operator *(DSequence s, double d)
     {
         if (!s.HasStorage)
             return s.Scale(d);
@@ -238,26 +238,26 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <summary>Scales a sequence without an underlying storage.</summary>
     /// <param name="d">The scalar multiplier.</param>
     /// <returns>The scaled sequence.</returns>
-    protected virtual DoubleSequence Scale(double d) => Map(x => x * d);
+    protected virtual DSequence Scale(double d) => Map(x => x * d);
 
     /// <summary>Multiplies a scalar value by a sequence.</summary>
     /// <param name="d">Scalar multiplicand.</param>
     /// <param name="s">Sequence multiplier.</param>
     /// <returns>The multiplication of the sequence by the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DoubleSequence operator *(double d, DoubleSequence s) => s * d;
+    public static DSequence operator *(double d, DSequence s) => s * d;
 
     /// <summary>Divides a sequence by a scalar value.</summary>
     /// <param name="s">Sequence dividend.</param>
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The quotient of the sequence and the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DoubleSequence operator /(DoubleSequence s, double d) => s * (1d / d);
+    public static DSequence operator /(DSequence s, double d) => s * (1d / d);
 
     /// <summary>Item by item multiplication of two sequences.</summary>
     /// <param name="other">The second sequence.</param>
     /// <returns>A sequence with all the multiplication results.</returns>
-    public override DoubleSequence PointwiseMultiply(DoubleSequence other)
+    public override DSequence PointwiseMultiply(DSequence other)
     {
         if (!HasStorage && !other.HasStorage)
             return new Zipped(this, other, (x, y) => x * y);
@@ -270,7 +270,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <summary>Item by item division of sequences.</summary>
     /// <param name="other">The second sequence.</param>
     /// <returns>A sequence with all the quotient results.</returns>
-    public override DoubleSequence PointwiseDivide(DoubleSequence other)
+    public override DSequence PointwiseDivide(DSequence other)
     {
         {
             if (!HasStorage && !other.HasStorage)
@@ -335,7 +335,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
 
     /// <summary>Sorts the content of this sequence.</summary>
     /// <returns>A sorted sequence.</returns>
-    public virtual DoubleSequence Sort()
+    public virtual DSequence Sort()
     {
         double[] data = Materialize();
         Array.Sort(data);
@@ -344,7 +344,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
 
     /// <summary>Sorts the content of this sequence in descending order.</summary>
     /// <returns>A sorted sequence in descending order.</returns>
-    public virtual DoubleSequence SortDescending()
+    public virtual DSequence SortDescending()
     {
         double[] data = Materialize();
         Array.Sort(data, (x, y) => y.CompareTo(x));
@@ -353,7 +353,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
 
     /// <summary>Gets only the unique values in this sequence.</summary>
     /// <returns>A sequence with unique values.</returns>
-    public override DoubleSequence Distinct()
+    public override DSequence Distinct()
     {
         if (HasStorage)
             return Create(new HashSet<double>(Materialize()).ToArray());
@@ -403,14 +403,14 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <summary>Checks if two sequence has the same length and arguments.</summary>
     /// <param name="other">The second sequence to be compared.</param>
     /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
-    public bool Equals(DoubleSequence? other) =>
+    public bool Equals(DSequence? other) =>
         other is not null && Materialize().EqualsV(other.Materialize());
 
     /// <summary>Checks if the provided argument is a sequence with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a sequence with the same items.</returns>
     public override bool Equals(object? obj) =>
-        obj is DoubleSequence seq && Equals(seq);
+        obj is DSequence seq && Equals(seq);
 
     /// <summary>Returns the hashcode for this vector.</summary>
     /// <returns>A hashcode summarizing the content of the vector.</returns>
@@ -422,14 +422,14 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <param name="right">Second sequence operand.</param>
     /// <returns><see langword="true"/> if all corresponding items are equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(DoubleSequence? left, DoubleSequence? right) => left?.Equals(right) == true;
+    public static bool operator ==(DSequence? left, DSequence? right) => left?.Equals(right) == true;
 
     /// <summary>Compares two vectors for inequality. </summary>
     /// <param name="left">First sequence operand.</param>
     /// <param name="right">Second sequence operand.</param>
     /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(DoubleSequence? left, DoubleSequence? right) => left?.Equals(right) != true;
+    public static bool operator !=(DSequence? left, DSequence? right) => left?.Equals(right) != true;
 
     /// <summary>Creates a plot for this sequence.</summary>
     /// <returns>A plot containing a frozen vector as its dataset.</returns>

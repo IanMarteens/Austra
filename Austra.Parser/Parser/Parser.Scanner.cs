@@ -43,10 +43,10 @@ internal sealed partial class Parser : IDisposable
             [typeof(Vector), typeof(double), typeof(Vector)])!;
     /// <summary>Method for cloning sequences.</summary>
     private static readonly MethodInfo SeqClone =
-        typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Clone))!;
+        typeof(DSequence).GetMethod(nameof(DSequence.Clone))!;
     /// <summary>Method for restarting sequences.</summary>
     private static readonly MethodInfo SeqReset =
-        typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Reset))!;
+        typeof(DSequence).GetMethod(nameof(DSequence.Reset))!;
     /// <summary>Method for cloning sequences.</summary>
     private static readonly MethodInfo CSeqClone =
         typeof(CSequence).GetMethod(nameof(CSequence.Clone))!;
