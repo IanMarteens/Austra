@@ -36,6 +36,21 @@
                   <para>Using immutable vectors, series and matrices has one drawback, and it is more stress for the garbage collector. For that reason, we offer combined operations, like other libraries do, to fuse several linear operations into one, when possible. The AUSTRA parser detects most of these cases for optimizing them.</para>
                   <sections>
                     <section>
+                      <title>Linear Algebra</title>
+                      <content>
+						<para>Austra provides classes for dense vectors and matrices, for double-precision arithmetic. It also features an efficient <codeEntityReference qualifyHint="false">T:Austra.Library.ComplexVector</codeEntityReference> type. Single-precision floats, complex and sparse matrices are planned for a future sprint. All operations takes advantage of C# operators when possible, so most of the operations are non-destructive.</para>
+						<para>There are three classes for representing matrices:</para>
+						<list class="bullet">
+						  <listItem><codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference> is the general type that you will use most of the time.</listItem>
+						  <listItem>Lower triangular matrices are represented by the <codeEntityReference qualifyHint="false">T:Austra.Library.LMatrix</codeEntityReference> type.</listItem>
+						  <listItem>Upper triangular matrices are represented by the <codeEntityReference qualifyHint="false">T:Austra.Library.RMatrix</codeEntityReference> type.</listItem>
+						</list>
+						<para>The point with this two additional types is not to save space, since the underlying data structure is the same, but to provide a more efficient implementation of several methods and operators. There's also some logical advantages, regarding type safety, since some decompositions returns triangular matrices.</para>
+						<para>As usual, matrix multiplication has been fully optimized using loop reordering and unrolling, blocking and hardware intrinsics, including fused multiply and add. There are variants for multiplying a matrix by another matrix transposed on-the-fly, for multiplying a vector by a transposed matrix and for accelerating linear combinations of vectors.</para>
+						<para>All of these types are actually readonly structures, acting as a thin layer above C#'s arrays. Even the storage for a matrix is a one-dimensional array, since multidimensional arrays in .NET are less optimized for bound-checkings, getting a managed reference and other low-level operations.</para>
+                      </content>
+                    </section>
+                    <section>
                       <title>Matrix factorizations</title>
                       <content>
 						<para>Austra provides classes for the following matrix factorizations:</para>
