@@ -34,6 +34,7 @@ internal sealed partial class ParserBindings
         new("spline::", "Allows access to spline constructors"),
         new("vec::", "Allows access to vector constructors"),
         new("seq::", "Allows access to sequence constructors"),
+        new("cseq::", "Allows access to complex sequence constructors"),
         new("math::", "Allows access to mathematical functions"),
     ];
 
@@ -48,6 +49,11 @@ internal sealed partial class ParserBindings
                 new("new(", "Creates a sequence from a range, a grid or a vector"),
                 new("nrandom(", "Creates a sequence from normal random numbers"),
                 new("random(", "Creates a sequence from random numbers"),
+            ],
+            ["cseq"] = [
+                new("new(", "Creates a complex sequence from a complex vector"),
+                new("nrandom(", "Creates a complex sequence from normal random numbers"),
+                new("random(", "Creates a complex sequence from random numbers"),
             ],
             ["spline"] = [
                 new("new(", "Creates a new interpolator either from two vectors, a series, or from a function"),
@@ -416,6 +422,23 @@ internal sealed partial class ParserBindings
                 new("reduce(", "Combines all values in the sequence into a single value"),
                 new("zip(", "Combines two sequence using a lambda function"),
             ],
+            [typeof(CSequence)] = [
+                new("distinct", "Get the unique values in the sequence"),
+                new("fft", "Performs a Fast Fourier Transform"),
+                new("first", "Gets the first value in the sequence"),
+                new("last", "Gets the last value in the sequence"),
+                new("length", "Gets the number of values in the sequence"),
+                new("plot", "Plots this sequence"),
+                new("prod", "Gets the product of all values in the sequence"),
+                new("sum", "Gets the sum of all values in the sequence"),
+                new("toVector", "Converts the sequence to a complex vector"),
+                new("all(x => ", "Universal operator"),
+                new("any(x => ", "Existential operator"),
+                new("filter(x => ", "Filters the sequence according to a predicate"),
+                new("map(x => ", "Transforms the sequence according to a mapping function"),
+                new("reduce(", "Combines all values in the sequence into a single value"),
+                new("zip(", "Combines two sequence using a lambda function"),
+            ],
         }.ToFrozenDictionary();
 
     /// <summary>Allowed properties and their implementations.</summary>
@@ -570,6 +593,17 @@ internal sealed partial class ParserBindings
             [new(typeof(DoubleSequence), "sum")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Sum)),
             [new(typeof(DoubleSequence), "tovector")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.ToVector)),
 
+            [new(typeof(CSequence), "distinct")] = typeof(CSequence).Get(nameof(CSequence.Distinct)),
+            [new(typeof(CSequence), "first")] = typeof(CSequence).Get(nameof(CSequence.First)),
+            [new(typeof(CSequence), "fft")] = typeof(CSequence).Get(nameof(CSequence.Fft)),
+            [new(typeof(CSequence), "last")] = typeof(CSequence).Get(nameof(CSequence.Last)),
+            [new(typeof(CSequence), "length")] = typeof(CSequence).Get(nameof(CSequence.Length)),
+            [new(typeof(CSequence), "plot")] = typeof(CSequence).Get(nameof(CSequence.Plot)),
+            [new(typeof(CSequence), "prod")] = typeof(CSequence).Get(nameof(CSequence.Product)),
+            [new(typeof(CSequence), "product")] = typeof(CSequence).Get(nameof(CSequence.Product)),
+            [new(typeof(CSequence), "sum")] = typeof(CSequence).Get(nameof(CSequence.Sum)),
+            [new(typeof(CSequence), "tovector")] = typeof(CSequence).Get(nameof(CSequence.ToVector)),
+
             [new(typeof(LMatrix), "det")] = typeof(LMatrix).Get(nameof(LMatrix.Determinant)),
             [new(typeof(LMatrix), "trace")] = typeof(LMatrix).Get(nameof(LMatrix.Trace)),
             [new(typeof(LMatrix), "rows")] = typeof(LMatrix).Prop(nameof(LMatrix.Rows)),
@@ -715,10 +749,12 @@ internal sealed partial class ParserBindings
             [new(typeof(Matrix), "map")] = typeof(Matrix).Get(nameof(Matrix.Map)),
             [new(typeof(Matrix), "any")] = typeof(Matrix).Get(nameof(Matrix.Any)),
             [new(typeof(Matrix), "all")] = typeof(Matrix).Get(nameof(Matrix.All)),
+
             [new(typeof(Polynomial), "eval")] = typeof(Polynomial).Get(nameof(Polynomial.Eval)),
             [new(typeof(Polynomial), "derivative")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
             [new(typeof(Polynomial), "deriv")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
             [new(typeof(Polynomial), "der")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
+
             [new(typeof(DoubleSequence), "filter")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Filter)),
             [new(typeof(DoubleSequence), "map")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Map)),
             [new(typeof(DoubleSequence), "zip")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Zip)),
@@ -726,6 +762,13 @@ internal sealed partial class ParserBindings
             [new(typeof(DoubleSequence), "any")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.Any)),
             [new(typeof(DoubleSequence), "all")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.All)),
             [new(typeof(DoubleSequence), "armodel")] = typeof(DoubleSequence).Get(nameof(DoubleSequence.ARModel)),
+
+            [new(typeof(CSequence), "filter")] = typeof(CSequence).Get(nameof(CSequence.Filter)),
+            [new(typeof(CSequence), "map")] = typeof(CSequence).Get(nameof(CSequence.Map)),
+            [new(typeof(CSequence), "zip")] = typeof(CSequence).Get(nameof(CSequence.Zip)),
+            [new(typeof(CSequence), "reduce")] = typeof(CSequence).Get(nameof(CSequence.Reduce)),
+            [new(typeof(CSequence), "any")] = typeof(CSequence).Get(nameof(CSequence.Any)),
+            [new(typeof(CSequence), "all")] = typeof(CSequence).Get(nameof(CSequence.All)),
         }.ToFrozenDictionary();
 
     private static readonly MethodList MatrixEye = new(
@@ -938,6 +981,14 @@ internal sealed partial class ParserBindings
                     typeof(int), typeof(double), typeof(Vector)),
                 typeof(DoubleSequence).MD(nameof(DoubleSequence.NormalRandom),
                     typeof(int), typeof(double),  typeof(double), typeof(Vector))),
+            ["cseq.new"] = new(
+                typeof(CSequence).MD(nameof(CSequence.Create), typeof(ComplexVector))),
+            ["cseq.random"] = new(
+                typeof(CSequence).MD(nameof(CSequence.Random), typeof(int))),
+            ["cseq.nrandom"] = new(
+                typeof(CSequence).MD(nameof(CSequence.NormalRandom), typeof(int)),
+                typeof(CSequence).MD(nameof(CSequence.NormalRandom),
+                    typeof(int), typeof(double))),
         }.ToFrozenDictionary();
 
     /// <summary>Get root expressions for code completion.</summary>

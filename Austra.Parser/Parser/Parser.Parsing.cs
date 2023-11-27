@@ -781,6 +781,7 @@ internal sealed partial class Parser
                     e = IsVector(e) || e.Type == typeof(Series<int>)
                         || e.Type.IsAssignableTo(typeof(FftModel))
                         || e.Type.IsAssignableTo(typeof(DoubleSequence))
+                        || e.Type.IsAssignableTo(typeof(CSequence))
                         ? ParseIndexer(e, true)
                         : IsMatrix(e)
                         ? ParseMatrixIndexer(e)
@@ -1426,6 +1427,8 @@ internal sealed partial class Parser
             locals.TryGetValue(ident, out local))
             return local.Type == typeof(DoubleSequence)
                 ? Expression.Call(local, SeqClone)
+                : local.Type == typeof(CSequence)
+                ? Expression.Call(local, CSeqClone)
                 : local;
         // Check macro definitions.
         Definition? def = source.GetDefinition(ident);
@@ -1450,6 +1453,8 @@ internal sealed partial class Parser
         {
             return e.Type.IsAssignableTo(typeof(DoubleSequence))
                 ? Expression.Call(Expression.Call(e, SeqClone), SeqReset)
+                : e.Type.IsAssignableTo(typeof(CSequence))
+                ? Expression.Call(Expression.Call(e, CSeqClone), CSeqReset)
                 : e;
         }
         if (TryParseMonthYear(ident, out Date d))

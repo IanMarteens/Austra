@@ -292,4 +292,13 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <summary>Creates a plot for this sequence.</summary>
     /// <returns>A plot containing a frozen vector as its dataset.</returns>
     public Plot<ComplexVector> Plot() => new(ToVector());
+
+    /// <summary>Computes the complex discrete Fourier transform.</summary>
+    /// <returns>The spectrum.</returns>
+    public FftCModel Fft() 
+    {
+        Complex[] values = Materialize();
+        FFT.Transform(values);
+        return new(values);
+    }
 }

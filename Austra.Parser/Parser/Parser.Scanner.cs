@@ -47,6 +47,12 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Method for restarting sequences.</summary>
     private static readonly MethodInfo SeqReset =
         typeof(DoubleSequence).GetMethod(nameof(DoubleSequence.Reset))!;
+    /// <summary>Method for cloning sequences.</summary>
+    private static readonly MethodInfo CSeqClone =
+        typeof(CSequence).GetMethod(nameof(CSequence.Clone))!;
+    /// <summary>Method for restarting sequences.</summary>
+    private static readonly MethodInfo CSeqReset =
+        typeof(CSequence).GetMethod(nameof(CSequence.Reset))!;
 
     /// <summary>Predefined classes and methods.</summary>
     private readonly ParserBindings bindings;
