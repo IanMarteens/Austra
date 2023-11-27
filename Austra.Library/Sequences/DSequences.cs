@@ -15,25 +15,6 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     IUnaryNegationOperators<DoubleSequence, DoubleSequence>,
     IPointwiseOperators<DoubleSequence>
 {
-    /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
-    /// <param name="mapper">The transforming function.</param>
-    /// <returns>The transformed sequence.</returns>
-    public virtual DoubleSequence Map(Func<double, double> mapper) =>
-        new Mapped(this, mapper);
-
-    /// <summary>Transform a sequence acording to the predicate passed as parameter.</summary>
-    /// <param name="filter">A predicate for selecting surviving values</param>
-    /// <returns>The filtered sequence.</returns>
-    public DoubleSequence Filter(Func<double, bool> filter) =>
-        new Filtered(this, filter);
-
-    /// <summary>Joins the common part of two sequence with the help of a lambda.</summary>
-    /// <param name="other">The second sequence.</param>
-    /// <param name="zipper">The joining sequence.</param>
-    /// <returns>The combined sequence.</returns>
-    public DoubleSequence Zip(DoubleSequence other, Func<double, double, double> zipper) =>
-        new Zipped(this, other, zipper);
-
     /// <summary>Creates a sequence from a range.</summary>
     /// <param name="first">The first value in the sequence.</param>
     /// <param name="last">The last value in the sequence.</param>
@@ -101,6 +82,25 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
         ? throw new VectorLengthException()
         : new MaSequence(size, variance, mean, coefficients);
 
+    /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
+    /// <param name="mapper">The transforming function.</param>
+    /// <returns>The transformed sequence.</returns>
+    public override DoubleSequence Map(Func<double, double> mapper) =>
+        new Mapped(this, mapper);
+
+    /// <summary>Transform a sequence acording to the predicate passed as parameter.</summary>
+    /// <param name="filter">A predicate for selecting surviving values</param>
+    /// <returns>The filtered sequence.</returns>
+    public override DoubleSequence Filter(Func<double, bool> filter) =>
+        new Filtered(this, filter);
+
+    /// <summary>Joins the common part of two sequence with the help of a lambda.</summary>
+    /// <param name="other">The second sequence.</param>
+    /// <param name="zipper">The joining sequence.</param>
+    /// <returns>The combined sequence.</returns>
+    public override DoubleSequence Zip(DoubleSequence other, Func<double, double, double> zipper) =>
+        new Zipped(this, other, zipper);
+
     /// <summary>Gets the value at the specified index.</summary>
     /// <param name="idx">A position inside the sequence.</param>
     /// <returns>The value at the given position.</returns>
@@ -147,7 +147,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DoubleSequence operator +(double d, DoubleSequence s) => s + d;
 
-    /// <summary>Subtracts a scalar common part of two sequences.</summary>
+    /// <summary>Subtracts the common part of two sequences.</summary>
     /// <param name="s1">Sequence minuend.</param>
     /// <param name="s2">Sequence subtrahend.</param>
     /// <returns>The component by component subtraction of the sequences.</returns>
@@ -176,7 +176,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
         return new VectorSequence(r);
     }
 
-    /// <summary>Subtracts a scalar from a sequence.</summary>
+    /// <summary>Subtracts a sequence from a scalar.</summary>
     /// <param name="s">Sequence minuend.</param>
     /// <param name="d">Scalar subtrahend.</param>
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
@@ -257,7 +257,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <summary>Item by item multiplication of two sequences.</summary>
     /// <param name="other">The second sequence.</param>
     /// <returns>A sequence with all the multiplication results.</returns>
-    public DoubleSequence PointwiseMultiply(DoubleSequence other)
+    public override DoubleSequence PointwiseMultiply(DoubleSequence other)
     {
         if (!HasStorage && !other.HasStorage)
             return new Zipped(this, other, (x, y) => x * y);
@@ -270,7 +270,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     /// <summary>Item by item division of sequences.</summary>
     /// <param name="other">The second sequence.</param>
     /// <returns>A sequence with all the quotient results.</returns>
-    public DoubleSequence PointwiseDivide(DoubleSequence other)
+    public override DoubleSequence PointwiseDivide(DoubleSequence other)
     {
         {
             if (!HasStorage && !other.HasStorage)
@@ -290,16 +290,6 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
         while (Next(out double value))
             result += value;
         return result;
-    }
-
-    /// <summary>Gets the product of all the values in the sequence.</summary>
-    /// <returns>The product of all the values in the sequence.</returns>
-    public virtual double Product()
-    {
-        double product = 1;
-        while (Next(out double value))
-            product *= value;
-        return product;
     }
 
     /// <summary>Gets the first value in the sequence.</summary>
@@ -363,7 +353,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
 
     /// <summary>Gets only the unique values in this sequence.</summary>
     /// <returns>A sequence with unique values.</returns>
-    public virtual DoubleSequence Distinct()
+    public override DoubleSequence Distinct()
     {
         if (HasStorage)
             return Create(new HashSet<double>(Materialize()).ToArray());
@@ -403,7 +393,7 @@ public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     public override string ToString() =>
         Materialize().ToString(v => v.ToString("G6"));
 
-    /// <summary>Gets a textual representation of this vector.</summary>
+    /// <summary>Gets a textual representation of this sequence.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>Space-separated components.</returns>
