@@ -3,6 +3,8 @@
 /// <summary>Represents any sequence returning a complex values.</summary>
 public abstract partial class CSequence : Sequence<Complex, CSequence>,
     IFormattable,
+    IEquatable<CSequence>,
+    IEqualityOperators<CSequence, CSequence, bool>,
     IAdditionOperators<CSequence, CSequence, CSequence>,
     IAdditionOperators<CSequence, Complex, CSequence>,
     ISubtractionOperators<CSequence, CSequence, CSequence>,
