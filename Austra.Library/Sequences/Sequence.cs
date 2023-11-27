@@ -11,7 +11,8 @@ public abstract class Sequence<T, TSelf>
         IAdditiveIdentity<T, T>,
         ISubtractionOperators<T, T, T>,
         IMultiplyOperators<T, T, T>,
-        IMultiplicativeIdentity<T, T>
+        IMultiplicativeIdentity<T, T>,
+        IDivisionOperators<T, T, T>
 {
     /// <summary>Gets the next item in the sequence.</summary>
     /// <param name="value">The next item in the sequence.</param>
