@@ -1,7 +1,7 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning a double value.</summary>
-public abstract partial class DoubleSequence :
+public abstract partial class DoubleSequence : Sequence<double, DoubleSequence>,
     IFormattable, 
     IEquatable<DoubleSequence>,
     IEqualityOperators<DoubleSequence, DoubleSequence, bool>,
@@ -15,19 +15,6 @@ public abstract partial class DoubleSequence :
     IUnaryNegationOperators<DoubleSequence, DoubleSequence>,
     IPointwiseOperators<DoubleSequence>
 {
-    /// <summary>Gets the next number in the sequence.</summary>
-    /// <param name="value">The next number in the sequence.</param>
-    /// <returns><see langword="true"/>, when there is a next number.</returns>
-    public abstract bool Next(out double value);
-
-    /// <summary>Performs a shallow copy of the sequence.</summary>
-    /// <returns>A shallow copy of the sequence.</returns>
-    public DoubleSequence Clone() => (DoubleSequence)MemberwiseClone();
-
-    /// <summary>Resets the sequence.</summary>
-    /// <returns>Echoes this sequence.</returns>
-    public virtual DoubleSequence Reset() => this;
-
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>
@@ -115,33 +102,14 @@ public abstract partial class DoubleSequence :
         : new MaSequence(size, variance, mean, coefficients);
 
     /// <summary>Gets the value at the specified index.</summary>
-    /// <param name="index">A position inside the sequence.</param>
-    /// <returns>The value at the given position.</returns>
-    /// <exception cref="IndexOutOfRangeException">
-    /// When <paramref name="index"/> is out of range.
-    /// </exception>
-    public virtual double this[int index]
-    {
-        get
-        {
-            while (index-- > 0)
-                if (!Next(out _))
-                    throw new IndexOutOfRangeException();
-            if (!Next(out double value))
-                throw new IndexOutOfRangeException();
-            return value;
-        }
-    }
-
-    /// <summary>Gets the value at the specified index.</summary>
     /// <param name="idx">A position inside the sequence.</param>
     /// <returns>The value at the given position.</returns>
-    public virtual double this[Index idx] => idx.IsFromEnd ? Materialize()[idx] : this[idx.Value];
+    public override double this[Index idx] => idx.IsFromEnd ? Materialize()[idx] : this[idx.Value];
 
     /// <summary>Gets a range from the sequence.</summary>
     /// <param name="range">A range inside the sequence.</param>
     /// <returns>The sequence for the given range.</returns>
-    public virtual DoubleSequence this[Range range] => new VectorSequence(Materialize()[range]);
+    public override DoubleSequence this[Range range] => new VectorSequence(Materialize()[range]);
 
     /// <summary>Adds the common part of two sequences.</summary>
     /// <param name="s1">First sequence operand.</param>
@@ -324,27 +292,6 @@ public abstract partial class DoubleSequence :
         return result;
     }
 
-    /// <summary>Reduces a sequence to a single number.</summary>
-    /// <param name="seed">The seed value.</param>
-    /// <param name="reducer">A function that combines two elements into one.</param>
-    /// <returns>The reduced values.</returns>
-    public virtual double Reduce(double seed, Func<double, double, double> reducer)
-    {
-        while (Next(out double value))
-            seed = reducer(seed, value);
-        return seed;
-    }
-
-    /// <summary>Gets the sum of all the values in the sequence.</summary>
-    /// <returns>The sum of all the values in the sequence.</returns>
-    public virtual double Sum()
-    {
-        double total = 0;
-        while (Next(out double value))
-            total += value;
-        return total;
-    }
-
     /// <summary>Gets the product of all the values in the sequence.</summary>
     /// <returns>The product of all the values in the sequence.</returns>
     public virtual double Product()
@@ -355,19 +302,9 @@ public abstract partial class DoubleSequence :
         return product;
     }
 
-    /// <summary>Gets the total number of values in the sequence.</summary>
-    /// <returns>The total number of values in the sequence.</returns>
-    public virtual int Length()
-    {
-        int count = 0;
-        while (Next(out _))
-            count++;
-        return count;
-    }
-
     /// <summary>Gets the first value in the sequence.</summary>
     /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
-    public virtual double First()
+    public override double First()
     {
         if (!Next(out double value))
             return double.NaN;
@@ -376,34 +313,12 @@ public abstract partial class DoubleSequence :
 
     /// <summary>Gets the last value in the sequence.</summary>
     /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
-    public virtual double Last()
+    public override double Last()
     {
         double saved = double.NaN;
         while (Next(out double value))
             saved = value;
         return saved;
-    }
-
-    /// <summary>Checks whether the predicate is satisfied by all items.</summary>
-    /// <param name="predicate">The predicate to be checked.</param>
-    /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-    public bool All(Func<double, bool> predicate)
-    {
-        while (Next(out double value))
-            if (!predicate(value))
-                return false;
-        return true;
-    }
-
-    /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
-    /// <param name="predicate">The predicate to be checked.</param>
-    /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-    public bool Any(Func<double, bool> predicate)
-    {
-        while (Next(out double value))
-            if (predicate(value))
-                return true;
-        return false;
     }
 
     /// <summary>Gets the minimum value from the sequence.</summary>
@@ -464,7 +379,7 @@ public abstract partial class DoubleSequence :
 
     /// <summary>Creates an array with all values from the sequence.</summary>
     /// <returns>The values as an array.</returns>
-    protected virtual double[] Materialize()
+    protected override double[] Materialize()
     {
         if (HasLength)
         {
@@ -482,19 +397,6 @@ public abstract partial class DoubleSequence :
             values.Add(value);
         return [.. values];
     }
-
-    /// <summary>Fills a span with all values from the sequence.</summary>
-    protected void Materialize(Span<double> span)
-    {
-        for (ref double d = ref MM.GetReference(span); Next(out double v); d = ref Add(ref d, 1))
-            d = v;
-    }
-
-    /// <summary>Checks if we can get the length without iterating.</summary>
-    protected virtual bool HasLength => false;
-
-    /// <summary>Checks the sequence has a storage.</summary>
-    protected virtual bool HasStorage => false;
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="Vector"/>.</summary>
     /// <returns>A formated list of double values.</returns>
