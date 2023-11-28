@@ -118,14 +118,14 @@ public abstract partial class CSequence
 
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
-    private sealed class VectorSequence(ComplexVector source) : CSequence
+    private sealed class VectorSequence(CVector source) : CSequence
     {
         /// <summary>Current index in the sequence.</summary>
         private int current;
 
         /// <summary>Creates a sequence of complex numbers from an array of complex numbers.</summary>
         /// <param name="values">An array of complex numbers.</param>
-        public VectorSequence(Complex[] values) : this(new ComplexVector(values)) { }
+        public VectorSequence(Complex[] values) : this(new CVector(values)) { }
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>

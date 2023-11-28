@@ -18,7 +18,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <summary>Creates a sequence from a complex vector.</summary>
     /// <param name="vector">The vector containing the sequence's values.</param>
     /// <returns>The sequence encapsulating the vector.</returns>
-    public static CSequence Create(ComplexVector vector) =>
+    public static CSequence Create(CVector vector) =>
         new VectorSequence(vector);
 
     /// <summary>Creates a sequence from random values.</summary>
@@ -169,8 +169,8 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     {
         if (!HasStorage && !other.HasStorage)
             return new Zipped(this, other, (x, y) => x * y);
-        ComplexVector a1 = new(Materialize());
-        ComplexVector a2 = new(other.Materialize());
+        CVector a1 = new(Materialize());
+        CVector a2 = new(other.Materialize());
         int size = Min(a1.Length, a2.Length);
         return new VectorSequence(a1.PointwiseMultiply(a2));
     }
@@ -183,8 +183,8 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
         {
             if (!HasStorage && !other.HasStorage)
                 return new Zipped(this, other, (x, y) => x / y);
-            ComplexVector a1 = new(Materialize());
-            ComplexVector a2 = new(other.Materialize());
+            CVector a1 = new(Materialize());
+            CVector a2 = new(other.Materialize());
             int size = Min(a1.Length, a2.Length);
             return new VectorSequence(a1.PointwiseDivide(a2));
         }
@@ -214,16 +214,16 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public override CSequence Distinct()
     {
         if (HasStorage)
-            return Create(new ComplexVector(new HashSet<Complex>(Materialize()).ToArray()));
+            return Create(new CVector(new HashSet<Complex>(Materialize()).ToArray()));
         HashSet<Complex> set = HasLength ? new(Length()) : [];
         while (Next(out Complex d))
             set.Add(d);
-        return Create(new ComplexVector(set.ToArray()));
+        return Create(new CVector(set.ToArray()));
     }
 
     /// <summary>Converts this sequence into a complex vector.</summary>
     /// <returns>A new complex vector.</returns>
-    public ComplexVector ToVector() => new(Materialize());
+    public CVector ToVector() => new(Materialize());
 
     /// <summary>Creates an array with all values from the sequence.</summary>
     /// <returns>The values as an array.</returns>
@@ -246,7 +246,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
         return [.. values];
     }
 
-    /// <summary>Evaluated the sequence and formats it like a <see cref="ComplexVector"/>.</summary>
+    /// <summary>Evaluated the sequence and formats it like a <see cref="CVector"/>.</summary>
     /// <returns>A formated list of complex values.</returns>
     public override string ToString() =>
         Materialize().ToString(v => v.ToString("G6"));
@@ -262,7 +262,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <param name="other">The second sequence to be compared.</param>
     /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
     public bool Equals(CSequence? other) =>
-        other is not null && new ComplexVector(Materialize()) == new ComplexVector(other.Materialize());
+        other is not null && new CVector(Materialize()) == new CVector(other.Materialize());
 
     /// <summary>Checks if the provided argument is a sequence with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
@@ -291,7 +291,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
 
     /// <summary>Creates a plot for this sequence.</summary>
     /// <returns>A plot containing a frozen vector as its dataset.</returns>
-    public Plot<ComplexVector> Plot() => new(ToVector());
+    public Plot<CVector> Plot() => new(ToVector());
 
     /// <summary>Computes the complex discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>

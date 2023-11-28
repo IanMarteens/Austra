@@ -5,22 +5,22 @@
 /// For the sake of acceleration, the vector's components are stored in two separate arrays.
 /// Most operations are non-destructive.
 /// </remarks>
-public readonly struct ComplexVector :
+public readonly struct CVector :
     IFormattable,
     IEnumerable<Complex>,
-    IEquatable<ComplexVector>,
-    IEqualityOperators<ComplexVector, ComplexVector, bool>,
-    IAdditionOperators<ComplexVector, ComplexVector, ComplexVector>,
-    IAdditionOperators<ComplexVector, Complex, ComplexVector>,
-    IAdditionOperators<ComplexVector, double, ComplexVector>,
-    ISubtractionOperators<ComplexVector, ComplexVector, ComplexVector>,
-    ISubtractionOperators<ComplexVector, Complex, ComplexVector>,
-    ISubtractionOperators<ComplexVector, double, ComplexVector>,
-    IMultiplyOperators<ComplexVector, ComplexVector, Complex>,
-    IMultiplyOperators<ComplexVector, Complex, ComplexVector>,
-    IMultiplyOperators<ComplexVector, double, ComplexVector>,
-    IUnaryNegationOperators<ComplexVector, ComplexVector>,
-    IPointwiseOperators<ComplexVector>,
+    IEquatable<CVector>,
+    IEqualityOperators<CVector, CVector, bool>,
+    IAdditionOperators<CVector, CVector, CVector>,
+    IAdditionOperators<CVector, Complex, CVector>,
+    IAdditionOperators<CVector, double, CVector>,
+    ISubtractionOperators<CVector, CVector, CVector>,
+    ISubtractionOperators<CVector, Complex, CVector>,
+    ISubtractionOperators<CVector, double, CVector>,
+    IMultiplyOperators<CVector, CVector, Complex>,
+    IMultiplyOperators<CVector, Complex, CVector>,
+    IMultiplyOperators<CVector, double, CVector>,
+    IUnaryNegationOperators<CVector, CVector>,
+    IPointwiseOperators<CVector>,
     ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the real components of the vector.</summary>
@@ -30,36 +30,36 @@ public readonly struct ComplexVector :
 
     /// <summary>Creates a complex vector of a given size.</summary>
     /// <param name="size">Vector length.</param>
-    public ComplexVector(int size) => (re, im) = (new double[size], new double[size]);
+    public CVector(int size) => (re, im) = (new double[size], new double[size]);
 
     /// <summary>Creates a complex vector for a complex value.</summary>
     /// <param name="value">A complex value.</param>
-    public ComplexVector(Complex value) =>
+    public CVector(Complex value) =>
         (re, im) = (new[] { value.Real }, new[] { value.Imaginary });
 
     /// <summary>Creates a complex vector for a real value.</summary>
     /// <param name="value">A real value.</param>
-    public ComplexVector(double value) => (re, im) = (new[] { value }, new double[1]);
+    public CVector(double value) => (re, im) = (new[] { value }, new double[1]);
 
     /// <summary>Creates a complex vector from two complex values.</summary>
     /// <param name="v1">First complex value.</param>
     /// <param name="v2">Second complex value.</param>
-    public ComplexVector(Complex v1, Complex v2) =>
+    public CVector(Complex v1, Complex v2) =>
         (re, im) = (new[] { v1.Real, v2.Real }, new[] { v1.Imaginary, v2.Imaginary });
 
     /// <summary>Creates a complex vector from two real values.</summary>
     /// <param name="v1">A real value.</param>
     /// <param name="v2">Second value.</param>
-    public ComplexVector(double v1, double v2) => (re, im) = (new[] { v1, v2 }, new double[2]);
+    public CVector(double v1, double v2) => (re, im) = (new[] { v1, v2 }, new double[2]);
 
-    internal ComplexVector(Complex c1, Complex c2, Complex c3) => (re, im) = (
+    internal CVector(Complex c1, Complex c2, Complex c3) => (re, im) = (
         new[] { c1.Real, c2.Real, c3.Real },
         new[] { c1.Imaginary, c2.Imaginary, c3.Imaginary });
 
     /// <summary>Creates a complex vector from separate component arrays.</summary>
     /// <param name="re">The real components of the vector.</param>
     /// <param name="im">The imaginary components of the vector.</param>
-    public ComplexVector(double[] re, double[] im)
+    public CVector(double[] re, double[] im)
     {
         if (re.Length != im.Length)
             throw new VectorLengthException();
@@ -69,36 +69,36 @@ public readonly struct ComplexVector :
     /// <summary>Creates a complex vector from two real vectors.</summary>
     /// <param name="re">The real components of the vector.</param>
     /// <param name="im">The imaginary components of the vector.</param>
-    public ComplexVector(Vector re, Vector im) : this((double[])re, (double[])im) { }
+    public CVector(Vector re, Vector im) : this((double[])re, (double[])im) { }
 
     /// <summary>Creates a complex vector from a real vector.</summary>
     /// <param name="re">The real components of the vector.</param>
-    public ComplexVector(Vector re) : this((double[])re, new double[re.Length]) { }
+    public CVector(Vector re) : this((double[])re, new double[re.Length]) { }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public ComplexVector(int size, Random rnd, double offset, double width)
+    public CVector(int size, Random rnd, double offset, double width)
         : this(new Vector(size, rnd, offset, width), new Vector(size, rnd, offset, width)) { }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
-    public ComplexVector(int size, Random rnd)
+    public CVector(int size, Random rnd)
         : this(new Vector(size, rnd), new Vector(size, rnd)) { }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A normal random number generator.</param>
-    public ComplexVector(int size, NormalRandom rnd)
+    public CVector(int size, NormalRandom rnd)
         : this(new Vector(size, rnd), new Vector(size, rnd)) { }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
     /// <param name="f">A function defining item content.</param>
-    public ComplexVector(int size, Func<int, Complex> f) : this(size)
+    public CVector(int size, Func<int, Complex> f) : this(size)
     {
         ref double p = ref MM.GetArrayDataReference(re);
         ref double q = ref MM.GetArrayDataReference(im);
@@ -109,7 +109,7 @@ public readonly struct ComplexVector :
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
     /// <param name="f">A function defining item content.</param>
-    public ComplexVector(int size, Func<int, ComplexVector, Complex> f) : this(size)
+    public CVector(int size, Func<int, CVector, Complex> f) : this(size)
     {
         ref double p = ref MM.GetArrayDataReference(re);
         ref double q = ref MM.GetArrayDataReference(im);
@@ -119,7 +119,7 @@ public readonly struct ComplexVector :
 
     /// <summary>Initializes a complex vector from a complex array.</summary>
     /// <param name="values">The complex components of the vector.</param>
-    public ComplexVector(Complex[] values) : this(values.Length)
+    public CVector(Complex[] values) : this(values.Length)
     {
         ref double p = ref MM.GetArrayDataReference(re);
         ref double q = ref MM.GetArrayDataReference(im);
@@ -161,12 +161,12 @@ public readonly struct ComplexVector :
     /// <remarks>A new copy of the original storage is created.</remarks>
     /// <returns>A deep clone of the instance.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ComplexVector Clone() => new((double[])re.Clone(), (double[])im.Clone());
+    public CVector Clone() => new((double[])re.Clone(), (double[])im.Clone());
 
     /// <summary>Explicit conversion from vector to array.</summary>
     /// <param name="v">The original vector.</param>
     /// <returns>An array of <see cref="Complex"/> numbers.</returns>
-    public static explicit operator Complex[](ComplexVector v)
+    public static explicit operator Complex[](CVector v)
     {
         Complex[] result = GC.AllocateUninitializedArray<Complex>(v.Length);
         ref double p = ref MM.GetArrayDataReference(v.re);
@@ -197,9 +197,9 @@ public readonly struct ComplexVector :
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
-    public ComplexVector Reverse()
+    public CVector Reverse()
     {
-        ComplexVector result = Clone();
+        CVector result = Clone();
         Array.Reverse(result.re);
         Array.Reverse(result.im);
         return result;
@@ -208,7 +208,7 @@ public readonly struct ComplexVector :
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
-    public ComplexVector Distinct()
+    public CVector Distinct()
     {
         HashSet<Complex> set = new(Length);
         foreach (Complex value in this)
@@ -218,7 +218,7 @@ public readonly struct ComplexVector :
 
     /// <summary>Creates a new complex vector with conjugated values.</summary>
     /// <returns>Each item with the sign of the imaginary value inverted.</returns>
-    public ComplexVector Conjugate() => new(re, -new Vector(im));
+    public CVector Conjugate() => new(re, -new Vector(im));
 
     /// <summary>Gets the first complex in the vector.</summary>
     public Complex First => new(re[0], im[0]);
@@ -230,7 +230,7 @@ public readonly struct ComplexVector :
 
     /// <summary>Has the vector been properly initialized?</summary>
     /// <remarks>
-    /// Since <see cref="ComplexVector"/> is a struct, its default constructor doesn't
+    /// Since <see cref="CVector"/> is a struct, its default constructor doesn't
     /// initializes the underlying component arrays.
     /// </remarks>
     public bool IsInitialized => re != null && im != null;
@@ -262,7 +262,7 @@ public readonly struct ComplexVector :
     /// <summary>Extracts a slice from the vector.</summary>
     /// <param name="range">The range defining the slice.</param>
     /// <returns>The new vector representing the slice.</returns>
-    public ComplexVector this[Range range]
+    public CVector this[Range range]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => new(re[range], im[range]);
@@ -284,7 +284,7 @@ public readonly struct ComplexVector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component sum.</returns>
-    public static ComplexVector operator +(ComplexVector v1, ComplexVector v2) => new(
+    public static CVector operator +(CVector v1, CVector v2) => new(
         new Vector(v1.re) + new Vector(v2.re),
         new Vector(v1.im) + new Vector(v2.im));
 
@@ -292,14 +292,14 @@ public readonly struct ComplexVector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component sum.</returns>
-    public static ComplexVector operator -(ComplexVector v1, ComplexVector v2) => new(
+    public static CVector operator -(CVector v1, CVector v2) => new(
         new Vector(v1.re) - new Vector(v2.re),
         new Vector(v1.im) - new Vector(v2.im));
 
     /// <summary>Negates a complex vector.</summary>
     /// <param name="v">The vector operand.</param>
     /// <returns>The itemwise negation.</returns>
-    public static ComplexVector operator -(ComplexVector v)
+    public static CVector operator -(CVector v)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
@@ -310,10 +310,10 @@ public readonly struct ComplexVector :
     /// <param name="v">A vector summand.</param>
     /// <param name="c">A complex scalar summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
-    public static ComplexVector operator +(ComplexVector v, Complex c)
+    public static CVector operator +(CVector v, Complex c)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
         return new(new Vector(v.re) + c.Real, new Vector(v.im) + c.Imaginary);
     }
 
@@ -321,10 +321,10 @@ public readonly struct ComplexVector :
     /// <param name="v">A vector summand.</param>
     /// <param name="d">A double scalar summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
-    public static ComplexVector operator +(ComplexVector v, double d)
+    public static CVector operator +(CVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
         return new(new Vector(v.re) + d, new Vector(v.im));
     }
 
@@ -333,23 +333,23 @@ public readonly struct ComplexVector :
     /// <param name="v">A vector summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ComplexVector operator +(Complex c, ComplexVector v) => v + c;
+    public static CVector operator +(Complex c, CVector v) => v + c;
 
     /// <summary>Adds a double scalar to a complex vector.</summary>
     /// <param name="d">A scalar summand.</param>
     /// <param name="v">A vector summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ComplexVector operator +(double d, ComplexVector v) => v + d;
+    public static CVector operator +(double d, CVector v) => v + d;
 
     /// <summary>Subtracts a scalar from a complex vector.</summary>
     /// <param name="v">The vector minuend.</param>
     /// <param name="c">The scalar subtrahend.</param>
     /// <returns>The scalar is subtracted from each vector's item.</returns>
-    public static ComplexVector operator -(ComplexVector v, Complex c)
+    public static CVector operator -(CVector v, Complex c)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
         return new(new Vector(v.re) - c.Real, new Vector(v.im) - c.Imaginary);
     }
 
@@ -357,10 +357,10 @@ public readonly struct ComplexVector :
     /// <param name="v">The vector minuend.</param>
     /// <param name="d">The scalar subtrahend.</param>
     /// <returns>The scalar is subtracted from each vector's item.</returns>
-    public static ComplexVector operator -(ComplexVector v, double d)
+    public static CVector operator -(CVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
         return new(new Vector(v.re) - d, new Vector(v.im));
     }
 
@@ -368,10 +368,10 @@ public readonly struct ComplexVector :
     /// <param name="c">The scalar minuend.</param>
     /// <param name="v">The vector subtrahend.</param>
     /// <returns>The scalar is subtracted from each vector's item.</returns>
-    public static ComplexVector operator -(Complex c, ComplexVector v)
+    public static CVector operator -(Complex c, CVector v)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
         return new(c.Real - new Vector(v.re), c.Imaginary - new Vector(v.im));
     }
 
@@ -379,17 +379,17 @@ public readonly struct ComplexVector :
     /// <param name="d">The scalar minuend.</param>
     /// <param name="v">The vector subtrahend.</param>
     /// <returns>The scalar is subtracted from each vector's item.</returns>
-    public static ComplexVector operator -(double d, ComplexVector v)
+    public static CVector operator -(double d, CVector v)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<ComplexVector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
         return new(d - new Vector(v.re), -new Vector(v.im));
     }
 
     /// <summary>Pointwise multiplication.</summary>
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component product.</returns>
-    public ComplexVector PointwiseMultiply(ComplexVector other)
+    public CVector PointwiseMultiply(CVector other)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(other.IsInitialized);
@@ -445,7 +445,7 @@ public readonly struct ComplexVector :
     /// <summary>Pointwise division.</summary>
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component quotient.</returns>
-    public ComplexVector PointwiseDivide(ComplexVector other)
+    public CVector PointwiseDivide(CVector other)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(other.IsInitialized);
@@ -507,7 +507,7 @@ public readonly struct ComplexVector :
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The dot product of the operands.</returns>
-    public static Complex operator *(ComplexVector v1, ComplexVector v2)
+    public static Complex operator *(CVector v1, CVector v2)
     {
         Contract.Requires(v1.IsInitialized);
         Contract.Requires(v2.IsInitialized);
@@ -601,7 +601,7 @@ public readonly struct ComplexVector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <param name="c">A scalar multiplier.</param>
     /// <returns>The multiplication of the vector by the scalar.</returns>
-    public static ComplexVector operator *(ComplexVector v, Complex c)
+    public static CVector operator *(CVector v, Complex c)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
@@ -635,7 +635,7 @@ public readonly struct ComplexVector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <param name="d">A scalar multiplier.</param>
     /// <returns>The multiplication of the vector by the scalar.</returns>
-    public static ComplexVector operator *(ComplexVector v, double d)
+    public static CVector operator *(CVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
@@ -647,7 +647,7 @@ public readonly struct ComplexVector :
     /// <param name="c">A complex scalar divisor.</param>
     /// <returns>The division of the vector by the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ComplexVector operator /(ComplexVector v, Complex c) =>
+    public static CVector operator /(CVector v, Complex c) =>
         v * Complex.Reciprocal(c);
 
     /// <summary>Divides a complex vector by a scalar.</summary>
@@ -655,7 +655,7 @@ public readonly struct ComplexVector :
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The division of the vector by the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ComplexVector operator /(ComplexVector v, double d) =>
+    public static CVector operator /(CVector v, double d) =>
         v * (1.0 / d);
 
     /// <summary>Multiplies a complex scalar value by a vector.</summary>
@@ -663,14 +663,14 @@ public readonly struct ComplexVector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <returns>The multiplication of the vector by the complex scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ComplexVector operator *(Complex c, ComplexVector v) => v * c;
+    public static CVector operator *(Complex c, CVector v) => v * c;
 
     /// <summary>Multiplies a real scalar value by a vector.</summary>
     /// <param name="d">A real scalar multiplier.</param>
     /// <param name="v">Vector to be multiplied.</param>
     /// <returns>The multiplication of the vector by the real scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ComplexVector operator *(double d, ComplexVector v) => v * d;
+    public static CVector operator *(double d, CVector v) => v * d;
 
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <returns>The sum of all vector's items.</returns>
@@ -845,7 +845,7 @@ public readonly struct ComplexVector :
     /// </summary>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new vector with transformed content.</returns>
-    public ComplexVector Map(Func<Complex, Complex> mapper)
+    public CVector Map(Func<Complex, Complex> mapper)
     {
         double[] newRe = GC.AllocateUninitializedArray<double>(Length);
         double[] newIm = GC.AllocateUninitializedArray<double>(Length);
@@ -894,7 +894,7 @@ public readonly struct ComplexVector :
     /// </summary>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new vector with the filtered items.</returns>
-    public ComplexVector Filter(Func<Complex, bool> predicate)
+    public CVector Filter(Func<Complex, bool> predicate)
     {
         double[] newRe = GC.AllocateUninitializedArray<double>(Length);
         double[] newIm = GC.AllocateUninitializedArray<double>(Length);
@@ -923,7 +923,7 @@ public readonly struct ComplexVector :
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
-    public ComplexVector Zip(ComplexVector other, Func<Complex, Complex, Complex> zipper)
+    public CVector Zip(CVector other, Func<Complex, Complex, Complex> zipper)
     {
         int len = Min(Length, other.Length);
         double[] newRe = new double[len], newIm = new double[len];
@@ -977,14 +977,14 @@ public readonly struct ComplexVector :
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>
     /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
-    public bool Equals(ComplexVector other) =>
+    public bool Equals(CVector other) =>
         new Vector(re).Equals(other.re) && new Vector(im).Equals(other.im);
 
     /// <summary>Checks if the provided argument is a complex vector with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a vector with the same items.</returns>
     public override bool Equals(object? obj) =>
-        obj is ComplexVector vector && Equals(vector);
+        obj is CVector vector && Equals(vector);
 
     /// <summary>Returns the hashcode for this complex vector.</summary>
     /// <returns>A hashcode summarizing the content of the vector.</returns>
@@ -998,17 +998,17 @@ public readonly struct ComplexVector :
     /// <param name="right">Second vector operand.</param>
     /// <returns><see langword="true"/> if all corresponding items are equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(ComplexVector left, ComplexVector right) => left.Equals(right);
+    public static bool operator ==(CVector left, CVector right) => left.Equals(right);
 
     /// <summary>Compares two complex vectors for inequality. </summary>
     /// <param name="left">First vector operand.</param>
     /// <param name="right">Second vector operand.</param>
     /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(ComplexVector left, ComplexVector right) => !left.Equals(right);
+    public static bool operator !=(CVector left, CVector right) => !left.Equals(right);
 
     /// <summary>Creates a plot for this vector.</summary>
     /// <returns>A plot containing this vector as its dataset.</returns>
-    public Plot<ComplexVector> Plot() => new(this);
+    public Plot<CVector> Plot() => new(this);
 
 }

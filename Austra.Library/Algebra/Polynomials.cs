@@ -99,7 +99,7 @@ public static class Polynomials
     /// The first element is the coefficient of the lowest degree term.
     /// </param>
     /// <returns>The array of complex or real roots.</returns>
-    public static ComplexVector PolySolve(Vector coefficients) =>
+    public static CVector PolySolve(Vector coefficients) =>
         SpanSolve((double[])coefficients);
 
     /// <summary>Solves a polynomial equation with real coefficients.</summary>
@@ -108,12 +108,12 @@ public static class Polynomials
     /// The first element is the coefficient of the lowest degree term.
     /// </param>
     /// <returns>The array of complex or real roots.</returns>
-    public static ComplexVector PolySolve(params double[] coefficients) =>
+    public static CVector PolySolve(params double[] coefficients) =>
         SpanSolve(coefficients);
 
-    private static ComplexVector SpanSolve(ReadOnlySpan<double> c) => c.Length switch
+    private static CVector SpanSolve(ReadOnlySpan<double> c) => c.Length switch
     {
-        0 => new ComplexVector(0),
+        0 => new CVector(0),
         1 => SolveConstant(c),
         2 => SolveLineal(c),
         3 => SolveQuadratic(c),
@@ -121,17 +121,17 @@ public static class Polynomials
         _ => SolveGeneral(c),
     };
 
-    private static ComplexVector SolveConstant(ReadOnlySpan<double> c) =>
+    private static CVector SolveConstant(ReadOnlySpan<double> c) =>
         c[0] == 0
-        ? new ComplexVector(0)
+        ? new CVector(0)
         : throw new PolynomialRootsException();
 
-    private static ComplexVector SolveLineal(ReadOnlySpan<double> c) =>
+    private static CVector SolveLineal(ReadOnlySpan<double> c) =>
         c[0] == 0
         ? SolveConstant(c[1..])
-        : new ComplexVector(-c[1] / c[0]);
+        : new CVector(-c[1] / c[0]);
 
-    private static ComplexVector SolveQuadratic(ReadOnlySpan<double> c)
+    private static CVector SolveQuadratic(ReadOnlySpan<double> c)
     {
         if (c[0] == 0)
             return SolveLineal(c[1..]);
@@ -171,7 +171,7 @@ public static class Polynomials
             Complex.FromPolarCoordinates(r, -Tau / 3d));
     }
 
-    private static ComplexVector SolveCubic(ReadOnlySpan<double> k)
+    private static CVector SolveCubic(ReadOnlySpan<double> k)
     {
         if (k[0] == 0)
             return SolveQuadratic(k[1..]);
@@ -204,7 +204,7 @@ public static class Polynomials
         return new(s * (b + c1 + A / c1), s * (b + c2 + A / c2), s * (b + c3 + A / c3));
     }
 
-    private static ComplexVector SolveGeneral(ReadOnlySpan<double> c)
+    private static CVector SolveGeneral(ReadOnlySpan<double> c)
     {
         int n = c.Length - 1;
         double[] companion = new double[n * n];

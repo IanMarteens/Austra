@@ -30,13 +30,13 @@ public sealed class VectorNode: CommonVectorNode<RVector>
     public override string Hint => $"{Name} ∊ ℝ({Model.Length})";
 }
 
-public sealed class CVectorNode : CommonVectorNode<ComplexVector>
+public sealed class CVectorNode : CommonVectorNode<CVector>
 {
-    public CVectorNode(string formula, ComplexVector value) :
+    public CVectorNode(string formula, CVector value) :
         base(formula, value)
     { }
 
-    public CVectorNode(ClassNode parent, string varName, ComplexVector value) :
+    public CVectorNode(ClassNode parent, string varName, CVector value) :
         base(parent, varName, value)
     { }
 

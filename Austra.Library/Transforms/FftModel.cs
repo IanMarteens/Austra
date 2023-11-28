@@ -10,7 +10,7 @@ public abstract class FftModel: IIndexable
     protected FftModel(Complex[] spectrum) => Spectrum = new(spectrum);
 
     /// <summary>Gets the result of the FFT as a complex vector.</summary>
-    public ComplexVector Spectrum { get; }
+    public CVector Spectrum { get; }
 
     /// <summary>Gets the amplitudes of the spectrum, as a vector of real numbers.</summary>
     public Vector Amplitudes { get; protected set; }
@@ -36,7 +36,7 @@ public abstract class FftModel: IIndexable
     /// <summary>Extracts a slice from the spectrum.</summary>
     /// <param name="range">The range of the slice.</param>
     /// <returns>A new complex vector representing the slice.</returns>
-    public ComplexVector this[Range range] => Spectrum[range];
+    public CVector this[Range range] => Spectrum[range];
 
     /// <summary>
     /// Calculates the amplitudes and phases of the spectrum, from the whole spectrum.
@@ -139,7 +139,7 @@ public sealed class FftCModel : FftModel
 
     /// <summary>Inverse of the FFT transform.</summary>
     /// <returns>The original samples.</returns>
-    public ComplexVector Inverse()
+    public CVector Inverse()
     {
         Complex[] result = (Complex[])Spectrum.Clone();
         FFT.Inverse(result);

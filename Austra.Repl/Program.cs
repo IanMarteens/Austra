@@ -86,7 +86,7 @@ static void EvaluateAndShow(IAustraEngine engine, string line, bool includeTime)
                 if (tuple.HasSecond)
                     Write(tuple.Second);
                 break;
-            case Plot<ComplexVector> tuple:
+            case Plot<CVector> tuple:
                 Write(tuple.First);
                 if (tuple.HasSecond)
                     Write(tuple.Second);

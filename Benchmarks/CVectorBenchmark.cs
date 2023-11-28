@@ -2,16 +2,16 @@
 
 public class CVectorBenchmark : BenchmarkControl
 {
-    private readonly Complex[] cv = (Complex[])new ComplexVector(1023, new Random());
-    private readonly ComplexVector cxv = new(1023, new Random(33));
-    private readonly ComplexVector cyv = new(1023, new Random(34));
+    private readonly Complex[] cv = (Complex[])new CVector(1023, new Random());
+    private readonly CVector cxv = new(1023, new Random(33));
+    private readonly CVector cyv = new(1023, new Random(34));
     private readonly int size = 1023;
     private readonly double scale = Random.Shared.NextDouble() + 0.5;
 
     public CVectorBenchmark() { }
 
     [Benchmark]
-    public ComplexVector AustraComplexVectorCtor() => new(cv);
+    public CVector AustraComplexVectorCtor() => new(cv);
 
     [Benchmark]
     public double AustraComplexVectorSquared() => cxv.Squared();
@@ -23,25 +23,25 @@ public class CVectorBenchmark : BenchmarkControl
     public Vector AustraComplexVectorPhases() => cxv.Phases();
 
     [Benchmark]
-    public ComplexVector AustraComplexVectorScale() => cxv * scale;
+    public CVector AustraComplexVectorScale() => cxv * scale;
 
     [Benchmark]
-    public ComplexVector AustraComplexVectorMap() => cxv.Map(c => new(c.Imaginary, c.Real));
+    public CVector AustraComplexVectorMap() => cxv.Map(c => new(c.Imaginary, c.Real));
 
     [Benchmark]
-    public ComplexVector AustraComplexVectorFilter() => cxv.Filter(c => c.Real > c.Imaginary);
+    public CVector AustraComplexVectorFilter() => cxv.Filter(c => c.Real > c.Imaginary);
 
     [Benchmark]
-    public ComplexVector AustraRandomComplexVector() => new(size, NormalRandom.Shared);
+    public CVector AustraRandomComplexVector() => new(size, NormalRandom.Shared);
 
     [Benchmark]
-    public ComplexVector AustraPointwiseMultComplexVector() => cxv.PointwiseMultiply(cyv);
+    public CVector AustraPointwiseMultComplexVector() => cxv.PointwiseMultiply(cyv);
 
     [Benchmark]
-    public ComplexVector AustraPointwiseDivComplexVector() => cxv.PointwiseDivide(cyv);
+    public CVector AustraPointwiseDivComplexVector() => cxv.PointwiseDivide(cyv);
 
     [Benchmark]
-    public ComplexVector AustraRandomOffsetComplexVector() => new(size, Random.Shared, 0.5, 1.1);
+    public CVector AustraRandomOffsetComplexVector() => new(size, Random.Shared, 0.5, 1.1);
 
     [Benchmark]
     public Complex[] AustraComplexVector2Array() => (Complex[])cxv;

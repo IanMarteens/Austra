@@ -21,7 +21,7 @@ public class VectorTests
     [Test]
     public void ComplexVectorNorm([Values(12, 25, 39)] int size)
     {
-        ComplexVector v = new(new Vector(size, 1d), new Vector(size, 1d));
+        CVector v = new(new Vector(size, 1d), new Vector(size, 1d));
         Assert.That(v.Norm(), Is.EqualTo(Math.Sqrt(size + size)).Within(1E-16));
     }
 
@@ -176,7 +176,7 @@ public class VectorTests
         Complex[] values = new Complex[Random.Shared.Next(1023)];
         for (int i = 0; i < values.Length; i++)
             values[i] = new(Random.Shared.NextDouble(), Random.Shared.NextDouble());
-        ComplexVector v = new(values);
+        CVector v = new(values);
         Assert.That(v, Has.Length.EqualTo(values.Length));
         for (int i = 0; i < values.Length; i++)
             Assert.That(v[i], Is.EqualTo(values[i]));
@@ -188,7 +188,7 @@ public class VectorTests
         Complex[] values = new Complex[Random.Shared.Next(1023)];
         for (int i = 0; i < values.Length; i++)
             values[i] = new(Random.Shared.NextDouble(), Random.Shared.NextDouble());
-        ComplexVector v = new(values);
+        CVector v = new(values);
         Complex[] w = (Complex[])v;
         Assert.That(w, Is.EqualTo(values));
     }
@@ -196,7 +196,7 @@ public class VectorTests
     [Test]
     public void CheckComplexVector2ComplexArray()
     {
-        ComplexVector v = new(515, Random.Shared);
+        CVector v = new(515, Random.Shared);
         Complex[] values = (Complex[])v;
         Assert.That(v, Has.Length.EqualTo(values.Length));
         for (int i = 0; i < values.Length; i++)
@@ -206,9 +206,9 @@ public class VectorTests
     [Test]
     public void CheckComplexVectorScale()
     {
-        ComplexVector v = new(510, NormalRandom.Shared);
+        CVector v = new(510, NormalRandom.Shared);
         double scale = Random.Shared.NextDouble() + 0.5;
-        ComplexVector w = v * scale;
+        CVector w = v * scale;
         Assert.That(w, Has.Length.EqualTo(v.Length));
         for (int i = 0; i < w.Length; i++)
             Assert.That((w[i] - scale * v[i]).Magnitude, Is.LessThan(1E-15));
@@ -217,9 +217,9 @@ public class VectorTests
     [Test]
     public void CheckComplexVectorPointMult()
     {
-        ComplexVector v = new(510, NormalRandom.Shared);
-        ComplexVector w = new(510, NormalRandom.Shared);
-        ComplexVector z = v.PointwiseMultiply(w);
+        CVector v = new(510, NormalRandom.Shared);
+        CVector w = new(510, NormalRandom.Shared);
+        CVector z = v.PointwiseMultiply(w);
         Assert.That(z, Has.Length.EqualTo(v.Length));
         for (int i = 0; i < v.Length; i++)
             Assert.That((z[i] - v[i] * w[i]).Magnitude, Is.LessThan(2E-14));
@@ -228,9 +228,9 @@ public class VectorTests
     [Test]
     public void CheckComplexVectorPointDiv()
     {
-        ComplexVector v = new(510, NormalRandom.Shared);
-        ComplexVector w = new(510, NormalRandom.Shared);
-        ComplexVector z = v.PointwiseDivide(w);
+        CVector v = new(510, NormalRandom.Shared);
+        CVector w = new(510, NormalRandom.Shared);
+        CVector z = v.PointwiseDivide(w);
         Assert.That(z, Has.Length.EqualTo(v.Length));
         for (int i = 0; i < v.Length; i++)
             Assert.That((z[i] - v[i] / w[i]).Magnitude, Is.LessThan(2E-14));
@@ -239,16 +239,16 @@ public class VectorTests
     [Test]
     public void CheckPointwiseMultDiv()
     {
-        ComplexVector x = new ComplexVector(510, Random.Shared) + 0.1;
-        ComplexVector y = new ComplexVector(510, Random.Shared) + 0.1;
-        ComplexVector t = x.PointwiseDivide(y).PointwiseMultiply(y) - x;
+        CVector x = new CVector(510, Random.Shared) + 0.1;
+        CVector y = new CVector(510, Random.Shared) + 0.1;
+        CVector t = x.PointwiseDivide(y).PointwiseMultiply(y) - x;
         Assert.That(t.AbsMax(), Is.LessThan(1E-14));
     }
 
     [Test]
     public void CheckComplexPhase()
     {
-        ComplexVector x = new ComplexVector(510, Random.Shared) + 0.1;
+        CVector x = new CVector(510, Random.Shared) + 0.1;
         int i = Random.Shared.Next(510);
         double phase1 = x.Phases()[i];
         double phase2 = x[i].Phase;

@@ -38,7 +38,7 @@
                     <section>
                       <title>Linear Algebra</title>
                       <content>
-						<para>Austra provides classes for dense vectors and matrices, for double-precision arithmetic. It also features an efficient <codeEntityReference qualifyHint="false">T:Austra.Library.ComplexVector</codeEntityReference> type. Single-precision floats, complex and sparse matrices are planned for a future sprint. All operations takes advantage of C# operators when possible, so most of the operations are non-destructive.</para>
+						<para>Austra provides classes for dense vectors and matrices, for double-precision arithmetic. It also features an efficient <codeEntityReference qualifyHint="false">T:Austra.Library.CVector</codeEntityReference> type. Single-precision floats, complex and sparse matrices are planned for a future sprint. All operations takes advantage of C# operators when possible, so most of the operations are non-destructive.</para>
 						<para>There are three classes for representing matrices:</para>
 						<list class="bullet">
 						  <listItem><codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference> is the general type that you will use most of the time.</listItem>

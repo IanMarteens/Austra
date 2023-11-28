@@ -41,7 +41,7 @@ public readonly struct EVD : IFormattable
             }
         }
         Values = new(d, e);
-        ComplexVector values = Values;
+        CVector values = Values;
         diagonal = new(() => CreateDiagonal(values), true);
     }
 
@@ -49,7 +49,7 @@ public readonly struct EVD : IFormattable
     public Matrix Vectors { get; }
 
     /// <summary>Gets all eigenvalues.</summary>
-    public ComplexVector Values { get; }
+    public CVector Values { get; }
 
     /// <summary>Gets eigenvalues as a block diagonal matrix.</summary>
     public Matrix D => diagonal.Value;
@@ -1105,7 +1105,7 @@ public readonly struct EVD : IFormattable
     /// <summary>Creates a block diagonal matrix from the eigenvalues.</summary>
     /// <param name="values">The calculated eigenvalues.</param>
     /// <returns>A block diagonal matrix with eigenvalues.</returns>
-    private static Matrix CreateDiagonal(ComplexVector values)
+    private static Matrix CreateDiagonal(CVector values)
     {
         int order = values.Length;
         Matrix result = new(order, order);

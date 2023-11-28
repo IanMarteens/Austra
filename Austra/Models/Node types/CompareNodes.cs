@@ -82,13 +82,13 @@ public sealed class CompareVNode : CompareNodeBase<RVector>
     }
 }
 
-public sealed class CompareCVNode : CompareNodeBase<ComplexVector>
+public sealed class CompareCVNode : CompareNodeBase<CVector>
 {
-    public CompareCVNode(string formula, Plot<ComplexVector> value) :
+    public CompareCVNode(string formula, Plot<CVector> value) :
         base(formula, value)
     { }
 
-    public CompareCVNode(ClassNode? parent, string varName, Plot<ComplexVector> value) :
+    public CompareCVNode(ClassNode? parent, string varName, Plot<CVector> value) :
         base(parent, varName, value)
     { }
 
