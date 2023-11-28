@@ -782,6 +782,37 @@ public static class CommonMatrix
         return result;
     }
 
+    /// <summary>Pointwise division of two equally sized spans.</summary>
+    /// <param name="span">Span dividend.</param>
+    /// <param name="divisor">Scalar divisor.</param>
+    /// <returns>The pointwise quotient of the two arguments.</returns>
+    public static int[] DivV(this Span<int> span, int divisor)
+    {
+        int[] result = GC.AllocateUninitializedArray<int>(span.Length);
+        ref int a = ref MM.GetReference(span);
+        ref int c = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            V8i d = V8.Create(divisor);
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) / d, ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) / d, ref c, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            V4i d = V4.Create(divisor);
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) / d, ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) / d, ref c, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) / Add(ref b, i);
+        return result;
+    }
+
     /// <summary>
     /// Multiplies a span by a scalar and sums the result to a memory location.
     /// </summary>
