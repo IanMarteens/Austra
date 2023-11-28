@@ -809,7 +809,7 @@ public static class CommonMatrix
         }
         else
             for (int i = 0; i < result.Length; i++)
-                Add(ref c, i) = Add(ref a, i) / Add(ref b, i);
+                Add(ref c, i) = Add(ref a, i) / divisor;
         return result;
     }
 

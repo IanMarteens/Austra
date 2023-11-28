@@ -27,15 +27,17 @@ internal sealed partial class ParserBindings
     /// <summary>Code completion descriptors for root classes.</summary>
     private readonly Member[] rootClasses =
     [
+        new("cseq::", "Allows access to complex sequence constructors"),
         new("cvec::", "Allows access to complex vector constructors"),
+        new("iseq::", "Allows access to integer sequence constructors"),
+        new("ivec::", "Allows access to integer vector constructors"),
+        new("math::", "Allows access to mathematical functions"),
         new("matrix::", "Allows access to matrix constructors"),
         new("model::", "Allows access to model constructors"),
         new("series::", "Allows access to series constructors"),
         new("spline::", "Allows access to spline constructors"),
-        new("vec::", "Allows access to vector constructors"),
         new("seq::", "Allows access to sequence constructors"),
-        new("cseq::", "Allows access to complex sequence constructors"),
-        new("math::", "Allows access to mathematical functions"),
+        new("vec::", "Allows access to vector constructors"),
     ];
 
     /// <summary>Code completion descriptors for class methods or constructors.</summary>
@@ -72,6 +74,10 @@ internal sealed partial class ParserBindings
                 new("new(", "Create a complex vector given a size and an optional lambda"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
                 new("random(", "Creates a random complex vector given a length"),
+            ],
+            ["ivec"] = [
+                new("new(", "Creates an integer vector given a size and an optional lambda"),
+                new("ones(", "Creates an integer vector with ones given a length"),
             ],
             ["matrix"] = [
                 new("cols(", "Creates a matrix given its columns as vectors"),
@@ -825,6 +831,12 @@ internal sealed partial class ParserBindings
                 typeof(ComplexVector).MD(typeof(int), typeof(NormalRandom))),
             ["cvec.random"] = new(
                 typeof(ComplexVector).MD(typeof(int), typeof(Random))),
+            ["ivec.new"] = new(
+                typeof(NVector).MD(IntArg),
+                typeof(NVector).MD(typeof(int), typeof(Func<int, int>)),
+                typeof(NVector).MD(typeof(int), typeof(Func<int, NVector, int>))),
+            ["ivec.ones"] = new(
+                typeof(NVector).MD(nameof(NVector.Ones), typeof(int))),
             ["matrix.new"] = new(
                 typeof(Matrix).MD(IntArg),
                 typeof(Matrix).MD(IntIntArg),

@@ -29,6 +29,12 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public override NSequence Map(Func<int, int> mapper) =>
         new Mapped(this, mapper);
 
+    /// <summary>Creates a real sequence acording to the function passed as parameter.</summary>
+    /// <param name="mapper">The transforming function.</param>
+    /// <returns>The transformed sequence.</returns>
+    public DSequence MapReal(Func<int, double> mapper) =>
+        new RealMapped(this, mapper);
+
     /// <summary>Transform a sequence acording to the predicate passed as parameter.</summary>
     /// <param name="filter">A predicate for selecting surviving values</param>
     /// <returns>The filtered sequence.</returns>
@@ -175,6 +181,13 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         a.AsSpan().MulV(d, r.AsSpan());
         return new VectorSequence(r);
     }
+
+    /// <summary>Divides a sequence by a scalar value.</summary>
+    /// <param name="s">Sequence dividend.</param>
+    /// <param name="d">A scalar divisor.</param>
+    /// <returns>The quotient of the sequence over the scalar.</returns>
+    public static NSequence operator /(NSequence s, int d) =>
+        new VectorSequence(s.Materialize().AsSpan().DivV(d));
 
     /// <summary>Scales a sequence without an underlying storage.</summary>
     /// <param name="d">The scalar multiplier.</param>

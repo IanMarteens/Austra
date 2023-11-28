@@ -32,7 +32,8 @@ public readonly struct Vector :
     IMultiplyOperators<Vector, double, Vector>,
     IDivisionOperators<Vector, double, Vector>,
     IUnaryNegationOperators<Vector, Vector>,
-    IPointwiseOperators<Vector>, ISafeIndexed, IVector
+    IPointwiseOperators<Vector>,
+    ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the components of the vector.</summary>
     private readonly double[] values;

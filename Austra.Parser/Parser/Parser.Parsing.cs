@@ -778,16 +778,13 @@ internal sealed partial class Parser
                     break;
                 case Token.LBra:
                     Move();
-                    e = IsVector(e) || e.Type == typeof(Series<int>)
-                        || e.Type.IsAssignableTo(typeof(FftModel))
-                        || e.Type.IsAssignableTo(typeof(DSequence))
-                        || e.Type.IsAssignableTo(typeof(CSequence))
+                    e = e.Type == typeof(Series<int>) || e.Type.IsAssignableTo(typeof(IIndexable))
                         ? ParseIndexer(e, true)
                         : IsMatrix(e)
                         ? ParseMatrixIndexer(e)
                         : e.Type == typeof(Series)
                         ? ParseSeriesIndexer(e)
-                        : e.Type == typeof(Library.MVO.MvoModel)
+                        : e.Type == typeof(MvoModel)
                         ? ParseIndexer(e, false)
                         : e.Type == typeof(DateSpline)
                         ? ParseSplineIndexer(e, typeof(Date))

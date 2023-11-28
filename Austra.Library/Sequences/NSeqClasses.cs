@@ -47,6 +47,44 @@ public abstract partial class NSequence
         protected override bool HasLength => source.HasLength;
     }
 
+    /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="mapper">The mapping function.</param>
+    private sealed class RealMapped(NSequence source, Func<int, double> mapper) : DSequence
+    {
+        private readonly Func<int, double> mapper = mapper;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (source.Next(out int intValue))
+            {
+                value = mapper(intValue);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <returns>The total number of values in the sequence.</returns>
+        public override int Length() =>
+            source.HasLength ? source.Length() : base.Length();
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            source.Reset();
+            return this;
+        }
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => source.HasLength;
+    }
+
     /// <summary>Implements a sequence filtered by a predicate.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="filter">The filtering lambda.</param>

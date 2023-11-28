@@ -1,12 +1,17 @@
 ﻿namespace Austra.Library;
 
-/// <summary>Common interface for all matrix types.</summary>
+/// <summary>Common interface for all vector types.</summary>
 public interface IVector
 {
 }
 
 /// <summary>Common interface for all matrix types.</summary>
 public interface IMatrix
+{
+}
+
+/// <summary>Common interface for all types with indexes like a vector.</summary>
+public interface IIndexable
 {
 }
 

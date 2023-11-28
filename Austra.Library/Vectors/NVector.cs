@@ -25,7 +25,7 @@ public readonly struct NVector:
     IUnaryNegationOperators<NVector, NVector>,
     IMultiplyOperators<NVector, NVector, int>,
     IMultiplyOperators<NVector, int, NVector>,
-    ISafeIndexed, IVector
+    ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the components of the vector.</summary>
     private readonly int[] values;
@@ -46,6 +46,11 @@ public readonly struct NVector:
         values = GC.AllocateUninitializedArray<int>(size);
         Array.Fill(values, value);
     }
+
+    /// <summary>Creates a vector with a given size, and fills it with ones.</summary>
+    /// <param name="size">Vector length.</param>
+    /// <returns>A new vector with repeated ones.</returns>
+    public static NVector Ones(int size) => new(size, 1);
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
@@ -368,6 +373,12 @@ public readonly struct NVector:
     /// <returns>The multiplication of the vector by the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NVector operator *(int d, NVector v) => v * d;
+
+    /// <summary>Divides a vector by a scalar value.</summary>
+    /// <param name="v">Vector to be divided.</param>
+    /// <param name="d">A scalar divisor.</param>
+    /// <returns>The quotient of the vector over the scalar.</returns>
+    public static NVector operator /(NVector v, int d) => v.values.AsSpan().DivV(d);
 
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <returns>The sum of all vector's items.</returns>
