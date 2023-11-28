@@ -1,7 +1,14 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning integer values.</summary>
-public abstract partial class NSequence : Sequence<int, NSequence>
+public abstract partial class NSequence : Sequence<int, NSequence>,
+    IAdditionOperators<NSequence, NSequence, NSequence>,
+    IAdditionOperators<NSequence, int, NSequence>,
+    ISubtractionOperators<NSequence, NSequence, NSequence>,
+    ISubtractionOperators<NSequence, int, NSequence>,
+    IMultiplyOperators<NSequence, NSequence, int>,
+    IMultiplyOperators<NSequence, int, NSequence>,
+    IPointwiseOperators<NSequence>
 {
     /// <summary>Creates a sequence from a range.</summary>
     /// <param name="first">The first value in the sequence.</param>
@@ -45,34 +52,153 @@ public abstract partial class NSequence : Sequence<int, NSequence>
     /// <returns>The sequence for the given range.</returns>
     public override NSequence this[Range range] => new VectorSequence(Materialize()[range]);
 
+    /// <summary>Adds the common part of two sequences.</summary>
+    /// <param name="s1">First sequence operand.</param>
+    /// <param name="s2">Second sequence operand.</param>
+    /// <returns>The component by component sum of the sequences.</returns>
+    public static NSequence operator +(NSequence s1, NSequence s2)
+    {
+        if (!s1.HasStorage && !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x + y);
+        int[] a1 = s1.Materialize();
+        int[] a2 = s2.Materialize();
+        int[] r = GC.AllocateUninitializedArray<int>(Math.Min(a1.Length, a2.Length));
+        a1.AsSpan(0, r.Length).AddV(a2.AsSpan(0, r.Length), r);
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Adds a scalar value to a sequence.</summary>
+    /// <param name="s">Sequence operand.</param>
+    /// <param name="d">Scalar operand.</param>
+    /// <returns>The component by component sum of the sequence and the scalar.</returns>
+    public static NSequence operator +(NSequence s, int d)
+    {
+        if (!s.HasStorage)
+            return s.Map(x => x + d);
+        int[] a = s.Materialize();
+        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
+        a.AsSpan().AddV(d, r.AsSpan());
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Adds a sequence to a scalar value.</summary>
+    /// <param name="d">Scalar operand.</param>
+    /// <param name="s">Sequence operand.</param>
+    /// <returns>The component by component sum of the scalar and the sequence.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static NSequence operator +(int d, NSequence s) => s + d;
+
+    /// <summary>Subtracts the common part of two sequences.</summary>
+    /// <param name="s1">Sequence minuend.</param>
+    /// <param name="s2">Sequence subtrahend.</param>
+    /// <returns>The component by component subtraction of the sequences.</returns>
+    public static NSequence operator -(NSequence s1, NSequence s2)
+    {
+        if (!s1.HasStorage && !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x - y);
+        int[] a1 = s1.Materialize();
+        int[] a2 = s2.Materialize();
+        int[] r = GC.AllocateUninitializedArray<int>(Math.Min(a1.Length, a2.Length));
+        a1.AsSpan(0, r.Length).SubV(a2.AsSpan(0, r.Length), r);
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Subtracts a scalar from a sequence.</summary>
+    /// <param name="s">Sequence minuend.</param>
+    /// <param name="d">Scalar subtrahend.</param>
+    /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
+    public static NSequence operator -(NSequence s, int d)
+    {
+        if (!s.HasStorage)
+            return s.Map(x => x - d);
+        int[] a = s.Materialize();
+        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
+        a.AsSpan().SubV(d, r.AsSpan());
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Subtracts a sequence from a scalar.</summary>
+    /// <param name="s">Sequence minuend.</param>
+    /// <param name="d">Scalar subtrahend.</param>
+    /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
+    public static NSequence operator -(int d, NSequence s)
+    {
+        if (!s.HasStorage)
+            return s.Map(x => d - x);
+        int[] a = s.Materialize();
+        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
+        CommonMatrix.SubV(d, a, r);
+        return new VectorSequence(r);
+    }
+
     /// <summary>Negates a sequence.</summary>
     /// <param name="s">The sequence operand.</param>
     /// <returns>The component by component negation.</returns>
     public static NSequence operator -(NSequence s)
     {
-        //if (!s.HasStorage)
-        return s.Negate();
-        //double[] a = s.Materialize();
-        //double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        //a.AsSpan().NegV(r);
-        //return new VectorSequence(r);
+        if (!s.HasStorage)
+            return s.Negate();
+        int[] a = s.Materialize();
+        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
+        a.AsSpan().NegV(r);
+        return new VectorSequence(r);
     }
 
     /// <summary>Negates a sequence without an underlying storage.</summary>
     /// <returns>The negated sequence.</returns>
     protected virtual NSequence Negate() => Map(x => -x);
 
+    /// <summary>Calculates the scalar product of the common part of two sequences.</summary>
+    /// <param name="s1">First sequence.</param>
+    /// <param name="s2">Second sequence.</param>
+    /// <returns>The dot product of the common part.</returns>
+    public static int operator *(NSequence s1, NSequence s2)
+    {
+        if (!s1.HasStorage && !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x * y).Sum();
+        int[] a1 = s1.Materialize();
+        int[] a2 = s2.Materialize();
+        int size = Math.Min(a1.Length, a2.Length);
+        return a1.AsSpan(0, size).DotProduct(a2.AsSpan(0, size));
+    }
+
+    /// <summary>Multiplies a sequence by a scalar value.</summary>
+    /// <param name="s">Sequence multiplicand.</param>
+    /// <param name="d">A scalar multiplier.</param>
+    /// <returns>The multiplication of the sequence by the scalar.</returns>
+    public static NSequence operator *(NSequence s, int d)
+    {
+        if (!s.HasStorage)
+            return s.Scale(d);
+        int[] a = s.Materialize();
+        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
+        a.AsSpan().MulV(d, r.AsSpan());
+        return new VectorSequence(r);
+    }
+
+    /// <summary>Scales a sequence without an underlying storage.</summary>
+    /// <param name="d">The scalar multiplier.</param>
+    /// <returns>The scaled sequence.</returns>
+    protected virtual NSequence Scale(int d) => Map(x => x * d);
+
+    /// <summary>Multiplies a scalar value by a sequence.</summary>
+    /// <param name="d">Scalar multiplicand.</param>
+    /// <param name="s">Sequence multiplier.</param>
+    /// <returns>The multiplication of the sequence by the scalar.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static NSequence operator *(int d, NSequence s) => s * d;
+
     /// <summary>Item by item multiplication of two sequences.</summary>
     /// <param name="other">The second sequence.</param>
     /// <returns>A sequence with all the multiplication results.</returns>
     public override NSequence PointwiseMultiply(NSequence other)
     {
-        //if (!HasStorage && !other.HasStorage)
-        return new Zipped(this, other, (x, y) => x * y);
-        //double[] a1 = Materialize();
-        //double[] a2 = other.Materialize();
-        //int size = Math.Min(a1.Length, a2.Length);
-        //return new VectorSequence(a1.AsSpan(size).MulV(a2.AsSpan(size)));
+        if (!HasStorage && !other.HasStorage)
+            return new Zipped(this, other, (x, y) => x * y);
+        int[] a1 = Materialize();
+        int[] a2 = other.Materialize();
+        int size = Math.Min(a1.Length, a2.Length);
+        return new VectorSequence(a1.AsSpan(size).MulV(a2.AsSpan(size)));
     }
 
     /// <summary>Item by item division of sequences.</summary>
@@ -80,12 +206,12 @@ public abstract partial class NSequence : Sequence<int, NSequence>
     /// <returns>A sequence with all the quotient results.</returns>
     public override NSequence PointwiseDivide(NSequence other)
     {
-        //if (!HasStorage && !other.HasStorage)
-        return new Zipped(this, other, (x, y) => x / y);
-        //double[] a1 = Materialize();
-        //double[] a2 = other.Materialize();
-        //int size = Math.Min(a1.Length, a2.Length);
-        //return new VectorSequence(a1.AsSpan(size).DivV(a2.AsSpan(size)));
+        if (!HasStorage && !other.HasStorage)
+            return new Zipped(this, other, (x, y) => x / y);
+        int[] a1 = Materialize();
+        int[] a2 = other.Materialize();
+        int size = Math.Min(a1.Length, a2.Length);
+        return new VectorSequence(a1.AsSpan(size).DivV(a2.AsSpan(size)));
     }
 
     /// <summary>Gets only the unique values in this sequence.</summary>
