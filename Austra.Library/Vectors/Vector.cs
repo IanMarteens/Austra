@@ -1,6 +1,6 @@
 ﻿namespace Austra.Library;
 
-/// <summary>Represents a dense vector of arbitrary size.</summary>
+/// <summary>Represents a dense vector of double values, of arbitrary size.</summary>
 /// <remarks>
 /// <para>
 /// <see cref="Vector"/> provides a thin wrapper around a single array.
@@ -9,7 +9,7 @@
 /// </para>
 /// <para>
 /// Of course, there exist methods like
-/// <see cref="MultiplyAdd(Austra.Library.Vector, Austra.Library.Vector)"/>
+/// <see cref="MultiplyAdd(Vector, Vector)"/>
 /// that save memory by reusing the current vector's storage, and even
 /// may save time by using SIMD fused multiply-add instructions.
 /// </para>

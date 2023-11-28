@@ -3,6 +3,7 @@
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
       <para>Sequences provides most of the operations from real and complex vectors, but avoiding the storage. Sequences are similar to enumerable types in C# with LINQ, and are a requisite for any functional language.</para>
+      <para>AUSTRA supports three kinds of sequences: <codeInline>seq</codeInline>, for real valued sequences, <codeInline>cvec</codeInline> for complex ones, and <codeInline>iseq</codeInline>, for integer sequences.</para>
     </introduction>
     <section address="Section1">
       <title>Sequences as light vectors</title>
@@ -40,7 +41,7 @@ seq::nrandom(1000, 1, [0.1, 0.05, 0.01]);
 <markup><font color="DarkGreen">-- An moving average (MA) process of order three.</font></markup>
 seq::nrandom(1000, 1, 0, [0.1, 0.05, 0.01])
 				  </code>
-				  <para>The MA overload (see <see cref="M:Austra.Library.DoubleSequence.NormalRandom(System.Int32,System.Double,System.Double,Austra.Library.Vector)" />) uses one additional parameter before coefficients, and it is interpreted as the independent term, or mean, of the process.</para>
+				  <para>The MA overload (see <see cref="M:Austra.Library.DSequence.NormalRandom(System.Int32,System.Double,System.Double,Austra.Library.Vector)" />) uses one additional parameter before coefficients, and it is interpreted as the independent term, or mean, of the process.</para>
 				  <para>You can materialize the content of a sequence as a vector using the <codeInline>toVector</codeInline> property:</para>
 		          <code language="Austra">
 seq::random(10).toVector
@@ -54,90 +55,90 @@ seq::random(10).toVector
 		<table>
  		  <row>
  		    <entry><para><codeInline>all</codeInline></para></entry>
- 		    <entry><para>Checks if all items in the sequence satisfy a predicate. See <see cref="M:Austra.Library.DoubleSequence.All(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>any</codeInline></para></entry>
- 		    <entry><para>Checks if there is a item in the sequence satisfying a predicate. See <see cref="M:Austra.Library.DoubleSequence.Any(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    <entry><para>Checks if there is a item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>arModel</codeInline></para></entry>
- 		    <entry><para>Estimates an AR(p) model from the sequence. See <see cref="M:Austra.Library.DoubleSequence.ARModel(System.Int32)" />.</para></entry>
+ 		    <entry><para>Estimates an AR(p) model from the sequence. See <see cref="M:Austra.Library.DSequence.ARModel(System.Int32)" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>filter</codeInline></para></entry>
- 		    <entry><para>Returns items of the original sequence satisfying a predicate. See <see cref="M:Austra.Library.DoubleSequence.Filter(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    <entry><para>Returns items of the original sequence satisfying a predicate. See <see cref="M:Austra.Library.DSequence.Filter(System.Func{System.Double,System.Boolean})" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>map</codeInline></para></entry>
- 		    <entry><para>Transforms items with the help of a lambda function. See <see cref="M:Austra.Library.DoubleSequence.Map(System.Func{System.Double,System.Double})" />.</para></entry>
+ 		    <entry><para>Transforms items with the help of a lambda function. See <see cref="M:Austra.Library.DSequence.Map(System.Func{System.Double,System.Double})" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>reduce</codeInline></para></entry>
- 		    <entry><para>Conflates all values in a sequence using a lambda. See <see cref="M:Austra.Library.DoubleSequence.Reduce(System.Double,System.Func{System.Double,System.Double,System.Double})" />.</para></entry>
+ 		    <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>zip</codeInline></para></entry>
- 		    <entry><para>Combines two sequences using a lambda function. See <see cref="M:Austra.Library.DoubleSequence.Zip(Austra.Library.DoubleSequence,System.Func{System.Double,System.Double,System.Double})" />.</para></entry>
+ 		    <entry><para>Combines two sequences using a lambda function. See <see cref="M:Austra.Library.DSequence.Zip(Austra.Library.DSequence,System.Func{System.Double,System.Double,System.Double})" />.</para></entry>
 		  </row>
 		</table>
 		<para>Properties are methods without parameters, that can be called without parentheses. These are the supported properties:</para>
 		<table>
  		  <row>
  		    <entry><para><codeInline>distinct</codeInline></para></entry>
- 		    <entry><para>Select unique values in the sequence, with no predefined order. See <see cref="M:Austra.Library.DoubleSequence.Distinct" />.</para></entry>
+ 		    <entry><para>Select unique values in the sequence, with no predefined order. See <see cref="M:Austra.Library.DSequence.Distinct" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>fft</codeInline></para></entry>
- 		    <entry><para>Calculates a Fast Fourier Transform. See <see cref="M:Austra.Library.DoubleSequence.Fft" />.</para></entry>
+ 		    <entry><para>Calculates a Fast Fourier Transform. See <see cref="M:Austra.Library.DSequence.Fft" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>first</codeInline></para></entry>
- 		    <entry><para>Gets the first term of the sequence. See <see cref="M:Austra.Library.DoubleSequence.First" />.</para></entry>
+ 		    <entry><para>Gets the first term of the sequence. See <see cref="M:Austra.Library.DSequence.First" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>last</codeInline></para></entry>
- 		    <entry><para>Gets the last term of the sequence. See <see cref="M:Austra.Library.DoubleSequence.Last" />.</para></entry>
+ 		    <entry><para>Gets the last term of the sequence. See <see cref="M:Austra.Library.DSequence.Last" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>length</codeInline></para></entry>
- 		    <entry><para>Gets the number of elements in the sequence. See <see cref="M:Austra.Library.DoubleSequence.Length" />.</para></entry>
+ 		    <entry><para>Gets the number of elements in the sequence. See <see cref="M:Austra.Library.Sequence`2.Length" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>max</codeInline></para></entry>
- 		    <entry><para>Get the maximum value in the sequence. See <see cref="M:Austra.Library.DoubleSequence.Max" />.</para></entry>
+ 		    <entry><para>Get the maximum value in the sequence. See <see cref="M:Austra.Library.DSequence.Max" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>min</codeInline></para></entry>
- 		    <entry><para>Get the minimum value in the sequence. See <see cref="M:Austra.Library.DoubleSequence.Min" />.</para></entry>
+ 		    <entry><para>Get the minimum value in the sequence. See <see cref="M:Austra.Library.DSequence.Min" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>plot</codeInline></para></entry>
- 		    <entry><para>Plots the sequence. See <see cref="M:Austra.Library.DoubleSequence.Plot" />.</para></entry>
+ 		    <entry><para>Plots the sequence. See <see cref="M:Austra.Library.DSequence.Plot" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>prod</codeInline></para></entry>
- 		    <entry><para>Multiplies all values in the sequence. See <see cref="M:Austra.Library.DoubleSequence.Product" />.</para></entry>
+ 		    <entry><para>Multiplies all values in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Product</codeEntityReference>.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>sort</codeInline></para></entry>
- 		    <entry><para>Sorts values in ascending order. See <see cref="M:Austra.Library.DoubleSequence.Sort" />.</para></entry>
+ 		    <entry><para>Sorts values in ascending order. See <see cref="M:Austra.Library.DSequence.Sort" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>sortDesc</codeInline></para></entry>
- 		    <entry><para>Sorts values in descending order. See <see cref="M:Austra.Library.DoubleSequence.SortDescending" />.</para></entry>
+ 		    <entry><para>Sorts values in descending order. See <see cref="M:Austra.Library.DSequence.SortDescending" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>stats</codeInline></para></entry>
- 		    <entry><para>Gets all statistic moments of the sequence. See <see cref="M:Austra.Library.DoubleSequence.Stats" />.</para></entry>
+ 		    <entry><para>Gets all statistic moments of the sequence. See <see cref="M:Austra.Library.DSequence.Stats" />.</para></entry>
 		  </row>		  
  		  <row>
  		    <entry><para><codeInline>sum</codeInline></para></entry>
- 		    <entry><para>Sums all values in the sequence. See <see cref="M:Austra.Library.DoubleSequence.Sum" />.</para></entry>
+ 		    <entry><para>Sums all values in the sequence. See <see cref="M:Austra.Library.Sequence`2.Sum" />.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>toVector</codeInline></para></entry>
- 		    <entry><para>Materializes the sequence into a vector. See <see cref="M:Austra.Library.DoubleSequence.ToVector" />.</para></entry>
+ 		    <entry><para>Materializes the sequence into a vector. See <see cref="M:Austra.Library.DSequence.ToVector" />.</para></entry>
 		  </row>
 		</table>
               </content>
@@ -192,6 +193,7 @@ seq(1, 100).filter(x => x % 2 = 0).map(x => x^2).sum
       <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetic</link>
       <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
+      <codeEntityReference qualifyHint="false">T:Austra.Library.Sequence`2</codeEntityReference>
     </relatedTopics>
   </developerConceptualDocument>
 </topic>

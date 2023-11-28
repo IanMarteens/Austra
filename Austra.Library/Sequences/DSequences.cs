@@ -1,6 +1,6 @@
 ﻿namespace Austra.Library;
 
-/// <summary>Represents any sequence returning a double value.</summary>
+/// <summary>Represents any sequence returning double-precision values.</summary>
 public abstract partial class DSequence : Sequence<double, DSequence>,
     IFormattable, 
     IEquatable<DSequence>,

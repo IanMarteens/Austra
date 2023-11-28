@@ -1,6 +1,6 @@
 ﻿namespace Austra.Library;
 
-/// <summary>Represents any sequence returning a complex values.</summary>
+/// <summary>Represents any sequence returning complex values.</summary>
 public abstract partial class CSequence : Sequence<Complex, CSequence>,
     IFormattable,
     IEquatable<CSequence>,

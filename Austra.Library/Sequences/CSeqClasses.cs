@@ -1,6 +1,6 @@
 ﻿namespace Austra.Library;
 
-/// <summary>Represents any sequence returning a double value.</summary>
+/// <summary>Represents any sequence returning complex values.</summary>
 public abstract partial class CSequence
 {
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
