@@ -7,6 +7,8 @@ public static class Simd
     public const int MASK4 = 0x_7FFF_FFFC;
     /// <summary>Mask for <see cref="Vector512{T}"/> iterations.</summary>
     public const int MASK8 = 0x_7FFF_FFF8;
+    /// <summary>Mask for <see cref="V8i"/> iterations.</summary>
+    public const int MASK16 = 0x_7FFF_FFF0;
 
     /// <summary>The square root of two.</summary>
     public const double SQRT2 = 1.41421356237309504880;

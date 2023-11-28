@@ -13,7 +13,19 @@
 /// easing the garbage collector's work.
 /// </para>
 /// </remarks>
-public readonly struct NVector: ISafeIndexed, IVector
+public readonly struct NVector:
+    IFormattable,
+    IEnumerable<int>,
+    IEquatable<NVector>,
+    IEqualityOperators<NVector, NVector, bool>,
+    IAdditionOperators<NVector, NVector, NVector>,
+    IAdditionOperators<NVector, int, NVector>,
+    ISubtractionOperators<NVector, NVector, NVector>,
+    ISubtractionOperators<NVector, int, NVector>,
+    IUnaryNegationOperators<NVector, NVector>,
+    IMultiplyOperators<NVector, NVector, int>,
+    IMultiplyOperators<NVector, int, NVector>,
+    ISafeIndexed, IVector
 {
     /// <summary>Stores the components of the vector.</summary>
     private readonly int[] values;
@@ -149,6 +161,18 @@ public readonly struct NVector: ISafeIndexed, IVector
         get => values[index.GetOffset(values.Length)];
     }
 
+    /// <summary>Extracts a slice from the vector.</summary>
+    /// <param name="range">The range to extract.</param>
+    /// <returns>A new copy of the requested data.</returns>
+    public NVector this[Range range]
+    {
+        get
+        {
+            (int offset, int length) = range.GetOffsetAndLength(values.Length);
+            return values[offset..(offset + length)];
+        }
+    }
+
     /// <summary>
     /// Safe access to the vector's components. If the index is out of range, a zero is returned.
     /// </summary>
@@ -176,17 +200,158 @@ public readonly struct NVector: ISafeIndexed, IVector
         Array.Copy(values, dest.values, Length);
     }
 
-    /// <summary>Extracts a slice from the vector.</summary>
-    /// <param name="range">The range to extract.</param>
-    /// <returns>A new copy of the requested data.</returns>
-    public NVector this[Range range]
+    /// <summary>Adds two vectors.</summary>
+    /// <param name="v1">First vector operand.</param>
+    /// <param name="v2">Second vector operand.</param>
+    /// <returns>The component by component sum.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
+    public static NVector operator +(NVector v1, NVector v2)
     {
-        get
-        {
-            (int offset, int length) = range.GetOffsetAndLength(values.Length);
-            return values[offset..(offset + length)];
-        }
+        Contract.Requires(v1.IsInitialized);
+        Contract.Requires(v2.IsInitialized);
+        if (v1.Length != v2.Length)
+            throw new VectorLengthException();
+        int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
+        v1.values.AsSpan().AddV(v2.values, result);
+        return result;
     }
+
+    /// <summary>Subtracts two vectors.</summary>
+    /// <param name="v1">First vector operand.</param>
+    /// <param name="v2">Second vector operand.</param>
+    /// <returns>The component by component subtraction.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static NVector operator -(NVector v1, NVector v2)
+    {
+        Contract.Requires(v1.IsInitialized);
+        Contract.Requires(v2.IsInitialized);
+        if (v1.Length != v2.Length)
+            throw new VectorLengthException();
+        int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
+        v1.values.AsSpan().SubV(v2.values, result);
+        return result;
+    }
+
+    /// <summary>Negates a vector.</summary>
+    /// <param name="v">The vector operand.</param>
+    /// <returns>The component by component negation.</returns>
+    public static NVector operator -(NVector v)
+    {
+        Contract.Requires(v.IsInitialized);
+        Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
+        int[] result = GC.AllocateUninitializedArray<int>(v.values.Length);
+        v.values.AsSpan().NegV(result);
+        return result;
+    }
+
+    /// <summary>Adds a scalar to a vector.</summary>
+    /// <param name="v">A vector summand.</param>
+    /// <param name="d">A scalar summand.</param>
+    /// <returns>The scalar is added to each vector's item.</returns>
+    public static NVector operator +(NVector v, int d)
+    {
+        Contract.Requires(v.IsInitialized);
+        Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
+        int[] result = GC.AllocateUninitializedArray<int>(v.Length);
+        v.values.AsSpan().AddV(d, result);
+        return result;
+    }
+
+    /// <summary>Adds a scalar to a vector.</summary>
+    /// <param name="d">A scalar summand.</param>
+    /// <param name="v">A vector summand.</param>
+    /// <returns>The scalar is added to each vector's item.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static NVector operator +(int d, NVector v) => v + d;
+
+    /// <summary>Subtracts a scalar from a vector.</summary>
+    /// <param name="v">The vector operand.</param>
+    /// <param name="d">The scalar operand.</param>
+    /// <returns>The scalar is subtracted from each vector's item.</returns>
+    public static NVector operator -(NVector v, int d)
+    {
+        Contract.Requires(v.IsInitialized);
+        Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
+        int[] result = GC.AllocateUninitializedArray<int>(v.Length);
+        v.values.AsSpan().SubV(d, result);
+        return result;
+    }
+
+    /// <summary>Subtracts a vector from a scalar.</summary>
+    /// <param name="d">The scalar operand.</param>
+    /// <param name="v">The vector operand.</param>
+    /// <returns>The scalar is subtracted from each vector's item.</returns>
+    public static NVector operator -(int d, NVector v)
+    {
+        Contract.Requires(v.IsInitialized);
+        Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
+        int[] result = GC.AllocateUninitializedArray<int>(v.Length);
+        CommonMatrix.SubV(d, v.values, result);
+        return result;
+    }
+
+    /// <summary>Pointwise multiplication.</summary>
+    /// <param name="other">Second vector operand.</param>
+    /// <returns>The component by component product.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
+    public NVector PointwiseMultiply(NVector other)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(other.IsInitialized);
+        if (Length != other.Length)
+            throw new VectorLengthException();
+        Contract.Ensures(Contract.Result<NVector>().Length == Length);
+        return values.AsSpan().MulV(other.values);
+    }
+
+    /// <summary>Pointwise division.</summary>
+    /// <param name="other">Second vector operand.</param>
+    /// <returns>The component by component quotient.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
+    public NVector PointwiseDivide(NVector other)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(other.IsInitialized);
+        if (Length != other.Length)
+            throw new VectorLengthException();
+        Contract.Ensures(Contract.Result<NVector>().Length == Length);
+        return values.AsSpan().DivV(other.values);
+    }
+
+    /// <summary>Dot product of two vectors.</summary>
+    /// <param name="v1">First vector operand.</param>
+    /// <param name="v2">Second vector operand.</param>
+    /// <returns>The dot product of the operands.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
+    public static int operator *(NVector v1, NVector v2)
+    {
+        Contract.Requires(v1.IsInitialized);
+        Contract.Requires(v2.IsInitialized);
+        if (v1.Length != v2.Length)
+            throw new VectorLengthException();
+        Contract.EndContractBlock();
+        return v1.values.AsSpan().DotProduct(v2.values);
+    }
+
+    /// <summary>Multiplies a vector by a scalar value.</summary>
+    /// <param name="v">Vector to be multiplied.</param>
+    /// <param name="d">A scalar multiplier.</param>
+    /// <returns>The multiplication of the vector by the scalar.</returns>
+    public static NVector operator *(NVector v, int d)
+    {
+        Contract.Requires(v.IsInitialized);
+        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        int[] result = GC.AllocateUninitializedArray<int>(v.values.Length);
+        v.values.AsSpan().MulV(d, result);
+        return result;
+    }
+
+    /// <summary>Multiplies a vector by a scalar value.</summary>
+    /// <param name="d">A scalar multiplicand.</param>
+    /// <param name="v">Vector to be multiplied.</param>
+    /// <returns>The multiplication of the vector by the scalar.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static NVector operator *(int d, NVector v) => v * d;
 
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
@@ -294,4 +459,57 @@ public readonly struct NVector: ISafeIndexed, IVector
             Add(ref r, i) = zipper(Add(ref p, i), Add(ref q, i));
         return newValues;
     }
+
+    /// <summary>Gets a textual representation of this vector.</summary>
+    /// <returns>Space-separated components.</returns>
+    public override string ToString() =>
+        $"ans ∊ ℤ({Length})" + Environment.NewLine +
+        values.ToString(v => v.ToString("N0"));
+
+    /// <summary>Gets a textual representation of this vector.</summary>
+    /// <param name="format">A format specifier.</param>
+    /// <param name="provider">Supplies culture-specific formatting information.</param>
+    /// <returns>Space-separated components.</returns>
+    public string ToString(string? format, IFormatProvider? provider = null) =>
+        $"ans ∊ ℤ({Length})" + Environment.NewLine +
+        values.ToString(v => v.ToString(format, provider));
+
+    /// <summary>Retrieves an enumerator to iterate over components.</summary>
+    /// <returns>The enumerator from the underlying array.</returns>
+    public IEnumerator<int> GetEnumerator() =>
+        ((IEnumerable<int>)values).GetEnumerator();
+
+    /// <summary>Retrieves an enumerator to iterate over components.</summary>
+    /// <returns>The enumerator from the underlying array.</returns>
+    IEnumerator IEnumerable.GetEnumerator() =>
+        values.GetEnumerator();
+
+    /// <summary>Checks if the provided argument is a vector with the same values.</summary>
+    /// <param name="other">The vector to be compared.</param>
+    /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
+    public bool Equals(NVector other) => values.EqualsV(other.values);
+
+    /// <summary>Checks if the provided argument is a vector with the same values.</summary>
+    /// <param name="obj">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a vector with the same items.</returns>
+    public override bool Equals(object? obj) => obj is NVector vector && Equals(vector);
+
+    /// <summary>Returns the hashcode for this vector.</summary>
+    /// <returns>A hashcode summarizing the content of the vector.</returns>
+    public override int GetHashCode() =>
+        ((IStructuralEquatable)values).GetHashCode(EqualityComparer<int>.Default);
+
+    /// <summary>Compares two vectors for equality. </summary>
+    /// <param name="left">First vector operand.</param>
+    /// <param name="right">Second vector operand.</param>
+    /// <returns><see langword="true"/> if all corresponding items are equal.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(NVector left, NVector right) => left.Equals(right);
+
+    /// <summary>Compares two vectors for inequality. </summary>
+    /// <param name="left">First vector operand.</param>
+    /// <param name="right">Second vector operand.</param>
+    /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(NVector left, NVector right) => !left.Equals(right);
 }

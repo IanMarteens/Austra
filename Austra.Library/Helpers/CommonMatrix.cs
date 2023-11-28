@@ -234,6 +234,34 @@ public static class CommonMatrix
                 Add(ref c, i) = Add(ref a, i) + Add(ref b, i);
     }
 
+    /// <summary>Pointwise sum of two equally sized spans.</summary>
+    /// <param name="span1">First summand.</param>
+    /// <param name="span2">Second summand.</param>
+    /// <param name="target">The span to receive the sum of the first two argument.</param>
+    public static void AddV(this Span<int> span1, Span<int> span2, Span<int> target)
+    {
+        ref int a = ref MM.GetReference(span1);
+        ref int b = ref MM.GetReference(span2);
+        ref int c = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
+        {
+            nuint t = (nuint)(target.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) + V8.LoadUnsafe(ref b, i), ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) + V8.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
+        {
+            nuint t = (nuint)(target.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) + V4.LoadUnsafe(ref b, i), ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) + V4.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Add(ref c, i) = Add(ref a, i) + Add(ref b, i);
+    }
+
     /// <summary>Pointwise subtraction of two equally sized spans.</summary>
     /// <param name="span1">Minuend.</param>
     /// <param name="span2">Subtrahend.</param>
@@ -254,6 +282,34 @@ public static class CommonMatrix
         {
             nuint t = (nuint)(target.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) - V4.LoadUnsafe(ref b, i), ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) - V4.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Add(ref c, i) = Add(ref a, i) - Add(ref b, i);
+    }
+
+    /// <summary>Pointwise subtraction of two equally sized spans.</summary>
+    /// <param name="span1">Minuend.</param>
+    /// <param name="span2">Subtrahend.</param>
+    /// <param name="target">The span to receive the result.</param>
+    public static void SubV(this Span<int> span1, Span<int> span2, Span<int> target)
+    {
+        ref int a = ref MM.GetReference(span1);
+        ref int b = ref MM.GetReference(span2);
+        ref int c = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
+        {
+            nuint t = (nuint)(target.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) - V8.LoadUnsafe(ref b, i), ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) - V8.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
+        {
+            nuint t = (nuint)(target.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) - V4.LoadUnsafe(ref b, i), ref c, i);
             V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) - V4.LoadUnsafe(ref b, t), ref c, t);
         }
@@ -291,6 +347,35 @@ public static class CommonMatrix
                 Add(ref q, i) = Add(ref p, i) + scalar;
     }
 
+    /// <summary>Pointwise addition of a scalar to a span.</summary>
+    /// <param name="span">Span summand.</param>
+    /// <param name="scalar">Scalar summand.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void AddV(this Span<int> span, int scalar, Span<int> target)
+    {
+        ref int p = ref MM.GetReference(span);
+        ref int q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
+        {
+            V8i vec = V8.Create(scalar);
+            nuint t = (nuint)(target.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) + vec, ref q, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) + vec, ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
+        {
+            V4i vec = V4.Create(scalar);
+            nuint t = (nuint)(target.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) + vec, ref q, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) + vec, ref q, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Add(ref q, i) = Add(ref p, i) + scalar;
+    }
+
     /// <summary>Pointwise subtraction of a scalar from a span.</summary>
     /// <param name="span">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
@@ -312,6 +397,35 @@ public static class CommonMatrix
             V4d vec = V4.Create(scalar);
             nuint t = (nuint)(target.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) - vec, ref q, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) - vec, ref q, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Add(ref q, i) = Add(ref p, i) - scalar;
+    }
+
+    /// <summary>Pointwise subtraction of a scalar from a span.</summary>
+    /// <param name="span">Array minuend.</param>
+    /// <param name="scalar">Scalar subtrahend.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void SubV(this Span<int> span, int scalar, Span<int> target)
+    {
+        ref int p = ref MM.GetReference(span);
+        ref int q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
+        {
+            V8i vec = V8.Create(scalar);
+            nuint t = (nuint)(target.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) - vec, ref q, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) - vec, ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
+        {
+            V4i vec = V4.Create(scalar);
+            nuint t = (nuint)(target.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) - vec, ref q, i);
             V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) - vec, ref q, t);
         }
@@ -349,6 +463,35 @@ public static class CommonMatrix
                 Add(ref q, i) = scalar - Add(ref p, i);
     }
 
+    /// <summary>Pointwise subtraction of an span from a scalar.</summary>
+    /// <param name="scalar">Scalar minuend.</param>
+    /// <param name="span">Span subtrahend.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void SubV(int scalar, Span<int> span, Span<int> target)
+    {
+        ref int p = ref MM.GetReference(span);
+        ref int q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
+        {
+            V8i vec = V8.Create(scalar);
+            nuint t = (nuint)(target.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, i), ref q, i);
+            V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, t), ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
+        {
+            V4i vec = V4.Create(scalar);
+            nuint t = (nuint)(target.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, i), ref q, i);
+            V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, t), ref q, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Add(ref q, i) = scalar - Add(ref p, i);
+    }
+
     /// <summary>Pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -367,6 +510,32 @@ public static class CommonMatrix
         {
             nuint t = (nuint)(target.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(-V4.LoadUnsafe(ref p, i), ref q, i);
+            V4.StoreUnsafe(-V4.LoadUnsafe(ref p, t), ref q, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Add(ref q, i) = -Add(ref p, i);
+    }
+
+    /// <summary>Pointwise negation of a span.</summary>
+    /// <param name="span">Span to negate.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void NegV(this Span<int> span, Span<int> target)
+    {
+        ref int p = ref MM.GetReference(span);
+        ref int q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
+        {
+            nuint t = (nuint)(target.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(-V8.LoadUnsafe(ref p, i), ref q, i);
+            V8.StoreUnsafe(-V8.LoadUnsafe(ref p, t), ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
+        {
+            nuint t = (nuint)(target.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
                 V4.StoreUnsafe(-V4.LoadUnsafe(ref p, i), ref q, i);
             V4.StoreUnsafe(-V4.LoadUnsafe(ref p, t), ref q, t);
         }
@@ -405,6 +574,36 @@ public static class CommonMatrix
         return result;
     }
 
+    /// <summary>Pointwise multiplication of two equally sized spans.</summary>
+    /// <param name="span1">Span multiplicand.</param>
+    /// <param name="span2">Span multiplier.</param>
+    /// <returns>The pointwise multiplication of the two arguments.</returns>
+    public static int[] MulV(this Span<int> span1, Span<int> span2)
+    {
+        int[] result = GC.AllocateUninitializedArray<int>(span1.Length);
+        ref int a = ref MM.GetReference(span1);
+        ref int b = ref MM.GetReference(span2);
+        ref int c = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) * V8.LoadUnsafe(ref b, i), ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) * V8.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) * V4.LoadUnsafe(ref b, i), ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) * V4.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) * Add(ref b, i);
+        return result;
+    }
+
     /// <summary>Pointwise multiplication of a span and a scalar.</summary>
     /// <param name="span">Span multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
@@ -434,6 +633,35 @@ public static class CommonMatrix
                 Add(ref q, i) = Add(ref p, i) * scalar;
     }
 
+    /// <summary>Pointwise multiplication of a span and a scalar.</summary>
+    /// <param name="span">Span multiplicand.</param>
+    /// <param name="scalar">Scalar multiplier.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void MulV(this Span<int> span, int scalar, Span<int> target)
+    {
+        ref int p = ref MM.GetReference(span);
+        ref int q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
+        {
+            V8i vec = V8.Create(scalar);
+            nuint t = (nuint)(target.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) * vec, ref q, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) * vec, ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
+        {
+            V4i vec = V4.Create(scalar);
+            nuint t = (nuint)(target.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) * vec, ref q, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) * vec, ref q, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Add(ref q, i) = Add(ref p, i) * scalar;
+    }
+
     /// <summary>Pointwise division of two equally sized spans.</summary>
     /// <param name="span1">Span dividend.</param>
     /// <param name="span2">Span divisor.</param>
@@ -455,6 +683,36 @@ public static class CommonMatrix
         {
             nuint t = (nuint)(result.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) / V4.LoadUnsafe(ref b, i), ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) / V4.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref c, i) = Add(ref a, i) / Add(ref b, i);
+        return result;
+    }
+
+    /// <summary>Pointwise division of two equally sized spans.</summary>
+    /// <param name="span1">Span dividend.</param>
+    /// <param name="span2">Span divisor.</param>
+    /// <returns>The pointwise quotient of the two arguments.</returns>
+    public static int[] DivV(this Span<int> span1, Span<int> span2)
+    {
+        int[] result = GC.AllocateUninitializedArray<int>(span1.Length);
+        ref int a = ref MM.GetReference(span1);
+        ref int b = ref MM.GetReference(span2);
+        ref int c = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) / V8.LoadUnsafe(ref b, i), ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) / V8.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) / V4.LoadUnsafe(ref b, i), ref c, i);
             V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) / V4.LoadUnsafe(ref b, t), ref c, t);
         }
@@ -557,6 +815,37 @@ public static class CommonMatrix
         return sum;
     }
 
+    /// <summary>Calculates the dot product of two spans.</summary>
+    /// <remarks>The second span can be longer than the first span.</remarks>
+    /// <param name="span1">First span operand.</param>
+    /// <param name="span2">Second span operand.</param>
+    /// <returns>The dot product of the vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int DotProduct(this Span<int> span1, Span<int> span2)
+    {
+        int sum = 0;
+        ref int p = ref MM.GetReference(span1);
+        ref int q = ref MM.GetReference(span2);
+        nuint i = 0;
+        if (V8.IsHardwareAccelerated)
+        {
+            V8i acc = V8i.Zero;
+            for (nuint top = (nuint)span1.Length & Simd.MASK16; i < top; i += (nuint)V8i.Count)
+                acc += V8.LoadUnsafe(ref p, i) * V8.LoadUnsafe(ref q, i);
+            sum = V8.Sum(acc);
+        }
+        else if (V4.IsHardwareAccelerated)
+        {
+            V4i acc = V4i.Zero;
+            for (nuint top = (nuint)span1.Length & Simd.MASK8; i < top; i += (nuint)V4i.Count)
+                acc += V4.LoadUnsafe(ref p, i) * V4.LoadUnsafe(ref q, i);
+            sum = V4.Sum(acc);
+        }
+        for (int j = (int)i; j < span1.Length; j++)
+            sum += Add(ref p, j) * Add(ref q, j);
+        return sum;
+    }
+
     /// <summary>Checks two arrays for equality.</summary>
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>
@@ -584,6 +873,45 @@ public static class CommonMatrix
             ref double lstQ = ref Add(ref q, array1.Length - V4d.Count);
             for (; IsAddressLessThan(ref p, ref lstP); p = ref Add(ref p, V4d.Count),
                 q = ref Add(ref q, V4d.Count))
+                if (!V4.EqualsAll(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q)))
+                    return false;
+            if (!V4.EqualsAll(V4.LoadUnsafe(ref lstP), V4.LoadUnsafe(ref lstQ)))
+                return false;
+        }
+        else
+            for (int i = 0; i < array1.Length; i++)
+                if (Add(ref p, i) != Add(ref q, i))
+                    return false;
+        return true;
+    }
+
+    /// <summary>Checks two arrays for equality.</summary>
+    /// <param name="array1">First array operand.</param>
+    /// <param name="array2">Second array operand.</param>
+    /// <returns><see langword="true"/> if both array has the same items.</returns>
+    public static bool EqualsV(this int[] array1, int[] array2)
+    {
+        if (array1.Length != array2.Length)
+            return false;
+        ref int p = ref MM.GetArrayDataReference(array1);
+        ref int q = ref MM.GetArrayDataReference(array2);
+        if (V8.IsHardwareAccelerated && array1.Length >= V8i.Count)
+        {
+            ref int lstP = ref Add(ref p, array1.Length - V8i.Count);
+            ref int lstQ = ref Add(ref q, array1.Length - V8i.Count);
+            for (; IsAddressLessThan(ref p, ref lstP); p = ref Add(ref p, V8i.Count),
+                q = ref Add(ref q, V8i.Count))
+                if (!V8.EqualsAll(V8.LoadUnsafe(ref p), V8.LoadUnsafe(ref q)))
+                    return false;
+            if (!V8.EqualsAll(V8.LoadUnsafe(ref lstP), V8.LoadUnsafe(ref lstQ)))
+                return false;
+        }
+        else if (V4.IsHardwareAccelerated && array1.Length >= V4i.Count)
+        {
+            ref int lstP = ref Add(ref p, array1.Length - V4i.Count);
+            ref int lstQ = ref Add(ref q, array1.Length - V4i.Count);
+            for (; IsAddressLessThan(ref p, ref lstP); p = ref Add(ref p, V4i.Count),
+                q = ref Add(ref q, V4i.Count))
                 if (!V4.EqualsAll(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q)))
                     return false;
             if (!V4.EqualsAll(V4.LoadUnsafe(ref lstP), V4.LoadUnsafe(ref lstQ)))
