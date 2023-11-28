@@ -33,11 +33,29 @@ public static class Simd
         return x.ToScalar() * x.GetElement(1);
     }
 
+    /// <summary>Multiplies all the elements in a vector.</summary>
+    /// <param name="v">A intrinsics vector with eight integers.</param>
+    /// <returns>The product of all items.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int Product(this V4i v)
+    {
+        Vector128<int> x = v.GetLower() * v.GetUpper();
+        Vector64<int> y = x.GetLower() * x.GetUpper();
+        return y.ToScalar() * y.GetElement(1);
+    }
+
     /// <summary>Gets the maximum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with four doubles.</param>
+    /// <param name="v">A intrinsics vector with eight doubles.</param>
     /// <returns>The maximum component.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static double Max(this V8d v) =>
+        Math.Max(v.GetLower().Max(), v.GetUpper().Max());
+
+    /// <summary>Gets the maximum component in a vector.</summary>
+    /// <param name="v">A intrinsics vector with sixteen doubles.</param>
+    /// <returns>The maximum component.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int Max(this V8i v) =>
         Math.Max(v.GetLower().Max(), v.GetUpper().Max());
 
     /// <summary>Gets the maximum component in a vector.</summary>
@@ -51,10 +69,28 @@ public static class Simd
     }
 
     /// <summary>Gets the maximum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with four doubles.</param>
+    /// <param name="v">A intrinsics vector with eight integers.</param>
+    /// <returns>The maximum component.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int Max(this V4i v)
+    {
+        Vector128<int> x = Sse41.Max(v.GetLower(), v.GetUpper());
+        Vector64<int> y = Vector64.Max(x.GetLower(), x.GetUpper());
+        return Math.Max(y.ToScalar(), y.GetElement(1));
+    }
+
+    /// <summary>Gets the maximum component in a vector.</summary>
+    /// <param name="v">A intrinsics vector with eight doubles.</param>
     /// <returns>The maximum component.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static double Min(this V8d v) =>
+        Math.Min(v.GetLower().Min(), v.GetUpper().Min());
+
+    /// <summary>Gets the maximum component in a vector.</summary>
+    /// <param name="v">A intrinsics vector with sixteen integers.</param>
+    /// <returns>The maximum component.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int Min(this V8i v) =>
         Math.Min(v.GetLower().Min(), v.GetUpper().Min());
 
     /// <summary>Gets the minimum component in a vector.</summary>
@@ -65,6 +101,17 @@ public static class Simd
     {
         Vector128<double> x = Sse2.Min(v.GetLower(), v.GetUpper());
         return Math.Min(x.ToScalar(), x.GetElement(1));
+    }
+
+    /// <summary>Gets the minimum component in a vector.</summary>
+    /// <param name="v">A intrinsics vector with eight integers.</param>
+    /// <returns>The maximum component.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int Min(this V4i v)
+    {
+        Vector128<int> x = Sse41.Min(v.GetLower(), v.GetUpper());
+        Vector64<int> y = Vector64.Min(x.GetLower(), x.GetUpper());
+        return Math.Min(y.ToScalar(), y.GetElement(1));
     }
 
     /// <summary>

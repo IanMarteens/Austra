@@ -20,7 +20,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <summary>Creates a sequence from a vector.</summary>
     /// <param name="values">The vector containing the sequence's values.</param>
     /// <returns>The sequence encapsulating the vector.</returns>
-    public static NSequence Create(int[] values) =>
+    public static NSequence Create(NVector values) =>
         new VectorSequence(values);
 
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
@@ -223,7 +223,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         HashSet<int> set = HasLength ? new(Length()) : [];
         while (Next(out int d))
             set.Add(d);
-        return Create([.. set]);
+        return Create(new NVector([.. set]));
     }
 
     /// <summary>Gets the first value in the sequence.</summary>
@@ -284,6 +284,10 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         Array.Sort(data, (x, y) => y.CompareTo(x));
         return Create(data);
     }
+
+    /// <summary>Converts this sequence into a vector.</summary>
+    /// <returns>A new vector.</returns>
+    public NVector ToVector() => Materialize();
 
     /// <summary>Creates an array with all values from the sequence.</summary>
     /// <returns>The values as an array.</returns>

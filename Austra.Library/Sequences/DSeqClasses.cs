@@ -498,11 +498,11 @@ public abstract partial class DSequence : IFormattable
 
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
-        public override double Min() => source.Min();
+        public override double Min() => source.Minimum();
 
         /// <summary>Gets the maximum value from the sequence.</summary>
         /// <returns>The maximum value.</returns>
-        public override double Max() => source.Max();
+        public override double Max() => source.Maximum();
 
         /// <summary>Gets the sum of all the values in the sequence.</summary>
         /// <returns>The sum of all the values in the sequence.</returns>

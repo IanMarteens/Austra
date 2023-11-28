@@ -303,7 +303,7 @@ public abstract partial class NSequence
 
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
-    private sealed class VectorSequence(int[] source) : NSequence
+    private sealed class VectorSequence(NVector source) : NSequence
     {
         /// <summary>Current index in the sequence.</summary>
         private int current;
@@ -358,11 +358,11 @@ public abstract partial class NSequence
 
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
-        public override int Min() => source.Min();
+        public override int Min() => source.Minimum();
 
         /// <summary>Gets the maximum value from the sequence.</summary>
         /// <returns>The maximum value.</returns>
-        public override int Max() => source.Max();
+        public override int Max() => source.Maximum();
 
         /// <summary>Gets the sum of all the values in the sequence.</summary>
         /// <returns>The sum of all the values in the sequence.</returns>
@@ -370,7 +370,7 @@ public abstract partial class NSequence
 
         /// <summary>Gets the product of all the values in the sequence.</summary>
         /// <returns>The product of all the values in the sequence.</returns>
-        public override int Product() => source.Aggregate(1, (a, b) => a * b);
+        public override int Product() => source.Product();
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
@@ -386,5 +386,4 @@ public abstract partial class NSequence
         /// <returns>The values as an array.</returns>
         protected override int[] Materialize() => (int[])source;
     }
-
 }

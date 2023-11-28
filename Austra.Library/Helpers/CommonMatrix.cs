@@ -176,6 +176,36 @@ public static class CommonMatrix
         return max;
     }
 
+    /// <summary>Gets the item with the maximum value in the array.</summary>
+    /// <param name="values">Array with data.</param>
+    /// <returns>The item with the maximum value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Maximum(this int[] values)
+    {
+        if (V8.IsHardwareAccelerated && values.Length >= V8i.Count)
+        {
+            ref int p = ref MM.GetArrayDataReference(values);
+            ref int t = ref Add(ref p, values.Length - V8i.Count);
+            V8i vm = V8.LoadUnsafe(ref p);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8i.Count))
+                vm = V8.Max(vm, V8.LoadUnsafe(ref p));
+            return V8.Max(vm, V8.LoadUnsafe(ref t)).Max();
+        }
+        if (V4.IsHardwareAccelerated && values.Length >= V4i.Count)
+        {
+            ref int p = ref MM.GetArrayDataReference(values);
+            ref int t = ref Add(ref p, values.Length - V4i.Count);
+            V4i vm = V4.LoadUnsafe(ref p);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4i.Count))
+                vm = Avx2.Max(vm, V4.LoadUnsafe(ref p));
+            return Avx2.Max(vm, V4.LoadUnsafe(ref t)).Max();
+        }
+        int max = int.MinValue;
+        foreach (int d in values)
+            max = Max(max, d);
+        return max;
+    }
+
     /// <summary>Gets the item with the minimum value in the array.</summary>
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the minimum value.</returns>
@@ -204,6 +234,36 @@ public static class CommonMatrix
         foreach (double d in values)
             min = Min(min, d);
         return min;
+    }
+
+    /// <summary>Gets the item with the maximum value in the array.</summary>
+    /// <param name="values">Array with data.</param>
+    /// <returns>The item with the maximum value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Minimum(this int[] values)
+    {
+        if (V8.IsHardwareAccelerated && values.Length >= V8i.Count)
+        {
+            ref int p = ref MM.GetArrayDataReference(values);
+            ref int t = ref Add(ref p, values.Length - V8i.Count);
+            V8i vm = V8.LoadUnsafe(ref p);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8i.Count))
+                vm = V8.Min(vm, V8.LoadUnsafe(ref p));
+            return V8.Min(vm, V8.LoadUnsafe(ref t)).Min();
+        }
+        if (V4.IsHardwareAccelerated && values.Length >= V4i.Count)
+        {
+            ref int p = ref MM.GetArrayDataReference(values);
+            ref int t = ref Add(ref p, values.Length - V4i.Count);
+            V4i vm = V4.LoadUnsafe(ref p);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4i.Count))
+                vm = Avx2.Min(vm, V4.LoadUnsafe(ref p));
+            return Avx2.Min(vm, V4.LoadUnsafe(ref t)).Min();
+        }
+        int max = int.MaxValue;
+        foreach (int d in values)
+            max = Min(max, d);
+        return max;
     }
 
     /// <summary>Pointwise sum of two equally sized spans.</summary>

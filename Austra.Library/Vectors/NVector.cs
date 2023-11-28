@@ -200,6 +200,22 @@ public readonly struct NVector:
         Array.Copy(values, dest.values, Length);
     }
 
+    /// <summary>Gets the item with the maximum value.</summary>
+    /// <returns>The item with the maximum value.</returns>
+    public int Maximum()
+    {
+        Contract.Requires(IsInitialized);
+        return values.Maximum();
+    }
+
+    /// <summary>Gets the item with the minimum value.</summary>
+    /// <returns>The item with the minimum value.</returns>
+    public int Minimum()
+    {
+        Contract.Requires(IsInitialized);
+        return values.Minimum();
+    }
+
     /// <summary>Adds two vectors.</summary>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
@@ -352,6 +368,82 @@ public readonly struct NVector:
     /// <returns>The multiplication of the vector by the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NVector operator *(int d, NVector v) => v * d;
+
+    /// <summary>Calculates the sum of the vector's items.</summary>
+    /// <returns>The sum of all vector's items.</returns>
+    public int Sum()
+    {
+        Contract.Requires(IsInitialized);
+
+        int result = 0;
+        ref int p = ref MM.GetArrayDataReference(values);
+        ref int q = ref Add(ref p, values.Length);
+        if (V8.IsHardwareAccelerated && Length > V8i.Count)
+        {
+            ref int last = ref Add(ref p, values.Length & Simd.MASK16);
+            V8i sum = V8i.Zero;
+            do
+            {
+                sum += V8.LoadUnsafe(ref p);
+                p = ref Add(ref p, V8i.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = V8.Sum(sum);
+        }
+        else if (V4.IsHardwareAccelerated && Length > V4i.Count)
+        {
+            ref int last = ref Add(ref p, values.Length & Simd.MASK16);
+            V4i sum = V4i.Zero;
+            do
+            {
+                sum += V4.LoadUnsafe(ref p);
+                p = ref Add(ref p, V4i.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = V4.Sum(sum);
+        }
+        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
+            result += p;
+        return result;
+    }
+
+    /// <summary>Calculates the product of the vector's items.</summary>
+    /// <returns>The product of all vector's items.</returns>
+    public int Product()
+    {
+        Contract.Requires(IsInitialized);
+
+        int result = 1;
+        ref int p = ref MM.GetArrayDataReference(values);
+        ref int q = ref Add(ref p, values.Length);
+        if (V8.IsHardwareAccelerated && Length > V8i.Count)
+        {
+            ref int last = ref Add(ref p, values.Length & Simd.MASK16);
+            V8i prod = V8i.One;
+            do
+            {
+                prod *= V8.LoadUnsafe(ref p);
+                p = ref Add(ref p, V8i.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = (prod.GetLower() * prod.GetUpper()).Product();
+        }
+        else if (V4.IsHardwareAccelerated && Length > V4i.Count)
+        {
+            ref int last = ref Add(ref p, values.Length & Simd.MASK8);
+            V4i prod = V4i.One;
+            do
+            {
+                prod *= V4.LoadUnsafe(ref p);
+                p = ref Add(ref p, V4i.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = prod.Product();
+        }
+        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
+            result *= p;
+        return result;
+    }
 
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
