@@ -651,6 +651,15 @@ public readonly struct NVector :
         return result;
     }
 
+    /// <summary>Returns a new vector with sorted values.</summary>
+    /// <returns>A new vector with sorted values.</returns>
+    public NVector SortDescending()
+    {
+        NVector result = Clone();
+        Array.Sort(result.values, static (x, y) => y.CompareTo(x));
+        return result;
+    }
+
     /// <summary>Combines the common prefix of two vectors.</summary>
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>

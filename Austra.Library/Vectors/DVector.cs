@@ -1266,6 +1266,15 @@ public readonly struct DVector :
         return result;
     }
 
+    /// <summary>Returns a new vector with sorted values.</summary>
+    /// <returns>A new vector with sorted values.</returns>
+    public DVector SortDescending()
+    {
+        DVector result = Clone();
+        Array.Sort(result.values, (x, y) => y.CompareTo(x));
+        return result;
+    }
+
     /// <summary>Computes the real discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>
     public FftRModel Fft() => new(FFT.Transform(values));

@@ -346,7 +346,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public virtual DSequence SortDescending()
     {
         double[] data = Materialize();
-        Array.Sort(data, (x, y) => y.CompareTo(x));
+        Array.Sort(data, static (x, y) => y.CompareTo(x));
         return Create(data);
     }
 
