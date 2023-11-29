@@ -4,7 +4,7 @@
 public class Portfolio
 {
     /// <summary>Asset weights.</summary>
-    public Vector Weights { get; }
+    public DVector Weights { get; }
     /// <summary>Risk tolerance.</summary>
     public double Lambda { get; }
     /// <summary>Expected return.</summary>
@@ -20,7 +20,7 @@ public class Portfolio
     /// <param name="mean">Expected return.</param>
     /// <param name="variance">Expected volatility.</param>
     public Portfolio(
-        Vector weights,
+        DVector weights,
         double lambda,
         double mean,
         double variance) =>

@@ -59,7 +59,7 @@
 						  <listItem>Cholesky Factorization.</listItem>
 						  <listItem>Eigenvalues Decomposition (EVD).</listItem>
 						</list>
-						<para><see cref="M:Austra.Library.Matrix.Solve(Austra.Library.Vector)" /> and <see cref="M:Austra.Library.Matrix.Solve(Austra.Library.Matrix)" /> uses the LU factorization internally.</para>
+						<para><see cref="M:Austra.Library.Matrix.Solve(Austra.Library.DVector)" /> and <see cref="M:Austra.Library.Matrix.Solve(Austra.Library.Matrix)" /> uses the LU factorization internally.</para>
                       </content>
                     </section>
                     <section>
@@ -73,7 +73,7 @@
                       <title>Polynomials and root finding</title>
                       <content>
 						<para>The <see cref="T:Austra.Library.Polynomials" /> static class provides methods for polynomial evaluation and root finding. The <see cref="T:Austra.Library.Solver" /> class implements a simple variant of the Newton-Raphson method for root finding.</para>
-						<para>There's also a <see cref="M:Austra.Library.Polynomials.PolyEval(System.Numerics.Complex,Austra.Library.Vector)" /> for evaluating polynomials using the Horner's method, and a <see cref="M:Austra.Library.Polynomials.PolySolve(Austra.Library.Vector)" /> for analytically finding roots whenever possible, and using eigenvalues of the Frobenius matrix in the general case. There's even a <see cref="M:Austra.Library.Polynomials.PolyDerivative(System.Numerics.Complex,Austra.Library.Vector)" /> for computing the derivative of a polynomial at a given abscissa.</para>
+						<para>There's also a <see cref="M:Austra.Library.Polynomials.PolyEval(System.Numerics.Complex,Austra.Library.DVector)" /> for evaluating polynomials using the Horner's method, and a <see cref="M:Austra.Library.Polynomials.PolySolve(Austra.Library.DVector)" /> for analytically finding roots whenever possible, and using eigenvalues of the Frobenius matrix in the general case. There's even a <see cref="M:Austra.Library.Polynomials.PolyDerivative(System.Numerics.Complex,Austra.Library.DVector)" /> for computing the derivative of a polynomial at a given abscissa.</para>
 						<para>Natural cubic splines has also been implemented, both for series and for functions, using a grid. You can even calculate the derivative of a spline at any point in the supported range.</para>
                       </content>
                     </section>

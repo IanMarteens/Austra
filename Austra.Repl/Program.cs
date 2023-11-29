@@ -67,7 +67,7 @@ for (; ; )
 }
 
 static string GetVersion() =>
-    Assembly.GetAssembly(typeof(Vector))!.GetName().Version!.ToString(3);
+    Assembly.GetAssembly(typeof(DVector))!.GetName().Version!.ToString(3);
 
 static void EvaluateAndShow(IAustraEngine engine, string line, bool includeTime)
 {
@@ -81,7 +81,7 @@ static void EvaluateAndShow(IAustraEngine engine, string line, bool includeTime)
             case Definition def:
                 WriteLine($"{def.Name} has been added as a definition.");
                 break;
-            case Plot<Vector> tuple:
+            case Plot<DVector> tuple:
                 Write(tuple.First);
                 if (tuple.HasSecond)
                     Write(tuple.Second);

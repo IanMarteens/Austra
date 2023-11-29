@@ -3,44 +3,44 @@
 public class VectorBenchmark : BenchmarkControl
 {
     private readonly int size;
-    private readonly Vector cv1, cv2, cv3, cv4, cv5, cv6, cv7;
+    private readonly DVector cv1, cv2, cv3, cv4, cv5, cv6, cv7;
 
     public VectorBenchmark()
     {
         size = Configure();
         var rnd = new Random(133);
-        cv1 = new Vector(size, rnd);
-        cv2 = new Vector(size, rnd);
+        cv1 = new DVector(size, rnd);
+        cv2 = new DVector(size, rnd);
         cv3 = cv1.Clone();
-        cv4 = new Vector(1024, rnd);
-        cv5 = new Vector(1024, rnd, 0.6, 1);
-        cv6 = new Vector(1024, rnd);
-        cv7 = new Vector(1024, new NormalRandom(rnd));
+        cv4 = new DVector(1024, rnd);
+        cv5 = new DVector(1024, rnd, 0.6, 1);
+        cv6 = new DVector(1024, rnd);
+        cv7 = new DVector(1024, new NormalRandom(rnd));
     }
 
     [Benchmark]
-    public Vector AustraVectorSum() => cv4 + cv5;
+    public DVector AustraVectorSum() => cv4 + cv5;
 
     [Benchmark]
-    public Vector AustraVectorSub() => cv4 - cv5;
+    public DVector AustraVectorSub() => cv4 - cv5;
 
     [Benchmark]
-    public Vector AustraVectorScale() => 2d * cv4;
+    public DVector AustraVectorScale() => 2d * cv4;
 
     [Benchmark]
-    public Vector AustraVectorAddScalar() => cv4 + 2d;
+    public DVector AustraVectorAddScalar() => cv4 + 2d;
 
     [Benchmark]
-    public Vector AustraVectorPointMult() => cv4.PointwiseMultiply(cv5);
+    public DVector AustraVectorPointMult() => cv4.PointwiseMultiply(cv5);
 
     [Benchmark]
-    public Vector AustraVectorPointMultAdd() => cv4.MultiplyAdd(cv5, cv6);
+    public DVector AustraVectorPointMultAdd() => cv4.MultiplyAdd(cv5, cv6);
 
     [Benchmark]
-    public Vector AustraVectorMultAdd() => cv4.MultiplyAdd(Math.PI, cv6);
+    public DVector AustraVectorMultAdd() => cv4.MultiplyAdd(Math.PI, cv6);
 
     [Benchmark]
-    public Vector AustraVectorMultAddRaw() => cv4 * Math.PI + cv6;
+    public DVector AustraVectorMultAddRaw() => cv4 * Math.PI + cv6;
 
     [Benchmark]
     public double AustraDotProduct() => cv1 * cv2;
@@ -58,28 +58,28 @@ public class VectorBenchmark : BenchmarkControl
     public bool AustraVectorEqualsTrue() => cv1 == cv3;
 
     [Benchmark]
-    public Vector AustraRawLineal() => 2 * cv4 + 3 * cv5;
+    public DVector AustraRawLineal() => 2 * cv4 + 3 * cv5;
 
     [Benchmark]
-    public Vector AustraCombineLineal() => Vector.Combine2(2, 3, cv4, cv5);
+    public DVector AustraCombineLineal() => DVector.Combine2(2, 3, cv4, cv5);
 
     [Benchmark]
-    public Vector AustraNegate() => -cv4;
+    public DVector AustraNegate() => -cv4;
 
     [Benchmark]
-    public Vector AustraRandomVector() => new(size, NormalRandom.Shared);
+    public DVector AustraRandomVector() => new(size, NormalRandom.Shared);
 
     [Benchmark]
     public double AustraSquareVector() => cv4.Squared();
 
     [Benchmark]
-    public Vector AustraVectorSqrt() => cv4.Sqrt();
+    public DVector AustraVectorSqrt() => cv4.Sqrt();
 
     [Benchmark]
-    public Vector AustraVectorAbs() => cv7.Abs();
+    public DVector AustraVectorAbs() => cv7.Abs();
 
     [Benchmark]
-    public Vector AustraVectorMap() => cv7.Map(Math.Abs);
+    public DVector AustraVectorMap() => cv7.Map(Math.Abs);
 
     [Benchmark]
     public Matrix AustraExternalProduct() => cv1 ^ cv3;
@@ -94,5 +94,5 @@ public class VectorBenchmark : BenchmarkControl
     public double AustraAutocorrelation() => cv7.AutoCorrelation(4);
 
     [Benchmark]
-    public Vector AustraVectorReverse() => cv7.Reverse();
+    public DVector AustraVectorReverse() => cv7.Reverse();
 }

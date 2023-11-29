@@ -57,7 +57,7 @@ internal static class Markowitz
         for (int i = 1; i < result.Count;)
         {
             Portfolio p = result[i];
-            if (Vector.Equals(p.Weights, result[i - 1].Weights, Optimizer.ε))
+            if (DVector.Equals(p.Weights, result[i - 1].Weights, Optimizer.ε))
             {
                 result[i - 1] = p;
                 result.RemoveAt(i);

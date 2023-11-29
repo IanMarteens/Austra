@@ -2,11 +2,11 @@
 
 public class SplineBenchmark: BenchmarkControl
 {
-    private readonly Vector v;
+    private readonly DVector v;
 
     public SplineBenchmark() : base()
     {
-        v = new Vector(10, new NormalRandom());    
+        v = new DVector(10, new NormalRandom());    
     }
 
     [Benchmark]

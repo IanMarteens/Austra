@@ -7,7 +7,7 @@
 /// <para>
 /// Most methods respect immutability at the cost of extra allocations.
 /// Of course, there are special methods, like
-/// <see cref="MultiplyAdd(Vector, double, Vector)"/>
+/// <see cref="MultiplyAdd(DVector, double, DVector)"/>
 /// for saving unneeded allocations. Also, most methods are hardware accelerated,
 /// either by using managed references, SIMD operations or both.
 /// Memory pinning has been reduced to the minimum.
@@ -27,7 +27,7 @@ public readonly struct Matrix :
     ISubtractionOperators<Matrix, LMatrix, Matrix>,
     ISubtractionOperators<Matrix, double, Matrix>,
     IMultiplyOperators<Matrix, Matrix, Matrix>,
-    IMultiplyOperators<Matrix, Vector, Vector>,
+    IMultiplyOperators<Matrix, DVector, DVector>,
     IMultiplyOperators<Matrix, double, Matrix>,
     IDivisionOperators<Matrix, double, Matrix>,
     IUnaryNegationOperators<Matrix, Matrix>,
@@ -71,7 +71,7 @@ public readonly struct Matrix :
     /// <exception cref="MatrixSizeException">
     /// When there are not enough rows or there is a column size mismatch.
     /// </exception>
-    public Matrix(params Vector[] rows)
+    public Matrix(params DVector[] rows)
     {
         if (rows == null || rows.Length == 0)
             throw new MatrixSizeException();
@@ -84,7 +84,7 @@ public readonly struct Matrix :
                 throw new MatrixSizeException();
         values = GC.AllocateUninitializedArray<double>(Rows * Cols);
         int offset = 0;
-        foreach (Vector row in rows)
+        foreach (DVector row in rows)
         {
             Array.Copy((double[])row, 0, values, offset, Cols);
             offset += Cols;
@@ -102,7 +102,7 @@ public readonly struct Matrix :
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
-    public Matrix(Vector diagonal) =>
+    public Matrix(DVector diagonal) =>
         (Rows, Cols, values) = (diagonal.Length, diagonal.Length, diagonal.CreateDiagonal());
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
@@ -172,7 +172,7 @@ public readonly struct Matrix :
     /// <summary>Creates a matrix given its columns.</summary>
     /// <param name="columns">The array of columns.</param>
     /// <returns>A new matrix created with the provided columns.</returns>
-    public static Matrix FromColumns(params Vector[] columns) =>
+    public static Matrix FromColumns(params DVector[] columns) =>
         new Matrix(columns).Transpose();
 
     /// <summary>Horizontal concatenation of two matrices.</summary>
@@ -199,7 +199,7 @@ public readonly struct Matrix :
     /// <param name="left">Left matrix.</param>
     /// <param name="newColumn">New column, as a vector.</param>
     /// <returns>A new matrix with one more column.</returns>
-    public static Matrix HCat(Matrix left, Vector newColumn)
+    public static Matrix HCat(Matrix left, DVector newColumn)
     {
         if (left.Rows != newColumn.Length)
             throw new MatrixSizeException();
@@ -218,7 +218,7 @@ public readonly struct Matrix :
     /// <param name="right">Left matrix.</param>
     /// <param name="newColumn">New column, as a vector.</param>
     /// <returns>A new matrix with one more column.</returns>
-    public static Matrix HCat(Vector newColumn, Matrix right)
+    public static Matrix HCat(DVector newColumn, Matrix right)
     {
         if (right.Rows != newColumn.Length)
             throw new MatrixSizeException();
@@ -252,7 +252,7 @@ public readonly struct Matrix :
     /// <param name="upper">Upper matrix.</param>
     /// <param name="lower">Lower row vector.</param>
     /// <returns>A new matrix with one more row.</returns>
-    public static Matrix VCat(Matrix upper, Vector lower)
+    public static Matrix VCat(Matrix upper, DVector lower)
     {
         if (upper.Cols != lower.Length)
             throw new MatrixSizeException();
@@ -267,7 +267,7 @@ public readonly struct Matrix :
     /// <param name="upper">Upper row vector.</param>
     /// <param name="lower">Lower matrix.</param>
     /// <returns>A new matrix with one more row.</returns>
-    public static Matrix VCat(Vector upper, Matrix lower)
+    public static Matrix VCat(DVector upper, Matrix lower)
     {
         if (upper.Length != lower.Cols)
             throw new MatrixSizeException();
@@ -347,10 +347,10 @@ public readonly struct Matrix :
     /// <summary>Gets the main diagonal.</summary>
     /// <returns>A vector containing values in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Diagonal()
+    public DVector Diagonal()
     {
         Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
+        Contract.Ensures(Contract.Result<DVector>().Length == Min(Rows, Cols));
 
         return values.Diagonal(Rows, Cols);
     }
@@ -456,7 +456,7 @@ public readonly struct Matrix :
     /// <summary>Gets a copy of a row as a vector.</summary>
     /// <param name="row">Row number, counting from 0.</param>
     /// <returns>A copy of the row.</returns>
-    public Vector GetRow(int row)
+    public DVector GetRow(int row)
     {
         double[] v = GC.AllocateUninitializedArray<double>(Cols);
         Array.Copy(values, row * Cols, v, 0, Cols);
@@ -467,12 +467,12 @@ public readonly struct Matrix :
     /// <param name="row">Row number, counting from 0.</param>
     /// <returns>A copy of the row.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector GetRow(Index row) => GetRow(row.GetOffset(Rows));
+    public DVector GetRow(Index row) => GetRow(row.GetOffset(Rows));
 
     /// <summary>Gets a copy of a column as a vector.</summary>
     /// <param name="col">Column number, counting from 0.</param>
     /// <returns>A copy of the column.</returns>
-    public Vector GetColumn(int col)
+    public DVector GetColumn(int col)
     {
         double[] v = GC.AllocateUninitializedArray<double>(Rows);
         for (int r = 0; r < v.Length; r++)
@@ -484,7 +484,7 @@ public readonly struct Matrix :
     /// <param name="col">Column number, counting from 0.</param>
     /// <returns>A copy of the column.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector GetColumn(Index col) => GetColumn(col.GetOffset(Cols));
+    public DVector GetColumn(Index col) => GetColumn(col.GetOffset(Cols));
 
     /// <summary>Transposes the matrix.</summary>
     /// <returns>A new matrix with swapped rows and cells.</returns>
@@ -1006,7 +1006,7 @@ public readonly struct Matrix :
     /// <exception cref="MatrixSizeException">
     /// When the matrix and vector have non-matching sizes.
     /// </exception>
-    public static Vector operator *(Matrix m, Vector v)
+    public static DVector operator *(Matrix m, DVector v)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -1024,13 +1024,13 @@ public readonly struct Matrix :
 
     /// <summary>Transform a vector using the transposed matrix.</summary>
     /// <remarks>
-    /// This operator is equivalent to the method <see cref="TransposeMultiply(Vector)"/>.
+    /// This operator is equivalent to the method <see cref="TransposeMultiply(DVector)"/>.
     /// </remarks>
     /// <param name="v">Vector to transform.</param>
     /// <param name="m">The transformation matrix.</param>
     /// <returns>The transformed vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator *(Vector v, Matrix m) => m.TransposeMultiply(v);
+    public static DVector operator *(DVector v, Matrix m) => m.TransposeMultiply(v);
 
     /// <summary>Transforms a vector using the transpose of this matrix.</summary>
     /// <remarks>
@@ -1038,13 +1038,13 @@ public readonly struct Matrix :
     /// </remarks>
     /// <param name="v">The vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    public Vector TransposeMultiply(Vector v)
+    public DVector TransposeMultiply(DVector v)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
         if (Rows != v.Length)
             throw new MatrixSizeException();
-        Contract.Ensures(Contract.Result<Vector>().Length == Cols);
+        Contract.Ensures(Contract.Result<DVector>().Length == Cols);
 
         int r = Rows, c = Cols;
         double[] result = new double[c];
@@ -1063,7 +1063,7 @@ public readonly struct Matrix :
     /// <param name="v">Vector to transform.</param>
     /// <param name="add">Vector to add.</param>
     /// <returns><c>this * v + add</c>.</returns>
-    public Vector MultiplyAdd(Vector v, Vector add)
+    public DVector MultiplyAdd(DVector v, DVector add)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -1088,7 +1088,7 @@ public readonly struct Matrix :
     /// <param name="scale">A scale factor for the vector to add.</param>
     /// <param name="add">Vector to add.</param>
     /// <returns><c>this * v + scale * add</c>.</returns>
-    public Vector MultiplyAdd(Vector v, double scale, Vector add)
+    public DVector MultiplyAdd(DVector v, double scale, DVector add)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -1112,7 +1112,7 @@ public readonly struct Matrix :
     /// <param name="v">Vector to transform.</param>
     /// <param name="sub">Vector to subtract.</param>
     /// <returns><c>this * multiplicand - sub</c>.</returns>
-    public Vector MultiplySubtract(Vector v, Vector sub)
+    public DVector MultiplySubtract(DVector v, DVector sub)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -1177,7 +1177,7 @@ public readonly struct Matrix :
     /// <summary>Solves the equation Ax = b for x.</summary>
     /// <param name="v">The right side of the equation.</param>
     /// <returns>The solving vector.</returns>
-    public Vector Solve(Vector v) => LU().Solve(v);
+    public DVector Solve(DVector v) => LU().Solve(v);
 
     /// <summary>Solves the equation AX = B for the matrix X.</summary>
     /// <param name="m">The right side of the equation.</param>

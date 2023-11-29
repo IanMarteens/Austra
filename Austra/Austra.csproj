@@ -83,7 +83,6 @@
 		<Using Include="Austra.Library.Stats" />
 		<Using Include="Austra.Library.Transforms"/>
 		<Using Include="Austra.Library.Matrix" Alias="AMatrix" />
-		<Using Include="Austra.Library.Vector" Alias="RVector" />
 		<Using Include="System" />
 		<Using Include="System.Collections.Generic" />
 		<Using Include="System.Collections.ObjectModel" />

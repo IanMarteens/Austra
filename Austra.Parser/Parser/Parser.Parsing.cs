@@ -411,14 +411,14 @@ internal sealed partial class Parser
                 if (opMul == Token.Backslash)
                     e2 = e2.Type != typeof(Matrix)
                         ? throw Error("First operand must be a matrix", opMPos)
-                        : e3.Type != typeof(Vector) && e3.Type != typeof(Matrix)
+                        : e3.Type != typeof(DVector) && e3.Type != typeof(Matrix)
                         ? throw Error("Second operand must be a vector or a matrix", opMPos)
                         : typeof(Matrix).Call(e2, nameof(Matrix.Solve), e3);
                 else if (opMul == Token.PointTimes || opMul == Token.PointDiv)
                     e2 = e2.Type == e3.Type && e2.Type.IsAssignableTo(
                             typeof(IPointwiseOperators<>).MakeGenericType(e2.Type))
                         ? e2.Type.Call(e2, opMul == Token.PointTimes
-                            ? nameof(Vector.PointwiseMultiply) : nameof(Vector.PointwiseDivide),
+                            ? nameof(DVector.PointwiseMultiply) : nameof(DVector.PointwiseDivide),
                             e3)
                         : throw Error("Invalid operator", opMPos);
                 else
@@ -429,7 +429,7 @@ internal sealed partial class Parser
                     {
                         // Try to optimize matrix transpose multiplying a vector.
                         e2 = opMul == Token.Times && e2.Type == typeof(Matrix)
-                            ? (e3.Type == typeof(Vector) && e2 is MethodCallExpression
+                            ? (e3.Type == typeof(DVector) && e2 is MethodCallExpression
                             { Method.Name: nameof(Matrix.Transpose) } mca
                                 ? Expression.Call(mca.Object, MatrixTransposeMultiply, e3)
                                 : e3.Type == typeof(Matrix) && e3 is MethodCallExpression
@@ -447,8 +447,8 @@ internal sealed partial class Parser
                                 _ => d1 % d2
                             })
                             : opMul == Token.Times
-                            ? (e2 == e3 && e2.Type == typeof(Vector)
-                                ? Expression.Call(e2, typeof(Vector).Get(nameof(Vector.Squared)))
+                            ? (e2 == e3 && e2.Type == typeof(DVector)
+                                ? Expression.Call(e2, typeof(DVector).Get(nameof(DVector.Squared)))
                                 : Expression.Multiply(e2, e3))
                             : opMul == Token.Div
                             ? Expression.Divide(e2, e3)
@@ -476,11 +476,11 @@ internal sealed partial class Parser
                     (e1, e2) = (ToDouble(e1), ToDouble(e2));
                 try
                 {
-                    if (e1.Type == typeof(Vector) && e2.Type == typeof(Vector))
+                    if (e1.Type == typeof(DVector) && e2.Type == typeof(DVector))
                     {
                         string method = opAdd == Token.Plus
-                            ? nameof(Vector.MultiplyAdd)
-                            : nameof(Vector.MultiplySubtract);
+                            ? nameof(DVector.MultiplyAdd)
+                            : nameof(DVector.MultiplySubtract);
                         if (e1 is BinaryExpression { NodeType: ExpressionType.Multiply } be1)
                         {
                             // any * v ± v
@@ -503,11 +503,11 @@ internal sealed partial class Parser
                             else
                                 e1 = be1.Right.Type == typeof(double)
                                     ? Expression.Call(be1.Left,
-                                        typeof(Vector).GetMethod(method, DoubleVectorArg)!,
+                                        typeof(DVector).GetMethod(method, DoubleVectorArg)!,
                                         be1.Right, e2)
                                     : be1.Left.Type == typeof(double)
                                     ? Expression.Call(be1.Right,
-                                        typeof(Vector).GetMethod(method, DoubleVectorArg)!,
+                                        typeof(DVector).GetMethod(method, DoubleVectorArg)!,
                                         be1.Left, e2)
                                     : be1.Left.Type == typeof(Matrix)
                                     ? Expression.Call(be1.Left,
@@ -523,11 +523,11 @@ internal sealed partial class Parser
                             // v + any * v
                             e1 = be2.Right.Type == typeof(double)
                                 ? Expression.Call(be2.Left,
-                                    typeof(Vector).GetMethod(method, DoubleVectorArg)!,
+                                    typeof(DVector).GetMethod(method, DoubleVectorArg)!,
                                     be2.Right, e1)
                                 : be2.Left.Type == typeof(double)
                                 ? Expression.Call(be2.Right,
-                                    typeof(Vector).GetMethod(method, DoubleVectorArg)!,
+                                    typeof(DVector).GetMethod(method, DoubleVectorArg)!,
                                     be2.Left, e1)
                                 : be2.Left.Type == typeof(Matrix)
                                 ? Expression.Call(be2.Left,
@@ -589,7 +589,7 @@ internal sealed partial class Parser
             else if (IsArithmetic(e1))
                 return OptimizePowerOf() ? e : Expression.Call(
                     typeof(Complex), nameof(Complex.Pow), null, e, ToDouble(e1));
-        return e.Type == typeof(Vector) && e1.Type == typeof(Vector)
+        return e.Type == typeof(DVector) && e1.Type == typeof(DVector)
             ? Expression.ExclusiveOr(e, e1)
             : throw Error("Operands must be numeric", pos);
 
@@ -809,7 +809,7 @@ internal sealed partial class Parser
         CheckAndMove(Token.RBrace, "} expected in indexer");
         return e1.Type != typeof(int)
             ? throw Error("Index must be an integer")
-            : e.Type.Call(e, nameof(Vector.SafeThis), e1);
+            : e.Type.Call(e, nameof(DVector.SafeThis), e1);
     }
 
     private Expression ParseSplineIndexer(Expression e, Type expected)
@@ -1317,7 +1317,7 @@ internal sealed partial class Parser
         if (kind == Token.RBra)
         {
             Move();
-            return typeof(Vector).New(ZeroExpr);
+            return typeof(DVector).New(ZeroExpr);
         }
         List<Expression> items = source.Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
@@ -1326,7 +1326,7 @@ internal sealed partial class Parser
             Expression e = ParseLightConditional();
             if (IsArithmetic(e))
                 items.Add(ToDouble(e));
-            else if (e.Type == typeof(Vector))
+            else if (e.Type == typeof(DVector))
             {
                 if (period != 0 && matrices == 0)
                     throw Error("Invalid vector in matrix constructor");
@@ -1370,16 +1370,16 @@ internal sealed partial class Parser
         {
             for (int i = 0; vectors < items.Count; vectors++)
             {
-                for (; items[i].Type == typeof(Vector); i++) ;
+                for (; items[i].Type == typeof(DVector); i++) ;
                 int j = i + 1;
-                for (; j < items.Count && items[j].Type != typeof(Vector); j++) ;
+                for (; j < items.Count && items[j].Type != typeof(DVector); j++) ;
                 int count = j - i;
                 if (count == 1 && items.Count == 2)
-                    return typeof(Vector).New(items[0], items[1]);
-                items[i] = typeof(Vector).New(typeof(double).Make(items.GetRange(i, count)));
+                    return typeof(DVector).New(items[0], items[1]);
+                items[i] = typeof(DVector).New(typeof(double).Make(items.GetRange(i, count)));
                 items.RemoveRange(i + 1, count - 1);
             }
-            result = typeof(Vector).New(typeof(Vector).Make(items));
+            result = typeof(DVector).New(typeof(DVector).Make(items));
         }
         else
         {
@@ -1389,7 +1389,7 @@ internal sealed partial class Parser
             result = period != 0
                 ? typeof(Matrix).New(
                     Expression.Constant(items.Count / period), Expression.Constant(period), args)
-                : typeof(Vector).New(args);
+                : typeof(DVector).New(args);
         }
         source.Return(items);
         return result;

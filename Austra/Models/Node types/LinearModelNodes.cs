@@ -56,7 +56,7 @@ public sealed class LinearSModelNode : LinearModelNode<LinearSModel, Series>
             .CreateSeries(Model.Prediction, "Predicted"));
 }
 
-public sealed class LinearVModelNode : LinearModelNode<LinearVModel, RVector>
+public sealed class LinearVModelNode : LinearModelNode<LinearVModel, DVector>
 {
     public LinearVModelNode(string formula, LinearVModel value) :
         base(formula, value)

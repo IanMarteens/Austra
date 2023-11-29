@@ -3,7 +3,7 @@
 public class CholeskyBenchmark : BenchmarkControl
 {
     private readonly Matrix cm1, cid;
-    private readonly Vector cv1;
+    private readonly DVector cv1;
     private readonly Cholesky cch;
 
     public CholeskyBenchmark()
@@ -15,7 +15,7 @@ public class CholeskyBenchmark : BenchmarkControl
             ((double[])lm)[i * size + i] += rnd.NextDouble() * 0.5;
         cm1 = lm.MultiplyTranspose(lm);
         cid = Matrix.Identity(size);
-        cv1 = new Vector(size, rnd);
+        cv1 = new DVector(size, rnd);
         cch = cm1.Cholesky();
     }
 
@@ -23,7 +23,7 @@ public class CholeskyBenchmark : BenchmarkControl
     public Cholesky AustraCholMatrix() => cm1.Cholesky();
 
     [Benchmark]
-    public Vector AustraCholSolve() => cch.Solve(cv1);
+    public DVector AustraCholSolve() => cch.Solve(cv1);
 
     [Benchmark]
     public Matrix AustraCholSolveMat() => cch.Solve(cid);

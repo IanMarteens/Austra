@@ -69,11 +69,11 @@ public readonly struct CVector :
     /// <summary>Creates a complex vector from two real vectors.</summary>
     /// <param name="re">The real components of the vector.</param>
     /// <param name="im">The imaginary components of the vector.</param>
-    public CVector(Vector re, Vector im) : this((double[])re, (double[])im) { }
+    public CVector(DVector re, DVector im) : this((double[])re, (double[])im) { }
 
     /// <summary>Creates a complex vector from a real vector.</summary>
     /// <param name="re">The real components of the vector.</param>
-    public CVector(Vector re) : this((double[])re, new double[re.Length]) { }
+    public CVector(DVector re) : this((double[])re, new double[re.Length]) { }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
@@ -81,19 +81,19 @@ public readonly struct CVector :
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
     public CVector(int size, Random rnd, double offset, double width)
-        : this(new Vector(size, rnd, offset, width), new Vector(size, rnd, offset, width)) { }
+        : this(new DVector(size, rnd, offset, width), new DVector(size, rnd, offset, width)) { }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
     public CVector(int size, Random rnd)
-        : this(new Vector(size, rnd), new Vector(size, rnd)) { }
+        : this(new DVector(size, rnd), new DVector(size, rnd)) { }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A normal random number generator.</param>
     public CVector(int size, NormalRandom rnd)
-        : this(new Vector(size, rnd), new Vector(size, rnd)) { }
+        : this(new DVector(size, rnd), new DVector(size, rnd)) { }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
@@ -155,7 +155,7 @@ public readonly struct CVector :
     /// <param name="re">The real vector.</param>
     /// <param name="im">The imaginary vector.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Deconstruct(out Vector re, out Vector im) => (re, im) = (this.re, this.im);
+    public void Deconstruct(out DVector re, out DVector im) => (re, im) = (this.re, this.im);
 
     /// <summary>Creates an identical vector.</summary>
     /// <remarks>A new copy of the original storage is created.</remarks>
@@ -218,7 +218,7 @@ public readonly struct CVector :
 
     /// <summary>Creates a new complex vector with conjugated values.</summary>
     /// <returns>Each item with the sign of the imaginary value inverted.</returns>
-    public CVector Conjugate() => new(re, -new Vector(im));
+    public CVector Conjugate() => new(re, -new DVector(im));
 
     /// <summary>Gets the first complex in the vector.</summary>
     public Complex First => new(re[0], im[0]);
@@ -285,16 +285,16 @@ public readonly struct CVector :
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component sum.</returns>
     public static CVector operator +(CVector v1, CVector v2) => new(
-        new Vector(v1.re) + new Vector(v2.re),
-        new Vector(v1.im) + new Vector(v2.im));
+        new DVector(v1.re) + new DVector(v2.re),
+        new DVector(v1.im) + new DVector(v2.im));
 
     /// <summary>Subtracts two complex vectors.</summary>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component sum.</returns>
     public static CVector operator -(CVector v1, CVector v2) => new(
-        new Vector(v1.re) - new Vector(v2.re),
-        new Vector(v1.im) - new Vector(v2.im));
+        new DVector(v1.re) - new DVector(v2.re),
+        new DVector(v1.im) - new DVector(v2.im));
 
     /// <summary>Negates a complex vector.</summary>
     /// <param name="v">The vector operand.</param>
@@ -302,8 +302,8 @@ public readonly struct CVector :
     public static CVector operator -(CVector v)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return new(-new Vector(v.re), -new Vector(v.im));
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
+        return new(-new DVector(v.re), -new DVector(v.im));
     }
 
     /// <summary>Adds a complex scalar to a complex vector.</summary>
@@ -314,7 +314,7 @@ public readonly struct CVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
-        return new(new Vector(v.re) + c.Real, new Vector(v.im) + c.Imaginary);
+        return new(new DVector(v.re) + c.Real, new DVector(v.im) + c.Imaginary);
     }
 
     /// <summary>Adds a double scalar to a complex vector.</summary>
@@ -325,7 +325,7 @@ public readonly struct CVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
-        return new(new Vector(v.re) + d, new Vector(v.im));
+        return new(new DVector(v.re) + d, new DVector(v.im));
     }
 
     /// <summary>Adds a complex scalar to a complex vector.</summary>
@@ -350,7 +350,7 @@ public readonly struct CVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
-        return new(new Vector(v.re) - c.Real, new Vector(v.im) - c.Imaginary);
+        return new(new DVector(v.re) - c.Real, new DVector(v.im) - c.Imaginary);
     }
 
     /// <summary>Subtracts a scalar from a complex vector.</summary>
@@ -361,7 +361,7 @@ public readonly struct CVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
-        return new(new Vector(v.re) - d, new Vector(v.im));
+        return new(new DVector(v.re) - d, new DVector(v.im));
     }
 
     /// <summary>Subtracts a vector from a scalar.</summary>
@@ -372,7 +372,7 @@ public readonly struct CVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
-        return new(c.Real - new Vector(v.re), c.Imaginary - new Vector(v.im));
+        return new(c.Real - new DVector(v.re), c.Imaginary - new DVector(v.im));
     }
 
     /// <summary>Subtracts a vector from a scalar.</summary>
@@ -383,7 +383,7 @@ public readonly struct CVector :
     {
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<CVector>().Length == v.Length);
-        return new(d - new Vector(v.re), -new Vector(v.im));
+        return new(d - new DVector(v.re), -new DVector(v.im));
     }
 
     /// <summary>Pointwise multiplication.</summary>
@@ -395,7 +395,7 @@ public readonly struct CVector :
         Contract.Requires(other.IsInitialized);
         if (Length != other.Length)
             throw new VectorLengthException();
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
 
         double[] r = new double[Length], m = new double[Length];
         ref double pr = ref MM.GetArrayDataReference(re);
@@ -451,7 +451,7 @@ public readonly struct CVector :
         Contract.Requires(other.IsInitialized);
         if (Length != other.Length)
             throw new VectorLengthException();
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
 
         double[] r = GC.AllocateUninitializedArray<double>(Length);
         double[] m = GC.AllocateUninitializedArray<double>(Length);
@@ -604,7 +604,7 @@ public readonly struct CVector :
     public static CVector operator *(CVector v, Complex c)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
 
         double[] re = new double[v.Length], im = new double[v.Length];
         ref double pr = ref MM.GetArrayDataReference(v.re);
@@ -638,8 +638,8 @@ public readonly struct CVector :
     public static CVector operator *(CVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
-        return new(new Vector(v.re) * d, new Vector(v.im) * d);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
+        return new(new DVector(v.re) * d, new DVector(v.im) * d);
     }
 
     /// <summary>Divides a complex vector by a complex value.</summary>
@@ -677,7 +677,7 @@ public readonly struct CVector :
     public Complex Sum()
     {
         Contract.Requires(IsInitialized);
-        return new(new Vector(re).Sum(), new Vector(im).Sum());
+        return new(new DVector(re).Sum(), new DVector(im).Sum());
     }
 
     /// <summary>Computes the mean of the vector's items.</summary>
@@ -685,17 +685,17 @@ public readonly struct CVector :
     public Complex Mean() => Sum() / Length;
 
     /// <summary>Gets the real part of the complex numbers in this vector.</summary>
-    public Vector Real => new(re);
+    public DVector Real => new(re);
 
     /// <summary>Gets the imaginary part of the complex numbers in this vector.</summary>
-    public Vector Imaginary => new(im);
+    public DVector Imaginary => new(im);
 
     /// <summary>
     /// Gets a vector containing the magnitudes of the complex numbers in this vector.
     /// </summary>
     /// <param name="n">The number of amplitudes to be returned.</param>
     /// <returns>A new vector with magnitudes.</returns>
-    internal Vector Magnitudes(int n)
+    internal DVector Magnitudes(int n)
     {
         double[] result = GC.AllocateUninitializedArray<double>(n);
         ref double p = ref MM.GetArrayDataReference(re);
@@ -719,10 +719,10 @@ public readonly struct CVector :
     /// </summary>
     /// <returns>A new vector with magnitudes.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Magnitudes()
+    public DVector Magnitudes()
     {
         Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
         return Magnitudes(Length);
     }
 
@@ -788,7 +788,7 @@ public readonly struct CVector :
     /// <remarks>This operation can be hardware-accelerated.</remarks>
     /// <param name="n">The number of phases to be returned.</param>
     /// <returns>A new vector with phases.</returns>
-    internal Vector Phases(int n)
+    internal DVector Phases(int n)
     {
         double[] result = GC.AllocateUninitializedArray<double>(n);
         ref double p = ref MM.GetArrayDataReference(re);
@@ -817,10 +817,10 @@ public readonly struct CVector :
     /// <remarks>This operation can be hardware-accelerated.</remarks>
     /// <returns>A new vector with phases.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Phases()
+    public DVector Phases()
     {
         Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
         return Phases(Length);
     }
 
@@ -829,7 +829,7 @@ public readonly struct CVector :
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
     public int IndexOf(Complex value)
     {
-        Vector r = new(re);
+        DVector r = new(re);
         int idx = r.IndexOf(value.Real);
         while (idx != -1)
         {
@@ -859,7 +859,7 @@ public readonly struct CVector :
     /// </summary>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A real vector with the transformed content.</returns>
-    public Vector MapReal(Func<Complex, double> mapper)
+    public DVector MapReal(Func<Complex, double> mapper)
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(Length);
         for (int i = 0; i < re.Length; i++)
@@ -978,7 +978,7 @@ public readonly struct CVector :
     /// <param name="other">The vector to be compared.</param>
     /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
     public bool Equals(CVector other) =>
-        new Vector(re).Equals(other.re) && new Vector(im).Equals(other.im);
+        new DVector(re).Equals(other.re) && new DVector(im).Equals(other.im);
 
     /// <summary>Checks if the provided argument is a complex vector with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>

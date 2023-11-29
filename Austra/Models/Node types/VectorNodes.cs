@@ -17,13 +17,13 @@ public abstract class CommonVectorNode<T>: VarNode<T> where T: struct
     public sealed override string ImageSource => "/images/vector.png";
 }
 
-public sealed class VectorNode: CommonVectorNode<RVector>
+public sealed class VectorNode: CommonVectorNode<DVector>
 {
-    public VectorNode(string formula, RVector value) :
+    public VectorNode(string formula, DVector value) :
         base(formula, value)
     { }
 
-    public VectorNode(ClassNode parent, string varName, RVector value) :
+    public VectorNode(ClassNode parent, string varName, DVector value) :
         base(parent, varName, value)
     { }
 

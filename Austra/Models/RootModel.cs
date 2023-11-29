@@ -246,7 +246,7 @@ public sealed partial class RootModel : Entity
         ? "Series"
         : type == typeof(AMatrix) || type == typeof(LMatrix) || type == typeof(RMatrix)
         ? "Matrices"
-        : type == typeof(RVector) || type == typeof(CVector)
+        : type == typeof(DVector) || type == typeof(CVector)
         ? "Vectors"
         : type == typeof(ARSModel) || type == typeof(ARVModel)
             || type == typeof(LinearSModel) || type == typeof(LinearVModel)
@@ -266,7 +266,7 @@ public sealed partial class RootModel : Entity
             Series<double> s => new PercentileNode(cNode, name, s),
             Series<int> s => new CorrelogramNode(cNode, name, s),
             Plot<Series> t => new CompareNode(cNode, name, t),
-            Plot<RVector> t => new CompareVNode(cNode, name, t),
+            Plot<DVector> t => new CompareVNode(cNode, name, t),
             Plot<CVector> t => new CompareCVNode(cNode, name, t),
             FftModel fft => new FftNode(cNode, name, fft),
             ARSModel m => new ARSNode(cNode, name, m),
@@ -279,7 +279,7 @@ public sealed partial class RootModel : Entity
             AMatrix m => new MatrixNode(cNode, name, m),
             LMatrix m => new MatrixNode(cNode, name, m),
             RMatrix m => new MatrixNode(cNode, name, m),
-            RVector v => new VectorNode(cNode, name, v),
+            DVector v => new VectorNode(cNode, name, v),
             CVector cv => new CVectorNode(cNode, name, cv),
             EVD evd => new EvdNode(cNode, name, evd),
             MvoModel m => new MvoNode(cNode, name, m),
@@ -518,7 +518,7 @@ public sealed partial class RootModel : Entity
                             Series<double> s => new PercentileNode(form, s),
                             Series<int> s => new CorrelogramNode(form, s),
                             Plot<Series> t => new CompareNode(form, t),
-                            Plot<RVector> t => new CompareVNode(form, t),
+                            Plot<DVector> t => new CompareVNode(form, t),
                             Plot<CVector> t => new CompareCVNode(form, t),
                             FftModel fft => new FftNode(form, fft),
                             ARSModel m1 => new ARSNode(form, m1),
@@ -531,7 +531,7 @@ public sealed partial class RootModel : Entity
                             AMatrix m => new MatrixNode(form, m),
                             LMatrix m => new MatrixNode(form, m),
                             RMatrix m => new MatrixNode(form, m),
-                            RVector v => new VectorNode(form, v),
+                            DVector v => new VectorNode(form, v),
                             CVector v => new CVectorNode(form, v),
                             EVD evd => new EvdNode(form, evd),
                             MvoModel mvo => new MvoNode(form, mvo),

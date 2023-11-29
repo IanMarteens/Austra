@@ -22,7 +22,7 @@ public readonly struct LMatrix :
     ISubtractionOperators<LMatrix, RMatrix, Matrix>,
     ISubtractionOperators<LMatrix, double, LMatrix>,
     IMultiplyOperators<LMatrix, Matrix, Matrix>,
-    IMultiplyOperators<LMatrix, Vector, Vector>,
+    IMultiplyOperators<LMatrix, DVector, DVector>,
     IMultiplyOperators<LMatrix, double, LMatrix>,
     IDivisionOperators<LMatrix, double, LMatrix>,
     IUnaryNegationOperators<LMatrix, LMatrix>,
@@ -51,7 +51,7 @@ public readonly struct LMatrix :
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
-    public LMatrix(Vector diagonal) =>
+    public LMatrix(DVector diagonal) =>
         (Rows, Cols, values) = (diagonal.Length, diagonal.Length, diagonal.CreateDiagonal());
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
@@ -178,10 +178,10 @@ public readonly struct LMatrix :
     /// <summary>Gets the main diagonal.</summary>
     /// <returns>A vector containing values in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Diagonal()
+    public DVector Diagonal()
     {
         Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
+        Contract.Ensures(Contract.Result<DVector>().Length == Min(Rows, Cols));
         return values.Diagonal(Rows, Cols);
     }
 
@@ -614,7 +614,7 @@ public readonly struct LMatrix :
     /// <param name="m">The transformation matrix.</param>
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    public static Vector operator *(LMatrix m, Vector v)
+    public static DVector operator *(LMatrix m, DVector v)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -639,7 +639,7 @@ public readonly struct LMatrix :
     /// <param name="add">Vector to add.</param>
     /// <param name="result">Preallocated buffer for the result.</param>
     /// <returns><c>this * multiplicand + add</c>.</returns>
-    public Vector MultiplyAdd(Vector v, Vector add, double[] result)
+    public DVector MultiplyAdd(DVector v, DVector add, double[] result)
     {
         int r = Rows, c = Cols;
         double[] vector = (double[])v;
@@ -658,7 +658,7 @@ public readonly struct LMatrix :
     /// <param name="add">Vector to add.</param>
     /// <returns><c>this * multiplicand + add</c>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector MultiplyAdd(Vector v, Vector add) =>
+    public DVector MultiplyAdd(DVector v, DVector add) =>
         MultiplyAdd(v, add, GC.AllocateUninitializedArray<double>(Rows));
 
     /// <summary>Transforms a vector and subtracts an offset.</summary>
@@ -666,7 +666,7 @@ public readonly struct LMatrix :
     /// <param name="sub">Vector to subtract.</param>
     /// <param name="result">Preallocated buffer for the result.</param>
     /// <returns><c>this * multiplicand - sub</c>.</returns>
-    public Vector MultiplySubtract(Vector v, Vector sub, double[] result)
+    public DVector MultiplySubtract(DVector v, DVector sub, double[] result)
     {
         int r = Rows, c = Cols;
         double[] vector = (double[])v;
@@ -685,21 +685,21 @@ public readonly struct LMatrix :
     /// <param name="sub">Vector to subtract.</param>
     /// <returns><c>this * multiplicand - sub</c>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector MultiplySubtract(Vector v, Vector sub) =>
+    public DVector MultiplySubtract(DVector v, DVector sub) =>
         MultiplySubtract(v, sub, GC.AllocateUninitializedArray<double>(Rows));
 
     /// <summary>Solves the equation Ax = b for x.</summary>
     /// <param name="v">The right side of the equation.</param>
     /// <returns>The solving vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Solve(Vector v)
+    public DVector Solve(DVector v)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(IsSquare);
         Contract.Requires(v.Length == Rows);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
 
-        Vector result = GC.AllocateUninitializedArray<double>(v.Length);
+        DVector result = GC.AllocateUninitializedArray<double>(v.Length);
         Solve(v, result);
         return result;
     }
@@ -707,7 +707,7 @@ public readonly struct LMatrix :
     /// <summary>Solves the equation Ax = b for x.</summary>
     /// <param name="input">The right side of the equation.</param>
     /// <param name="output">The solving vector.</param>
-    public void Solve(Vector input, Vector output)
+    public void Solve(DVector input, DVector output)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(IsSquare);

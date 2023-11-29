@@ -41,7 +41,7 @@ seq::nrandom(1000, 1, [0.1, 0.05, 0.01]);
 <markup><font color="DarkGreen">-- An moving average (MA) process of order three.</font></markup>
 seq::nrandom(1000, 1, 0, [0.1, 0.05, 0.01])
 				  </code>
-				  <para>The MA overload (see <see cref="M:Austra.Library.DSequence.NormalRandom(System.Int32,System.Double,System.Double,Austra.Library.Vector)" />) uses one additional parameter before coefficients, and it is interpreted as the independent term, or mean, of the process.</para>
+				  <para>The MA overload (see <see cref="M:Austra.Library.DSequence.NormalRandom(System.Int32,System.Double,System.Double,Austra.Library.DVector)" />) uses one additional parameter before coefficients, and it is interpreted as the independent term, or mean, of the process.</para>
 				  <para>You can materialize the content of a sequence as a vector using the <codeInline>toVector</codeInline> property:</para>
 		          <code language="Austra">
 seq::random(10).toVector

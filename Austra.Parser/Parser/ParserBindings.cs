@@ -12,7 +12,7 @@ internal sealed partial class ParserBindings
     /// <summary>The argument is an integer.</summary>
     private static readonly Type[] NArg = [typeof(int)];
     /// <summary>The argument is a vector.</summary>
-    private static readonly Type[] VArg = [typeof(Vector)];
+    private static readonly Type[] VArg = [typeof(DVector)];
     /// <summary>The argument is a complex.</summary>
     private static readonly Type[] CArg = [typeof(Complex)];
     /// <summary>Two integer arguments.</summary>
@@ -20,9 +20,9 @@ internal sealed partial class ParserBindings
     /// <summary>Two double arguments.</summary>
     private static readonly Type[] DDArg = [typeof(double), typeof(double)];
     /// <summary>Two vector arguments.</summary>
-    private static readonly Type[] VVArg = [typeof(Vector), typeof(Vector)];
+    private static readonly Type[] VVArg = [typeof(DVector), typeof(DVector)];
     /// <summary>A double and a vector argument.</summary>
-    private static readonly Type[] DVArg = [typeof(double), typeof(Vector)];
+    private static readonly Type[] DVArg = [typeof(double), typeof(DVector)];
 
     private static readonly MethodList MatrixEye = new(
         typeof(Matrix).MD(nameof(Matrix.Identity), NArg));
@@ -31,8 +31,8 @@ internal sealed partial class ParserBindings
     private static readonly MethodList MatrixCorrelation = new(
         typeof(Series<Date>).MD(nameof(Series.CorrelationMatrix), typeof(Series[])));
     private static readonly MethodList ModelPlot = new(
-        typeof(Plot<Vector>).MD(VVArg),
-        typeof(Plot<Vector>).MD(VArg),
+        typeof(Plot<DVector>).MD(VVArg),
+        typeof(Plot<DVector>).MD(VArg),
         typeof(Plot<CVector>).MD(typeof(CVector), typeof(CVector)),
         typeof(Plot<CVector>).MD(typeof(CVector)),
         typeof(Plot<Series>).MD(typeof(Series), typeof(Series)),
@@ -40,7 +40,7 @@ internal sealed partial class ParserBindings
     private static readonly MethodList PolyDerivative = new(
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), DVArg),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
-        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(Vector)),
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(DVector)),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
 
     /// <summary>Code completion descriptors for root classes.</summary>
@@ -312,7 +312,7 @@ internal sealed partial class ParserBindings
                 new("rss", "Gets the Residual Sum of Squares"),
                 new("tss", "Gets the Total Sum of Squares"),
             ],
-            [typeof(Vector)] = [
+            [typeof(DVector)] = [
                 new("abs", "Pointwise absolute value"),
                 new("acf", "AutoCorrelation Function"),
                 new("amax", "Gets the maximum absolute value"),
@@ -531,7 +531,7 @@ internal sealed partial class ParserBindings
             ["math.polyeval"] = new(
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), DVArg),
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(Vector)),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(DVector)),
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
             ["math.polyderivative"] = PolyDerivative,
             ["math.polyderiv"] = PolyDerivative,
@@ -631,9 +631,9 @@ internal sealed partial class ParserBindings
                 typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
                 typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
             ["matrix.rows"] = new(
-                typeof(Matrix).MD(typeof(Vector[]))),
+                typeof(Matrix).MD(typeof(DVector[]))),
             ["matrix.cols"] = new(
-                typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))),
+                typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(DVector[]))),
             ["matrix.diag"] = new(
                 typeof(Matrix).MD(VArg),
                 typeof(Matrix).MD(typeof(double[]))),
@@ -657,19 +657,19 @@ internal sealed partial class ParserBindings
             ["matrix.correlation"] = MatrixCorrelation,
             ["model.plot"] = ModelPlot,
             ["model.mvo"] = new(
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Series[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
-                    typeof(Vector), typeof(Vector), typeof(Series[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
-                    typeof(Vector), typeof(Vector), typeof(string[]))),
+                typeof(MvoModel).MD(typeof(DVector), typeof(Matrix)),
+                typeof(MvoModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector), typeof(DVector)),
+                typeof(MvoModel).MD(typeof(DVector), typeof(Matrix), typeof(Series[])),
+                typeof(MvoModel).MD(typeof(DVector), typeof(Matrix),
+                    typeof(DVector), typeof(DVector), typeof(Series[])),
+                typeof(MvoModel).MD(typeof(DVector), typeof(Matrix), typeof(string[])),
+                typeof(MvoModel).MD(typeof(DVector), typeof(Matrix),
+                    typeof(DVector), typeof(DVector), typeof(string[]))),
             ["seq.new"] = new(
                 typeof(DSequence).MD(nameof(DSequence.Create), NNArg),
                 typeof(DSequence).MD(nameof(DSequence.Create),
                     typeof(double), typeof(double), typeof(int)),
-                typeof(DSequence).MD(nameof(DSequence.Create), typeof(Vector)),
+                typeof(DSequence).MD(nameof(DSequence.Create), typeof(DVector)),
                 typeof(DSequence).MD(nameof(DSequence.Create), typeof(Series))),
             ["seq.random"] = new(
                 typeof(DSequence).MD(nameof(DSequence.Random), typeof(int))),
@@ -678,27 +678,27 @@ internal sealed partial class ParserBindings
                 typeof(DSequence).MD(nameof(DSequence.NormalRandom),
                     typeof(int), typeof(double)),
                 typeof(DSequence).MD(nameof(DSequence.NormalRandom),
-                    typeof(int), typeof(double), typeof(Vector)),
+                    typeof(int), typeof(double), typeof(DVector)),
                 typeof(DSequence).MD(nameof(DSequence.NormalRandom),
-                    typeof(int), typeof(double), typeof(double), typeof(Vector))),
+                    typeof(int), typeof(double), typeof(double), typeof(DVector))),
             ["series.new"] = new(
-                typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))),
+                typeof(Series).MD(nameof(Series.Combine), typeof(DVector), typeof(Series[]))),
             ["spline.new"] = new(
                 typeof(DateSpline).MD(typeof(Series)),
                 typeof(VectorSpline).MD(VVArg),
                 typeof(VectorSpline).MD(
                     typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))),
             ["vec.new"] = new(
-                typeof(Vector).MD(NArg),
-                typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
-                typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
-                typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))),
+                typeof(DVector).MD(NArg),
+                typeof(DVector).MD(nameof(DVector.Combine), typeof(DVector), typeof(DVector[])),
+                typeof(DVector).MD(typeof(int), typeof(Func<int, double>)),
+                typeof(DVector).MD(typeof(int), typeof(Func<int, DVector, double>))),
             ["vec.nrandom"] = new(
-                typeof(Vector).MD(typeof(int), typeof(NormalRandom))),
+                typeof(DVector).MD(typeof(int), typeof(NormalRandom))),
             ["vec.random"] = new(
-                typeof(Vector).MD(typeof(int), typeof(Random))),
+                typeof(DVector).MD(typeof(int), typeof(Random))),
             ["vec.ones"] = new(
-                typeof(Vector).MD(typeof(int), typeof(One))),
+                typeof(DVector).MD(typeof(int), typeof(One))),
         }.ToFrozenDictionary();
 
     /// <summary>Allowed properties and their implementations.</summary>
@@ -946,28 +946,28 @@ internal sealed partial class ParserBindings
             [new(typeof(Series<int>), "values")] = typeof(Series<int>).Prop(nameof(Series<int>.Values)),
             [new(typeof(Series<int>), "sum")] = typeof(Series<int>).Get(nameof(Series<int>.Sum)),
 
-            [new(typeof(Vector), "abs")] = typeof(Vector).Get(nameof(Vector.Abs)),
-            [new(typeof(Vector), "acf")] = typeof(Vector).Get(nameof(Vector.ACF)),
-            [new(typeof(Vector), "amax")] = typeof(Vector).Get(nameof(Vector.AMax)),
-            [new(typeof(Vector), "amin")] = typeof(Vector).Get(nameof(Vector.AMin)),
-            [new(typeof(Vector), "distinct")] = typeof(Vector).Get(nameof(Vector.Distinct)),
-            [new(typeof(Vector), "fft")] = typeof(Vector).Get(nameof(Vector.Fft)),
-            [new(typeof(Vector), "first")] = typeof(Vector).Prop(nameof(Vector.First)),
-            [new(typeof(Vector), "last")] = typeof(Vector).Prop(nameof(Vector.Last)),
-            [new(typeof(Vector), "length")] = typeof(Vector).Prop(nameof(Vector.Length)),
-            [new(typeof(Vector), "max")] = typeof(Vector).Get(nameof(Vector.Maximum)),
-            [new(typeof(Vector), "mean")] = typeof(Vector).Get(nameof(Vector.Mean)),
-            [new(typeof(Vector), "min")] = typeof(Vector).Get(nameof(Vector.Minimum)),
-            [new(typeof(Vector), "norm")] = typeof(Vector).Get(nameof(Vector.Norm)),
-            [new(typeof(Vector), "plot")] = typeof(Vector).Get(nameof(Vector.Plot)),
-            [new(typeof(Vector), "prod")] = typeof(Vector).Get(nameof(Vector.Product)),
-            [new(typeof(Vector), "product")] = typeof(Vector).Get(nameof(Vector.Product)),
-            [new(typeof(Vector), "reverse")] = typeof(Vector).Get(nameof(Vector.Reverse)),
-            [new(typeof(Vector), "sort")] = typeof(Vector).Get(nameof(Vector.Sort)),
-            [new(typeof(Vector), "sqr")] = typeof(Vector).Get(nameof(Vector.Squared)),
-            [new(typeof(Vector), "sqrt")] = typeof(Vector).Get(nameof(Vector.Sqrt)),
-            [new(typeof(Vector), "stats")] = typeof(Vector).Get(nameof(Vector.Stats)),
-            [new(typeof(Vector), "sum")] = typeof(Vector).Get(nameof(Vector.Sum)),
+            [new(typeof(DVector), "abs")] = typeof(DVector).Get(nameof(DVector.Abs)),
+            [new(typeof(DVector), "acf")] = typeof(DVector).Get(nameof(DVector.ACF)),
+            [new(typeof(DVector), "amax")] = typeof(DVector).Get(nameof(DVector.AMax)),
+            [new(typeof(DVector), "amin")] = typeof(DVector).Get(nameof(DVector.AMin)),
+            [new(typeof(DVector), "distinct")] = typeof(DVector).Get(nameof(DVector.Distinct)),
+            [new(typeof(DVector), "fft")] = typeof(DVector).Get(nameof(DVector.Fft)),
+            [new(typeof(DVector), "first")] = typeof(DVector).Prop(nameof(DVector.First)),
+            [new(typeof(DVector), "last")] = typeof(DVector).Prop(nameof(DVector.Last)),
+            [new(typeof(DVector), "length")] = typeof(DVector).Prop(nameof(DVector.Length)),
+            [new(typeof(DVector), "max")] = typeof(DVector).Get(nameof(DVector.Maximum)),
+            [new(typeof(DVector), "mean")] = typeof(DVector).Get(nameof(DVector.Mean)),
+            [new(typeof(DVector), "min")] = typeof(DVector).Get(nameof(DVector.Minimum)),
+            [new(typeof(DVector), "norm")] = typeof(DVector).Get(nameof(DVector.Norm)),
+            [new(typeof(DVector), "plot")] = typeof(DVector).Get(nameof(DVector.Plot)),
+            [new(typeof(DVector), "prod")] = typeof(DVector).Get(nameof(DVector.Product)),
+            [new(typeof(DVector), "product")] = typeof(DVector).Get(nameof(DVector.Product)),
+            [new(typeof(DVector), "reverse")] = typeof(DVector).Get(nameof(DVector.Reverse)),
+            [new(typeof(DVector), "sort")] = typeof(DVector).Get(nameof(DVector.Sort)),
+            [new(typeof(DVector), "sqr")] = typeof(DVector).Get(nameof(DVector.Squared)),
+            [new(typeof(DVector), "sqrt")] = typeof(DVector).Get(nameof(DVector.Sqrt)),
+            [new(typeof(DVector), "stats")] = typeof(DVector).Get(nameof(DVector.Stats)),
+            [new(typeof(DVector), "sum")] = typeof(DVector).Get(nameof(DVector.Sum)),
 
             [new(typeof(VectorSpline), "length")] = typeof(DateSpline).Prop(nameof(DateSpline.Length)),
         }.ToFrozenDictionary();
@@ -1051,19 +1051,19 @@ internal sealed partial class ParserBindings
             [new(typeof(Series), "stats")] = typeof(Series).GetMethod(nameof(Series.GetSliceStats), [typeof(Date)])!,
             [new(typeof(Series), "zip")] = typeof(Series).Get(nameof(Series.Zip)),
 
-            [new(typeof(Vector), "all")] = typeof(Vector).Get(nameof(Vector.All)),
-            [new(typeof(Vector), "any")] = typeof(Vector).Get(nameof(Vector.Any)),
-            [new(typeof(Vector), "ar")] = typeof(Vector).Get(nameof(Vector.AutoRegression)),
-            [new(typeof(Vector), "armodel")] = typeof(Vector).Get(nameof(Vector.ARModel)),
-            [new(typeof(Vector), "autocorr")] = typeof(Vector).Get(nameof(Vector.AutoCorrelation)),
-            [new(typeof(Vector), "correlogram")] = typeof(Vector).Get(nameof(Vector.Correlogram)),
-            [new(typeof(Vector), "filter")] = typeof(Vector).Get(nameof(Vector.Filter)),
-            [new(typeof(Vector), "indexof")] = typeof(Vector).GetMethod(nameof(Vector.IndexOf), DArg)!,
-            [new(typeof(Vector), "linear")] = typeof(Vector).Get(nameof(Vector.LinearModel)),
-            [new(typeof(Vector), "linearmodel")] = typeof(Vector).Get(nameof(Vector.FullLinearModel)),
-            [new(typeof(Vector), "map")] = typeof(Vector).Get(nameof(Vector.Map)),
-            [new(typeof(Vector), "reduce")] = typeof(Vector).Get(nameof(Vector.Reduce)),
-            [new(typeof(Vector), "zip")] = typeof(Vector).Get(nameof(Vector.Zip)),
+            [new(typeof(DVector), "all")] = typeof(DVector).Get(nameof(DVector.All)),
+            [new(typeof(DVector), "any")] = typeof(DVector).Get(nameof(DVector.Any)),
+            [new(typeof(DVector), "ar")] = typeof(DVector).Get(nameof(DVector.AutoRegression)),
+            [new(typeof(DVector), "armodel")] = typeof(DVector).Get(nameof(DVector.ARModel)),
+            [new(typeof(DVector), "autocorr")] = typeof(DVector).Get(nameof(DVector.AutoCorrelation)),
+            [new(typeof(DVector), "correlogram")] = typeof(DVector).Get(nameof(DVector.Correlogram)),
+            [new(typeof(DVector), "filter")] = typeof(DVector).Get(nameof(DVector.Filter)),
+            [new(typeof(DVector), "indexof")] = typeof(DVector).GetMethod(nameof(DVector.IndexOf), DArg)!,
+            [new(typeof(DVector), "linear")] = typeof(DVector).Get(nameof(DVector.LinearModel)),
+            [new(typeof(DVector), "linearmodel")] = typeof(DVector).Get(nameof(DVector.FullLinearModel)),
+            [new(typeof(DVector), "map")] = typeof(DVector).Get(nameof(DVector.Map)),
+            [new(typeof(DVector), "reduce")] = typeof(DVector).Get(nameof(DVector.Reduce)),
+            [new(typeof(DVector), "zip")] = typeof(DVector).Get(nameof(DVector.Zip)),
 
             [new(typeof(VectorSpline), "poly")] = typeof(VectorSpline).Get(nameof(VectorSpline.GetPoly)),
             [new(typeof(VectorSpline), "derivative")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),

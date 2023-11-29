@@ -13,10 +13,10 @@ public abstract class FftModel: IIndexable
     public CVector Spectrum { get; }
 
     /// <summary>Gets the amplitudes of the spectrum, as a vector of real numbers.</summary>
-    public Vector Amplitudes { get; protected set; }
+    public DVector Amplitudes { get; protected set; }
 
     /// <summary>Gets the phases of the spectrum, as a vector of real numbers.</summary>
-    public Vector Phases { get; protected set; }
+    public DVector Phases { get; protected set; }
 
     /// <summary>
     /// Gets the length of the <see cref="Amplitudes"/> and <see cref="Phases"/> vectors.
@@ -109,7 +109,7 @@ public sealed class FftRModel : FftModel
 
     /// <summary>Inverse of the FFT transform.</summary>
     /// <returns>The original samples.</returns>
-    public Vector Inverse() => FFT.InverseReal((Complex[])Spectrum);
+    public DVector Inverse() => FFT.InverseReal((Complex[])Spectrum);
 }
 
 /// <summary>Represents the result of a complex Fast Fourier Transform.</summary>

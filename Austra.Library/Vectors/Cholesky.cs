@@ -95,7 +95,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
     /// <param name="v">The right side of the equation.</param>
     /// <returns>The solving vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Solve(Vector v)
+    public DVector Solve(DVector v)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Requires(L.Rows == v.Length);
@@ -107,7 +107,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
     /// <param name="input">The right side of the equation.</param>
     /// <param name="output">Receives the solution.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Solve(Vector input, Vector output)
+    public void Solve(DVector input, DVector output)
     {
         Contract.Requires(input.IsInitialized);
         Contract.Requires(L.Rows == input.Length);
@@ -153,7 +153,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
     /// <summary>Solves the equation Ax = b for x, in place.</summary>
     /// <param name="v">The right side of the equation.</param>
     /// <returns>Echoes the input vector.</returns>
-    private unsafe Vector SolveInPlace(Vector v)
+    private unsafe DVector SolveInPlace(DVector v)
     {
         fixed (double* pA = (double[])L, pB = (double[])v)
         {

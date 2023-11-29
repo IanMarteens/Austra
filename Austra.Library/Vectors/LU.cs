@@ -201,13 +201,13 @@ public readonly struct LU : IFormattable
     /// <param name="v">The right side of the equation.</param>
     /// <returns>The solving vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Solve(Vector v)
+    public DVector Solve(DVector v)
     {
         Contract.Requires(v.IsInitialized);
         Contract.Requires(Size == v.Length);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
 
-        Vector result = GC.AllocateUninitializedArray<double>(Size);
+        DVector result = GC.AllocateUninitializedArray<double>(Size);
         Solve(v, result);
         return result;
     }
@@ -216,7 +216,7 @@ public readonly struct LU : IFormattable
     /// <param name="input">The right side of the equation.</param>
     /// <param name="output">The solving vector.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe void Solve(Vector input, Vector output)
+    public unsafe void Solve(DVector input, DVector output)
     {
         Contract.Requires(input.IsInitialized);
         Contract.Requires(Size == input.Length);

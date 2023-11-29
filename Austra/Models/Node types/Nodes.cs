@@ -177,7 +177,7 @@ internal static class OxyExts
     }
 
     public static OxyPlot.PlotModel CreateSeries(
-        this OxyPlot.PlotModel model, RVector vector, string title = "")
+        this OxyPlot.PlotModel model, DVector vector, string title = "")
     {
         OxyPlot.Series.LineSeries lineSeries = new()
         {
@@ -205,7 +205,7 @@ internal static class OxyExts
     }
 
     public static OxyPlot.PlotModel CreateStepSeries(
-        this OxyPlot.PlotModel model, RVector vector, string? title = null, bool hidden = false)
+        this OxyPlot.PlotModel model, DVector vector, string? title = null, bool hidden = false)
     {
         OxyPlot.Series.StairStepSeries stepSeries = new()
         {

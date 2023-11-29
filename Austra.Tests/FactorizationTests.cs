@@ -41,8 +41,8 @@ public class FactorizationTests
         Matrix m = new(size, Random.Shared);
         while (m.Determinant() == 0)
             m = new(size, Random.Shared);
-        Vector v = new(size, Random.Shared);
-        Vector answer = m.LU().Solve(v);
+        DVector v = new(size, Random.Shared);
+        DVector answer = m.LU().Solve(v);
         Assert.That((m * answer - v).AMax(), Is.LessThan(1E-12));
     }
 
@@ -95,8 +95,8 @@ public class FactorizationTests
         while (lm.Determinant() == 0)
             lm = new(size, Random.Shared);
         Matrix m = lm * lm.Transpose();
-        Vector v = new(size, Random.Shared);
-        Vector answer = m.Cholesky().Solve(v);
+        DVector v = new(size, Random.Shared);
+        DVector answer = m.Cholesky().Solve(v);
         // Yes, this is a very loose tolerance, but it's the best we can do with Cholesky.
         Assert.That((m * answer - v).AMax(), Is.LessThan(2E-05));
     }

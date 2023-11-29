@@ -2,13 +2,13 @@
 
 public class FftBenchmark : BenchmarkControl
 {
-    private readonly Vector v533 = new(533, new Random(1));
-    private readonly Vector v562 = new(562, new Random(1));
-    private readonly Vector v579 = new(579, new Random(1));
-    private readonly Vector v580 = new(580, new Random(1));
-    private readonly Vector v583 = new(583, new Random(1));
-    private readonly Vector v1024 = new(1024, new Random(1));
-    private readonly Vector v2048 = new(2048, new Random(1));
+    private readonly DVector v533 = new(533, new Random(1));
+    private readonly DVector v562 = new(562, new Random(1));
+    private readonly DVector v579 = new(579, new Random(1));
+    private readonly DVector v580 = new(580, new Random(1));
+    private readonly DVector v583 = new(583, new Random(1));
+    private readonly DVector v1024 = new(1024, new Random(1));
+    private readonly DVector v2048 = new(2048, new Random(1));
 
     public FftBenchmark() => Configure();
 
@@ -45,7 +45,7 @@ public class FftBenchmark : BenchmarkControl
 
         static Complex[] FftTest(int size)
         {
-            Vector v = new(size, new Random(1));
+            DVector v = new(size, new Random(1));
             return FFT.Transform((double[])v);
         }
 

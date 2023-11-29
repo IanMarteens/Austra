@@ -430,14 +430,14 @@ public abstract partial class DSequence : IFormattable
 
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
-    private sealed class VectorSequence(Vector source) : DSequence
+    private sealed class VectorSequence(DVector source) : DSequence
     {
         /// <summary>Current index in the sequence.</summary>
         private int current;
 
         /// <summary>Creates a sequence of doubles from an array of doubles.</summary>
         /// <param name="values">An array of doubles.</param>
-        public VectorSequence(double[] values) : this(new Vector(values)) { }
+        public VectorSequence(double[] values) : this(new DVector(values)) { }
 
         /// <summary>Creates a sequence of doubles from the values in a series.</summary>
         /// <remarks>The values array of the series is reversed.</remarks>
@@ -610,7 +610,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="length">The length of the sequence.</param>
     /// <param name="variance">Variance of the sequence.</param>
     /// <param name="coefficients">Autoregression coefficients.</param>
-    private sealed class ArSequence(int length, double variance, Vector coefficients) :
+    private sealed class ArSequence(int length, double variance, DVector coefficients) :
         GenerativeSequence(length)
     {
         /// <summary>The normal random source for noise.</summary>
@@ -642,7 +642,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="variance">Variance of the sequence.</param>
     /// <param name="mean">Mean term.</param>
     /// <param name="coefficients">Moving average coefficients.</param>
-    private sealed class MaSequence(int length, double variance, double mean, Vector coefficients) :
+    private sealed class MaSequence(int length, double variance, double mean, DVector coefficients) :
         GenerativeSequence(length)
     {
         /// <summary>The normal random source for noise.</summary>

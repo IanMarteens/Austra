@@ -7,7 +7,7 @@ public abstract class ARModel<T>: IFormattable
     /// <summary>The Yule-Walker matrix.</summary>
     protected Matrix matrix;
     /// <summary>Autocorrelation of the source.</summary>
-    protected Vector correlations;
+    protected DVector correlations;
 
     /// <summary>
     /// Initializes an autoregressive model from a source and a number of degrees.
@@ -26,12 +26,12 @@ public abstract class ARModel<T>: IFormattable
     public int Degrees { get; }
 
     /// <summary>Inferred coefficients of the autoregressive model.</summary>
-    public Vector Coefficients { get; protected set; }
+    public DVector Coefficients { get; protected set; }
 
     /// <summary>The correlation matrix of the autoregressive model.</summary>
     public Matrix Matrix => matrix;
     /// <summary>Gets the correlations.</summary>
-    public Vector Correlations => correlations;
+    public DVector Correlations => correlations;
 
     /// <summary>Gets the total sum of squares.</summary>
     public double TotalSumSquares { get; protected set; }
@@ -95,14 +95,14 @@ public sealed class ARSModel : ARModel<Series>
 }
 
 /// <summary>Represents an autoregressive model from a vector.</summary>
-public sealed class ARVModel: ARModel<Vector>
+public sealed class ARVModel: ARModel<DVector>
 {
     /// <summary>
     /// Initializes an autoregressive model from a vector and a number of degrees.
     /// </summary>
     /// <param name="original">The original vector.</param>
     /// <param name="degrees">Degrees.</param>
-    public ARVModel(Vector original, int degrees) : base(original, degrees)
+    public ARVModel(DVector original, int degrees) : base(original, degrees)
     {
         Coefficients = original.AutoRegression(degrees, out matrix, out correlations);
         Prediction = new(Predict((double[])original));

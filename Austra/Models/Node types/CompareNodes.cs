@@ -50,13 +50,13 @@ public sealed class CompareNode : CompareNodeBase<Series>
     }
 }
 
-public sealed class CompareVNode : CompareNodeBase<RVector>
+public sealed class CompareVNode : CompareNodeBase<DVector>
 {
-    public CompareVNode(string formula, Plot<RVector> value) :
+    public CompareVNode(string formula, Plot<DVector> value) :
         base(formula, value)
     { }
 
-    public CompareVNode(ClassNode? parent, string varName, Plot<RVector> value) :
+    public CompareVNode(ClassNode? parent, string varName, Plot<DVector> value) :
         base(parent, varName, value)
     { }
 

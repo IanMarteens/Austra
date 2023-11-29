@@ -16,7 +16,7 @@ public readonly struct RMatrix :
     IAdditionOperators<RMatrix, double, RMatrix>,
     ISubtractionOperators<RMatrix, RMatrix, RMatrix>,
     ISubtractionOperators<RMatrix, double, RMatrix>,
-    IMultiplyOperators<RMatrix, Vector, Vector>,
+    IMultiplyOperators<RMatrix, DVector, DVector>,
     IMultiplyOperators<RMatrix, double, RMatrix>,
     IDivisionOperators<RMatrix, double, RMatrix>,
     IUnaryNegationOperators<RMatrix, RMatrix>,
@@ -47,7 +47,7 @@ public readonly struct RMatrix :
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
-    public RMatrix(Vector diagonal) =>
+    public RMatrix(DVector diagonal) =>
         (Rows, Cols, values) = (diagonal.Length, diagonal.Length, diagonal.CreateDiagonal());
 
     /// <summary>
@@ -138,10 +138,10 @@ public readonly struct RMatrix :
     /// <summary>Gets the main diagonal.</summary>
     /// <returns>A vector containing values in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Diagonal()
+    public DVector Diagonal()
     {
         Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Min(Rows, Cols));
+        Contract.Ensures(Contract.Result<DVector>().Length == Min(Rows, Cols));
         return values.Diagonal(Rows, Cols);
     }
 
@@ -370,12 +370,12 @@ public readonly struct RMatrix :
     /// <param name="m">The transformation matrix.</param>
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
-    public static Vector operator *(RMatrix m, Vector v)
+    public static DVector operator *(RMatrix m, DVector v)
     {
         Contract.Requires(m.IsInitialized);
         Contract.Requires(v.IsInitialized);
         Contract.Requires(m.Cols == v.Length);
-        Contract.Ensures(Contract.Result<Vector>().Length == m.Rows);
+        Contract.Ensures(Contract.Result<DVector>().Length == m.Rows);
 
         int r = m.Rows, c = m.Cols;
         double[] result = new double[r];

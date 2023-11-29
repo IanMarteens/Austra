@@ -197,7 +197,7 @@ public sealed class Series : Series<Date>,
 
     /// <summary>Gets linear coefficients for a fitting line.</summary>
     /// <returns>The [α, β] vector.</returns>
-    public Vector Fit()
+    public DVector Fit()
     {
         double m_x = 0, m_y = 0;
         for (int i = 0; i < values.Length; i++)
@@ -223,7 +223,7 @@ public sealed class Series : Series<Date>,
     /// <returns>A straight line.</returns>
     public Series LinearFit()
     {
-        Vector coeffs = Fit();
+        DVector coeffs = Fit();
         double a = coeffs[0], b = coeffs[1];
         double[] newValues = GC.AllocateUninitializedArray<double>(Count);
         for (int i = 0; i < newValues.Length; i++)
@@ -509,7 +509,7 @@ public sealed class Series : Series<Date>,
     /// <param name="weights">Array of weights.</param>
     /// <param name="series">Array of series.</param>
     /// <returns>The weighted sum of series.</returns>
-    public static Series Combine(Vector weights, params Series[] series)
+    public static Series Combine(DVector weights, params Series[] series)
     {
         if (series.Length == 0)
             throw new Exception("Empty list of series");

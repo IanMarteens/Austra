@@ -247,7 +247,7 @@ public sealed class VectorSpline : Spline<double>
     /// <summary>Creates an interpolator for a series.</summary>
     /// <param name="args">Arguments.</param>
     /// <param name="values">Values.</param>
-    public VectorSpline(Vector args, Vector values) :
+    public VectorSpline(DVector args, DVector values) :
         base((double[])args, (double[])values) =>
         Original = new Series<double>("Original", null,
             (double[])args.Reverse(), (double[])values.Reverse(), SeriesType.Raw);

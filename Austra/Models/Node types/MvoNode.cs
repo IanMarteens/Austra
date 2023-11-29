@@ -96,7 +96,7 @@ public sealed class MvoViewModel : Entity
         p = node.Model[0];
         (MaxRet, MaxVar, MaxStd) = (p.Mean, p.Variance, p.StdDev);
         // Initialize weights.
-        RVector w = node.Model[^1].Weights;
+        DVector w = node.Model[^1].Weights;
         weights = new(w.Length);
         for (int i = 0; i < w.Length; i++)
             weights.Add(new(node.Model.Labels[i], w[i]));
@@ -175,7 +175,7 @@ public sealed class MvoViewModel : Entity
         }
     }
 
-    private void SetFields(double mean, double std, double varn, RVector weights)
+    private void SetFields(double mean, double std, double varn, DVector weights)
     {
         SetField(ref ret, Clip(mean, MinRet, MaxRet), nameof(Ret));
         SetField(ref variance, Clip(varn, MinVar, MaxVar), nameof(Variance));

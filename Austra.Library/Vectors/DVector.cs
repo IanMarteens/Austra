@@ -3,13 +3,13 @@
 /// <summary>Represents a dense vector of double values, of arbitrary size.</summary>
 /// <remarks>
 /// <para>
-/// <see cref="Vector"/> provides a thin wrapper around a single array.
+/// <see cref="DVector"/> provides a thin wrapper around a single array.
 /// Most method operations are non destructive, and return a new vector,
 /// at the cost of extra memory allocation.
 /// </para>
 /// <para>
 /// Of course, there exist methods like
-/// <see cref="MultiplyAdd(Vector, Vector)"/>
+/// <see cref="MultiplyAdd(DVector, DVector)"/>
 /// that save memory by reusing the current vector's storage, and even
 /// may save time by using SIMD fused multiply-add instructions.
 /// </para>
@@ -19,20 +19,20 @@
 /// easing the garbage collector's work.
 /// </para>
 /// </remarks>
-public readonly struct Vector :
+public readonly struct DVector :
     IFormattable,
     IEnumerable<double>,
-    IEquatable<Vector>,
-    IEqualityOperators<Vector, Vector, bool>,
-    IAdditionOperators<Vector, Vector, Vector>,
-    IAdditionOperators<Vector, double, Vector>,
-    ISubtractionOperators<Vector, Vector, Vector>,
-    ISubtractionOperators<Vector, double, Vector>,
-    IMultiplyOperators<Vector, Vector, double>,
-    IMultiplyOperators<Vector, double, Vector>,
-    IDivisionOperators<Vector, double, Vector>,
-    IUnaryNegationOperators<Vector, Vector>,
-    IPointwiseOperators<Vector>,
+    IEquatable<DVector>,
+    IEqualityOperators<DVector, DVector, bool>,
+    IAdditionOperators<DVector, DVector, DVector>,
+    IAdditionOperators<DVector, double, DVector>,
+    ISubtractionOperators<DVector, DVector, DVector>,
+    ISubtractionOperators<DVector, double, DVector>,
+    IMultiplyOperators<DVector, DVector, double>,
+    IMultiplyOperators<DVector, double, DVector>,
+    IDivisionOperators<DVector, double, DVector>,
+    IUnaryNegationOperators<DVector, DVector>,
+    IPointwiseOperators<DVector>,
     ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the components of the vector.</summary>
@@ -40,16 +40,16 @@ public readonly struct Vector :
 
     /// <summary>Creates a vector of a given size.</summary>
     /// <param name="size">Vector length.</param>
-    public Vector(int size) => values = new double[size];
+    public DVector(int size) => values = new double[size];
 
     /// <summary>Initializes a vector from an array.</summary>
     /// <param name="values">The components of the vector.</param>
-    public Vector(double[] values) => this.values = values;
+    public DVector(double[] values) => this.values = values;
 
     /// <summary>Initializes a vector from a scalar.</summary>
     /// <param name="size">Vector length.</param>
     /// <param name="value">Scalar value to be repeated.</param>
-    public Vector(int size, double value)
+    public DVector(int size, double value)
     {
         values = GC.AllocateUninitializedArray<double>(size);
         Array.Fill(values, value);
@@ -60,7 +60,7 @@ public readonly struct Vector :
     /// <param name="rnd">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public Vector(int size, Random rnd, double offset, double width)
+    public DVector(int size, Random rnd, double offset, double width)
     {
         values = GC.AllocateUninitializedArray<double>(size);
         for (int i = 0; i < values.Length; i++)
@@ -71,7 +71,7 @@ public readonly struct Vector :
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector(int size, Random rnd)
+    public DVector(int size, Random rnd)
     {
         values = GC.AllocateUninitializedArray<double>(size);
         for (int i = 0; i < values.Length; i++)
@@ -81,7 +81,7 @@ public readonly struct Vector :
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A normal random number generator.</param>
-    public Vector(int size, NormalRandom rnd)
+    public DVector(int size, NormalRandom rnd)
     {
         values = GC.AllocateUninitializedArray<double>(size);
         ref double p = ref MM.GetArrayDataReference(values);
@@ -95,7 +95,7 @@ public readonly struct Vector :
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
     /// <param name="f">A function defining item content.</param>
-    public Vector(int size, Func<int, double> f)
+    public DVector(int size, Func<int, double> f)
     {
         values = GC.AllocateUninitializedArray<double>(size);
         for (int i = 0; i < values.Length; i++)
@@ -105,7 +105,7 @@ public readonly struct Vector :
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
     /// <param name="f">A function defining item content.</param>
-    public Vector(int size, Func<int, Vector, double> f)
+    public DVector(int size, Func<int, DVector, double> f)
     {
         values = new double[size];
         for (int i = 0; i < values.Length; i++)
@@ -115,7 +115,7 @@ public readonly struct Vector :
     /// <summary>Creates a vector by concatenating a prefix vector with a new value.</summary>
     /// <param name="prefix">Values at the left.</param>
     /// <param name="newValue">New value at the right.</param>
-    public Vector(Vector prefix, double newValue)
+    public DVector(DVector prefix, double newValue)
     {
         values = GC.AllocateUninitializedArray<double>(prefix.Length + 1);
         Array.Copy(prefix.values, values, prefix.Length);
@@ -125,7 +125,7 @@ public readonly struct Vector :
     /// <summary>Creates a vector by concatenating a new value with a suffix vector.</summary>
     /// <param name="suffix">Values at the right.</param>
     /// <param name="newValue">New value at the left.</param>
-    public Vector(double newValue, Vector suffix)
+    public DVector(double newValue, DVector suffix)
     {
         values = GC.AllocateUninitializedArray<double>(suffix.Length + 1);
         values[0] = newValue;
@@ -135,7 +135,7 @@ public readonly struct Vector :
     /// <summary>Creates a vector by concatenating two vectors.</summary>
     /// <param name="v1">First vector.</param>
     /// <param name="v2">Second vector.</param>
-    public Vector(Vector v1, Vector v2)
+    public DVector(DVector v1, DVector v2)
     {
         values = GC.AllocateUninitializedArray<double>(v1.Length + v2.Length);
         Array.Copy(v1.values, values, v1.Length);
@@ -144,11 +144,11 @@ public readonly struct Vector :
 
     /// <summary>Creates a vector by concatenating many vectors.</summary>
     /// <param name="v">An array of vectors.</param>
-    public Vector(params Vector[] v)
+    public DVector(params DVector[] v)
     {
         values = GC.AllocateUninitializedArray<double>(v.Sum(v => v.Length));
         int offset = 0;
-        foreach (Vector vi in v)
+        foreach (DVector vi in v)
         {
             Array.Copy(vi.values, 0, values, offset, vi.Length);
             offset += vi.Length;
@@ -159,13 +159,13 @@ public readonly struct Vector :
     /// <remarks>This operation does not share the internal storage.</remarks>
     /// <returns>A deep clone of the instance.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector Clone() => (double[])values.Clone();
+    public DVector Clone() => (double[])values.Clone();
 
     /// <summary>Implicit conversion from an array to a vector.</summary>
     /// <param name="values">An array.</param>
     /// <returns>A vector with the same components as the array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Vector(double[] values) => new(values);
+    public static implicit operator DVector(double[] values) => new(values);
 
     /// <summary>Explicit conversion from vector to array.</summary>
     /// <remarks>
@@ -174,7 +174,7 @@ public readonly struct Vector :
     /// <param name="v">The original vector.</param>
     /// <returns>The underlying component array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator double[](Vector v) => v.values;
+    public static explicit operator double[](DVector v) => v.values;
 
     /// <summary>Gets the dimensions of the vector.</summary>
     public int Length => values.Length;
@@ -229,7 +229,7 @@ public readonly struct Vector :
     /// <summary>Copies the content of this vector into an existing one.</summary>
     /// <remarks>This operation does not share the internal storage.</remarks>
     /// <param name="dest">The destination vector.</param>
-    internal void CopyTo(Vector dest)
+    internal void CopyTo(DVector dest)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(dest.IsInitialized);
@@ -240,7 +240,7 @@ public readonly struct Vector :
     /// <summary>Extracts a slice from the vector.</summary>
     /// <param name="range">The range to extract.</param>
     /// <returns>A new copy of the requested data.</returns>
-    public Vector this[Range range]
+    public DVector this[Range range]
     {
         get
         {
@@ -286,7 +286,7 @@ public readonly struct Vector :
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component sum.</returns>
     /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
-    public static Vector operator +(Vector v1, Vector v2)
+    public static DVector operator +(DVector v1, DVector v2)
     {
         Contract.Requires(v1.IsInitialized);
         Contract.Requires(v2.IsInitialized);
@@ -302,7 +302,7 @@ public readonly struct Vector :
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component subtraction.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator -(Vector v1, Vector v2)
+    public static DVector operator -(DVector v1, DVector v2)
     {
         Contract.Requires(v1.IsInitialized);
         Contract.Requires(v2.IsInitialized);
@@ -316,10 +316,10 @@ public readonly struct Vector :
     /// <summary>Negates a vector.</summary>
     /// <param name="v">The vector operand.</param>
     /// <returns>The component by component negation.</returns>
-    public static Vector operator -(Vector v)
+    public static DVector operator -(DVector v)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.values.Length);
         v.values.AsSpan().NegV(result);
         return result;
@@ -329,10 +329,10 @@ public readonly struct Vector :
     /// <param name="v">A vector summand.</param>
     /// <param name="d">A scalar summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
-    public static Vector operator +(Vector v, double d)
+    public static DVector operator +(DVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         v.values.AsSpan().AddV(d, result);
         return result;
@@ -343,16 +343,16 @@ public readonly struct Vector :
     /// <param name="v">A vector summand.</param>
     /// <returns>The scalar is added to each vector's item.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator +(double d, Vector v) => v + d;
+    public static DVector operator +(double d, DVector v) => v + d;
 
     /// <summary>Subtracts a scalar from a vector.</summary>
     /// <param name="v">The vector operand.</param>
     /// <param name="d">The scalar operand.</param>
     /// <returns>The scalar is subtracted from each vector's item.</returns>
-    public static Vector operator -(Vector v, double d)
+    public static DVector operator -(DVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         v.values.AsSpan().SubV(d, result);
         return result;
@@ -362,10 +362,10 @@ public readonly struct Vector :
     /// <param name="d">The scalar operand.</param>
     /// <param name="v">The vector operand.</param>
     /// <returns>The scalar is subtracted from each vector's item.</returns>
-    public static Vector operator -(double d, Vector v)
+    public static DVector operator -(double d, DVector v)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         CommonMatrix.SubV(d, v.values, result);
         return result;
@@ -375,13 +375,13 @@ public readonly struct Vector :
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component product.</returns>
     /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
-    public Vector PointwiseMultiply(Vector other)
+    public DVector PointwiseMultiply(DVector other)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(other.IsInitialized);
         if (Length != other.Length)
             throw new VectorLengthException();
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
         return values.AsSpan().MulV(other.values);
     }
 
@@ -389,13 +389,13 @@ public readonly struct Vector :
     /// <param name="other">Second vector operand.</param>
     /// <returns>The component by component quotient.</returns>
     /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
-    public Vector PointwiseDivide(Vector other)
+    public DVector PointwiseDivide(DVector other)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(other.IsInitialized);
         if (Length != other.Length)
             throw new VectorLengthException();
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
         return values.AsSpan().DivV(other.values);
     }
 
@@ -404,7 +404,7 @@ public readonly struct Vector :
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The dot product of the operands.</returns>
     /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
-    public static double operator *(Vector v1, Vector v2)
+    public static double operator *(DVector v1, DVector v2)
     {
         Contract.Requires(v1.IsInitialized);
         Contract.Requires(v2.IsInitialized);
@@ -462,10 +462,10 @@ public readonly struct Vector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <param name="d">A scalar multiplier.</param>
     /// <returns>The multiplication of the vector by the scalar.</returns>
-    public static Vector operator *(Vector v, double d)
+    public static DVector operator *(DVector v, double d)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.values.Length);
         v.values.AsSpan().MulV(d, result);
         return result;
@@ -476,19 +476,19 @@ public readonly struct Vector :
     /// <param name="v">Vector to be multiplied.</param>
     /// <returns>The multiplication of the vector by the scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector operator *(double d, Vector v) => v * d;
+    public static DVector operator *(double d, DVector v) => v * d;
 
     /// <summary>Divides a vector by a scalar value.</summary>
     /// <param name="v">Vector to be divided.</param>
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The division of the vector by the scalar.</returns>
-    public static Vector operator /(Vector v, double d) => v * (1.0 / d);
+    public static DVector operator /(DVector v, double d) => v * (1.0 / d);
 
     /// <summary>The external product of two vectors.</summary>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>A matrix such that a[i, j] = v1[i] * v2[j].</returns>
-    public static Matrix operator ^(Vector v1, Vector v2)
+    public static Matrix operator ^(DVector v1, DVector v2)
     {
         Contract.Requires(v1.IsInitialized);
         Contract.Requires(v2.IsInitialized);
@@ -511,7 +511,7 @@ public readonly struct Vector :
     /// <param name="multiplier">The multiplier vector.</param>
     /// <param name="summand">The vector to be added to the pointwise multiplication.</param>
     /// <returns><code>this .* multiplier + summand</code></returns>
-    public Vector MultiplyAdd(Vector multiplier, Vector summand)
+    public DVector MultiplyAdd(DVector multiplier, DVector summand)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(multiplier.IsInitialized);
@@ -555,7 +555,7 @@ public readonly struct Vector :
     /// <param name="multiplier">The multiplier scalar.</param>
     /// <param name="summand">The vector to be added to the scalar multiplication.</param>
     /// <returns><code>this * multiplier + summand</code></returns>
-    public Vector MultiplyAdd(double multiplier, Vector summand)
+    public DVector MultiplyAdd(double multiplier, DVector summand)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(summand.IsInitialized);
@@ -599,7 +599,7 @@ public readonly struct Vector :
     /// <param name="multiplier">The multiplier vector.</param>
     /// <param name="subtrahend">The vector to be subtracted from the multiplication.</param>
     /// <returns><code>this .* multiplier - subtrahend</code></returns>
-    public Vector MultiplySubtract(Vector multiplier, Vector subtrahend)
+    public DVector MultiplySubtract(DVector multiplier, DVector subtrahend)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(multiplier.IsInitialized);
@@ -646,7 +646,7 @@ public readonly struct Vector :
     /// <param name="multiplier">The multiplier scalar.</param>
     /// <param name="subtrahend">The vector to be subtracted from the multiplication.</param>
     /// <returns><code>this * multiplier - subtrahend</code></returns>
-    public Vector MultiplySubtract(double multiplier, Vector subtrahend)
+    public DVector MultiplySubtract(double multiplier, DVector subtrahend)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(subtrahend.IsInitialized);
@@ -690,7 +690,7 @@ public readonly struct Vector :
     /// When <paramref name="weights"/> has one more item than <paramref name="vectors"/>,
     /// that first item is used as the constant term.
     /// </remarks>
-    public static Vector Combine(Vector weights, params Vector[] vectors)
+    public static DVector Combine(DVector weights, params DVector[] vectors)
     {
         if (weights.Length == 0 ||
             weights.Length != vectors.Length &&
@@ -737,14 +737,14 @@ public readonly struct Vector :
     /// <summary>Low-level method to linearly combine two vectors with weights.</summary>
     /// <remarks>
     /// This method is a frequent special case of the more general
-    /// <see cref="Combine(Vector, Vector[])"/>.
+    /// <see cref="Combine(DVector, DVector[])"/>.
     /// </remarks>
     /// <param name="w1">Weight for the first vector.</param>
     /// <param name="w2">Weight for the second vector.</param>
     /// <param name="v1">First vector in the linear combination.</param>
     /// <param name="v2">Second vector in the linear combination.</param>
     /// <returns>Returns the linear combination <c>w1 * v1 + w2 * v2</c>.</returns>
-    public static Vector Combine2(double w1, double w2, Vector v1, Vector v2)
+    public static DVector Combine2(double w1, double w2, DVector v1, DVector v2)
     {
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
@@ -786,7 +786,7 @@ public readonly struct Vector :
     /// <summary>Computes the maximum difference between cells.</summary>
     /// <param name="v">The reference vector.</param>
     /// <returns>The max-norm of the vector difference.</returns>
-    public double Distance(Vector v)
+    public double Distance(DVector v)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
@@ -875,10 +875,10 @@ public readonly struct Vector :
 
     /// <summary>Pointwise squared root.</summary>
     /// <returns>A new vector with the square root of the original items.</returns>
-    public Vector Sqrt()
+    public DVector Sqrt()
     {
         Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         ref double p = ref MM.GetArrayDataReference(values);
@@ -905,10 +905,10 @@ public readonly struct Vector :
 
     /// <summary>Gets the absolute values of the vector's items.</summary>
     /// <returns>A new vector with non-negative items.</returns>
-    public Vector Abs()
+    public DVector Abs()
     {
         Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
 
         double[] result = GC.AllocateUninitializedArray<double>(Length);
         ref double p = ref MM.GetArrayDataReference(values);
@@ -938,7 +938,7 @@ public readonly struct Vector :
     /// </summary>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new vector with the transformed content.</returns>
-    public Vector Map(Func<double, double> mapper)
+    public DVector Map(Func<double, double> mapper)
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
         ref double p = ref MM.GetArrayDataReference(values);
@@ -974,7 +974,7 @@ public readonly struct Vector :
     /// </summary>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new vector with the filtered items.</returns>
-    public Vector Filter(Func<double, bool> predicate)
+    public DVector Filter(Func<double, bool> predicate)
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
         int j = 0;
@@ -999,7 +999,7 @@ public readonly struct Vector :
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
-    public Vector Zip(Vector other, Func<double, double, double> zipper)
+    public DVector Zip(DVector other, Func<double, double, double> zipper)
     {
         int len = Min(Length, other.Length);
         double[] newValues = GC.AllocateUninitializedArray<double>(len);
@@ -1114,12 +1114,12 @@ public readonly struct Vector :
     /// <summary>Multilinear regression based in Ordinary Least Squares.</summary>
     /// <param name="predictors">Predicting series.</param>
     /// <returns>Regression coefficients.</returns>
-    public Vector LinearModel(params Vector[] predictors)
+    public DVector LinearModel(params DVector[] predictors)
     {
         int size = predictors[0].Length;
         if (predictors.Any(p => p.Length != size))
             throw new VectorLengthException();
-        Vector[] rows = new Vector[predictors.Length + 1];
+        DVector[] rows = new DVector[predictors.Length + 1];
         rows[0] = new(size, 1.0);
         for (int i = 0; i < predictors.Length; i++)
             rows[i + 1] = predictors[i];
@@ -1130,7 +1130,7 @@ public readonly struct Vector :
     /// <summary>Creates a linear model a set of predictors.</summary>
     /// <param name="predictors">Vectors used to predict this one.</param>
     /// <returns>A full linear model.</returns>
-    public LinearVModel FullLinearModel(params Vector[] predictors) =>
+    public LinearVModel FullLinearModel(params DVector[] predictors) =>
         new(this, predictors);
 
     /// <summary>Creates an AR model from a vector and a degree.</summary>
@@ -1141,14 +1141,14 @@ public readonly struct Vector :
     /// <summary>Finds the coefficients for an autoregressive model.</summary>
     /// <param name="degree">Number of coefficients in the model.</param>
     /// <returns>The coefficients of the AR(degree) model.</returns>
-    public Vector AutoRegression(int degree) => AutoRegression(degree, out _, out _);
+    public DVector AutoRegression(int degree) => AutoRegression(degree, out _, out _);
 
     /// <summary>Finds the coefficients for an autoregressive model.</summary>
     /// <param name="degree">Number of coefficients in the model.</param>
     /// <param name="matrix">The correlation matrix.</param>
     /// <param name="correlations">The correlations.</param>
     /// <returns>The coefficients of the AR(degree) model.</returns>
-    internal unsafe Vector AutoRegression(int degree, out Matrix matrix, out Vector correlations)
+    internal unsafe DVector AutoRegression(int degree, out Matrix matrix, out DVector correlations)
     {
         if (degree <= 0)
             throw new ArgumentOutOfRangeException(nameof(degree), "Degree must be positive");
@@ -1163,7 +1163,7 @@ public readonly struct Vector :
         double[] coeffs = new double[degree];
         fixed (double* c = coeffs)
         {
-            Vector v = mean == 0 ? this : this - mean;
+            DVector v = mean == 0 ? this : this - mean;
             fixed (double* p = v.values)
                 for (int i = degree - 1; i < length - 1; i++)
                 {
@@ -1239,9 +1239,9 @@ public readonly struct Vector :
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
-    public Vector Reverse()
+    public DVector Reverse()
     {
-        Vector result = Clone();
+        DVector result = Clone();
         Array.Reverse(result.values);
         return result;
     }
@@ -1249,7 +1249,7 @@ public readonly struct Vector :
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
-    public Vector Distinct()
+    public DVector Distinct()
     {
         HashSet<double> set = new(Length);
         foreach (double value in values)
@@ -1259,9 +1259,9 @@ public readonly struct Vector :
 
     /// <summary>Returns a new vector with sorted values.</summary>
     /// <returns>A new vector with sorted values.</returns>
-    public Vector Sort()
+    public DVector Sort()
     {
-        Vector result = Clone();
+        DVector result = Clone();
         Array.Sort(result.values);
         return result;
     }
@@ -1315,7 +1315,7 @@ public readonly struct Vector :
     /// <param name="v2">Second vector to compare.</param>
     /// <param name="epsilon">The tolerance.</param>
     /// <returns>True if each pair of components is inside the tolerance range.</returns>
-    public static bool Equals(Vector v1, Vector v2, double epsilon)
+    public static bool Equals(DVector v1, DVector v2, double epsilon)
     {
         if (v1.Length != v2.Length)
             return false;
@@ -1352,12 +1352,12 @@ public readonly struct Vector :
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>
     /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
-    public bool Equals(Vector other) => values.EqualsV(other.values);
+    public bool Equals(DVector other) => values.EqualsV(other.values);
 
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a vector with the same items.</returns>
-    public override bool Equals(object? obj) => obj is Vector vector && Equals(vector);
+    public override bool Equals(object? obj) => obj is DVector vector && Equals(vector);
 
     /// <summary>Returns the hashcode for this vector.</summary>
     /// <returns>A hashcode summarizing the content of the vector.</returns>
@@ -1369,20 +1369,20 @@ public readonly struct Vector :
     /// <param name="right">Second vector operand.</param>
     /// <returns><see langword="true"/> if all corresponding items are equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Vector left, Vector right) => left.Equals(right);
+    public static bool operator ==(DVector left, DVector right) => left.Equals(right);
 
     /// <summary>Compares two vectors for inequality. </summary>
     /// <param name="left">First vector operand.</param>
     /// <param name="right">Second vector operand.</param>
     /// <returns><see langword="true"/> if any pair of corresponding items are not equal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Vector left, Vector right) => !left.Equals(right);
+    public static bool operator !=(DVector left, DVector right) => !left.Equals(right);
 
     /// <summary>Creates a plot for this vector.</summary>
     /// <returns>A plot containing this vector as its dataset.</returns>
-    public Plot<Vector> Plot() => new(this);
+    public Plot<DVector> Plot() => new(this);
 
-    internal (double total, double residuals, double r2) GetSumSquares(Vector other)
+    internal (double total, double residuals, double r2) GetSumSquares(DVector other)
     {
         SimpleAccumulator acc = new();
         double res = 0;

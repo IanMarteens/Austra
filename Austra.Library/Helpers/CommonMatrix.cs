@@ -30,7 +30,7 @@ public static class CommonMatrix
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     /// <returns>An array with its main diagonal initialized.</returns>
-    public static double[] CreateDiagonal(this Vector diagonal)
+    public static double[] CreateDiagonal(this DVector diagonal)
     {
         int size = diagonal.Length, r = size + 1; ;
         double[] values = new double[size * size];
@@ -46,7 +46,7 @@ public static class CommonMatrix
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <returns>A vector containing values in the main diagonal.</returns>
-    public static Vector Diagonal(this double[] values, int rows, int cols)
+    public static DVector Diagonal(this double[] values, int rows, int cols)
     {
         ArgumentNullException.ThrowIfNull(values);
         int r = cols + 1, size = Min(rows, cols);

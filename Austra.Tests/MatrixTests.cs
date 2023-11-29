@@ -80,9 +80,9 @@ public class MatrixTests
     public void CheckVectorMultiplyTranspose([Values(32, 49, 61)] int size)
     {
         Matrix m1 = new(size, new NormalRandom());
-        Vector v1 = new(size, new NormalRandom());
-        Vector r1 = m1.TransposeMultiply(v1);
-        Vector r2 = m1.Transpose() * v1;
+        DVector v1 = new(size, new NormalRandom());
+        DVector r1 = m1.TransposeMultiply(v1);
+        DVector r2 = m1.Transpose() * v1;
         Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-13));
     }
 
@@ -90,10 +90,10 @@ public class MatrixTests
     public void CheckMultiplyAdd([Values(32, 49, 61)] int size)
     {
         Matrix m1 = new(size, new NormalRandom());
-        Vector v1 = new(size, new NormalRandom());
-        Vector v2 = new(size, new NormalRandom());
-        Vector r1 = m1.MultiplyAdd(v1, v2);
-        Vector r2 = m1 * v1 + v2;
+        DVector v1 = new(size, new NormalRandom());
+        DVector v2 = new(size, new NormalRandom());
+        DVector r1 = m1.MultiplyAdd(v1, v2);
+        DVector r2 = m1 * v1 + v2;
         Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
     }
 
@@ -101,10 +101,10 @@ public class MatrixTests
     public void CheckLMultiplyAdd([Values(32, 49, 61)] int size)
     {
         LMatrix m1 = new(size, new NormalRandom());
-        Vector v1 = new(size, new NormalRandom());
-        Vector v2 = new(size, new NormalRandom());
-        Vector r1 = m1.MultiplyAdd(v1, v2);
-        Vector r2 = m1 * v1 + v2;
+        DVector v1 = new(size, new NormalRandom());
+        DVector v2 = new(size, new NormalRandom());
+        DVector r1 = m1.MultiplyAdd(v1, v2);
+        DVector r2 = m1 * v1 + v2;
         Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
     }
 
@@ -112,10 +112,10 @@ public class MatrixTests
     public void CheckMultiplySub([Values(32, 49, 61)] int size)
     {
         Matrix m1 = new(size, new NormalRandom());
-        Vector v1 = new(size, new NormalRandom());
-        Vector v2 = new(size, new NormalRandom());
-        Vector r1 = m1.MultiplySubtract(v1, v2);
-        Vector r2 = m1 * v1 - v2;
+        DVector v1 = new(size, new NormalRandom());
+        DVector v2 = new(size, new NormalRandom());
+        DVector r1 = m1.MultiplySubtract(v1, v2);
+        DVector r2 = m1 * v1 - v2;
         Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
     }
 
@@ -123,10 +123,10 @@ public class MatrixTests
     public void CheckLMultiplySub([Values(32, 49, 61)] int size)
     {
         LMatrix m1 = new(size, new NormalRandom());
-        Vector v1 = new(size, new NormalRandom());
-        Vector v2 = new(size, new NormalRandom());
-        Vector r1 = m1.MultiplySubtract(v1, v2);
-        Vector r2 = m1 * v1 - v2;
+        DVector v1 = new(size, new NormalRandom());
+        DVector v2 = new(size, new NormalRandom());
+        DVector r1 = m1.MultiplySubtract(v1, v2);
+        DVector r2 = m1 * v1 - v2;
         Assert.That((r1 - r2).AMax(), Is.LessThanOrEqualTo(1E-14));
     }
 
@@ -134,8 +134,8 @@ public class MatrixTests
     public void CheckLMatrixSolve([Values(32, 49, 61)] int size)
     {
         LMatrix m = new LMatrix(size, new Random()) + LMatrix.Identity(size) * 0.1;
-        Vector v = new(size, new NormalRandom());
-        Vector x = m.Solve(v);
+        DVector v = new(size, new NormalRandom());
+        DVector x = m.Solve(v);
         Assert.That((m * x - v).AMax(), Is.LessThanOrEqualTo(2E-6));
     }
 
@@ -143,7 +143,7 @@ public class MatrixTests
     public void CheckLMatrixTransform([Values(32, 49, 61)] int size)
     {
         LMatrix m = new LMatrix(size, new Random()) + LMatrix.Identity(size) * 0.05;
-        Vector v = new(size, new NormalRandom());
+        DVector v = new(size, new NormalRandom());
         Assert.That((m * v - (Matrix)m * v).AMax(), Is.LessThanOrEqualTo(1E-14));
     }
 
@@ -180,7 +180,7 @@ public class MatrixTests
     [Test]
     public void CheckMatrixDiagonal([Values(32, 35, 256, 257, 1024, 1025)] int size)
     {
-        Vector v = new(size, Random.Shared);
+        DVector v = new(size, Random.Shared);
         Matrix m = new(v);
         Assert.That(v, Is.EqualTo(m.Diagonal()));
     }

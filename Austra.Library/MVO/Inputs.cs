@@ -100,7 +100,7 @@ public sealed class Inputs
     /// <summary>Sets the constraint left hand and right hand sides.</summary>
     /// <param name="constraintLHS">A matrix of Constraints * Securities size.</param>
     /// <param name="constraintRHS">A vector of Constraints size.</param>
-    public void SetConstraints(Matrix constraintLHS, Vector constraintRHS)
+    public void SetConstraints(Matrix constraintLHS, DVector constraintRHS)
     {
         Copy((double[,])constraintLHS, ConstraintsLHS, Constraints, Securities);
         Array.Copy((double[])constraintRHS, ConstraintsRHS, Constraints);
@@ -108,22 +108,22 @@ public sealed class Inputs
 
     /// <summary>Sets the lower limits for the weights of each security.</summary>
     /// <param name="lowerBoundaries">A vector of Securities size.</param>
-    public void SetLowerBoundaries(Vector lowerBoundaries) =>
+    public void SetLowerBoundaries(DVector lowerBoundaries) =>
         Array.Copy((double[])lowerBoundaries, LowerLimits, Securities);
 
     /// <summary>Sets the upper limits for the weights of each security.</summary>
     /// <param name="upperBoundaries">A vector of Securities size.</param>
-    public void SetUpperBoundaries(Vector upperBoundaries) =>
+    public void SetUpperBoundaries(DVector upperBoundaries) =>
         Array.Copy((double[])upperBoundaries, UpperLimits, Securities);
 
     /// <summary>Sets the expected returns for each security.</summary>
     /// <param name="expectedReturns">A vector of Securities size.</param>
-    public void SetExpectedReturns(Vector expectedReturns) =>
+    public void SetExpectedReturns(DVector expectedReturns) =>
         Array.Copy((double[])expectedReturns, Mean, Securities);
 
     /// <summary>Initializes the covariance matrix from a linear array.</summary>
     /// <param name="covariance">The covariance matrix in linear form.</param>
-    public void SetCovariance(Vector covariance) =>
+    public void SetCovariance(DVector covariance) =>
         Copy((double[])covariance, Cov, Securities);
 
     /// <summary>Initializes the covariance matrix from another matrix.</summary>

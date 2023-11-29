@@ -11,7 +11,7 @@ public class MvoModel
     /// <param name="labels">Asset labels.</param>
     /// <exception cref="MatrixSizeException"></exception>
     /// <exception cref="VectorLengthException"></exception>
-    public MvoModel(Vector returns, Matrix covariance, Vector lowerLimits, Vector upperLimits, string[] labels)
+    public MvoModel(DVector returns, Matrix covariance, DVector lowerLimits, DVector upperLimits, string[] labels)
     {
         int len = returns.Length;
         if (returns.Length != covariance.Rows || !covariance.IsSquare)
@@ -51,7 +51,7 @@ public class MvoModel
     /// <param name="lowerLimits">Lower limits for the weights.</param>
     /// <param name="upperLimits">Upper limits for the weights.</param>
     /// <param name="series">A list of series to provide the asset names.</param>
-    public MvoModel(Vector returns, Matrix covariance, Vector lowerLimits, Vector upperLimits, params Series[] series) :
+    public MvoModel(DVector returns, Matrix covariance, DVector lowerLimits, DVector upperLimits, params Series[] series) :
         this(returns, covariance, lowerLimits, upperLimits, series.Select(s => s.Name).ToArray())
     { }
 
@@ -60,7 +60,7 @@ public class MvoModel
     /// <param name="covariance">Covariance of the assets.</param>
     /// <param name="lowerLimits">Lower limits for the weights.</param>
     /// <param name="upperLimits">Upper limits for the weights.</param>
-    public MvoModel(Vector returns, Matrix covariance, Vector lowerLimits, Vector upperLimits) :
+    public MvoModel(DVector returns, Matrix covariance, DVector lowerLimits, DVector upperLimits) :
         this(returns, covariance, lowerLimits, upperLimits, Array.Empty<string>())
     { }
 
@@ -68,36 +68,36 @@ public class MvoModel
     /// <param name="returns">Expected returns.</param>
     /// <param name="covariance">Covariance of the assets.</param>
     /// <param name="labels">Asset labels.</param>
-    public MvoModel(Vector returns, Matrix covariance, params string[] labels) :
-        this(returns, covariance, new Vector(returns.Length, 0.0), new Vector(returns.Length, 1.0), labels)
+    public MvoModel(DVector returns, Matrix covariance, params string[] labels) :
+        this(returns, covariance, new DVector(returns.Length, 0.0), new DVector(returns.Length, 1.0), labels)
     { }
 
     /// <summary>Creates and calculates a MVO model.</summary>
     /// <param name="returns">Expected returns.</param>
     /// <param name="covariance">Covariance of the assets.</param>
     /// <param name="series">A list of series to provide the asset names.</param>
-    public MvoModel(Vector returns, Matrix covariance, params Series[] series) :
-        this(returns, covariance, new Vector(returns.Length, 0.0), new Vector(returns.Length, 1.0), series)
+    public MvoModel(DVector returns, Matrix covariance, params Series[] series) :
+        this(returns, covariance, new DVector(returns.Length, 0.0), new DVector(returns.Length, 1.0), series)
     { }
 
     /// <summary>Creates and calculates a MVO model.</summary>
     /// <param name="returns">Expected returns.</param>
     /// <param name="covariance">Covariance of the assets.</param>
-    public MvoModel(Vector returns, Matrix covariance) :
-        this(returns, covariance, new Vector(returns.Length, 0.0), new Vector(returns.Length, 1.0), Array.Empty<string>())
+    public MvoModel(DVector returns, Matrix covariance) :
+        this(returns, covariance, new DVector(returns.Length, 0.0), new DVector(returns.Length, 1.0), Array.Empty<string>())
     { }
 
     /// <summary>Number of assets in the model.</summary>
     public int Size => Returns.Length;
 
     /// <summary>Expected returns.</summary>
-    public Vector Returns { get; }
+    public DVector Returns { get; }
     /// <summary>The covariance matrix.</summary>
     public Matrix Covariance { get; }
     /// <summary>Lower limits for the weights.</summary>
-    public Vector LowerLimits { get; }
+    public DVector LowerLimits { get; }
     /// <summary>Upper limits for the weights.</summary>
-    public Vector UpperLimits { get; }
+    public DVector UpperLimits { get; }
     /// <summary>The name of the assets.</summary>
     public string[] Labels { get; }
     /// <summary>Portfolios in the efficient frontier.</summary>

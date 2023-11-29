@@ -14,21 +14,21 @@ public class VectorTests
     [Test]
     public void EuclideanNorm([Values(12, 25, 39)] int size)
     {
-        Vector v = new(size, 1.0);
+        DVector v = new(size, 1.0);
         Assert.That(v.Norm(), Is.EqualTo(Math.Sqrt(size)).Within(1E-16));
     }
 
     [Test]
     public void ComplexVectorNorm([Values(12, 25, 39)] int size)
     {
-        CVector v = new(new Vector(size, 1d), new Vector(size, 1d));
+        CVector v = new(new DVector(size, 1d), new DVector(size, 1d));
         Assert.That(v.Norm(), Is.EqualTo(Math.Sqrt(size + size)).Within(1E-16));
     }
 
     [Test]
     public void VectorSquared([Values(12, 256, 999)] int size)
     {
-        Vector v = new(size, Random.Shared);
+        DVector v = new(size, Random.Shared);
         Assert.That(v.Squared(), Is.EqualTo(v * v).Within(1E-13));
     }
 
@@ -38,7 +38,7 @@ public class VectorTests
     [Test]
     public void VectorDifference([Values(12, 25, 45)] int size)
     {
-        Vector v = new(size, Random.Shared);
+        DVector v = new(size, Random.Shared);
         Assert.That((v - v).Norm(), Is.EqualTo(0));
     }
 
@@ -48,14 +48,14 @@ public class VectorTests
     [Test]
     public void VectorDistance([Values(511)] int size)
     {
-        Vector v = new(size, Random.Shared), v1 = v + 4;
+        DVector v = new(size, Random.Shared), v1 = v + 4;
         Assert.That(v.Distance(v1), Is.EqualTo(4));
     }
 
     [Test]
     public void CheckIndexOf()
     {
-        Vector v = new(1024, Random.Shared);
+        DVector v = new(1024, Random.Shared);
         int index = Random.Shared.Next(1024);
         v[index] = Math.PI;
         Assert.That(v.IndexOf(Math.PI), Is.EqualTo(index));
@@ -64,7 +64,7 @@ public class VectorTests
     [Test]
     public void CheckIndexOfFrom()
     {
-        Vector v = new(1024, Random.Shared);
+        DVector v = new(1024, Random.Shared);
         int index1 = Random.Shared.Next(1024);
         int index2 = Random.Shared.Next(1024);
         while (index2 == index1)
@@ -86,14 +86,14 @@ public class VectorTests
     [Test]
     public void CheckIndexOfNotFound()
     {
-        Vector v = new(1024, Random.Shared);
+        DVector v = new(1024, Random.Shared);
         Assert.That(v.IndexOf(Math.PI), Is.EqualTo(-1));
     }
 
     [Test]
     public void CheckIndexOfFromNotFound()
     {
-        Vector v = new(1024, Random.Shared);
+        DVector v = new(1024, Random.Shared);
         int index = Random.Shared.Next(1024);
         v[index] = Math.PI;
         int i1 = v.IndexOf(Math.PI), i2 = -1;
@@ -109,52 +109,52 @@ public class VectorTests
     [Test]
     public void CheckMultiplyAdd()
     {
-        Vector x = new(1024, Random.Shared);
-        Vector y = new(1024, Random.Shared);
-        Vector z = new(1024, Random.Shared);
-        Vector d = x.PointwiseMultiply(y) + z;
-        Vector e = x.MultiplyAdd(y, z);
+        DVector x = new(1024, Random.Shared);
+        DVector y = new(1024, Random.Shared);
+        DVector z = new(1024, Random.Shared);
+        DVector d = x.PointwiseMultiply(y) + z;
+        DVector e = x.MultiplyAdd(y, z);
         Assert.That((d - e).AMax(), Is.LessThan(1E-14));
     }
 
     [Test]
     public void CheckMultiplyAddScalar([Values(921, 1024)]int size)
     {
-        Vector x = new(size, Random.Shared);
+        DVector x = new(size, Random.Shared);
         double y = Random.Shared.NextDouble();
-        Vector z = new(size, Random.Shared);
-        Vector d = x * y + z;
-        Vector e = x.MultiplyAdd(y, z);
+        DVector z = new(size, Random.Shared);
+        DVector d = x * y + z;
+        DVector e = x.MultiplyAdd(y, z);
         Assert.That((d - e).AMax(), Is.LessThan(1E-14));
     }
 
     [Test]
     public void CheckMultiplySubtract()
     {
-        Vector x = new(1024, Random.Shared);
-        Vector y = new(1024, Random.Shared);
-        Vector z = new(1024, Random.Shared);
-        Vector d = x.PointwiseMultiply(y) - z;
-        Vector e = x.MultiplySubtract(y, z);
+        DVector x = new(1024, Random.Shared);
+        DVector y = new(1024, Random.Shared);
+        DVector z = new(1024, Random.Shared);
+        DVector d = x.PointwiseMultiply(y) - z;
+        DVector e = x.MultiplySubtract(y, z);
         Assert.That((d - e).AMax(), Is.LessThan(1E-14));
     }
 
     [Test]
     public void CheckMultiplySubtractScalar([Values(921, 1024)] int size)
     {
-        Vector x = new(size, Random.Shared);
+        DVector x = new(size, Random.Shared);
         double y = Random.Shared.NextDouble();
-        Vector z = new(size, Random.Shared);
-        Vector d = x * y - z;
-        Vector e = x.MultiplySubtract(y, z);
+        DVector z = new(size, Random.Shared);
+        DVector d = x * y - z;
+        DVector e = x.MultiplySubtract(y, z);
         Assert.That((d - e).AMax(), Is.LessThan(1E-14));
     }
 
     [Test]
     public void CheckVectorSqrt([Values(12, 256, 1023)] int size)
     {
-        Vector x = new(size, Random.Shared);
-        Vector y = x.Sqrt();
+        DVector x = new(size, Random.Shared);
+        DVector y = x.Sqrt();
         Assert.That(x, Has.Length.EqualTo(y.Length));
         for (int i = 0; i < x.Length; i++)
             Assert.That(y[i], Is.EqualTo(Math.Sqrt(x[i])));
@@ -163,8 +163,8 @@ public class VectorTests
     [Test]
     public void CheckVectorAbs([Values(12, 256, 1023)] int size)
     {
-        Vector x = new Vector(size, NormalRandom.Shared) * 2;
-        Vector y = x.Abs();
+        DVector x = new DVector(size, NormalRandom.Shared) * 2;
+        DVector y = x.Abs();
         Assert.That(x, Has.Length.EqualTo(y.Length));
         for (int i = 0; i < x.Length; i++)
             Assert.That(y[i], Is.EqualTo(Math.Abs(x[i])));

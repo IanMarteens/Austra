@@ -7,9 +7,9 @@ namespace Austra.Parser;
 internal sealed partial class Parser : IDisposable
 {
     /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] VectorVectorArg = [typeof(Vector), typeof(Vector)];
+    private static readonly Type[] VectorVectorArg = [typeof(DVector), typeof(DVector)];
     /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] DoubleVectorArg = [typeof(double), typeof(Vector)];
+    private static readonly Type[] DoubleVectorArg = [typeof(double), typeof(DVector)];
 
     /// <summary>Constructor for <see cref="Index"/>.</summary>
     private static readonly ConstructorInfo IndexCtor =
@@ -35,12 +35,12 @@ internal sealed partial class Parser : IDisposable
         typeof(Matrix).Get(nameof(Matrix.TransposeMultiply));
     /// <summary>Method for linear vector combinations.</summary>
     private static readonly MethodInfo VectorCombine2 =
-        typeof(Vector).GetMethod(nameof(Vector.Combine2),
-            [typeof(double), typeof(double), typeof(Vector), typeof(Vector)])!;
+        typeof(DVector).GetMethod(nameof(DVector.Combine2),
+            [typeof(double), typeof(double), typeof(DVector), typeof(DVector)])!;
     /// <summary>Method for linear vector combinations.</summary>
     private static readonly MethodInfo MatrixCombine =
         typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
-            [typeof(Vector), typeof(double), typeof(Vector)])!;
+            [typeof(DVector), typeof(double), typeof(DVector)])!;
     /// <summary>Method for cloning sequences.</summary>
     private static readonly MethodInfo SeqClone =
         typeof(DSequence).GetMethod(nameof(DSequence.Clone))!;

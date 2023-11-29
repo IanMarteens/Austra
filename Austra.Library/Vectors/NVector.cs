@@ -397,7 +397,7 @@ public readonly struct NVector :
     public static NVector operator *(NVector v, int d)
     {
         Contract.Requires(v.IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == v.Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.values.Length);
         v.values.AsSpan().MulV(d, result);
         return result;
@@ -497,7 +497,7 @@ public readonly struct NVector :
     public NVector Abs()
     {
         Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+        Contract.Ensures(Contract.Result<DVector>().Length == Length);
 
         int[] result = GC.AllocateUninitializedArray<int>(Length);
         ref int p = ref MM.GetArrayDataReference(values);
@@ -613,7 +613,7 @@ public readonly struct NVector :
     /// </summary>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new real vector with the transformed content.</returns>
-    public Vector MapReal(Func<int, double> mapper)
+    public DVector MapReal(Func<int, double> mapper)
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
         ref int p = ref MM.GetArrayDataReference(values);

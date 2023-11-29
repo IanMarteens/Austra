@@ -61,7 +61,7 @@ public sealed class ARSNode : ARNode<ARSModel, Series>
 }
 
 /// <summary>An autoregressive model for a samples in a vector.</summary>
-public sealed class ARVNode : ARNode<ARVModel, RVector>
+public sealed class ARVNode : ARNode<ARVModel, DVector>
 {
     public ARVNode(string formula, ARVModel value) :
         base(formula, value)

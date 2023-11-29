@@ -19,9 +19,9 @@ public abstract class LinearModel<T>: IFormattable
     public IReadOnlyList<string> Variables { get; }
 
     /// <summary>Calculated weights for the predictors.</summary>
-    public Vector Weights { get; protected set; }
+    public DVector Weights { get; protected set; }
     /// <summary>Student-t statistics for the weights.</summary>
-    public Vector TStats { get; protected set; }
+    public DVector TStats { get; protected set; }
 
     /// <summary>Gets the total sum of squares.</summary>
     public double TotalSumSquares { get; protected set; }
@@ -36,7 +36,7 @@ public abstract class LinearModel<T>: IFormattable
     /// <param name="mRows">Rows for creating the matrix.</param>
     /// <param name="rightSide">The right side vector.</param>
     /// <returns>The computed weights and the Cholesky factorization.</returns>
-    protected (Vector, Cholesky) ComputeWeights(Vector[] mRows, Vector rightSide)
+    protected (DVector, Cholesky) ComputeWeights(DVector[] mRows, DVector rightSide)
     {
         Matrix x = new(mRows);
         Cholesky c = x.MultiplyTranspose(x).Cholesky();
@@ -94,12 +94,12 @@ public sealed class LinearSModel : LinearModel<Series>
         predictors.Select(s => s.Name).ToList())
     {
         int size = Original.Count;
-        Vector[] rows = new Vector[predictors.Length + 1];
+        DVector[] rows = new DVector[predictors.Length + 1];
         rows[0] = new(size, 1.0);
         for (int i = 0; i < predictors.Length; i++)
         {
             double[] row = predictors[i].values;
-            rows[i + 1] = new Vector(row.Length == size ? row : row[0..size]);
+            rows[i + 1] = new DVector(row.Length == size ? row : row[0..size]);
         }
         (Weights, Cholesky chol) = ComputeWeights(rows,
             new(original.Count == size ? original.values : original.values[0..size]));
@@ -117,24 +117,24 @@ public sealed class LinearSModel : LinearModel<Series>
 }
 
 /// <summary>Represents the result of a linear regression from vectors.</summary>
-public sealed class LinearVModel : LinearModel<Vector>
+public sealed class LinearVModel : LinearModel<DVector>
 {
     /// <summary>Initializes and computes a linear regression model.</summary>
     /// <param name="original">Data to be predicted.</param>
     /// <param name="predictors">The set of vectors used as predictors.</param>
-    public LinearVModel(Vector original, params Vector[] predictors) : base(
+    public LinearVModel(DVector original, params DVector[] predictors) : base(
         original, Enumerable.Range(1, predictors.Length).Select(i => "v" + i).ToList())
     {
         int size = original.Length;
         if (predictors.Any(p => p.Length != size))
             throw new VectorLengthException();
-        Vector[] rows = new Vector[predictors.Length + 1];
+        DVector[] rows = new DVector[predictors.Length + 1];
         rows[0] = new(size, 1.0);
         for (int i = 0; i < predictors.Length; i++)
             rows[i + 1] = predictors[i];
         (Weights, Cholesky chol) = ComputeWeights(rows, original);
 
-        Prediction = Vector.Combine(Weights, predictors);
+        Prediction = DVector.Combine(Weights, predictors);
         (TotalSumSquares, ResidualSumSquares, R2) = Original.GetSumSquares(Prediction);
         double s2 = ResidualSumSquares / (size - predictors.Length - 1);
         StandardError = Sqrt(s2);

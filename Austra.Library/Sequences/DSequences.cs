@@ -33,7 +33,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <summary>Creates a sequence from a vector.</summary>
     /// <param name="vector">The vector containing the sequence's values.</param>
     /// <returns>The sequence encapsulating the vector.</returns>
-    public static DSequence Create(Vector vector) =>
+    public static DSequence Create(DVector vector) =>
         new VectorSequence(vector);
 
     /// <summary>Creates a sequence from a time series.</summary>
@@ -66,7 +66,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <param name="variance">The variance of the normal distribution.</param>
     /// <param name="coefficients">Autoregressive coefficients.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DSequence NormalRandom(int size, double variance, Vector coefficients) =>
+    public static DSequence NormalRandom(int size, double variance, DVector coefficients) =>
         coefficients.Length == 0
         ? throw new VectorLengthException()
         : new ArSequence(size, variance, coefficients);
@@ -77,7 +77,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <param name="mean">The independent term, that determines the mean.</param>
     /// <param name="coefficients">Moving average coefficients.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DSequence NormalRandom(int size, double variance, double mean, Vector coefficients) =>
+    public static DSequence NormalRandom(int size, double variance, double mean, DVector coefficients) =>
         coefficients.Length == 0
         ? throw new VectorLengthException()
         : new MaSequence(size, variance, mean, coefficients);
@@ -365,7 +365,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
 
     /// <summary>Converts this sequence into a vector.</summary>
     /// <returns>A new vector.</returns>
-    public Vector ToVector() => Materialize();
+    public DVector ToVector() => Materialize();
 
     /// <summary>Creates an array with all values from the sequence.</summary>
     /// <returns>The values as an array.</returns>
@@ -388,7 +388,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         return [.. values];
     }
 
-    /// <summary>Evaluated the sequence and formats it like a <see cref="Vector"/>.</summary>
+    /// <summary>Evaluated the sequence and formats it like a <see cref="DVector"/>.</summary>
     /// <returns>A formated list of double values.</returns>
     public override string ToString() =>
         Materialize().ToString(v => v.ToString("G6"));
@@ -433,7 +433,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
 
     /// <summary>Creates a plot for this sequence.</summary>
     /// <returns>A plot containing a frozen vector as its dataset.</returns>
-    public Plot<Vector> Plot() => new(ToVector());
+    public Plot<DVector> Plot() => new(ToVector());
 
     /// <summary>Computes autocorrelation for all lags.</summary>
     /// <returns>Pairs lags/autocorrelation.</returns>

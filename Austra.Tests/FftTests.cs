@@ -10,7 +10,7 @@ public class FftTests
     [Test]
     public void TestDC([Values(583, 1024, 1027)] int size)
     {
-        Vector v = new(size, Random.Shared);
+        DVector v = new(size, Random.Shared);
         Complex[] result = FFT.Transform((double[])v);
         Assert.That(result[0].Magnitude, Is.EqualTo(v.Sum()).Within(1E-12));
     }

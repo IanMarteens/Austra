@@ -4,7 +4,7 @@
 public sealed class MultivariateNormalRandom
 {
     /// <summary>The mean vector.</summary>
-    private readonly Vector mean;
+    private readonly DVector mean;
     /// <summary>Cholesky decomposition of the covariance matrix.</summary>
     private readonly Cholesky cholesky;
     /// <summary>Storage for the initial distribution.</summary>
@@ -18,7 +18,7 @@ public sealed class MultivariateNormalRandom
     /// <param name="seed">Seed for the scalar generator.</param>
     /// <param name="mean">The mean vector.</param>
     /// <param name="covariance">The covariance matrix.</param>
-    public MultivariateNormalRandom(int seed, Vector mean, Matrix covariance)
+    public MultivariateNormalRandom(int seed, DVector mean, Matrix covariance)
     {
         Contract.Requires(mean.IsInitialized);
         Contract.Requires(covariance.IsInitialized);
@@ -35,7 +35,7 @@ public sealed class MultivariateNormalRandom
     /// <summary>Creates a multivariate generator with a randomized seed.</summary>
     /// <param name="mean">The mean vector.</param>
     /// <param name="covariance">The covariance matrix.</param>
-    public MultivariateNormalRandom(Vector mean, Matrix covariance)
+    public MultivariateNormalRandom(DVector mean, Matrix covariance)
     {
         Contract.Requires(mean.IsInitialized);
         Contract.Requires(covariance.IsInitialized);
@@ -51,7 +51,7 @@ public sealed class MultivariateNormalRandom
 
     /// <summary>Retrieves the next vector from the distribution.</summary>
     /// <returns>A vector drawn from a multivariate normal distribution.</returns>
-    public Vector Next()
+    public DVector Next()
     {
         for (int i = 0; i < source.Length; i++)
             source[i] = random.NextDouble();

@@ -100,7 +100,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
 
     /// <summary>Gets the values array as a vector.</summary>
     [JsonIgnore]
-    public Vector Values => values;
+    public DVector Values => values;
 
     /// <summary>Gets the number of points in the series.</summary>
     [JsonIgnore]
@@ -298,25 +298,25 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
     public int IndexOf(double value)
     {
-        int idx = new Vector(values).IndexOf(value);
+        int idx = new DVector(values).IndexOf(value);
         return idx < 0 ? idx : Count - idx - 1;
     }
 
     /// <summary>Gets the maximum absolute value.</summary>
     /// <returns>The max-norm of the values vector.</returns>
-    public double AbsMax() => new Vector(values).AMax();
+    public double AbsMax() => new DVector(values).AMax();
 
     /// <summary>Gets the minimum absolute value.</summary>
     /// <returns>The minimum absolute of the values vector.</returns>
-    public double AbsMin() => new Vector(values).AMin();
+    public double AbsMin() => new DVector(values).AMin();
 
     /// <summary>Multilinear regression based in Ordinary Least Squares.</summary>
     /// <param name="predictors">Predicting series.</param>
     /// <returns>Regression coefficients.</returns>
-    public Vector LinearModel(params Series[] predictors)
+    public DVector LinearModel(params Series[] predictors)
     {
         int size = predictors.Select(s => s.Count).Min();
-        Vector[] rows = new Vector[predictors.Length + 1];
+        DVector[] rows = new DVector[predictors.Length + 1];
         rows[0] = new(size, 1.0);
         for (int i = 0; i < predictors.Length; i++)
         {
@@ -324,7 +324,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
             rows[i + 1] = new(row.Length == size ? row : row[0..size]);
         }
         Matrix x = new(rows);
-        Vector y = new(Count == size ? values : values[0..size]);
+        DVector y = new(Count == size ? values : values[0..size]);
         return x.MultiplyTranspose(x).Cholesky().Solve(x * y);
     }
 
@@ -426,13 +426,13 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
         ? 1
         : Count - lag <= 1
         ? throw new ArgumentOutOfRangeException(nameof(lag), "Lag too large")
-        : new Vector(values).AutoCorrelation(lag, Stats.Mean);
+        : new DVector(values).AutoCorrelation(lag, Stats.Mean);
 
     /// <summary>Computes autocorrelation for a range of lags.</summary>
     /// <param name="size">Number of lags to compute.</param>
     /// <returns>Pairs lags/autocorrelation.</returns>
     public Series<int> Correlogram(int size) =>
-        Create("CORR(" + Name + ")", Ticker, new Vector(values).CorrelogramRaw(size), Type);
+        Create("CORR(" + Name + ")", Ticker, new DVector(values).CorrelogramRaw(size), Type);
 
     /// <summary>Computes autocorrelation for all lags.</summary>
     /// <returns>Pairs lags/autocorrelation.</returns>
@@ -528,7 +528,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <param name="s">Series to scale.</param>
     /// <returns>A new scaled series.</returns>
     public static Series<T> operator *(double d, Series<T> s) =>
-        new(s.Name + "*", s.Ticker, s.args, (double[])(new Vector(s.values) * d), s.Type);
+        new(s.Name + "*", s.Ticker, s.args, (double[])(new DVector(s.values) * d), s.Type);
 
     /// <summary>Scales values from a series.</summary>
     /// <param name="s">Series to scale.</param>
@@ -542,7 +542,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <param name="series">Series to combine.</param>
     /// <returns>The linear combination of the series.</returns>
     protected static unsafe (string, T[], double[], SeriesType) CombineSeries(
-        Vector weights, params Series<T>[] series)
+        DVector weights, params Series<T>[] series)
     {
         if (weights.Length == 0 ||
             weights.Length != series.Length &&
@@ -597,7 +597,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <param name="weights">Array of weights.</param>
     /// <param name="series">Array of series.</param>
     /// <returns>The weighted sum of series.</returns>
-    public static Series<T> Combine(Vector weights, Series<T>[] series)
+    public static Series<T> Combine(DVector weights, Series<T>[] series)
     {
         var (name, args, vals, type) = CombineSeries(weights, series);
         return new Series<T>(name, null, args, vals, type);
@@ -606,19 +606,19 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <summary>Finds the coefficients for an autoregressive model.</summary>
     /// <param name="degree">Number of coefficients in the model.</param>
     /// <returns>The coefficients of the AR(degree) model.</returns>
-    public Vector AutoRegression(int degree) => AutoRegression(degree, out _, out _);
+    public DVector AutoRegression(int degree) => AutoRegression(degree, out _, out _);
 
     /// <summary>Finds the coefficients for an autoregressive model.</summary>
     /// <param name="degree">Number of coefficients in the model.</param>
     /// <param name="matrix">The correlation matrix.</param>
     /// <param name="correlations">The correlations.</param>
     /// <returns>The coefficients of the AR(degree) model.</returns>
-    internal Vector AutoRegression(int degree, out Matrix matrix, out Vector correlations) =>
+    internal DVector AutoRegression(int degree, out Matrix matrix, out DVector correlations) =>
         Values.Reverse().AutoRegression(degree, out matrix, out correlations);
 
     /// <summary>Calculates the sum of the series values.</summary>
     /// <returns>The sum of all series values.</returns>
-    public double Sum() => new Vector(values).Sum();
+    public double Sum() => new DVector(values).Sum();
 
     /// <summary>Comparer for reverse order.</summary>
     private sealed class ReverseComparer : IComparer<T>

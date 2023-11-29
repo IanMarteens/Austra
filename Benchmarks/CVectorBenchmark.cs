@@ -17,10 +17,10 @@ public class CVectorBenchmark : BenchmarkControl
     public double AustraComplexVectorSquared() => cxv.Squared();
 
     [Benchmark]
-    public Vector AustraComplexVectorMagnitudes() => cxv.Magnitudes();
+    public DVector AustraComplexVectorMagnitudes() => cxv.Magnitudes();
 
     [Benchmark]
-    public Vector AustraComplexVectorPhases() => cxv.Phases();
+    public DVector AustraComplexVectorPhases() => cxv.Phases();
 
     [Benchmark]
     public CVector AustraComplexVectorScale() => cxv * scale;

@@ -7,7 +7,7 @@ public static class Polynomials
     /// <param name="value">Value to substitute.</param>
     /// <param name="coefficients">Polynomial coefficients.</param>
     /// <returns>The evaluation of the polynomial.</returns>
-    public static Complex PolyEval(Complex value, Vector coefficients)
+    public static Complex PolyEval(Complex value, DVector coefficients)
     {
         Complex res = Complex.Zero;
         foreach (double c in coefficients)
@@ -23,13 +23,13 @@ public static class Polynomials
     /// <returns>The evaluation of the polynomial.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Complex PolyEval(Complex value, double[] coefficients) =>
-        PolyEval(value, new Vector(coefficients));
+        PolyEval(value, new DVector(coefficients));
 
     /// <summary>Evaluates a polynomial with real coefficients.</summary>
     /// <param name="value">Value to substitute.</param>
     /// <param name="coefficients">Polynomial coefficients.</param>
     /// <returns>The evaluation of the polynomial.</returns>
-    public static double PolyEval(double value, Vector coefficients)
+    public static double PolyEval(double value, DVector coefficients)
     {
         double result = 0.0;
         foreach (double c in coefficients)
@@ -43,13 +43,13 @@ public static class Polynomials
     /// <returns>The evaluation of the polynomial.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double PolyEval(double value, double[] coefficients) =>
-        PolyEval(value, new Vector(coefficients));
+        PolyEval(value, new DVector(coefficients));
 
     /// <summary>Evaluates the derivative of a polynomial with real coefficients.</summary>
     /// <param name="value">Value to substitute.</param>
     /// <param name="coefficients">Original polynomial coefficients.</param>
     /// <returns>The evaluation of the derivate of the polynomial.</returns>
-    public static Complex PolyDerivative(Complex value, Vector coefficients)
+    public static Complex PolyDerivative(Complex value, DVector coefficients)
     {
         Complex res = Complex.Zero;
         int k = coefficients.Length - 1;
@@ -69,14 +69,14 @@ public static class Polynomials
     /// <returns>The evaluation of the derivate of the polynomial.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Complex PolyDerivative(Complex value, double[] coefficients) =>
-        PolyDerivative(value, new Vector(coefficients));
+        PolyDerivative(value, new DVector(coefficients));
 
 
     /// <summary>Evaluates the derivative of a polynomial with real coefficients.</summary>
     /// <param name="value">Value to substitute.</param>
     /// <param name="coefficients">Original polynomial coefficients.</param>
     /// <returns>The evaluation of the derivate of the polynomial.</returns>
-    public static double PolyDerivative(double value, Vector coefficients)
+    public static double PolyDerivative(double value, DVector coefficients)
     {
         double result = 0.0;
         int k = coefficients.Length - 1;
@@ -91,7 +91,7 @@ public static class Polynomials
     /// <returns>The evaluation of the derivate of the polynomial.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double PolyDerivative(double value, double[] coefficients) =>
-        PolyDerivative(value, new Vector(coefficients));
+        PolyDerivative(value, new DVector(coefficients));
 
     /// <summary>Solves a polynomial equation with real coefficients.</summary>
     /// <param name="coefficients">
@@ -99,7 +99,7 @@ public static class Polynomials
     /// The first element is the coefficient of the lowest degree term.
     /// </param>
     /// <returns>The array of complex or real roots.</returns>
-    public static CVector PolySolve(Vector coefficients) =>
+    public static CVector PolySolve(DVector coefficients) =>
         SpanSolve((double[])coefficients);
 
     /// <summary>Solves a polynomial equation with real coefficients.</summary>
