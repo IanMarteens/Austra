@@ -2,7 +2,7 @@
 <topic id="aae4328b-9ead-40dc-b407-54e8d0614cd5" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA provides double-precision vectors, identified by the class <codeInline>vec</codeInline>, and complex double-precision vectors, <codeInline>cvec</codeInline>. Both data types are implemented using dense storage.</para>
+      <para>AUSTRA provides double-precision vectors, identified by the class <codeInline>vec</codeInline>, complex double-precision vectors, <codeInline>cvec</codeInline>, and vectors of integer, <codeInline>ivec</codeInline>. All these data types are implemented using dense storage.</para>
     </introduction>
     <section address="Section1">
       <title>Real vectors</title>
@@ -381,6 +381,9 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
       <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetic</link>
       <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
+      <codeEntityReference qualifyHint="false">T:Austra.Library.Vector</codeEntityReference>
+      <codeEntityReference qualifyHint="false">T:Austra.Library.CVector</codeEntityReference>
+      <codeEntityReference qualifyHint="false">T:Austra.Library.NVector</codeEntityReference>
     </relatedTopics>
   </developerConceptualDocument>
 </topic>

@@ -546,7 +546,8 @@ public readonly struct LMatrix :
     /// <summary>Gets the cell with the maximum absolute value.</summary>
     /// <remarks>
     /// The absolute maximum must always be zero or positive so, it is not a
-    /// problem to scan the whole matrix, including the upper triangular part.
+    /// problem to scan the whole matrix, including the upper triangular part,
+    /// which is filled with zeros.
     /// </remarks>
     /// <returns>The max-norm of the matrix.</returns>
     public double AMax() => values.AsSpan().AbsoluteMaximum();

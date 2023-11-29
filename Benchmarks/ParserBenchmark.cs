@@ -13,8 +13,12 @@ public class ParserBenchmark : BenchmarkControl
     }
 
     [Benchmark]
+    public IAustraEngine AustraCreateEngine() =>
+        new AustraEngine(dataSource);
+
+    [Benchmark]
     public Type[] AustraParseMatrixTrace() =>
-        engine.EvalType("let v = vector::nrandom(16) in (v ^ v).trace");
+        engine.EvalType("let v = vec::nrandom(16) in (v ^ v).trace");
 
     [Benchmark]
     public Type[] AustraParseCholeskyCheck() =>
@@ -30,7 +34,7 @@ public class ParserBenchmark : BenchmarkControl
 
     [Benchmark]
     public void AustraEvalMatrixTrace() =>
-        engine.Eval("let v = vector::nrandom(16) in (v ^ v).trace");
+        engine.Eval("let v = vec::nrandom(16) in (v ^ v).trace");
 
     [Benchmark]
     public void AustraEvalSimpleSum() =>

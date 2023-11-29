@@ -387,6 +387,15 @@ public readonly struct RMatrix :
         return result;
     }
 
+    /// <summary>Gets the cell with the maximum absolute value.</summary>
+    /// <remarks>
+    /// The absolute maximum must always be zero or positive so, it is not a
+    /// problem to scan the whole matrix, including the lower triangular part,
+    /// which is filled with zeros.
+    /// </remarks>
+    /// <returns>The max-norm of the matrix.</returns>
+    public double AMax() => values.AsSpan().AbsoluteMaximum();
+
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => values.DiagonalProduct(Rows, Cols);

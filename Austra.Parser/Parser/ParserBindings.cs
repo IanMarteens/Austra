@@ -7,22 +7,41 @@
 /// </remarks>
 internal sealed partial class ParserBindings
 {
-    /// <summary>Most common argument list in functions.</summary>
-    private static readonly Type[] DoubleArg = [typeof(double)];
-    /// <summary>Second common argument list in functions.</summary>
-    private static readonly Type[] IntArg = [typeof(int)];
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] VectorArg = [typeof(Vector)];
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] ComplexArg = [typeof(Complex)];
-    /// <summary>Another common argument list in functions: two integer parameters.</summary>
-    private static readonly Type[] IntIntArg = [typeof(int), typeof(int)];
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] DoubleDoubleArg = [typeof(double), typeof(double)];
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] VectorVectorArg = [typeof(Vector), typeof(Vector)];
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] DoubleVectorArg = [typeof(double), typeof(Vector)];
+    /// <summary>The argument is a double.</summary>
+    private static readonly Type[] DArg = [typeof(double)];
+    /// <summary>The argument is an integer.</summary>
+    private static readonly Type[] NArg = [typeof(int)];
+    /// <summary>The argument is a vector.</summary>
+    private static readonly Type[] VArg = [typeof(Vector)];
+    /// <summary>The argument is a complex.</summary>
+    private static readonly Type[] CArg = [typeof(Complex)];
+    /// <summary>Two integer arguments.</summary>
+    private static readonly Type[] NNArg = [typeof(int), typeof(int)];
+    /// <summary>Two double arguments.</summary>
+    private static readonly Type[] DDArg = [typeof(double), typeof(double)];
+    /// <summary>Two vector arguments.</summary>
+    private static readonly Type[] VVArg = [typeof(Vector), typeof(Vector)];
+    /// <summary>A double and a vector argument.</summary>
+    private static readonly Type[] DVArg = [typeof(double), typeof(Vector)];
+
+    private static readonly MethodList MatrixEye = new(
+        typeof(Matrix).MD(nameof(Matrix.Identity), NArg));
+    private static readonly MethodList MatrixCovariance = new(
+        typeof(Series<Date>).MD(nameof(Series.CovarianceMatrix), typeof(Series[])));
+    private static readonly MethodList MatrixCorrelation = new(
+        typeof(Series<Date>).MD(nameof(Series.CorrelationMatrix), typeof(Series[])));
+    private static readonly MethodList ModelPlot = new(
+        typeof(Plot<Vector>).MD(VVArg),
+        typeof(Plot<Vector>).MD(VArg),
+        typeof(Plot<CVector>).MD(typeof(CVector), typeof(CVector)),
+        typeof(Plot<CVector>).MD(typeof(CVector)),
+        typeof(Plot<Series>).MD(typeof(Series), typeof(Series)),
+        typeof(Plot<Series>).MD(typeof(Series)));
+    private static readonly MethodList PolyDerivative = new(
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), DVArg),
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(Vector)),
+        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
 
     /// <summary>Code completion descriptors for root classes.</summary>
     private readonly Member[] rootClasses =
@@ -34,9 +53,9 @@ internal sealed partial class ParserBindings
         new("math::", "Allows access to mathematical functions"),
         new("matrix::", "Allows access to matrix constructors"),
         new("model::", "Allows access to model constructors"),
+        new("seq::", "Allows access to sequence constructors"),
         new("series::", "Allows access to series constructors"),
         new("spline::", "Allows access to spline constructors"),
-        new("seq::", "Allows access to sequence constructors"),
         new("vec::", "Allows access to vector constructors"),
     ];
 
@@ -44,31 +63,10 @@ internal sealed partial class ParserBindings
     private readonly FrozenDictionary<string, Member[]> classMembers =
         new Dictionary<string, Member[]>(StringComparer.OrdinalIgnoreCase)
         {
-            ["series"] = [
-                new("new(", "Creates a new series using weights and a list of series"),
-            ],
-            ["seq"] = [
-                new("new(", "Creates a sequence from a range, a grid or a vector"),
-                new("nrandom(", "Creates a sequence from normal random numbers"),
-                new("random(", "Creates a sequence from random numbers"),
-            ],
             ["cseq"] = [
                 new("new(", "Creates a complex sequence from a complex vector"),
                 new("nrandom(", "Creates a complex sequence from normal random numbers"),
                 new("random(", "Creates a complex sequence from random numbers"),
-            ],
-            ["spline"] = [
-                new("new(", "Creates a new interpolator either from two vectors, a series, or from a function"),
-            ],
-            ["model"] = [
-                new("mvo(", "Creates a model for a Mean Variance Optimizer"),
-                new("plot(", "Plots vectors, series and sequences"),
-            ],
-            ["vec"] = [
-                new("new(", "Create a vector given a length and an optional lambda"),
-                new("ones(", "Creates a vector with ones given a length"),
-                new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
-                new("random(", "Creates a random vector given a length"),
             ],
             ["cvec"] = [
                 new("new(", "Create a complex vector given a size and an optional lambda"),
@@ -78,19 +76,7 @@ internal sealed partial class ParserBindings
             ["ivec"] = [
                 new("new(", "Creates an integer vector given a size and an optional lambda"),
                 new("ones(", "Creates an integer vector with ones given a length"),
-            ],
-            ["matrix"] = [
-                new("cols(", "Creates a matrix given its columns as vectors"),
-                new("corr(", "Creates a correlation matrix given a list of series"),
-                new("cov(", "Creates a covariance matrix given a list of series"),
-                new("diag(", "Creates an diagonal matrix from a vector"),
-                new("eye(", "Creates an identity matrix given a size"),
-                new("lrandom(", "Creates a random lower triangular matrix given a size"),
-                new("lnrandom(", "Creates a random lower triangular matrix with a standard normal distribution"),
-                new("new(", "Create a rectangular matrix given a size and an optional lambda"),
-                new("nrandom(", "Creates a random matrix using a standard normal distribution given a size"),
-                new("random(", "Creates a random matrix given a size"),
-                new("rows(", "Creates a matrix given its rows as vectors"),
+                new("random(", "Creates a random integer vector given a length and an optional range"),
             ],
             ["math"] = [
                 new("abs(", "Absolute value"),
@@ -127,7 +113,41 @@ internal sealed partial class ParserBindings
                 new("tau", "Twice π"),
                 new("tan(", "Tangent function"),
                 new("today", "Gets the current date"),
-            ]
+            ],
+            ["matrix"] = [
+                new("cols(", "Creates a matrix given its columns as vectors"),
+                new("corr(", "Creates a correlation matrix given a list of series"),
+                new("cov(", "Creates a covariance matrix given a list of series"),
+                new("diag(", "Creates an diagonal matrix from a vector"),
+                new("eye(", "Creates an identity matrix given a size"),
+                new("lrandom(", "Creates a random lower triangular matrix given a size"),
+                new("lnrandom(", "Creates a random lower triangular matrix with a standard normal distribution"),
+                new("new(", "Create a rectangular matrix given a size and an optional lambda"),
+                new("nrandom(", "Creates a random matrix using a standard normal distribution given a size"),
+                new("random(", "Creates a random matrix given a size"),
+                new("rows(", "Creates a matrix given its rows as vectors"),
+            ],
+            ["model"] = [
+                new("mvo(", "Creates a model for a Mean Variance Optimizer"),
+                new("plot(", "Plots vectors, series and sequences"),
+            ],
+            ["seq"] = [
+                new("new(", "Creates a sequence from a range, a grid or a vector"),
+                new("nrandom(", "Creates a sequence from normal random numbers"),
+                new("random(", "Creates a sequence from random numbers"),
+            ],
+            ["series"] = [
+                new("new(", "Creates a new series using weights and a list of series"),
+            ],
+            ["spline"] = [
+                new("new(", "Creates a new interpolator either from two vectors, a series, or from a function"),
+            ],
+            ["vec"] = [
+                new("new(", "Create a vector given a length and an optional lambda"),
+                new("ones(", "Creates a vector with ones given a length"),
+                new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
+                new("random(", "Creates a random vector given a length"),
+            ],
         }.ToFrozenDictionary();
 
     /// <summary>Code completion descriptors for properties and methods.</summary>
@@ -212,82 +232,82 @@ internal sealed partial class ParserBindings
                 new("kurtp", "Gets the kurtosis of the population"),
             ],
             [typeof(Matrix)] = [
-                new("rows", "Gets the number of rows"),
-                new("cols", "Gets the number of columns"),
-                new("det", "Calculates the determinant"),
-                new("trace", "Gets the sum of the main diagonal"),
                 new("amax", "Gets the maximum absolute value"),
                 new("amin", "Gets the minimum absolute value"),
+                new("chol", "Calculates the Cholesky Decomposition"),
+                new("cols", "Gets the number of columns"),
+                new("det", "Calculates the determinant"),
+                new("diag", "Extracts the diagonal as a vector"),
+                new("evd", "Calculates the EigenValues Decomposition"),
+                new("inverse", "Calculates the inverse of a square matrix"),
                 new("max", "Gets the maximum value"),
                 new("min", "Gets the minimum absolute value"),
-                new("chol", "Calculates the Cholesky Decomposition"),
-                new("evd", "Calculates the EigenValues Decomposition"),
-                new("diag", "Extracts the diagonal as a vector"),
-                new("inverse", "Calculates the inverse of a square matrix"),
-                new("getRow(", "Extracts a row as a vector"),
-                new("getCol(", "Extracts a column as a vector"),
-                new("isSymmetric", "Checks if a matrix is symmetric"),
-                new("stats", "Calculates statistics on the cells"),
-                new("map(x => ", "Pointwise transformation of matrix cells"),
-                new("any(x => ", "Existential operator"),
+                new("rows", "Gets the number of rows"),
+                new("trace", "Gets the sum of the main diagonal"),
                 new("all(x => ", "Universal operator"),
+                new("any(x => ", "Existential operator"),
+                new("getCol(", "Extracts a column as a vector"),
+                new("getRow(", "Extracts a row as a vector"),
+                new("isSymmetric", "Checks if a matrix is symmetric"),
+                new("map(x => ", "Pointwise transformation of matrix cells"),
+                new("stats", "Calculates statistics on the cells"),
             ],
             [typeof(LMatrix)] = [
-                new("rows", "Gets the number of rows"),
-                new("cols", "Gets the number of columns"),
-                new("det", "Calculates the determinant"),
-                new("trace", "Gets the sum of the main diagonal"),
                 new("amax", "Gets the maximum absolute value"),
                 new("amin", "Gets the minimum absolute value"),
-                new("max", "Gets the maximum value"),
-                new("min", "Gets the minimum absolute value"),
-                new("diag", "Extracts the diagonal as a vector"),
-            ],
-            [typeof(RMatrix)] = [
-                new("rows", "Gets the number of rows"),
                 new("cols", "Gets the number of columns"),
                 new("det", "Calculates the determinant"),
+                new("diag", "Extracts the diagonal as a vector"),
+                new("max", "Gets the maximum value"),
+                new("min", "Gets the minimum absolute value"),
+                new("rows", "Gets the number of rows"),
                 new("trace", "Gets the sum of the main diagonal"),
-                //new("amax", "Gets the maximum absolute value"),
+            ],
+            [typeof(RMatrix)] = [
+                new("amax", "Gets the maximum absolute value"),
+                new("cols", "Gets the number of columns"),
+                new("det", "Calculates the determinant"),
+                new("diag", "Extracts the diagonal as a vector"),
+                new("rows", "Gets the number of rows"),
+                new("trace", "Gets the sum of the main diagonal"),
                 //new("amin", "Gets the minimum absolute value"),
                 //new("max", "Gets the maximum value"),
                 //new("min", "Gets the minimum absolute value"),
-                new("diag", "Extracts the diagonal as a vector"),
             ],
             [typeof(EVD)] = [
-                new("vectors", "Gets a matrix with eigenvectors as its columns"),
-                new("values", "Gets all the eigenvalues"),
                 new("d", "Gets a quasi-diagonal real matrix with all eigenvalues"),
                 new("rank", "Gets the rank of the original matrix"),
+                new("values", "Gets all the eigenvalues"),
+                new("vectors", "Gets a matrix with eigenvectors as its columns"),
             ],
             [typeof(LinearSModel)] = [
                 new("original", "Gets the series to be explained"),
                 new("prediction", "Gets the predicted series"),
-                new("weights", "Gets the regression coefficients"),
                 new("r2", "Gets the regression coefficient"),
                 new("rss", "Gets the Residual Sum of Squares"),
                 new("tss", "Gets the Total Sum of Squares"),
+                new("weights", "Gets the regression coefficients"),
             ],
             [typeof(LinearVModel)] = [
                 new("original", "Gets the vector to be explained"),
                 new("prediction", "Gets the predicted vector"),
-                new("weights", "Gets the regression coefficients"),
                 new("r2", "Gets the regression coefficient"),
                 new("rss", "Gets the Residual Sum of Squares"),
                 new("tss", "Gets the Total Sum of Squares"),
+                new("weights", "Gets the regression coefficients"),
             ],
             [typeof(ARSModel)] = [
+                new("coefficients", "Gets the autoregression coefficients"),
                 new("original", "Gets the series to be explained"),
                 new("prediction", "Gets the predicted series"),
-                new("coefficients", "Gets the autoregression coefficients"),
                 new("r2", "Gets the regression coefficient"),
                 new("rss", "Gets the Residual Sum of Squares"),
                 new("tss", "Gets the Total Sum of Squares"),
             ],
             [typeof(ARVModel)] = [
+                new("coefficients", "Gets the autoregression coefficients"),
                 new("original", "Gets the vector to be explained"),
                 new("prediction", "Gets the predicted vector"),
-                new("coefficients", "Gets the autoregression coefficients"),
                 new("r2", "Gets the regression coefficient"),
                 new("rss", "Gets the Residual Sum of Squares"),
                 new("tss", "Gets the Total Sum of Squares"),
@@ -327,6 +347,29 @@ internal sealed partial class ParserBindings
                 new("map(x => ", "Pointwise transformation of vector items"),
                 new("reduce(", "Reduces a vector to a single value"),
                 new("zip(", "Combines two vectors"),
+            ],
+            [typeof(NVector)] = [
+                new("abs", "Pointwise absolute value"),
+                new("distinct", "Gets a new vector with distinct values"),
+                new("first", "Gets the first item from the vector"),
+                new("last", "Gets the last item from the vector"),
+                new("length", "Gets the number of items"),
+                new("max", "Gets the maximum  value"),
+                new("mean", "Gets the mean value"),
+                new("min", "Gets the minimum value"),
+                new("plot", "Plots this vector"),
+                new("prod", "Gets the product of all values"),
+                new("reverse", "Gets a reversed copy"),
+                new("sum", "Gets the sum of all values"),
+                new("sort", "Gets a new vector with sorted values"),
+                new("all(x => ", "Universal operator"),
+                new("any(x => ", "Existential operator"),
+                new("filter(x => ", "Filters items by value"),
+                new("indexOf(", "Returns the index where a value is stored"),
+                new("map(x => ", "Pointwise transformation of vector items"),
+                new("mapReal(x => ", "Pointwise transformation from integers to reals"),
+                new("reduce(", "Reduces a vector to a single value"),
+                new("zip(", "Combines two integer vectors"),
             ],
             [typeof(CVector)] = [
                 new("amax", "Gets the maximum absolute value"),
@@ -374,10 +417,10 @@ internal sealed partial class ParserBindings
             ],
             [typeof(Date)] = [
                 new("day", "Gets the day of the date"),
-                new("month", "Gets the month of the date"),
-                new("year", "Gets the year of the date"),
                 new("dow", "Gets the day of week the date"),
                 new("isleap", "Checks if the date belong to a leap year"),
+                new("month", "Gets the month of the date"),
+                new("year", "Gets the year of the date"),
                 new("addMonths(", "Adds a number of months to the date"),
                 new("addYears(", "Adds a number of years to the date"),
             ],
@@ -447,10 +490,250 @@ internal sealed partial class ParserBindings
             ],
         }.ToFrozenDictionary();
 
+    /// <summary>Information for class methods.</summary>
+    /// <remarks>
+    /// An AUSTRA class method may be implemented either by a static method or by a constructor.
+    /// </remarks>
+    private readonly FrozenDictionary<string, MethodList> classMethods =
+        new Dictionary<string, MethodList>()
+        {
+            ["cseq.new"] = new(
+                typeof(CSequence).MD(nameof(CSequence.Create), typeof(CVector))),
+            ["cseq.random"] = new(
+                typeof(CSequence).MD(nameof(CSequence.Random), typeof(int))),
+            ["cseq.nrandom"] = new(
+                typeof(CSequence).MD(nameof(CSequence.NormalRandom), typeof(int)),
+                typeof(CSequence).MD(nameof(CSequence.NormalRandom),
+                    typeof(int), typeof(double))),
+            ["cvec.new"] = new(
+                typeof(CVector).MD(VArg),
+                typeof(CVector).MD(VVArg),
+                typeof(CVector).MD(NArg),
+                typeof(CVector).MD(typeof(int), typeof(Func<int, Complex>)),
+                typeof(CVector).MD(typeof(int), typeof(Func<int, CVector, Complex>))),
+            ["cvec.nrandom"] = new(
+                typeof(CVector).MD(typeof(int), typeof(NormalRandom))),
+            ["cvec.random"] = new(
+                typeof(CVector).MD(typeof(int), typeof(Random))),
+            ["ivec.new"] = new(
+                typeof(NVector).MD(NArg),
+                typeof(NVector).MD(typeof(int), typeof(Func<int, int>)),
+                typeof(NVector).MD(typeof(int), typeof(Func<int, NVector, int>))),
+            ["ivec.ones"] = new(
+                typeof(NVector).MD(nameof(NVector.Ones), typeof(int))),
+            ["ivec.random"] = new(
+                typeof(NVector).MD(typeof(int), typeof(Random)),
+                typeof(NVector).MD(typeof(int), typeof(int), typeof(Random)),
+                typeof(NVector).MD(typeof(int), typeof(int), typeof(int), typeof(Random))),
+            ["math.polysolve"] = new(
+                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VArg),
+                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
+            ["math.polyeval"] = new(
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), DVArg),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(Vector)),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
+            ["math.polyderivative"] = PolyDerivative,
+            ["math.polyderiv"] = PolyDerivative,
+            ["math.abs"] = new(
+                typeof(Math).MD(nameof(Math.Abs), NArg),
+                typeof(Math).MD(nameof(Math.Abs), DArg),
+                typeof(Complex).MD(nameof(Complex.Abs), CArg)),
+            ["math.acos"] = new(
+                typeof(Math).MD(nameof(Math.Acos), DArg),
+                typeof(Complex).MD(nameof(Complex.Acos), CArg)),
+            ["math.asin"] = new(
+                typeof(Math).MD(nameof(Math.Asin), DArg),
+                typeof(Complex).MD(nameof(Complex.Asin), CArg)),
+            ["math.atan"] = new(
+                typeof(Math).MD(nameof(Math.Atan), DArg),
+                typeof(Math).MD(nameof(Math.Atan2), DDArg),
+                typeof(Complex).MD(nameof(Complex.Atan), CArg)),
+            ["math.beta"] = new(
+                typeof(Functions).MD(nameof(Functions.Beta), DDArg)),
+            ["math.cbrt"] = new(
+                typeof(Math).MD(nameof(Math.Cbrt), DArg)),
+            ["math.cos"] = new(
+                typeof(Math).MD(nameof(Math.Cos), DArg),
+                typeof(Complex).MD(nameof(Complex.Cos), CArg)),
+            ["math.cosh"] = new(
+                typeof(Math).MD(nameof(Math.Cosh), DArg),
+                typeof(Complex).MD(nameof(Complex.Cosh), CArg)),
+            ["math.erf"] = new(
+                typeof(Functions).MD(nameof(Functions.Erf), DArg)),
+            ["math.exp"] = new(
+                typeof(Math).MD(nameof(Math.Exp), DArg),
+                typeof(Complex).MD(nameof(Complex.Exp), CArg)),
+            ["math.gamma"] = new(
+                typeof(Functions).MD(nameof(Functions.Gamma), DArg)),
+            ["math.lngamma"] = new(
+                typeof(Functions).MD(nameof(Functions.GammaLn), DArg)),
+            ["math.log"] = new(
+                typeof(Math).MD(nameof(Math.Log), DArg),
+                typeof(Complex).MD(nameof(Complex.Log), CArg)),
+            ["math.log10"] = new(
+                typeof(Math).MD(nameof(Math.Log10), DArg),
+                typeof(Complex).MD(nameof(Complex.Log10), CArg)),
+            ["math.ncdf"] = new(
+                typeof(Functions).MD(nameof(Functions.NCdf), DArg)),
+            ["math.probit"] = new(
+                typeof(Functions).MD(nameof(Functions.Probit), DArg)),
+            ["math.sign"] = new(
+                typeof(Math).MD(nameof(Math.Sign), NArg),
+                typeof(Math).MD(nameof(Math.Sign), DArg)),
+            ["math.sin"] = new(
+                typeof(Math).MD(nameof(Math.Sin), DArg),
+                typeof(Complex).MD(nameof(Complex.Sin), CArg)),
+            ["math.sinh"] = new(
+                typeof(Math).MD(nameof(Math.Sinh), DArg),
+                typeof(Complex).MD(nameof(Complex.Sinh), CArg)),
+            ["math.tan"] = new(
+                typeof(Math).MD(nameof(Math.Tan), DArg),
+                typeof(Complex).MD(nameof(Complex.Tan), CArg)),
+            ["math.tanh"] = new(
+                typeof(Math).MD(nameof(Math.Tanh), DArg),
+                typeof(Complex).MD(nameof(Complex.Tanh), CArg)),
+            ["math.sqrt"] = new(
+                typeof(Math).MD(nameof(Math.Sqrt), DArg),
+                typeof(Complex).MD(nameof(Complex.Sqrt), CArg)),
+            ["math.trunc"] = new(
+                typeof(Math).MD(nameof(Math.Truncate), DArg)),
+            ["math.round"] = new(
+                typeof(Math).MD(nameof(Math.Round), DArg),
+                typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
+            ["math.plot"] = ModelPlot,
+            ["math.complex"] = new(
+                typeof(Complex).MD(DDArg),
+                typeof(Complex).MD(typeof(double), typeof(Zero))),
+            ["math.polar"] = new(
+                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), DDArg),
+                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
+            ["math.min"] = new(
+                typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
+                typeof(Math).MD(nameof(Math.Min), NNArg),
+               typeof(Math).MD(nameof(Math.Min), DDArg)),
+            ["math.max"] = new(
+                typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
+                typeof(Math).MD(nameof(Math.Max), NNArg),
+                typeof(Math).MD(nameof(Math.Max), DDArg)),
+            ["math.solve"] = new(
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double)),
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
+                    typeof(double)),
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
+                    typeof(double), typeof(int))),
+            ["matrix.new"] = new(
+                typeof(Matrix).MD(NArg),
+                typeof(Matrix).MD(NNArg),
+                typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
+            ["matrix.rows"] = new(
+                typeof(Matrix).MD(typeof(Vector[]))),
+            ["matrix.cols"] = new(
+                typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))),
+            ["matrix.diag"] = new(
+                typeof(Matrix).MD(VArg),
+                typeof(Matrix).MD(typeof(double[]))),
+            ["matrix.i"] = MatrixEye,
+            ["matrix.eye"] = MatrixEye,
+            ["matrix.random"] = new(
+                typeof(Matrix).MD(typeof(int), typeof(Random)),
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Random))),
+            ["matrix.nrandom"] = new(
+                typeof(Matrix).MD(typeof(int), typeof(NormalRandom)),
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
+            ["matrix.lrandom"] = new(
+                typeof(LMatrix).MD(typeof(int), typeof(Random)),
+                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(Random))),
+            ["matrix.lnrandom"] = new(
+                typeof(LMatrix).MD(typeof(int), typeof(NormalRandom)),
+                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
+            ["matrix.cov"] = MatrixCovariance,
+            ["matrix.covariance"] = MatrixCovariance,
+            ["matrix.corr"] = MatrixCorrelation,
+            ["matrix.correlation"] = MatrixCorrelation,
+            ["model.plot"] = ModelPlot,
+            ["model.mvo"] = new(
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Series[])),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
+                    typeof(Vector), typeof(Vector), typeof(Series[])),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
+                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
+                    typeof(Vector), typeof(Vector), typeof(string[]))),
+            ["seq.new"] = new(
+                typeof(DSequence).MD(nameof(DSequence.Create), NNArg),
+                typeof(DSequence).MD(nameof(DSequence.Create),
+                    typeof(double), typeof(double), typeof(int)),
+                typeof(DSequence).MD(nameof(DSequence.Create), typeof(Vector)),
+                typeof(DSequence).MD(nameof(DSequence.Create), typeof(Series))),
+            ["seq.random"] = new(
+                typeof(DSequence).MD(nameof(DSequence.Random), typeof(int))),
+            ["seq.nrandom"] = new(
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom), typeof(int)),
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
+                    typeof(int), typeof(double)),
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
+                    typeof(int), typeof(double), typeof(Vector)),
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
+                    typeof(int), typeof(double), typeof(double), typeof(Vector))),
+            ["series.new"] = new(
+                typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))),
+            ["spline.new"] = new(
+                typeof(DateSpline).MD(typeof(Series)),
+                typeof(VectorSpline).MD(VVArg),
+                typeof(VectorSpline).MD(
+                    typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))),
+            ["vec.new"] = new(
+                typeof(Vector).MD(NArg),
+                typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
+                typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
+                typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))),
+            ["vec.nrandom"] = new(
+                typeof(Vector).MD(typeof(int), typeof(NormalRandom))),
+            ["vec.random"] = new(
+                typeof(Vector).MD(typeof(int), typeof(Random))),
+            ["vec.ones"] = new(
+                typeof(Vector).MD(typeof(int), typeof(One))),
+        }.ToFrozenDictionary();
+
     /// <summary>Allowed properties and their implementations.</summary>
     private static readonly FrozenDictionary<TypeId, MethodInfo> allProps =
         new Dictionary<TypeId, MethodInfo>()
         {
+            [new(typeof(Acc), "count")] = typeof(Acc).Prop(nameof(Acc.Count)),
+            [new(typeof(Acc), "min")] = typeof(Acc).Prop(nameof(Acc.Minimum)),
+            [new(typeof(Acc), "max")] = typeof(Acc).Prop(nameof(Acc.Maximum)),
+            [new(typeof(Acc), "mean")] = typeof(Acc).Prop(nameof(Acc.Mean)),
+            [new(typeof(Acc), "var")] = typeof(Acc).Prop(nameof(Acc.Variance)),
+            [new(typeof(Acc), "varp")] = typeof(Acc).Prop(nameof(Acc.PopulationVariance)),
+            [new(typeof(Acc), "std")] = typeof(Acc).Prop(nameof(Acc.StandardDeviation)),
+            [new(typeof(Acc), "stdp")] = typeof(Acc).Prop(nameof(Acc.PopulationStandardDeviation)),
+            [new(typeof(Acc), "skew")] = typeof(Acc).Prop(nameof(Acc.Skewness)),
+            [new(typeof(Acc), "skewp")] = typeof(Acc).Prop(nameof(Acc.PopulationSkewness)),
+            [new(typeof(Acc), "kurt")] = typeof(Acc).Prop(nameof(Acc.Kurtosis)),
+            [new(typeof(Acc), "kurtp")] = typeof(Acc).Prop(nameof(Acc.PopulationKurtosis)),
+
+            [new(typeof(ARSModel), "original")] = typeof(ARSModel).Prop(nameof(ARSModel.Original)),
+            [new(typeof(ARSModel), "prediction")] = typeof(ARSModel).Prop(nameof(ARSModel.Prediction)),
+            [new(typeof(ARSModel), "coefficients")] = typeof(ARSModel).Prop(nameof(ARSModel.Coefficients)),
+            [new(typeof(ARSModel), "coeff")] = typeof(ARSModel).Prop(nameof(ARSModel.Coefficients)),
+            [new(typeof(ARSModel), "r2")] = typeof(ARSModel).Prop(nameof(ARSModel.R2)),
+            [new(typeof(ARSModel), "rss")] = typeof(ARSModel).Prop(nameof(ARSModel.ResidualSumSquares)),
+            [new(typeof(ARSModel), "tss")] = typeof(ARSModel).Prop(nameof(ARSModel.TotalSumSquares)),
+
+            [new(typeof(ARVModel), "original")] = typeof(ARVModel).Prop(nameof(ARVModel.Original)),
+            [new(typeof(ARVModel), "prediction")] = typeof(ARVModel).Prop(nameof(ARVModel.Prediction)),
+            [new(typeof(ARVModel), "coefficients")] = typeof(ARVModel).Prop(nameof(ARVModel.Coefficients)),
+            [new(typeof(ARVModel), "coeff")] = typeof(ARVModel).Prop(nameof(ARVModel.Coefficients)),
+            [new(typeof(ARVModel), "r2")] = typeof(ARVModel).Prop(nameof(ARVModel.R2)),
+            [new(typeof(ARVModel), "rss")] = typeof(ARVModel).Prop(nameof(ARVModel.ResidualSumSquares)),
+            [new(typeof(ARVModel), "tss")] = typeof(ARVModel).Prop(nameof(ARVModel.TotalSumSquares)),
+
             [new(typeof(Complex), "real")] = typeof(Complex).Prop(nameof(Complex.Real)),
             [new(typeof(Complex), "re")] = typeof(Complex).Prop(nameof(Complex.Real)),
             [new(typeof(Complex), "imaginary")] = typeof(Complex).Prop(nameof(Complex.Imaginary)),
@@ -460,18 +743,164 @@ internal sealed partial class ParserBindings
             [new(typeof(Complex), "mag")] = typeof(Complex).Prop(nameof(Complex.Magnitude)),
             [new(typeof(Complex), "phase")] = typeof(Complex).Prop(nameof(Complex.Phase)),
 
-            [new(typeof(FftRModel), "amplitudes")] = typeof(FftModel).Prop(nameof(FftModel.Amplitudes)),
-            [new(typeof(FftRModel), "magnitudes")] = typeof(FftModel).Prop(nameof(FftModel.Amplitudes)),
-            [new(typeof(FftRModel), "phases")] = typeof(FftModel).Prop(nameof(FftModel.Phases)),
-            [new(typeof(FftRModel), "length")] = typeof(FftModel).Prop(nameof(FftModel.Length)),
-            [new(typeof(FftRModel), "values")] = typeof(FftModel).Prop(nameof(FftModel.Spectrum)),
-            [new(typeof(FftRModel), "inverse")] = typeof(FftRModel).Get(nameof(FftRModel.Inverse)),
+            [new(typeof(CSequence), "distinct")] = typeof(CSequence).Get(nameof(CSequence.Distinct)),
+            [new(typeof(CSequence), "first")] = typeof(CSequence).Get(nameof(CSequence.First)),
+            [new(typeof(CSequence), "fft")] = typeof(CSequence).Get(nameof(CSequence.Fft)),
+            [new(typeof(CSequence), "last")] = typeof(CSequence).Get(nameof(CSequence.Last)),
+            [new(typeof(CSequence), "length")] = typeof(CSequence).Get(nameof(CSequence.Length)),
+            [new(typeof(CSequence), "plot")] = typeof(CSequence).Get(nameof(CSequence.Plot)),
+            [new(typeof(CSequence), "prod")] = typeof(CSequence).Get(nameof(CSequence.Product)),
+            [new(typeof(CSequence), "product")] = typeof(CSequence).Get(nameof(CSequence.Product)),
+            [new(typeof(CSequence), "sum")] = typeof(CSequence).Get(nameof(CSequence.Sum)),
+            [new(typeof(CSequence), "tovector")] = typeof(CSequence).Get(nameof(CSequence.ToVector)),
+
+            [new(typeof(CVector), "amax")] = typeof(CVector).Get(nameof(CVector.AbsMax)),
+            [new(typeof(CVector), "amin")] = typeof(CVector).Get(nameof(CVector.AbsMin)),
+            [new(typeof(CVector), "amplitudes")] = typeof(CVector).Get(nameof(CVector.Magnitudes)),
+            [new(typeof(CVector), "distinct")] = typeof(CVector).Get(nameof(CVector.Distinct)),
+            [new(typeof(CVector), "fft")] = typeof(CVector).Get(nameof(CVector.Fft)),
+            [new(typeof(CVector), "first")] = typeof(CVector).Prop(nameof(CVector.First)),
+            [new(typeof(CVector), "im")] = typeof(CVector).Prop(nameof(CVector.Imaginary)),
+            [new(typeof(CVector), "imag")] = typeof(CVector).Prop(nameof(CVector.Imaginary)),
+            [new(typeof(CVector), "imaginary")] = typeof(CVector).Prop(nameof(CVector.Imaginary)),
+            [new(typeof(CVector), "last")] = typeof(CVector).Prop(nameof(CVector.Last)),
+            [new(typeof(CVector), "length")] = typeof(CVector).Prop(nameof(CVector.Length)),
+            [new(typeof(CVector), "mag")] = typeof(CVector).Get(nameof(CVector.Magnitudes)),
+            [new(typeof(CVector), "mags")] = typeof(CVector).Get(nameof(CVector.Magnitudes)),
+            [new(typeof(CVector), "magnitudes")] = typeof(CVector).Get(nameof(CVector.Magnitudes)),
+            [new(typeof(CVector), "mean")] = typeof(CVector).Get(nameof(CVector.Mean)),
+            [new(typeof(CVector), "norm")] = typeof(CVector).Get(nameof(CVector.Norm)),
+            [new(typeof(CVector), "phases")] = typeof(CVector).Get(nameof(CVector.Phases)),
+            [new(typeof(CVector), "plot")] = typeof(CVector).Get(nameof(CVector.Plot)),
+            [new(typeof(CVector), "re")] = typeof(CVector).Prop(nameof(CVector.Real)),
+            [new(typeof(CVector), "real")] = typeof(CVector).Prop(nameof(CVector.Real)),
+            [new(typeof(CVector), "reverse")] = typeof(CVector).Get(nameof(CVector.Reverse)),
+            [new(typeof(CVector), "sqr")] = typeof(CVector).Get(nameof(CVector.Squared)),
+            [new(typeof(CVector), "sum")] = typeof(CVector).Get(nameof(CVector.Sum)),
+
+            [new(typeof(Date), "day")] = typeof(Date).Prop(nameof(Date.Day)),
+            [new(typeof(Date), "month")] = typeof(Date).Prop(nameof(Date.Month)),
+            [new(typeof(Date), "year")] = typeof(Date).Prop(nameof(Date.Year)),
+            [new(typeof(Date), "dow")] = typeof(Date).Prop(nameof(Date.DayOfWeek)),
+            [new(typeof(Date), "isleap")] = typeof(Date).Get(nameof(Date.IsLeap)),
+
+            [new(typeof(DateSpline), "length")] = typeof(DateSpline).Prop(nameof(DateSpline.Length)),
+
+            [new(typeof(DSequence), "acf")] = typeof(DSequence).Get(nameof(DSequence.ACF)),
+            [new(typeof(DSequence), "distinct")] = typeof(DSequence).Get(nameof(DSequence.Distinct)),
+            [new(typeof(DSequence), "first")] = typeof(DSequence).Get(nameof(DSequence.First)),
+            [new(typeof(DSequence), "fft")] = typeof(DSequence).Get(nameof(DSequence.Fft)),
+            [new(typeof(DSequence), "last")] = typeof(DSequence).Get(nameof(DSequence.Last)),
+            [new(typeof(DSequence), "length")] = typeof(DSequence).Get(nameof(DSequence.Length)),
+            [new(typeof(DSequence), "min")] = typeof(DSequence).Get(nameof(DSequence.Min)),
+            [new(typeof(DSequence), "max")] = typeof(DSequence).Get(nameof(DSequence.Max)),
+            [new(typeof(DSequence), "plot")] = typeof(DSequence).Get(nameof(DSequence.Plot)),
+            [new(typeof(DSequence), "prod")] = typeof(DSequence).Get(nameof(DSequence.Product)),
+            [new(typeof(DSequence), "product")] = typeof(DSequence).Get(nameof(DSequence.Product)),
+            [new(typeof(DSequence), "sort")] = typeof(DSequence).Get(nameof(DSequence.Sort)),
+            [new(typeof(DSequence), "sortasc")] = typeof(DSequence).Get(nameof(DSequence.Sort)),
+            [new(typeof(DSequence), "sortdesc")] = typeof(DSequence).Get(nameof(DSequence.SortDescending)),
+            [new(typeof(DSequence), "stats")] = typeof(DSequence).Get(nameof(DSequence.Stats)),
+            [new(typeof(DSequence), "sum")] = typeof(DSequence).Get(nameof(DSequence.Sum)),
+            [new(typeof(DSequence), "tovector")] = typeof(DSequence).Get(nameof(DSequence.ToVector)),
+
+            [new(typeof(EVD), "vectors")] = typeof(EVD).Prop(nameof(EVD.Vectors)),
+            [new(typeof(EVD), "values")] = typeof(EVD).Prop(nameof(EVD.Values)),
+            [new(typeof(EVD), "d")] = typeof(EVD).Prop(nameof(EVD.D)),
+            [new(typeof(EVD), "rank")] = typeof(EVD).Get(nameof(EVD.Rank)),
+            [new(typeof(EVD), "det")] = typeof(EVD).Get(nameof(EVD.Determinant)),
+
             [new(typeof(FftCModel), "amplitudes")] = typeof(FftModel).Prop(nameof(FftModel.Amplitudes)),
             [new(typeof(FftCModel), "magnitudes")] = typeof(FftModel).Prop(nameof(FftModel.Amplitudes)),
             [new(typeof(FftCModel), "phases")] = typeof(FftModel).Prop(nameof(FftModel.Phases)),
             [new(typeof(FftCModel), "length")] = typeof(FftModel).Prop(nameof(FftModel.Length)),
             [new(typeof(FftCModel), "values")] = typeof(FftModel).Prop(nameof(FftModel.Spectrum)),
             [new(typeof(FftCModel), "inverse")] = typeof(FftCModel).Get(nameof(FftCModel.Inverse)),
+
+            [new(typeof(FftRModel), "amplitudes")] = typeof(FftModel).Prop(nameof(FftModel.Amplitudes)),
+            [new(typeof(FftRModel), "magnitudes")] = typeof(FftModel).Prop(nameof(FftModel.Amplitudes)),
+            [new(typeof(FftRModel), "phases")] = typeof(FftModel).Prop(nameof(FftModel.Phases)),
+            [new(typeof(FftRModel), "length")] = typeof(FftModel).Prop(nameof(FftModel.Length)),
+            [new(typeof(FftRModel), "values")] = typeof(FftModel).Prop(nameof(FftModel.Spectrum)),
+            [new(typeof(FftRModel), "inverse")] = typeof(FftRModel).Get(nameof(FftRModel.Inverse)),
+
+            [new(typeof(LinearSModel), "original")] = typeof(LinearSModel).Prop(nameof(LinearSModel.Original)),
+            [new(typeof(LinearSModel), "prediction")] = typeof(LinearSModel).Prop(nameof(LinearSModel.Prediction)),
+            [new(typeof(LinearSModel), "weights")] = typeof(LinearSModel).Prop(nameof(LinearSModel.Weights)),
+            [new(typeof(LinearSModel), "r2")] = typeof(LinearSModel).Prop(nameof(LinearSModel.R2)),
+            [new(typeof(LinearSModel), "rss")] = typeof(LinearSModel).Prop(nameof(LinearSModel.ResidualSumSquares)),
+            [new(typeof(LinearSModel), "tss")] = typeof(LinearSModel).Prop(nameof(LinearSModel.TotalSumSquares)),
+
+            [new(typeof(LinearVModel), "original")] = typeof(LinearVModel).Prop(nameof(LinearVModel.Original)),
+            [new(typeof(LinearVModel), "prediction")] = typeof(LinearVModel).Prop(nameof(LinearVModel.Prediction)),
+            [new(typeof(LinearVModel), "weights")] = typeof(LinearVModel).Prop(nameof(LinearVModel.Weights)),
+            [new(typeof(LinearVModel), "r2")] = typeof(LinearVModel).Prop(nameof(LinearVModel.R2)),
+            [new(typeof(LinearVModel), "rss")] = typeof(LinearVModel).Prop(nameof(LinearVModel.ResidualSumSquares)),
+            [new(typeof(LinearVModel), "tss")] = typeof(LinearVModel).Prop(nameof(LinearVModel.TotalSumSquares)),
+
+            [new(typeof(LMatrix), "det")] = typeof(LMatrix).Get(nameof(LMatrix.Determinant)),
+            [new(typeof(LMatrix), "trace")] = typeof(LMatrix).Get(nameof(LMatrix.Trace)),
+            [new(typeof(LMatrix), "rows")] = typeof(LMatrix).Prop(nameof(LMatrix.Rows)),
+            [new(typeof(LMatrix), "cols")] = typeof(LMatrix).Prop(nameof(LMatrix.Cols)),
+            [new(typeof(LMatrix), "amax")] = typeof(LMatrix).Get(nameof(LMatrix.AMax)),
+            [new(typeof(LMatrix), "amin")] = typeof(LMatrix).Get(nameof(LMatrix.AMin)),
+            [new(typeof(LMatrix), "max")] = typeof(LMatrix).Get(nameof(LMatrix.Maximum)),
+            [new(typeof(LMatrix), "min")] = typeof(LMatrix).Get(nameof(LMatrix.Minimum)),
+            [new(typeof(LMatrix), "diag")] = typeof(LMatrix).Get(nameof(LMatrix.Diagonal)),
+
+            [new(typeof(Matrix), "det")] = typeof(Matrix).Get(nameof(Matrix.Determinant)),
+            [new(typeof(Matrix), "chol")] = typeof(Matrix).Get(nameof(Matrix.CholeskyMatrix)),
+            [new(typeof(Matrix), "evd")] = typeof(Matrix).GetMethod(nameof(Matrix.EVD), Type.EmptyTypes)!,
+            [new(typeof(Matrix), "trace")] = typeof(Matrix).Get(nameof(Matrix.Trace)),
+            [new(typeof(Matrix), "rows")] = typeof(Matrix).Prop(nameof(Matrix.Rows)),
+            [new(typeof(Matrix), "cols")] = typeof(Matrix).Prop(nameof(Matrix.Cols)),
+            [new(typeof(Matrix), "amax")] = typeof(Matrix).Get(nameof(Matrix.AMax)),
+            [new(typeof(Matrix), "amin")] = typeof(Matrix).Get(nameof(Matrix.AMin)),
+            [new(typeof(Matrix), "max")] = typeof(Matrix).Get(nameof(Matrix.Maximum)),
+            [new(typeof(Matrix), "min")] = typeof(Matrix).Get(nameof(Matrix.Minimum)),
+            [new(typeof(Matrix), "diag")] = typeof(Matrix).Get(nameof(Matrix.Diagonal)),
+            [new(typeof(Matrix), "inverse")] = typeof(Matrix).Get(nameof(Matrix.Inverse)),
+            [new(typeof(Matrix), "issym")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
+            [new(typeof(Matrix), "sym")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
+            [new(typeof(Matrix), "issymmetric")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
+            [new(typeof(Matrix), "stats")] = typeof(Matrix).Get(nameof(Matrix.Stats)),
+
+            [new(typeof(MvoModel), "length")] = typeof(MvoModel).Prop(nameof(MvoModel.Length)),
+            [new(typeof(MvoModel), "first")] = typeof(MvoModel).Prop(nameof(MvoModel.First)),
+            [new(typeof(MvoModel), "last")] = typeof(MvoModel).Prop(nameof(MvoModel.Last)),
+            [new(typeof(MvoModel), "size")] = typeof(MvoModel).Prop(nameof(MvoModel.Size)),
+
+            [new(typeof(NVector), "abs")] = typeof(NVector).Get(nameof(NVector.Abs)),
+            [new(typeof(NVector), "distinct")] = typeof(NVector).Get(nameof(NVector.Distinct)),
+            [new(typeof(NVector), "first")] = typeof(NVector).Prop(nameof(NVector.First)),
+            [new(typeof(NVector), "last")] = typeof(NVector).Prop(nameof(NVector.Last)),
+            [new(typeof(NVector), "length")] = typeof(NVector).Prop(nameof(NVector.Length)),
+            [new(typeof(NVector), "max")] = typeof(NVector).Get(nameof(NVector.Maximum)),
+            [new(typeof(NVector), "min")] = typeof(NVector).Get(nameof(NVector.Minimum)),
+            [new(typeof(NVector), "prod")] = typeof(NVector).Get(nameof(NVector.Product)),
+            [new(typeof(NVector), "product")] = typeof(NVector).Get(nameof(NVector.Product)),
+            [new(typeof(NVector), "reverse")] = typeof(NVector).Get(nameof(NVector.Reverse)),
+            [new(typeof(NVector), "sort")] = typeof(NVector).Get(nameof(NVector.Sort)),
+            [new(typeof(NVector), "sum")] = typeof(NVector).Get(nameof(NVector.Sum)),
+
+            [new(typeof(Point<Date>), "value")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Value)),
+            [new(typeof(Point<Date>), "date")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Arg)),
+
+            [new(typeof(Portfolio), "weights")] = typeof(Portfolio).Prop(nameof(Portfolio.Weights)),
+            [new(typeof(Portfolio), "lambda")] = typeof(Portfolio).Prop(nameof(Portfolio.Lambda)),
+            [new(typeof(Portfolio), "ret")] = typeof(Portfolio).Prop(nameof(Portfolio.Mean)),
+            [new(typeof(Portfolio), "var")] = typeof(Portfolio).Prop(nameof(Portfolio.Variance)),
+            [new(typeof(Portfolio), "std")] = typeof(Portfolio).Prop(nameof(Portfolio.StdDev)),
+
+            [new(typeof(RMatrix), "det")] = typeof(RMatrix).Get(nameof(RMatrix.Determinant)),
+            [new(typeof(RMatrix), "trace")] = typeof(RMatrix).Get(nameof(RMatrix.Trace)),
+            [new(typeof(RMatrix), "rows")] = typeof(RMatrix).Prop(nameof(RMatrix.Rows)),
+            [new(typeof(RMatrix), "cols")] = typeof(RMatrix).Prop(nameof(RMatrix.Cols)),
+            [new(typeof(RMatrix), "amax")] = typeof(RMatrix).Get(nameof(RMatrix.AMax)),
+            //[new(typeof(RMatrix),"amin")] = typeof(RMatrix).Get(nameof(RMatrix.AMin)),
+            //[new(typeof(RMatrix),"max")] = typeof(RMatrix).Get(nameof(RMatrix.Maximum)),
+            //[new(typeof(RMatrix),"min")] = typeof(RMatrix).Get(nameof(RMatrix.Minimum)),
+            [new(typeof(RMatrix), "diag")] = typeof(RMatrix).Get(nameof(RMatrix.Diagonal)),
 
             [new(typeof(Series), "count")] = typeof(Series).Prop(nameof(Series.Count)),
             [new(typeof(Series), "length")] = typeof(Series).Prop(nameof(Series.Count)),
@@ -505,6 +934,18 @@ internal sealed partial class ParserBindings
             [new(typeof(Series), "linearfit")] = typeof(Series).Get(nameof(Series.LinearFit)),
             [new(typeof(Series), "acf")] = typeof(Series).Get(nameof(Series.ACF)),
 
+            [new(typeof(Series<double>), "stats")] = typeof(Series<double>).Prop(nameof(Series<double>.Stats)),
+            [new(typeof(Series<double>), "first")] = typeof(Series<double>).Prop(nameof(Series<double>.First)),
+            [new(typeof(Series<double>), "last")] = typeof(Series<double>).Prop(nameof(Series<double>.Last)),
+            [new(typeof(Series<double>), "values")] = typeof(Series<double>).Prop(nameof(Series<double>.Values)),
+            [new(typeof(Series<double>), "sum")] = typeof(Series<double>).Get(nameof(Series<double>.Sum)),
+
+            [new(typeof(Series<int>), "stats")] = typeof(Series<int>).Prop(nameof(Series<int>.Stats)),
+            [new(typeof(Series<int>), "first")] = typeof(Series<int>).Prop(nameof(Series<int>.First)),
+            [new(typeof(Series<int>), "last")] = typeof(Series<int>).Prop(nameof(Series<int>.Last)),
+            [new(typeof(Series<int>), "values")] = typeof(Series<int>).Prop(nameof(Series<int>.Values)),
+            [new(typeof(Series<int>), "sum")] = typeof(Series<int>).Get(nameof(Series<int>.Sum)),
+
             [new(typeof(Vector), "abs")] = typeof(Vector).Get(nameof(Vector.Abs)),
             [new(typeof(Vector), "acf")] = typeof(Vector).Get(nameof(Vector.ACF)),
             [new(typeof(Vector), "amax")] = typeof(Vector).Get(nameof(Vector.AMax)),
@@ -528,164 +969,6 @@ internal sealed partial class ParserBindings
             [new(typeof(Vector), "stats")] = typeof(Vector).Get(nameof(Vector.Stats)),
             [new(typeof(Vector), "sum")] = typeof(Vector).Get(nameof(Vector.Sum)),
 
-            [new(typeof(Acc), "count")] = typeof(Acc).Prop(nameof(Acc.Count)),
-            [new(typeof(Acc), "min")] = typeof(Acc).Prop(nameof(Acc.Minimum)),
-            [new(typeof(Acc), "max")] = typeof(Acc).Prop(nameof(Acc.Maximum)),
-            [new(typeof(Acc), "mean")] = typeof(Acc).Prop(nameof(Acc.Mean)),
-            [new(typeof(Acc), "var")] = typeof(Acc).Prop(nameof(Acc.Variance)),
-            [new(typeof(Acc), "varp")] = typeof(Acc).Prop(nameof(Acc.PopulationVariance)),
-            [new(typeof(Acc), "std")] = typeof(Acc).Prop(nameof(Acc.StandardDeviation)),
-            [new(typeof(Acc), "stdp")] = typeof(Acc).Prop(nameof(Acc.PopulationStandardDeviation)),
-            [new(typeof(Acc), "skew")] = typeof(Acc).Prop(nameof(Acc.Skewness)),
-            [new(typeof(Acc), "skewp")] = typeof(Acc).Prop(nameof(Acc.PopulationSkewness)),
-            [new(typeof(Acc), "kurt")] = typeof(Acc).Prop(nameof(Acc.Kurtosis)),
-            [new(typeof(Acc), "kurtp")] = typeof(Acc).Prop(nameof(Acc.PopulationKurtosis)),
-            [new(typeof(Matrix), "det")] = typeof(Matrix).Get(nameof(Matrix.Determinant)),
-            [new(typeof(Matrix), "chol")] = typeof(Matrix).Get(nameof(Matrix.CholeskyMatrix)),
-            [new(typeof(Matrix), "evd")] = typeof(Matrix).GetMethod(nameof(Matrix.EVD), Type.EmptyTypes)!,
-            [new(typeof(Matrix), "trace")] = typeof(Matrix).Get(nameof(Matrix.Trace)),
-            [new(typeof(Matrix), "rows")] = typeof(Matrix).Prop(nameof(Matrix.Rows)),
-            [new(typeof(Matrix), "cols")] = typeof(Matrix).Prop(nameof(Matrix.Cols)),
-            [new(typeof(Matrix), "amax")] = typeof(Matrix).Get(nameof(Matrix.AMax)),
-            [new(typeof(Matrix), "amin")] = typeof(Matrix).Get(nameof(Matrix.AMin)),
-            [new(typeof(Matrix), "max")] = typeof(Matrix).Get(nameof(Matrix.Maximum)),
-            [new(typeof(Matrix), "min")] = typeof(Matrix).Get(nameof(Matrix.Minimum)),
-            [new(typeof(Matrix), "diag")] = typeof(Matrix).Get(nameof(Matrix.Diagonal)),
-            [new(typeof(Matrix), "inverse")] = typeof(Matrix).Get(nameof(Matrix.Inverse)),
-            [new(typeof(Matrix), "issym")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
-            [new(typeof(Matrix), "sym")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
-            [new(typeof(Matrix), "issymmetric")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
-            [new(typeof(Matrix), "stats")] = typeof(Matrix).Get(nameof(Matrix.Stats)),
-
-            [new(typeof(CVector), "amax")] = typeof(CVector).Get(nameof(CVector.AbsMax)),
-            [new(typeof(CVector), "amin")] = typeof(CVector).Get(nameof(CVector.AbsMin)),
-            [new(typeof(CVector), "amplitudes")] = typeof(CVector).Get(nameof(CVector.Magnitudes)),
-            [new(typeof(CVector), "distinct")] = typeof(CVector).Get(nameof(CVector.Distinct)),
-            [new(typeof(CVector), "fft")] = typeof(CVector).Get(nameof(CVector.Fft)),
-            [new(typeof(CVector), "first")] = typeof(CVector).Prop(nameof(CVector.First)),
-            [new(typeof(CVector), "im")] = typeof(CVector).Prop(nameof(CVector.Imaginary)),
-            [new(typeof(CVector), "imag")] = typeof(CVector).Prop(nameof(CVector.Imaginary)),
-            [new(typeof(CVector), "imaginary")] = typeof(CVector).Prop(nameof(CVector.Imaginary)),
-            [new(typeof(CVector), "last")] = typeof(CVector).Prop(nameof(CVector.Last)),
-            [new(typeof(CVector), "length")] = typeof(CVector).Prop(nameof(CVector.Length)),
-            [new(typeof(CVector), "mag")] = typeof(CVector).Get(nameof(CVector.Magnitudes)),
-            [new(typeof(CVector), "mags")] = typeof(CVector).Get(nameof(CVector.Magnitudes)),
-            [new(typeof(CVector), "magnitudes")] = typeof(CVector).Get(nameof(CVector.Magnitudes)),
-            [new(typeof(CVector), "mean")] = typeof(CVector).Get(nameof(CVector.Mean)),
-            [new(typeof(CVector), "norm")] = typeof(CVector).Get(nameof(CVector.Norm)),
-            [new(typeof(CVector), "phases")] = typeof(CVector).Get(nameof(CVector.Phases)),
-            [new(typeof(CVector), "plot")] = typeof(CVector).Get(nameof(CVector.Plot)),
-            [new(typeof(CVector), "re")] = typeof(CVector).Prop(nameof(CVector.Real)),
-            [new(typeof(CVector), "real")] = typeof(CVector).Prop(nameof(CVector.Real)),
-            [new(typeof(CVector), "reverse")] = typeof(CVector).Get(nameof(CVector.Reverse)),
-            [new(typeof(CVector), "sqr")] = typeof(CVector).Get(nameof(CVector.Squared)),
-            [new(typeof(CVector), "sum")] = typeof(CVector).Get(nameof(CVector.Sum)),
-
-            [new(typeof(DSequence), "acf")] = typeof(DSequence).Get(nameof(DSequence.ACF)),
-            [new(typeof(DSequence), "distinct")] = typeof(DSequence).Get(nameof(DSequence.Distinct)),
-            [new(typeof(DSequence), "first")] = typeof(DSequence).Get(nameof(DSequence.First)),
-            [new(typeof(DSequence), "fft")] = typeof(DSequence).Get(nameof(DSequence.Fft)),
-            [new(typeof(DSequence), "last")] = typeof(DSequence).Get(nameof(DSequence.Last)),
-            [new(typeof(DSequence), "length")] = typeof(DSequence).Get(nameof(DSequence.Length)),
-            [new(typeof(DSequence), "min")] = typeof(DSequence).Get(nameof(DSequence.Min)),
-            [new(typeof(DSequence), "max")] = typeof(DSequence).Get(nameof(DSequence.Max)),
-            [new(typeof(DSequence), "plot")] = typeof(DSequence).Get(nameof(DSequence.Plot)),
-            [new(typeof(DSequence), "prod")] = typeof(DSequence).Get(nameof(DSequence.Product)),
-            [new(typeof(DSequence), "product")] = typeof(DSequence).Get(nameof(DSequence.Product)),
-            [new(typeof(DSequence), "sort")] = typeof(DSequence).Get(nameof(DSequence.Sort)),
-            [new(typeof(DSequence), "sortasc")] = typeof(DSequence).Get(nameof(DSequence.Sort)),
-            [new(typeof(DSequence), "sortdesc")] = typeof(DSequence).Get(nameof(DSequence.SortDescending)),
-            [new(typeof(DSequence), "stats")] = typeof(DSequence).Get(nameof(DSequence.Stats)),
-            [new(typeof(DSequence), "sum")] = typeof(DSequence).Get(nameof(DSequence.Sum)),
-            [new(typeof(DSequence), "tovector")] = typeof(DSequence).Get(nameof(DSequence.ToVector)),
-
-            [new(typeof(CSequence), "distinct")] = typeof(CSequence).Get(nameof(CSequence.Distinct)),
-            [new(typeof(CSequence), "first")] = typeof(CSequence).Get(nameof(CSequence.First)),
-            [new(typeof(CSequence), "fft")] = typeof(CSequence).Get(nameof(CSequence.Fft)),
-            [new(typeof(CSequence), "last")] = typeof(CSequence).Get(nameof(CSequence.Last)),
-            [new(typeof(CSequence), "length")] = typeof(CSequence).Get(nameof(CSequence.Length)),
-            [new(typeof(CSequence), "plot")] = typeof(CSequence).Get(nameof(CSequence.Plot)),
-            [new(typeof(CSequence), "prod")] = typeof(CSequence).Get(nameof(CSequence.Product)),
-            [new(typeof(CSequence), "product")] = typeof(CSequence).Get(nameof(CSequence.Product)),
-            [new(typeof(CSequence), "sum")] = typeof(CSequence).Get(nameof(CSequence.Sum)),
-            [new(typeof(CSequence), "tovector")] = typeof(CSequence).Get(nameof(CSequence.ToVector)),
-
-            [new(typeof(LMatrix), "det")] = typeof(LMatrix).Get(nameof(LMatrix.Determinant)),
-            [new(typeof(LMatrix), "trace")] = typeof(LMatrix).Get(nameof(LMatrix.Trace)),
-            [new(typeof(LMatrix), "rows")] = typeof(LMatrix).Prop(nameof(LMatrix.Rows)),
-            [new(typeof(LMatrix), "cols")] = typeof(LMatrix).Prop(nameof(LMatrix.Cols)),
-            [new(typeof(LMatrix), "amax")] = typeof(LMatrix).Get(nameof(LMatrix.AMax)),
-            [new(typeof(LMatrix), "amin")] = typeof(LMatrix).Get(nameof(LMatrix.AMin)),
-            [new(typeof(LMatrix), "max")] = typeof(LMatrix).Get(nameof(LMatrix.Maximum)),
-            [new(typeof(LMatrix), "min")] = typeof(LMatrix).Get(nameof(LMatrix.Minimum)),
-            [new(typeof(LMatrix), "diag")] = typeof(LMatrix).Get(nameof(LMatrix.Diagonal)),
-            [new(typeof(RMatrix), "det")] = typeof(RMatrix).Get(nameof(RMatrix.Determinant)),
-            [new(typeof(RMatrix), "trace")] = typeof(RMatrix).Get(nameof(RMatrix.Trace)),
-            [new(typeof(RMatrix), "rows")] = typeof(RMatrix).Prop(nameof(RMatrix.Rows)),
-            [new(typeof(RMatrix), "cols")] = typeof(RMatrix).Prop(nameof(RMatrix.Cols)),
-            //[new(typeof(RMatrix),"amax")] = typeof(RMatrix).Get(nameof(RMatrix.AMax)),
-            //[new(typeof(RMatrix),"amin")] = typeof(RMatrix).Get(nameof(RMatrix.AMin)),
-            //[new(typeof(RMatrix),"max")] = typeof(RMatrix).Get(nameof(RMatrix.Maximum)),
-            //[new(typeof(RMatrix),"min")] = typeof(RMatrix).Get(nameof(RMatrix.Minimum)),
-            [new(typeof(RMatrix), "diag")] = typeof(RMatrix).Get(nameof(RMatrix.Diagonal)),
-            [new(typeof(EVD), "vectors")] = typeof(EVD).Prop(nameof(EVD.Vectors)),
-            [new(typeof(EVD), "values")] = typeof(EVD).Prop(nameof(EVD.Values)),
-            [new(typeof(EVD), "d")] = typeof(EVD).Prop(nameof(EVD.D)),
-            [new(typeof(EVD), "rank")] = typeof(EVD).Get(nameof(EVD.Rank)),
-            [new(typeof(EVD), "det")] = typeof(EVD).Get(nameof(EVD.Determinant)),
-            [new(typeof(LinearSModel), "original")] = typeof(LinearSModel).Prop(nameof(LinearSModel.Original)),
-            [new(typeof(LinearSModel), "prediction")] = typeof(LinearSModel).Prop(nameof(LinearSModel.Prediction)),
-            [new(typeof(LinearSModel), "weights")] = typeof(LinearSModel).Prop(nameof(LinearSModel.Weights)),
-            [new(typeof(LinearSModel), "r2")] = typeof(LinearSModel).Prop(nameof(LinearSModel.R2)),
-            [new(typeof(LinearSModel), "rss")] = typeof(LinearSModel).Prop(nameof(LinearSModel.ResidualSumSquares)),
-            [new(typeof(LinearSModel), "tss")] = typeof(LinearSModel).Prop(nameof(LinearSModel.TotalSumSquares)),
-            [new(typeof(LinearVModel), "original")] = typeof(LinearVModel).Prop(nameof(LinearVModel.Original)),
-            [new(typeof(LinearVModel), "prediction")] = typeof(LinearVModel).Prop(nameof(LinearVModel.Prediction)),
-            [new(typeof(LinearVModel), "weights")] = typeof(LinearVModel).Prop(nameof(LinearVModel.Weights)),
-            [new(typeof(LinearVModel), "r2")] = typeof(LinearVModel).Prop(nameof(LinearVModel.R2)),
-            [new(typeof(LinearVModel), "rss")] = typeof(LinearVModel).Prop(nameof(LinearVModel.ResidualSumSquares)),
-            [new(typeof(LinearVModel), "tss")] = typeof(LinearVModel).Prop(nameof(LinearVModel.TotalSumSquares)),
-            [new(typeof(Series<int>), "stats")] = typeof(Series<int>).Prop(nameof(Series<int>.Stats)),
-            [new(typeof(Series<int>), "first")] = typeof(Series<int>).Prop(nameof(Series<int>.First)),
-            [new(typeof(Series<int>), "last")] = typeof(Series<int>).Prop(nameof(Series<int>.Last)),
-            [new(typeof(Series<int>), "values")] = typeof(Series<int>).Prop(nameof(Series<int>.Values)),
-            [new(typeof(Series<int>), "sum")] = typeof(Series<int>).Get(nameof(Series<int>.Sum)),
-            [new(typeof(Series<double>), "stats")] = typeof(Series<double>).Prop(nameof(Series<double>.Stats)),
-            [new(typeof(Series<double>), "first")] = typeof(Series<double>).Prop(nameof(Series<double>.First)),
-            [new(typeof(Series<double>), "last")] = typeof(Series<double>).Prop(nameof(Series<double>.Last)),
-            [new(typeof(Series<double>), "values")] = typeof(Series<double>).Prop(nameof(Series<double>.Values)),
-            [new(typeof(Series<double>), "sum")] = typeof(Series<double>).Get(nameof(Series<double>.Sum)),
-            [new(typeof(MvoModel), "length")] = typeof(MvoModel).Prop(nameof(MvoModel.Length)),
-            [new(typeof(MvoModel), "first")] = typeof(MvoModel).Prop(nameof(MvoModel.First)),
-            [new(typeof(MvoModel), "last")] = typeof(MvoModel).Prop(nameof(MvoModel.Last)),
-            [new(typeof(MvoModel), "size")] = typeof(MvoModel).Prop(nameof(MvoModel.Size)),
-            [new(typeof(Portfolio), "weights")] = typeof(Portfolio).Prop(nameof(Portfolio.Weights)),
-            [new(typeof(Portfolio), "lambda")] = typeof(Portfolio).Prop(nameof(Portfolio.Lambda)),
-            [new(typeof(Portfolio), "ret")] = typeof(Portfolio).Prop(nameof(Portfolio.Mean)),
-            [new(typeof(Portfolio), "var")] = typeof(Portfolio).Prop(nameof(Portfolio.Variance)),
-            [new(typeof(Portfolio), "std")] = typeof(Portfolio).Prop(nameof(Portfolio.StdDev)),
-            [new(typeof(ARSModel), "original")] = typeof(ARSModel).Prop(nameof(ARSModel.Original)),
-            [new(typeof(ARSModel), "prediction")] = typeof(ARSModel).Prop(nameof(ARSModel.Prediction)),
-            [new(typeof(ARSModel), "coefficients")] = typeof(ARSModel).Prop(nameof(ARSModel.Coefficients)),
-            [new(typeof(ARSModel), "coeff")] = typeof(ARSModel).Prop(nameof(ARSModel.Coefficients)),
-            [new(typeof(ARSModel), "r2")] = typeof(ARSModel).Prop(nameof(ARSModel.R2)),
-            [new(typeof(ARSModel), "rss")] = typeof(ARSModel).Prop(nameof(ARSModel.ResidualSumSquares)),
-            [new(typeof(ARSModel), "tss")] = typeof(ARSModel).Prop(nameof(ARSModel.TotalSumSquares)),
-            [new(typeof(ARVModel), "original")] = typeof(ARVModel).Prop(nameof(ARVModel.Original)),
-            [new(typeof(ARVModel), "prediction")] = typeof(ARVModel).Prop(nameof(ARVModel.Prediction)),
-            [new(typeof(ARVModel), "coefficients")] = typeof(ARVModel).Prop(nameof(ARVModel.Coefficients)),
-            [new(typeof(ARVModel), "coeff")] = typeof(ARVModel).Prop(nameof(ARVModel.Coefficients)),
-            [new(typeof(ARVModel), "r2")] = typeof(ARVModel).Prop(nameof(ARVModel.R2)),
-            [new(typeof(ARVModel), "rss")] = typeof(ARVModel).Prop(nameof(ARVModel.ResidualSumSquares)),
-            [new(typeof(ARVModel), "tss")] = typeof(ARVModel).Prop(nameof(ARVModel.TotalSumSquares)),
-            [new(typeof(Point<Date>), "value")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Value)),
-            [new(typeof(Point<Date>), "date")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Arg)),
-            [new(typeof(Date), "day")] = typeof(Date).Prop(nameof(Date.Day)),
-            [new(typeof(Date), "month")] = typeof(Date).Prop(nameof(Date.Month)),
-            [new(typeof(Date), "year")] = typeof(Date).Prop(nameof(Date.Year)),
-            [new(typeof(Date), "dow")] = typeof(Date).Prop(nameof(Date.DayOfWeek)),
-            [new(typeof(Date), "isleap")] = typeof(Date).Get(nameof(Date.IsLeap)),
-            [new(typeof(DateSpline), "length")] = typeof(DateSpline).Prop(nameof(DateSpline.Length)),
             [new(typeof(VectorSpline), "length")] = typeof(DateSpline).Prop(nameof(DateSpline.Length)),
         }.ToFrozenDictionary();
 
@@ -693,73 +976,30 @@ internal sealed partial class ParserBindings
     private static readonly FrozenDictionary<TypeId, MethodInfo> methods =
         new Dictionary<TypeId, MethodInfo>()
         {
-            [new(typeof(Series), "any")] = typeof(Series).Get(nameof(Series.Any)),
-            [new(typeof(Series), "all")] = typeof(Series).Get(nameof(Series.All)),
-            [new(typeof(Series), "ar")] = typeof(Series).Get(nameof(Series.AutoRegression)),
-            [new(typeof(Series), "armodel")] = typeof(Series).Get(nameof(Series.ARModel)),
-            [new(typeof(Series), "autocorr")] = typeof(Series).Get(nameof(Series.AutoCorrelation)),
-            [new(typeof(Series), "corr")] = typeof(Series).Get(nameof(Series.Correlation)),
-            [new(typeof(Series), "correlogram")] = typeof(Series).Get(nameof(Series.Correlogram)),
-            [new(typeof(Series), "cov")] = typeof(Series).Get(nameof(Series.Covariance)),
-            [new(typeof(Series), "ewma")] = typeof(Series).Get(nameof(Series.EWMA)),
-            [new(typeof(Series), "indexof")] = typeof(Series).GetMethod(nameof(Series.IndexOf), DoubleArg)!,
-            [new(typeof(Series), "filter")] = typeof(Series).Get(nameof(Series.Filter)),
-            [new(typeof(Series), "linear")] = typeof(Series).Get(nameof(Series.LinearModel)),
-            [new(typeof(Series), "linearmodel")] = typeof(Series).Get(nameof(Series.FullLinearModel)),
-            [new(typeof(Series), "map")] = typeof(Series).Get(nameof(Series.Map)),
-            [new(typeof(Series), "movingavg")] = typeof(Series).Get(nameof(Series.MovingAvg)),
-            [new(typeof(Series), "movingncdf")] = typeof(Series).Get(nameof(Series.MovingNcdf)),
-            [new(typeof(Series), "movingstd")] = typeof(Series).GetMethod(nameof(Series.MovingStd), IntArg)!,
-            [new(typeof(Series), "ncdf")] = typeof(Series).GetMethod(nameof(Series.NCdf), DoubleArg)!,
-            [new(typeof(Series), "stats")] = typeof(Series).GetMethod(nameof(Series.GetSliceStats), [typeof(Date)])!,
-            [new(typeof(Series), "zip")] = typeof(Series).Get(nameof(Series.Zip)),
-
-            [new(typeof(DateSpline), "poly")] = typeof(DateSpline).Get(nameof(DateSpline.GetPoly)),
-            [new(typeof(DateSpline), "derivative")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
-            [new(typeof(DateSpline), "deriv")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
-            [new(typeof(DateSpline), "der")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
-            [new(typeof(VectorSpline), "poly")] = typeof(VectorSpline).Get(nameof(VectorSpline.GetPoly)),
-            [new(typeof(VectorSpline), "derivative")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
-            [new(typeof(VectorSpline), "deriv")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
-            [new(typeof(VectorSpline), "der")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
-
-            [new(typeof(Vector), "all")] = typeof(Vector).Get(nameof(Vector.All)),
-            [new(typeof(Vector), "any")] = typeof(Vector).Get(nameof(Vector.Any)),
-            [new(typeof(Vector), "ar")] = typeof(Vector).Get(nameof(Vector.AutoRegression)),
-            [new(typeof(Vector), "armodel")] = typeof(Vector).Get(nameof(Vector.ARModel)),
-            [new(typeof(Vector), "autocorr")] = typeof(Vector).Get(nameof(Vector.AutoCorrelation)),
-            [new(typeof(Vector), "correlogram")] = typeof(Vector).Get(nameof(Vector.Correlogram)),
-            [new(typeof(Vector), "filter")] = typeof(Vector).Get(nameof(Vector.Filter)),
-            [new(typeof(Vector), "indexof")] = typeof(Vector).GetMethod(nameof(Vector.IndexOf), DoubleArg)!,
-            [new(typeof(Vector), "linear")] = typeof(Vector).Get(nameof(Vector.LinearModel)),
-            [new(typeof(Vector), "linearmodel")] = typeof(Vector).Get(nameof(Vector.FullLinearModel)),
-            [new(typeof(Vector), "map")] = typeof(Vector).Get(nameof(Vector.Map)),
-            [new(typeof(Vector), "reduce")] = typeof(Vector).Get(nameof(Vector.Reduce)),
-            [new(typeof(Vector), "zip")] = typeof(Vector).Get(nameof(Vector.Zip)),
+            [new(typeof(CSequence), "filter")] = typeof(CSequence).Get(nameof(CSequence.Filter)),
+            [new(typeof(CSequence), "map")] = typeof(CSequence).Get(nameof(CSequence.Map)),
+            [new(typeof(CSequence), "zip")] = typeof(CSequence).Get(nameof(CSequence.Zip)),
+            [new(typeof(CSequence), "reduce")] = typeof(CSequence).Get(nameof(CSequence.Reduce)),
+            [new(typeof(CSequence), "any")] = typeof(CSequence).Get(nameof(CSequence.Any)),
+            [new(typeof(CSequence), "all")] = typeof(CSequence).Get(nameof(CSequence.All)),
 
             [new(typeof(CVector), "all")] = typeof(CVector).Get(nameof(CVector.All)),
             [new(typeof(CVector), "any")] = typeof(CVector).Get(nameof(CVector.Any)),
             [new(typeof(CVector), "filter")] = typeof(CVector).Get(nameof(CVector.Filter)),
-            [new(typeof(CVector), "indexof")] = typeof(CVector).GetMethod(nameof(CVector.IndexOf),
-                    ComplexArg)!,
+            [new(typeof(CVector), "indexof")] = typeof(CVector).GetMethod(nameof(CVector.IndexOf), CArg)!,
             [new(typeof(CVector), "map")] = typeof(CVector).Get(nameof(CVector.Map)),
             [new(typeof(CVector), "mapreal")] = typeof(CVector).Get(nameof(CVector.MapReal)),
             [new(typeof(CVector), "mapr")] = typeof(CVector).Get(nameof(CVector.MapReal)),
             [new(typeof(CVector), "reduce")] = typeof(CVector).Get(nameof(CVector.Reduce)),
             [new(typeof(CVector), "zip")] = typeof(CVector).Get(nameof(CVector.Zip)),
 
-            [new(typeof(Date), "addmonths")] = typeof(Date).GetMethod(nameof(Date.AddMonths), IntArg)!,
+            [new(typeof(Date), "addmonths")] = typeof(Date).GetMethod(nameof(Date.AddMonths), NArg)!,
             [new(typeof(Date), "addyears")] = typeof(Date).Get(nameof(Date.AddYears)),
-            [new(typeof(Matrix), "getcol")] = typeof(Matrix).GetMethod(nameof(Matrix.GetColumn), IntArg)!,
-            [new(typeof(Matrix), "getrow")] = typeof(Matrix).GetMethod(nameof(Matrix.GetRow), IntArg)!,
-            [new(typeof(Matrix), "map")] = typeof(Matrix).Get(nameof(Matrix.Map)),
-            [new(typeof(Matrix), "any")] = typeof(Matrix).Get(nameof(Matrix.Any)),
-            [new(typeof(Matrix), "all")] = typeof(Matrix).Get(nameof(Matrix.All)),
 
-            [new(typeof(Polynomial), "eval")] = typeof(Polynomial).Get(nameof(Polynomial.Eval)),
-            [new(typeof(Polynomial), "derivative")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
-            [new(typeof(Polynomial), "deriv")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
-            [new(typeof(Polynomial), "der")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
+            [new(typeof(DateSpline), "poly")] = typeof(DateSpline).Get(nameof(DateSpline.GetPoly)),
+            [new(typeof(DateSpline), "derivative")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
+            [new(typeof(DateSpline), "deriv")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
+            [new(typeof(DateSpline), "der")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
 
             [new(typeof(DSequence), "filter")] = typeof(DSequence).Get(nameof(DSequence.Filter)),
             [new(typeof(DSequence), "map")] = typeof(DSequence).Get(nameof(DSequence.Map)),
@@ -769,238 +1009,66 @@ internal sealed partial class ParserBindings
             [new(typeof(DSequence), "all")] = typeof(DSequence).Get(nameof(DSequence.All)),
             [new(typeof(DSequence), "armodel")] = typeof(DSequence).Get(nameof(DSequence.ARModel)),
 
-            [new(typeof(CSequence), "filter")] = typeof(CSequence).Get(nameof(CSequence.Filter)),
-            [new(typeof(CSequence), "map")] = typeof(CSequence).Get(nameof(CSequence.Map)),
-            [new(typeof(CSequence), "zip")] = typeof(CSequence).Get(nameof(CSequence.Zip)),
-            [new(typeof(CSequence), "reduce")] = typeof(CSequence).Get(nameof(CSequence.Reduce)),
-            [new(typeof(CSequence), "any")] = typeof(CSequence).Get(nameof(CSequence.Any)),
-            [new(typeof(CSequence), "all")] = typeof(CSequence).Get(nameof(CSequence.All)),
-        }.ToFrozenDictionary();
+            [new(typeof(Matrix), "getcol")] = typeof(Matrix).GetMethod(nameof(Matrix.GetColumn), NArg)!,
+            [new(typeof(Matrix), "getrow")] = typeof(Matrix).GetMethod(nameof(Matrix.GetRow), NArg)!,
+            [new(typeof(Matrix), "map")] = typeof(Matrix).Get(nameof(Matrix.Map)),
+            [new(typeof(Matrix), "any")] = typeof(Matrix).Get(nameof(Matrix.Any)),
+            [new(typeof(Matrix), "all")] = typeof(Matrix).Get(nameof(Matrix.All)),
 
-    private static readonly MethodList MatrixEye = new(
-        typeof(Matrix).MD(nameof(Matrix.Identity), IntArg));
-    private static readonly MethodList MatrixCovariance = new(
-        typeof(Series<Date>).MD(nameof(Series.CovarianceMatrix), typeof(Series[])));
-    private static readonly MethodList MatrixCorrelation = new(
-        typeof(Series<Date>).MD(nameof(Series.CorrelationMatrix), typeof(Series[])));
-    private static readonly MethodList ModelPlot = new(
-        typeof(Plot<Vector>).MD(VectorVectorArg),
-        typeof(Plot<Vector>).MD(VectorArg),
-        typeof(Plot<CVector>).MD(typeof(CVector), typeof(CVector)),
-        typeof(Plot<CVector>).MD(typeof(CVector)),
-        typeof(Plot<Series>).MD(typeof(Series), typeof(Series)),
-        typeof(Plot<Series>).MD(typeof(Series)));
-    private static readonly MethodList PolyDerivative = new(
-        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), DoubleVectorArg),
-        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
-        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(Vector)),
-        typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
+            [new(typeof(NVector), "all")] = typeof(NVector).Get(nameof(NVector.All)),
+            [new(typeof(NVector), "any")] = typeof(NVector).Get(nameof(NVector.Any)),
+            [new(typeof(NVector), "filter")] = typeof(NVector).Get(nameof(NVector.Filter)),
+            [new(typeof(NVector), "indexof")] = typeof(NVector).GetMethod(nameof(NVector.IndexOf), NArg)!,
+            [new(typeof(NVector), "map")] = typeof(NVector).Get(nameof(NVector.Map)),
+            [new(typeof(NVector), "mapr")] = typeof(NVector).Get(nameof(NVector.MapReal)),
+            [new(typeof(NVector), "mapreal")] = typeof(NVector).Get(nameof(NVector.MapReal)),
+            [new(typeof(NVector), "reduce")] = typeof(NVector).Get(nameof(NVector.Reduce)),
+            [new(typeof(NVector), "zip")] = typeof(NVector).Get(nameof(NVector.Zip)),
 
-    /// <summary>Information for class methods.</summary>
-    /// <remarks>
-    /// An AUSTRA class method may be implemented either by a static method or by a constructor.
-    /// </remarks>
-    private readonly FrozenDictionary<string, MethodList> classMethods =
-        new Dictionary<string, MethodList>()
-        {
-            ["series.new"] = new(
-                typeof(Series).MD(nameof(Series.Combine), typeof(Vector), typeof(Series[]))),
-            ["spline.new"] = new(
-                typeof(DateSpline).MD(typeof(Series)),
-                typeof(VectorSpline).MD(VectorVectorArg),
-                typeof(VectorSpline).MD(
-                    typeof(double), typeof(double), typeof(int), typeof(Func<double, double>))),
-            ["vec.new"] = new(
-                typeof(Vector).MD(IntArg),
-                typeof(Vector).MD(nameof(Vector.Combine), typeof(Vector), typeof(Vector[])),
-                typeof(Vector).MD(typeof(int), typeof(Func<int, double>)),
-                typeof(Vector).MD(typeof(int), typeof(Func<int, Vector, double>))),
-            ["vec.nrandom"] = new(
-                typeof(Vector).MD(typeof(int), typeof(NormalRandom))),
-            ["vec.random"] = new(
-                typeof(Vector).MD(typeof(int), typeof(Random))),
-            ["vec.ones"] = new(
-                typeof(Vector).MD(typeof(int), typeof(One))),
-            ["cvec.new"] = new(
-                typeof(CVector).MD(VectorArg),
-                typeof(CVector).MD(VectorVectorArg),
-                typeof(CVector).MD(IntArg),
-                typeof(CVector).MD(typeof(int), typeof(Func<int, Complex>)),
-                typeof(CVector).MD(typeof(int), typeof(Func<int, CVector, Complex>))),
-            ["cvec.nrandom"] = new(
-                typeof(CVector).MD(typeof(int), typeof(NormalRandom))),
-            ["cvec.random"] = new(
-                typeof(CVector).MD(typeof(int), typeof(Random))),
-            ["ivec.new"] = new(
-                typeof(NVector).MD(IntArg),
-                typeof(NVector).MD(typeof(int), typeof(Func<int, int>)),
-                typeof(NVector).MD(typeof(int), typeof(Func<int, NVector, int>))),
-            ["ivec.ones"] = new(
-                typeof(NVector).MD(nameof(NVector.Ones), typeof(int))),
-            ["matrix.new"] = new(
-                typeof(Matrix).MD(IntArg),
-                typeof(Matrix).MD(IntIntArg),
-                typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
-            ["matrix.rows"] = new(
-                typeof(Matrix).MD(typeof(Vector[]))),
-            ["matrix.cols"] = new(
-                typeof(Matrix).MD(nameof(Matrix.FromColumns), typeof(Vector[]))),
-            ["matrix.diag"] = new(
-                typeof(Matrix).MD(VectorArg),
-                typeof(Matrix).MD(typeof(double[]))),
-            ["matrix.i"] = MatrixEye,
-            ["matrix.eye"] = MatrixEye,
-            ["matrix.random"] = new(
-                typeof(Matrix).MD(typeof(int), typeof(Random)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Random))),
-            ["matrix.nrandom"] = new(
-                typeof(Matrix).MD(typeof(int), typeof(NormalRandom)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
-            ["matrix.lrandom"] = new(
-                typeof(LMatrix).MD(typeof(int), typeof(Random)),
-                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(Random))),
-            ["matrix.lnrandom"] = new(
-                typeof(LMatrix).MD(typeof(int), typeof(NormalRandom)),
-                typeof(LMatrix).MD(typeof(int), typeof(int), typeof(NormalRandom))),
-            ["matrix.cov"] = MatrixCovariance,
-            ["matrix.covariance"] = MatrixCovariance,
-            ["matrix.corr"] = MatrixCorrelation,
-            ["matrix.correlation"] = MatrixCorrelation,
-            ["model.plot"] = ModelPlot,
-            ["model.mvo"] = new(
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix)),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Vector), typeof(Vector)),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(Series[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
-                    typeof(Vector), typeof(Vector), typeof(Series[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix), typeof(string[])),
-                typeof(MvoModel).MD(typeof(Vector), typeof(Matrix),
-                    typeof(Vector), typeof(Vector), typeof(string[]))),
-            ["math.polysolve"] = new(
-                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VectorArg),
-                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
-            ["math.polyeval"] = new(
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), DoubleVectorArg),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(Vector)),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
-            ["math.polyderivative"] = PolyDerivative,
-            ["math.polyderiv"] = PolyDerivative,
-            ["math.abs"] = new(
-                typeof(Math).MD(nameof(Math.Abs), IntArg),
-                typeof(Math).MD(nameof(Math.Abs), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Abs), ComplexArg)),
-            ["math.acos"] = new(
-                typeof(Math).MD(nameof(Math.Acos), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Acos), ComplexArg)),
-            ["math.asin"] = new(
-                typeof(Math).MD(nameof(Math.Asin), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Asin), ComplexArg)),
-            ["math.atan"] = new(
-                typeof(Math).MD(nameof(Math.Atan), DoubleArg),
-                typeof(Math).MD(nameof(Math.Atan2), DoubleDoubleArg),
-                typeof(Complex).MD(nameof(Complex.Atan), ComplexArg)),
-            ["math.beta"] = new(
-                typeof(Functions).MD(nameof(Functions.Beta), DoubleDoubleArg)),
-            ["math.cbrt"] = new(
-                typeof(Math).MD(nameof(Math.Cbrt), DoubleArg)),
-            ["math.cos"] = new(
-                typeof(Math).MD(nameof(Math.Cos), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Cos), ComplexArg)),
-            ["math.cosh"] = new(
-                typeof(Math).MD(nameof(Math.Cosh), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Cosh), ComplexArg)),
-            ["math.erf"] = new(
-                typeof(Functions).MD(nameof(Functions.Erf), DoubleArg)),
-            ["math.exp"] = new(
-                typeof(Math).MD(nameof(Math.Exp), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Exp), ComplexArg)),
-            ["math.gamma"] = new(
-                typeof(Functions).MD(nameof(Functions.Gamma), DoubleArg)),
-            ["math.lngamma"] = new(
-                typeof(Functions).MD(nameof(Functions.GammaLn), DoubleArg)),
-            ["math.log"] = new(
-                typeof(Math).MD(nameof(Math.Log), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Log), ComplexArg)),
-            ["math.log10"] = new(
-                typeof(Math).MD(nameof(Math.Log10), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Log10), ComplexArg)),
-            ["math.ncdf"] = new(
-                typeof(Functions).MD(nameof(Functions.NCdf), DoubleArg)),
-            ["math.probit"] = new(
-                typeof(Functions).MD(nameof(Functions.Probit), DoubleArg)),
-            ["math.sign"] = new(
-                typeof(Math).MD(nameof(Math.Sign), IntArg),
-                typeof(Math).MD(nameof(Math.Sign), DoubleArg)),
-            ["math.sin"] = new(
-                typeof(Math).MD(nameof(Math.Sin), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Sin), ComplexArg)),
-            ["math.sinh"] = new(
-                typeof(Math).MD(nameof(Math.Sinh), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Sinh), ComplexArg)),
-            ["math.tan"] = new(
-                typeof(Math).MD(nameof(Math.Tan), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Tan), ComplexArg)),
-            ["math.tanh"] = new(
-                typeof(Math).MD(nameof(Math.Tanh), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Tanh), ComplexArg)),
-            ["math.sqrt"] = new(
-                typeof(Math).MD(nameof(Math.Sqrt), DoubleArg),
-                typeof(Complex).MD(nameof(Complex.Sqrt), ComplexArg)),
-            ["math.trunc"] = new(
-                typeof(Math).MD(nameof(Math.Truncate), DoubleArg)),
-            ["math.round"] = new(
-                typeof(Math).MD(nameof(Math.Round), DoubleArg),
-                typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
-            ["math.plot"] = ModelPlot,
-            ["math.complex"] = new(
-                typeof(Complex).MD(DoubleDoubleArg),
-                typeof(Complex).MD(typeof(double), typeof(Zero))),
-            ["math.polar"] = new(
-                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), DoubleDoubleArg),
-                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
-            ["math.min"] = new(
-                typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Min), IntIntArg),
-               typeof(Math).MD(nameof(Math.Min), DoubleDoubleArg)),
-            ["math.max"] = new(
-                typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Max), IntIntArg),
-                typeof(Math).MD(nameof(Math.Max), DoubleDoubleArg)),
-            ["math.solve"] = new(
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double)),
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
-                    typeof(double)),
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
-                    typeof(double), typeof(int))),
-            ["seq.new"] = new(
-                typeof(DSequence).MD(nameof(DSequence.Create), IntIntArg),
-                typeof(DSequence).MD(nameof(DSequence.Create),
-                    typeof(double), typeof(double), typeof(int)),
-                typeof(DSequence).MD(nameof(DSequence.Create), typeof(Vector)),
-                typeof(DSequence).MD(nameof(DSequence.Create), typeof(Series))),
-            ["seq.random"] = new(
-                typeof(DSequence).MD(nameof(DSequence.Random), typeof(int))),
-            ["seq.nrandom"] = new(
-                typeof(DSequence).MD(nameof(DSequence.NormalRandom), typeof(int)),
-                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
-                    typeof(int), typeof(double)),
-                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
-                    typeof(int), typeof(double), typeof(Vector)),
-                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
-                    typeof(int), typeof(double),  typeof(double), typeof(Vector))),
-            ["cseq.new"] = new(
-                typeof(CSequence).MD(nameof(CSequence.Create), typeof(CVector))),
-            ["cseq.random"] = new(
-                typeof(CSequence).MD(nameof(CSequence.Random), typeof(int))),
-            ["cseq.nrandom"] = new(
-                typeof(CSequence).MD(nameof(CSequence.NormalRandom), typeof(int)),
-                typeof(CSequence).MD(nameof(CSequence.NormalRandom),
-                    typeof(int), typeof(double))),
+            [new(typeof(Polynomial), "eval")] = typeof(Polynomial).Get(nameof(Polynomial.Eval)),
+            [new(typeof(Polynomial), "derivative")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
+            [new(typeof(Polynomial), "deriv")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
+            [new(typeof(Polynomial), "der")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
+
+            [new(typeof(Series), "any")] = typeof(Series).Get(nameof(Series.Any)),
+            [new(typeof(Series), "all")] = typeof(Series).Get(nameof(Series.All)),
+            [new(typeof(Series), "ar")] = typeof(Series).Get(nameof(Series.AutoRegression)),
+            [new(typeof(Series), "armodel")] = typeof(Series).Get(nameof(Series.ARModel)),
+            [new(typeof(Series), "autocorr")] = typeof(Series).Get(nameof(Series.AutoCorrelation)),
+            [new(typeof(Series), "corr")] = typeof(Series).Get(nameof(Series.Correlation)),
+            [new(typeof(Series), "correlogram")] = typeof(Series).Get(nameof(Series.Correlogram)),
+            [new(typeof(Series), "cov")] = typeof(Series).Get(nameof(Series.Covariance)),
+            [new(typeof(Series), "ewma")] = typeof(Series).Get(nameof(Series.EWMA)),
+            [new(typeof(Series), "indexof")] = typeof(Series).GetMethod(nameof(Series.IndexOf), DArg)!,
+            [new(typeof(Series), "filter")] = typeof(Series).Get(nameof(Series.Filter)),
+            [new(typeof(Series), "linear")] = typeof(Series).Get(nameof(Series.LinearModel)),
+            [new(typeof(Series), "linearmodel")] = typeof(Series).Get(nameof(Series.FullLinearModel)),
+            [new(typeof(Series), "map")] = typeof(Series).Get(nameof(Series.Map)),
+            [new(typeof(Series), "movingavg")] = typeof(Series).Get(nameof(Series.MovingAvg)),
+            [new(typeof(Series), "movingncdf")] = typeof(Series).Get(nameof(Series.MovingNcdf)),
+            [new(typeof(Series), "movingstd")] = typeof(Series).GetMethod(nameof(Series.MovingStd), NArg)!,
+            [new(typeof(Series), "ncdf")] = typeof(Series).GetMethod(nameof(Series.NCdf), DArg)!,
+            [new(typeof(Series), "stats")] = typeof(Series).GetMethod(nameof(Series.GetSliceStats), [typeof(Date)])!,
+            [new(typeof(Series), "zip")] = typeof(Series).Get(nameof(Series.Zip)),
+
+            [new(typeof(Vector), "all")] = typeof(Vector).Get(nameof(Vector.All)),
+            [new(typeof(Vector), "any")] = typeof(Vector).Get(nameof(Vector.Any)),
+            [new(typeof(Vector), "ar")] = typeof(Vector).Get(nameof(Vector.AutoRegression)),
+            [new(typeof(Vector), "armodel")] = typeof(Vector).Get(nameof(Vector.ARModel)),
+            [new(typeof(Vector), "autocorr")] = typeof(Vector).Get(nameof(Vector.AutoCorrelation)),
+            [new(typeof(Vector), "correlogram")] = typeof(Vector).Get(nameof(Vector.Correlogram)),
+            [new(typeof(Vector), "filter")] = typeof(Vector).Get(nameof(Vector.Filter)),
+            [new(typeof(Vector), "indexof")] = typeof(Vector).GetMethod(nameof(Vector.IndexOf), DArg)!,
+            [new(typeof(Vector), "linear")] = typeof(Vector).Get(nameof(Vector.LinearModel)),
+            [new(typeof(Vector), "linearmodel")] = typeof(Vector).Get(nameof(Vector.FullLinearModel)),
+            [new(typeof(Vector), "map")] = typeof(Vector).Get(nameof(Vector.Map)),
+            [new(typeof(Vector), "reduce")] = typeof(Vector).Get(nameof(Vector.Reduce)),
+            [new(typeof(Vector), "zip")] = typeof(Vector).Get(nameof(Vector.Zip)),
+
+            [new(typeof(VectorSpline), "poly")] = typeof(VectorSpline).Get(nameof(VectorSpline.GetPoly)),
+            [new(typeof(VectorSpline), "derivative")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
+            [new(typeof(VectorSpline), "deriv")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
+            [new(typeof(VectorSpline), "der")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
         }.ToFrozenDictionary();
 
     /// <summary>Get root expressions for code completion.</summary>

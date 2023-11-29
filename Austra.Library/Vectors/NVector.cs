@@ -13,7 +13,7 @@
 /// easing the garbage collector's work.
 /// </para>
 /// </remarks>
-public readonly struct NVector:
+public readonly struct NVector :
     IFormattable,
     IEnumerable<int>,
     IEquatable<NVector>,
@@ -45,6 +45,42 @@ public readonly struct NVector:
     {
         values = GC.AllocateUninitializedArray<int>(size);
         Array.Fill(values, value);
+    }
+
+    /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
+    /// <param name="size">Size of the vector.</param>
+    /// <param name="rnd">A random number generator.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public NVector(int size, Random rnd)
+    {
+        values = GC.AllocateUninitializedArray<int>(size);
+        for (int i = 0; i < values.Length; i++)
+            values[i] = rnd.Next();
+    }
+
+    /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
+    /// <param name="size">Size of the vector.</param>
+    /// <param name="upperBound">Exclusive pper bound for the random values.</param>
+    /// <param name="rnd">A random number generator.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public NVector(int size, int upperBound, Random rnd)
+    {
+        values = GC.AllocateUninitializedArray<int>(size);
+        for (int i = 0; i < values.Length; i++)
+            values[i] = rnd.Next(upperBound);
+    }
+
+    /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
+    /// <param name="size">Size of the vector.</param>
+    /// <param name="lowerBound">Inclusive lower bound for the random values.</param>
+    /// <param name="upperBound">Exclusive pper bound for the random values.</param>
+    /// <param name="rnd">A random number generator.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public NVector(int size, int lowerBound, int upperBound, Random rnd)
+    {
+        values = GC.AllocateUninitializedArray<int>(size);
+        for (int i = 0; i < values.Length; i++)
+            values[i] = rnd.Next(lowerBound, upperBound);
     }
 
     /// <summary>Creates a vector with a given size, and fills it with ones.</summary>
@@ -456,6 +492,36 @@ public readonly struct NVector:
         return result;
     }
 
+    /// <summary>Gets the absolute values of the vector's items.</summary>
+    /// <returns>A new vector with non-negative items.</returns>
+    public NVector Abs()
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Ensures(Contract.Result<Vector>().Length == Length);
+
+        int[] result = GC.AllocateUninitializedArray<int>(Length);
+        ref int p = ref MM.GetArrayDataReference(values);
+        ref int q = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
+            V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
+            V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref q, i) = Math.Abs(Add(ref p, i));
+        return result;
+    }
+
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
@@ -504,6 +570,30 @@ public readonly struct NVector:
         return j == 0 ? new NVector(0) : j == Length ? this : newValues[..j];
     }
 
+    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <param name="value">The value to locate.</param>
+    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int IndexOf(int value) => IndexOf(value, 0);
+
+    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <param name="value">The value to locate.</param>
+    /// <param name="from">The zero-based starting index.</param>
+    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
+    public int IndexOf(int value, int from)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(from >= 0 && from < Length);
+        Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
+
+        ref int p = ref Add(ref MM.GetArrayDataReference(values), from);
+        nuint size = (nuint)(Length - from);
+        for (nuint i = 0; i < size; i++)
+            if (Add(ref p, i) == value)
+                return (int)i + from;
+        return -1;
+    }
+
     /// <summary>
     /// Creates a new vector by transforming each item with the given function.
     /// </summary>
@@ -512,6 +602,20 @@ public readonly struct NVector:
     public NVector Map(Func<int, int> mapper)
     {
         int[] newValues = GC.AllocateUninitializedArray<int>(values.Length);
+        ref int p = ref MM.GetArrayDataReference(values);
+        for (int i = 0; i < newValues.Length; i++)
+            newValues[i] = mapper(Add(ref p, i));
+        return newValues;
+    }
+
+    /// <summary>
+    /// Creates a new real vector by transforming each item with the given function.
+    /// </summary>
+    /// <param name="mapper">The mapping function.</param>
+    /// <returns>A new real vector with the transformed content.</returns>
+    public Vector MapReal(Func<int, double> mapper)
+    {
+        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
         ref int p = ref MM.GetArrayDataReference(values);
         for (int i = 0; i < newValues.Length; i++)
             newValues[i] = mapper(Add(ref p, i));

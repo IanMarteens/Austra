@@ -23,6 +23,29 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public static NSequence Create(NVector values) =>
         new VectorSequence(values);
 
+    /// <summary>Creates a sequence from random values.</summary>
+    /// <param name="size">The size of the series.</param>
+    /// <returns>A random sequence of non-negative integers.</returns>
+    public static NSequence Random(int size) =>
+        new RandomSequence(size, 0, int.MaxValue, System.Random.Shared);
+
+    /// <summary>Creates a sequence from random values.</summary>
+    /// <remarks>The <paramref name="upperBound"/> is exclusive.</remarks>
+    /// <param name="size">The size of the series.</param>
+    /// <param name="upperBound">The upper bound for the random values.</param>
+    /// <returns>A random sequence of non-negative integers.</returns>
+    public static NSequence Random(int size, int upperBound) =>
+        new RandomSequence(size, 0, upperBound, System.Random.Shared);
+
+    /// <summary>Creates a sequence from random values inside an interval.</summary>
+    /// <remarks>The <paramref name="upperBound"/> is exclusive.</remarks>
+    /// <param name="size">The size of the series.</param>
+    /// <param name="lowerBound">The lower bound for the random values.</param>
+    /// <param name="upperBound">The upper bound for the random values.</param>
+    /// <returns>A random sequence of integers in the given interval.</returns>
+    public static NSequence Random(int size, int lowerBound, int upperBound) =>
+        new RandomSequence(size, lowerBound, upperBound, System.Random.Shared);
+
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>
