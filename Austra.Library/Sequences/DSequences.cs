@@ -2,7 +2,7 @@
 
 /// <summary>Represents any sequence returning double-precision values.</summary>
 public abstract partial class DSequence : Sequence<double, DSequence>,
-    IFormattable, 
+    IFormattable,
     IEquatable<DSequence>,
     IEqualityOperators<DSequence, DSequence, bool>,
     IAdditionOperators<DSequence, DSequence, DSequence>,
@@ -13,7 +13,8 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     IMultiplyOperators<DSequence, double, DSequence>,
     IDivisionOperators<DSequence, double, DSequence>,
     IUnaryNegationOperators<DSequence, DSequence>,
-    IPointwiseOperators<DSequence>
+    IPointwiseOperators<DSequence>,
+    IIndexable
 {
     /// <summary>Creates a sequence from a range.</summary>
     /// <param name="first">The first value in the sequence.</param>
@@ -115,7 +116,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <param name="s1">First sequence operand.</param>
     /// <param name="s2">Second sequence operand.</param>
     /// <returns>The component by component sum of the sequences.</returns>
-    public static DSequence operator+(DSequence s1, DSequence s2)
+    public static DSequence operator +(DSequence s1, DSequence s2)
     {
         if (!s1.HasStorage && !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x + y);
@@ -211,7 +212,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <param name="s1">First sequence.</param>
     /// <param name="s2">Second sequence.</param>
     /// <returns>The dot product of the common part.</returns>
-    public static double operator*(DSequence s1, DSequence s2)
+    public static double operator *(DSequence s1, DSequence s2)
     {
         if (!s1.HasStorage && !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x * y).Sum();
@@ -272,14 +273,12 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>A sequence with all the quotient results.</returns>
     public override DSequence PointwiseDivide(DSequence other)
     {
-        {
-            if (!HasStorage && !other.HasStorage)
-                return new Zipped(this, other, (x, y) => x / y);
-            double[] a1 = Materialize();
-            double[] a2 = other.Materialize();
-            int size = Math.Min(a1.Length, a2.Length);
-            return new VectorSequence(a1.AsSpan(size).DivV(a2.AsSpan(size)));
-        }
+        if (!HasStorage && !other.HasStorage)
+            return new Zipped(this, other, (x, y) => x / y);
+        double[] a1 = Materialize();
+        double[] a2 = other.Materialize();
+        int size = Math.Min(a1.Length, a2.Length);
+        return new VectorSequence(a1.AsSpan(size).DivV(a2.AsSpan(size)));
     }
 
     /// <summary>Gets all statistics from the values in the secuence.</summary>

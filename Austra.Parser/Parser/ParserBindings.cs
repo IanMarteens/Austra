@@ -73,6 +73,10 @@ internal sealed partial class ParserBindings
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
                 new("random(", "Creates a random complex vector given a length"),
             ],
+            ["iseq"] = [
+                new("new(", "Creates an integer sequence from a range or a vector"),
+                new("random(", "Creates an integer sequence with random numbers"),
+            ],
             ["ivec"] = [
                 new("new(", "Creates an integer vector given a size and an optional lambda"),
                 new("ones(", "Creates an integer vector with ones given a length"),
@@ -449,7 +453,8 @@ internal sealed partial class ParserBindings
                 new("eval", "Evaluates the polynomial at a point between 0 and 1"),
             ],
             [typeof(DSequence)] = [
-                new("distinct", "Get the unique values in the sequence"),
+                new("acf", "Gets the autocorrelation function"),
+                new("distinct", "Gets the unique values in the sequence"),
                 new("fft", "Performs a Fast Fourier Transform"),
                 new("first", "Gets the first value in the sequence"),
                 new("last", "Gets the last value in the sequence"),
@@ -488,6 +493,27 @@ internal sealed partial class ParserBindings
                 new("reduce(", "Combines all values in the sequence into a single value"),
                 new("zip(", "Combines two sequence using a lambda function"),
             ],
+            [typeof(NSequence)] = [
+                new("distinct", "Get the unique values in the sequence"),
+                new("first", "Gets the first value in the sequence"),
+                new("last", "Gets the last value in the sequence"),
+                new("length", "Gets the number of values in the sequence"),
+                new("max", "Gets the maximum value from the sequence"),
+                new("min", "Gets the minimum value from the sequence"),
+                new("plot", "Plots this sequence"),
+                new("prod", "Gets the product of all values in the sequence"),
+                new("sort", "Sorts the sequence in ascending order"),
+                new("sortDesc", "Sorts the sequence in descending order"),
+                new("sum", "Gets the sum of all values in the sequence"),
+                new("toVector", "Converts the sequence to a vector"),
+                new("all(x => ", "Universal operator"),
+                new("any(x => ", "Existential operator"),
+                new("filter(x => ", "Filters the sequence according to a predicate"),
+                new("map(x => ", "Transforms the sequence according to a mapping function"),
+                new("mapReal(x => ", "Transforms the sequence into a sequence of doubles"),
+                new("reduce(", "Combines all values in the sequence into a single value"),
+                new("zip(", "Combines two sequence using a lambda function"),
+            ],
         }.ToFrozenDictionary();
 
     /// <summary>Information for class methods.</summary>
@@ -515,6 +541,13 @@ internal sealed partial class ParserBindings
                 typeof(CVector).MD(typeof(int), typeof(NormalRandom))),
             ["cvec.random"] = new(
                 typeof(CVector).MD(typeof(int), typeof(Random))),
+            ["iseq.new"] = new(
+                typeof(NSequence).MD(nameof(NSequence.Create), NNArg),
+                typeof(NSequence).MD(nameof(NSequence.Create), typeof(NVector))),
+            ["iseq.random"] = new(
+                typeof(NSequence).MD(nameof(NSequence.Random), NArg),
+                typeof(NSequence).MD(nameof(NSequence.Random), NNArg),
+                typeof(NSequence).MD(nameof(NSequence.Random), [.. NNArg, typeof(int)])),
             ["ivec.new"] = new(
                 typeof(NVector).MD(NArg),
                 typeof(NVector).MD(typeof(int), typeof(Func<int, int>)),
@@ -870,6 +903,21 @@ internal sealed partial class ParserBindings
             [new(typeof(MvoModel), "last")] = typeof(MvoModel).Prop(nameof(MvoModel.Last)),
             [new(typeof(MvoModel), "size")] = typeof(MvoModel).Prop(nameof(MvoModel.Size)),
 
+            [new(typeof(NSequence), "distinct")] = typeof(NSequence).Get(nameof(NSequence.Distinct)),
+            [new(typeof(NSequence), "first")] = typeof(NSequence).Get(nameof(NSequence.First)),
+            [new(typeof(NSequence), "last")] = typeof(NSequence).Get(nameof(NSequence.Last)),
+            [new(typeof(NSequence), "length")] = typeof(NSequence).Get(nameof(NSequence.Length)),
+            [new(typeof(NSequence), "max")] = typeof(NSequence).Get(nameof(NSequence.Max)),
+            [new(typeof(NSequence), "min")] = typeof(NSequence).Get(nameof(NSequence.Min)),
+            [new(typeof(NSequence), "plot")] = typeof(NSequence).Get(nameof(NSequence.Plot)),
+            [new(typeof(NSequence), "prod")] = typeof(NSequence).Get(nameof(NSequence.Product)),
+            [new(typeof(NSequence), "product")] = typeof(NSequence).Get(nameof(NSequence.Product)),
+            [new(typeof(NSequence), "sort")] = typeof(NSequence).Get(nameof(NSequence.Sort)),
+            [new(typeof(NSequence), "sortasc")] = typeof(NSequence).Get(nameof(NSequence.Sort)),
+            [new(typeof(NSequence), "sortdesc")] = typeof(NSequence).Get(nameof(NSequence.SortDescending)),
+            [new(typeof(NSequence), "sum")] = typeof(NSequence).Get(nameof(NSequence.Sum)),
+            [new(typeof(NSequence), "tovector")] = typeof(NSequence).Get(nameof(NSequence.ToVector)),
+
             [new(typeof(NVector), "abs")] = typeof(NVector).Get(nameof(NVector.Abs)),
             [new(typeof(NVector), "distinct")] = typeof(NVector).Get(nameof(NVector.Distinct)),
             [new(typeof(NVector), "first")] = typeof(NVector).Prop(nameof(NVector.First)),
@@ -1001,19 +1049,42 @@ internal sealed partial class ParserBindings
             [new(typeof(DateSpline), "deriv")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
             [new(typeof(DateSpline), "der")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
 
+            [new(typeof(DVector), "all")] = typeof(DVector).Get(nameof(DVector.All)),
+            [new(typeof(DVector), "any")] = typeof(DVector).Get(nameof(DVector.Any)),
+            [new(typeof(DVector), "ar")] = typeof(DVector).Get(nameof(DVector.AutoRegression)),
+            [new(typeof(DVector), "armodel")] = typeof(DVector).Get(nameof(DVector.ARModel)),
+            [new(typeof(DVector), "autocorr")] = typeof(DVector).Get(nameof(DVector.AutoCorrelation)),
+            [new(typeof(DVector), "correlogram")] = typeof(DVector).Get(nameof(DVector.Correlogram)),
+            [new(typeof(DVector), "filter")] = typeof(DVector).Get(nameof(DVector.Filter)),
+            [new(typeof(DVector), "indexof")] = typeof(DVector).GetMethod(nameof(DVector.IndexOf), DArg)!,
+            [new(typeof(DVector), "linear")] = typeof(DVector).Get(nameof(DVector.LinearModel)),
+            [new(typeof(DVector), "linearmodel")] = typeof(DVector).Get(nameof(DVector.FullLinearModel)),
+            [new(typeof(DVector), "map")] = typeof(DVector).Get(nameof(DVector.Map)),
+            [new(typeof(DVector), "reduce")] = typeof(DVector).Get(nameof(DVector.Reduce)),
+            [new(typeof(DVector), "zip")] = typeof(DVector).Get(nameof(DVector.Zip)),
+
+            [new(typeof(DSequence), "all")] = typeof(DSequence).Get(nameof(DSequence.All)),
+            [new(typeof(DSequence), "any")] = typeof(DSequence).Get(nameof(DSequence.Any)),
+            [new(typeof(DSequence), "armodel")] = typeof(DSequence).Get(nameof(DSequence.ARModel)),
             [new(typeof(DSequence), "filter")] = typeof(DSequence).Get(nameof(DSequence.Filter)),
             [new(typeof(DSequence), "map")] = typeof(DSequence).Get(nameof(DSequence.Map)),
-            [new(typeof(DSequence), "zip")] = typeof(DSequence).Get(nameof(DSequence.Zip)),
             [new(typeof(DSequence), "reduce")] = typeof(DSequence).Get(nameof(DSequence.Reduce)),
-            [new(typeof(DSequence), "any")] = typeof(DSequence).Get(nameof(DSequence.Any)),
-            [new(typeof(DSequence), "all")] = typeof(DSequence).Get(nameof(DSequence.All)),
-            [new(typeof(DSequence), "armodel")] = typeof(DSequence).Get(nameof(DSequence.ARModel)),
+            [new(typeof(DSequence), "zip")] = typeof(DSequence).Get(nameof(DSequence.Zip)),
 
+            [new(typeof(Matrix), "any")] = typeof(Matrix).Get(nameof(Matrix.Any)),
+            [new(typeof(Matrix), "all")] = typeof(Matrix).Get(nameof(Matrix.All)),
             [new(typeof(Matrix), "getcol")] = typeof(Matrix).GetMethod(nameof(Matrix.GetColumn), NArg)!,
             [new(typeof(Matrix), "getrow")] = typeof(Matrix).GetMethod(nameof(Matrix.GetRow), NArg)!,
             [new(typeof(Matrix), "map")] = typeof(Matrix).Get(nameof(Matrix.Map)),
-            [new(typeof(Matrix), "any")] = typeof(Matrix).Get(nameof(Matrix.Any)),
-            [new(typeof(Matrix), "all")] = typeof(Matrix).Get(nameof(Matrix.All)),
+
+            [new(typeof(NSequence), "all")] = typeof(NSequence).Get(nameof(NSequence.All)),
+            [new(typeof(NSequence), "any")] = typeof(NSequence).Get(nameof(NSequence.Any)),
+            [new(typeof(NSequence), "filter")] = typeof(NSequence).Get(nameof(NSequence.Filter)),
+            [new(typeof(NSequence), "map")] = typeof(NSequence).Get(nameof(NSequence.Map)),
+            [new(typeof(NSequence), "mapr")] = typeof(NSequence).Get(nameof(NSequence.MapReal)),
+            [new(typeof(NSequence), "mapreal")] = typeof(NSequence).Get(nameof(NSequence.MapReal)),
+            [new(typeof(NSequence), "reduce")] = typeof(NSequence).Get(nameof(NSequence.Reduce)),
+            [new(typeof(NSequence), "zip")] = typeof(NSequence).Get(nameof(NSequence.Zip)),
 
             [new(typeof(NVector), "all")] = typeof(NVector).Get(nameof(NVector.All)),
             [new(typeof(NVector), "any")] = typeof(NVector).Get(nameof(NVector.Any)),
@@ -1030,8 +1101,8 @@ internal sealed partial class ParserBindings
             [new(typeof(Polynomial), "deriv")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
             [new(typeof(Polynomial), "der")] = typeof(Polynomial).Get(nameof(Polynomial.Derivative)),
 
-            [new(typeof(Series), "any")] = typeof(Series).Get(nameof(Series.Any)),
             [new(typeof(Series), "all")] = typeof(Series).Get(nameof(Series.All)),
+            [new(typeof(Series), "any")] = typeof(Series).Get(nameof(Series.Any)),
             [new(typeof(Series), "ar")] = typeof(Series).Get(nameof(Series.AutoRegression)),
             [new(typeof(Series), "armodel")] = typeof(Series).Get(nameof(Series.ARModel)),
             [new(typeof(Series), "autocorr")] = typeof(Series).Get(nameof(Series.AutoCorrelation)),
@@ -1051,20 +1122,6 @@ internal sealed partial class ParserBindings
             [new(typeof(Series), "stats")] = typeof(Series).GetMethod(nameof(Series.GetSliceStats), [typeof(Date)])!,
             [new(typeof(Series), "zip")] = typeof(Series).Get(nameof(Series.Zip)),
 
-            [new(typeof(DVector), "all")] = typeof(DVector).Get(nameof(DVector.All)),
-            [new(typeof(DVector), "any")] = typeof(DVector).Get(nameof(DVector.Any)),
-            [new(typeof(DVector), "ar")] = typeof(DVector).Get(nameof(DVector.AutoRegression)),
-            [new(typeof(DVector), "armodel")] = typeof(DVector).Get(nameof(DVector.ARModel)),
-            [new(typeof(DVector), "autocorr")] = typeof(DVector).Get(nameof(DVector.AutoCorrelation)),
-            [new(typeof(DVector), "correlogram")] = typeof(DVector).Get(nameof(DVector.Correlogram)),
-            [new(typeof(DVector), "filter")] = typeof(DVector).Get(nameof(DVector.Filter)),
-            [new(typeof(DVector), "indexof")] = typeof(DVector).GetMethod(nameof(DVector.IndexOf), DArg)!,
-            [new(typeof(DVector), "linear")] = typeof(DVector).Get(nameof(DVector.LinearModel)),
-            [new(typeof(DVector), "linearmodel")] = typeof(DVector).Get(nameof(DVector.FullLinearModel)),
-            [new(typeof(DVector), "map")] = typeof(DVector).Get(nameof(DVector.Map)),
-            [new(typeof(DVector), "reduce")] = typeof(DVector).Get(nameof(DVector.Reduce)),
-            [new(typeof(DVector), "zip")] = typeof(DVector).Get(nameof(DVector.Zip)),
-
             [new(typeof(VectorSpline), "poly")] = typeof(VectorSpline).Get(nameof(VectorSpline.GetPoly)),
             [new(typeof(VectorSpline), "derivative")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
             [new(typeof(VectorSpline), "deriv")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
@@ -1075,9 +1132,9 @@ internal sealed partial class ParserBindings
     /// <returns>Class names, global methods and a couple of statement prefixes.</returns>
     public Member[] GetGlobalRoots() =>
         [.. rootClasses,
-        .. classMembers["math"],
-        new("set", "Assigns a value to a variable"),
-        new("let", "Declares local variables")];
+            .. classMembers["math"],
+            new("set", "Assigns a value to a variable"),
+            new("let", "Declares local variables")];
 
     /// <summary>Checks if the identifier is a root class.</summary>
     /// <param name="identifier">A potential class name.</param>

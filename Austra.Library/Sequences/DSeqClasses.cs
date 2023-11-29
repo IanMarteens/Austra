@@ -211,6 +211,10 @@ public abstract partial class DSequence : IFormattable
         /// <returns>The maximum value.</returns>
         public override double Max() => last;
 
+        /// <summary>Gets the sum of all the values in the sequence.</summary>
+        /// <returns>The sum of all the values in the sequence.</returns>
+        public override double Sum() => (last * (last + 1) - first * (first - 1)) / 2.0;
+
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
@@ -281,6 +285,10 @@ public abstract partial class DSequence : IFormattable
         /// <summary>Gets the maximum value from the sequence.</summary>
         /// <returns>The maximum value.</returns>
         public override double Max() => first;
+
+        /// <summary>Gets the sum of all the values in the sequence.</summary>
+        /// <returns>The sum of all the values in the sequence.</returns>
+        public override double Sum() => (first * (first + 1) - last * (last - 1)) / 2.0;
 
         /// <summary>Negates a sequence without an underlying storage.</summary>
         /// <returns>The negated sequence.</returns>

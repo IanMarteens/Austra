@@ -8,7 +8,8 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     ISubtractionOperators<NSequence, int, NSequence>,
     IMultiplyOperators<NSequence, NSequence, int>,
     IMultiplyOperators<NSequence, int, NSequence>,
-    IPointwiseOperators<NSequence>
+    IPointwiseOperators<NSequence>,
+    IIndexable
 {
     /// <summary>Creates a sequence from a range.</summary>
     /// <param name="first">The first value in the sequence.</param>
@@ -321,9 +322,18 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         return Create(data);
     }
 
-    /// <summary>Converts this sequence into a vector.</summary>
+    /// <summary>Evaluated the sequence and formats it like a <see cref="NVector"/>.</summary>
+    /// <returns>A formated list of double values.</returns>
+    public override string ToString() =>
+        Materialize().ToString(v => v.ToString("N0"));
+
+    /// <summary>Converts this sequence into an integer vector.</summary>
     /// <returns>A new vector.</returns>
     public NVector ToVector() => Materialize();
+
+    /// <summary>Creates a plot for this sequence.</summary>
+    /// <returns>A plot containing a frozen vector as its dataset.</returns>
+    public Plot<NVector> Plot() => new(ToVector());
 
     /// <summary>Creates an array with all values from the sequence.</summary>
     /// <returns>The values as an array.</returns>

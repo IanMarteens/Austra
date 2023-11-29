@@ -13,7 +13,8 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     IMultiplyOperators<CSequence, Complex, CSequence>,
     IDivisionOperators<CSequence, Complex, CSequence>,
     IUnaryNegationOperators<CSequence, CSequence>,
-    IPointwiseOperators<CSequence>
+    IPointwiseOperators<CSequence>,
+    IIndexable
 {
     /// <summary>Creates a sequence from a complex vector.</summary>
     /// <param name="vector">The vector containing the sequence's values.</param>
@@ -180,14 +181,12 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <returns>A sequence with all the quotient results.</returns>
     public override CSequence PointwiseDivide(CSequence other)
     {
-        {
-            if (!HasStorage && !other.HasStorage)
-                return new Zipped(this, other, (x, y) => x / y);
-            CVector a1 = new(Materialize());
-            CVector a2 = new(other.Materialize());
-            int size = Min(a1.Length, a2.Length);
-            return new VectorSequence(a1.PointwiseDivide(a2));
-        }
+        if (!HasStorage && !other.HasStorage)
+            return new Zipped(this, other, (x, y) => x / y);
+        CVector a1 = new(Materialize());
+        CVector a2 = new(other.Materialize());
+        int size = Min(a1.Length, a2.Length);
+        return new VectorSequence(a1.PointwiseDivide(a2));
     }
 
     /// <summary>Gets the first value in the sequence.</summary>
@@ -295,7 +294,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
 
     /// <summary>Computes the complex discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>
-    public FftCModel Fft() 
+    public FftCModel Fft()
     {
         Complex[] values = Materialize();
         FFT.Transform(values);
