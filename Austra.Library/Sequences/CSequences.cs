@@ -16,6 +16,14 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     IPointwiseOperators<CSequence>,
     IIndexable
 {
+    /// <summary>Creates a sequence from a uniform grid.</summary>
+    /// <param name="lower">The first value in the sequence.</param>
+    /// <param name="upper">The last value in the sequence.</param>
+    /// <param name="steps">The number of steps in the sequence, minus one.</param>
+    /// <returns>A sequence returning a uniform grid of values.</returns>
+    public static CSequence Create(Complex lower, Complex upper, int steps) =>
+        new GridSequence(lower, upper, steps);
+
     /// <summary>Creates a sequence from a complex vector.</summary>
     /// <param name="vector">The vector containing the sequence's values.</param>
     /// <returns>The sequence encapsulating the vector.</returns>
