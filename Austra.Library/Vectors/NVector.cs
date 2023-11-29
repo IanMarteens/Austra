@@ -676,6 +676,28 @@ public readonly struct NVector :
         return newValues;
     }
 
+    /// <summary>Convert this vector to a vector of reals.</summary>
+    /// <returns>A new vector of reals.</returns>
+    public DVector ToVector()
+    {
+        double[] newValues = GC.AllocateUninitializedArray<double>(Length);
+        ref int p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference(newValues);
+        if (Avx.IsSupported && Length >= V4d.Count)
+        {
+            nuint top = (nuint)(Length - V4d.Count);
+            for (nuint i = 0; i < top; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(
+                    Avx.ConvertToVector256Double(Vector128.LoadUnsafe(ref p, i)), ref q, i);
+            V4.StoreUnsafe(
+                Avx.ConvertToVector256Double(Vector128.LoadUnsafe(ref p, top)), ref q, top);
+        }
+        else
+            for (int i = 0; i < newValues.Length; i++)
+                Add(ref q, i) = Add(ref p, i);
+        return newValues;
+    }
+
     /// <summary>Gets a textual representation of this vector.</summary>
     /// <returns>Space-separated components.</returns>
     public override string ToString() =>

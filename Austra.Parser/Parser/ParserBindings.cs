@@ -368,6 +368,7 @@ internal sealed partial class ParserBindings
                 new("sum", "Gets the sum of all values"),
                 new("sort", "Gets a new vector with sorted values"),
                 new("sortDesc", "Gets a new vector with sorted values in descending order"),
+                new("toVector", "Converts to a vector of reals"),
                 new("all(x => ", "Universal operator"),
                 new("any(x => ", "Existential operator"),
                 new("filter(x => ", "Filters items by value"),
@@ -961,6 +962,7 @@ internal sealed partial class ParserBindings
             [new(typeof(NVector), "sortdesc")] = typeof(NVector).Get(nameof(NVector.SortDescending)),
             [new(typeof(NVector), "sortdescending")] = typeof(NVector).Get(nameof(NVector.SortDescending)),
             [new(typeof(NVector), "sum")] = typeof(NVector).Get(nameof(NVector.Sum)),
+            [new(typeof(NVector), "tovector")] = typeof(NVector).Get(nameof(NVector.ToVector)),
 
             [new(typeof(Point<Date>), "date")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Arg)),
             [new(typeof(Point<Date>), "value")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Value)),

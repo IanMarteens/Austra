@@ -8,6 +8,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     ISubtractionOperators<NSequence, int, NSequence>,
     IMultiplyOperators<NSequence, NSequence, int>,
     IMultiplyOperators<NSequence, int, NSequence>,
+    IDivisionOperators<NSequence, int, NSequence>,
     IPointwiseOperators<NSequence>,
     IIndexable
 {
