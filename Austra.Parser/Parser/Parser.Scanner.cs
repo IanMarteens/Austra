@@ -540,6 +540,10 @@ internal sealed partial class Parser : IDisposable
         e.Type.IsAssignableTo(typeof(IVector));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsIntVecOrSeq(Expression e) =>
+        e.Type == typeof(NVector) || e.Type == typeof(NSequence);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Expression ToDouble(Expression e) =>
         e.Type != typeof(int)
         ? e

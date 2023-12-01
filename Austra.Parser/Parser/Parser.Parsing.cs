@@ -423,7 +423,7 @@ internal sealed partial class Parser
                         : throw Error("Invalid operator", opMPos);
                 else
                 {
-                    if (e2.Type != e3.Type)
+                    if (e2.Type != e3.Type && !IsIntVecOrSeq(e2) && !IsIntVecOrSeq(e3))
                         (e2, e3) = (ToDouble(e2), ToDouble(e3));
                     try
                     {
@@ -472,6 +472,7 @@ internal sealed partial class Parser
             else
             {
                 if (e1.Type != e2.Type &&
+                    !IsIntVecOrSeq(e1) && !IsIntVecOrSeq(e2) &&
                     e1.Type != typeof(Date) && e2.Type != typeof(Date))
                     (e1, e2) = (ToDouble(e1), ToDouble(e2));
                 try
