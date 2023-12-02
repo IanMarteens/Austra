@@ -1237,6 +1237,14 @@ public readonly struct DVector :
         }
     }
 
+    /// <summary>Finds the coefficients for a moving average model.</summary>
+    /// <param name="degree">Number of coefficients in the model.</param>
+    /// <returns>
+    /// The coefficients of the MA(degree) model. The first coefficient is the constant term.
+    /// </returns>
+    public DVector MovingAverage(int degree) =>
+        new MACalculator(degree, this).Run(128, 1e-9);
+
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
     public DVector Reverse()

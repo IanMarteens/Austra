@@ -976,7 +976,21 @@ public readonly struct Matrix :
     /// <remarks>Calculates <c>this * m'</c>.</remarks>
     /// <param name="m">Second operand.</param>
     /// <returns>The multiplication by the transposed argument.</returns>
-    public Matrix MultiplyTranspose(Matrix m)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Matrix MultiplyTranspose(Matrix m) =>
+        MultiplyTranspose(m, GC.AllocateUninitializedArray<double>(Rows * m.Rows));
+
+    /// <summary>Multiplies this matrix by the transposed argument.</summary>
+    /// <remarks>
+    /// <para>Calculates <c>this * m'</c>.</para>
+    /// <para>This method allows preallocating a buffer for the result.
+    /// This can be useful when the same operation is performed multiple times.
+    /// The buffer size must be <c>this.Rows * m.Rows</c>.</para>
+    /// </remarks>
+    /// <param name="m">Second operand.</param>
+    /// <param name="result">Preallocated buffer for the result.</param>
+    /// <returns>The multiplication by the transposed argument.</returns>
+    public Matrix MultiplyTranspose(Matrix m, double[] result)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
@@ -986,7 +1000,6 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
         int r = Rows, n = Cols, c = m.Rows, top = n & Simd.MASK4;
-        double[] result = new double[r * c];
         ref double a = ref MM.GetArrayDataReference(values);
         ref double b = ref MM.GetArrayDataReference(m.values);
         ref double t = ref MM.GetArrayDataReference(result);

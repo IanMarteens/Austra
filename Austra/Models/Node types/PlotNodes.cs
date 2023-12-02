@@ -2,13 +2,13 @@
 
 /// <summary>Base class for comparing series and vectors.</summary>
 /// <typeparam name="T">The type of the compared items.</typeparam>
-public abstract class CompareNodeBase<T> : VarNode<Plot<T>> where T : IFormattable
+public abstract class PlotNode<T> : VarNode<Plot<T>> where T : IFormattable
 {
-    protected CompareNodeBase(string formula, Plot<T> model)
+    protected PlotNode(string formula, Plot<T> model)
         : base(formula, model)
     { }
 
-    protected CompareNodeBase(ClassNode? parent, string name, Plot<T> model)
+    protected PlotNode(ClassNode? parent, string name, Plot<T> model)
         : base(parent, name, model)
     { }
 
@@ -18,13 +18,13 @@ public abstract class CompareNodeBase<T> : VarNode<Plot<T>> where T : IFormattab
 }
 
 /// <summary>Compares two time series.</summary>
-public sealed class CompareNode : CompareNodeBase<Series>
+public sealed class PlotSNode : PlotNode<Series>
 {
-    public CompareNode(string formula, Plot<Series> value) :
+    public PlotSNode(string formula, Plot<Series> value) :
         base(formula, value)
     { }
 
-    public CompareNode(ClassNode? parent, string varName, Plot<Series> value) :
+    public PlotSNode(ClassNode? parent, string varName, Plot<Series> value) :
         base(parent, varName, value)
     { }
 
@@ -50,13 +50,13 @@ public sealed class CompareNode : CompareNodeBase<Series>
     }
 }
 
-public sealed class CompareVNode : CompareNodeBase<DVector>
+public sealed class PlotDVNode : PlotNode<DVector>
 {
-    public CompareVNode(string formula, Plot<DVector> value) :
+    public PlotDVNode(string formula, Plot<DVector> value) :
         base(formula, value)
     { }
 
-    public CompareVNode(ClassNode? parent, string varName, Plot<DVector> value) :
+    public PlotDVNode(ClassNode? parent, string varName, Plot<DVector> value) :
         base(parent, varName, value)
     { }
 
@@ -82,13 +82,45 @@ public sealed class CompareVNode : CompareNodeBase<DVector>
     }
 }
 
-public sealed class CompareCVNode : CompareNodeBase<CVector>
+public sealed class PlotNVNode : PlotNode<NVector>
 {
-    public CompareCVNode(string formula, Plot<CVector> value) :
+    public PlotNVNode(string formula, Plot<NVector> value) :
         base(formula, value)
     { }
 
-    public CompareCVNode(ClassNode? parent, string varName, Plot<CVector> value) :
+    public PlotNVNode(ClassNode? parent, string varName, Plot<NVector> value) :
+        base(parent, varName, value)
+    { }
+
+    public override string TypeName => "Vector plot";
+
+    public override void Show()
+    {
+        if (Model.HasSecond)
+            RootModel.Instance.AppendControl(Formula,
+                $"ℝ({Model.First.Length}) vs ℝ({Model.Second!.Length})",
+                CreateOxyModel(new OxyPlot.Axes.LinearAxis())
+                    .CreateLegend()
+                    .CreateStepSeries(Model.First, "First")
+                    .CreateStepSeries(Model.Second!, "Second")
+                    .CreateView());
+        else
+            RootModel.Instance.AppendControl(Formula,
+                $"ℝ({Model.First.Length})",
+                CreateOxyModel(new OxyPlot.Axes.LinearAxis())
+                    .CreateLegend()
+                    .CreateStepSeries(Model.First)
+                    .CreateView());
+    }
+}
+
+public sealed class PlotCVNode : PlotNode<CVector>
+{
+    public PlotCVNode(string formula, Plot<CVector> value) :
+        base(formula, value)
+    { }
+
+    public PlotCVNode(ClassNode? parent, string varName, Plot<CVector> value) :
         base(parent, varName, value)
     { }
 

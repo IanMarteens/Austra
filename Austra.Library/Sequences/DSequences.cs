@@ -439,10 +439,22 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Series<int> ACF() => ToVector().ACF();
 
+    /// <summary>Calculate coefficients for an autoregressive model.</summary>
+    /// <param name="degree">Number of degrees in the model.</param>
+    /// <returns>The coefficients of the AR(degree) model.</returns>
+    public DVector AutoRegression(int degree) => ToVector().AutoRegression(degree);
+
     /// <summary>Creates an AR model from a sequence and a degree.</summary>
     /// <param name="degree">Number of independent variables in the model.</param>
     /// <returns>A full autoregressive model.</returns>
     public ARVModel ARModel(int degree) => new(ToVector(), degree);
+
+    /// <summary>Calculate coefficients for a moving average model.</summary>
+    /// <param name="degree">Number of degrees in the model.</param>
+    /// <returns>
+    /// The coefficients of the MA(degree) model. The first coefficient is the constant term.
+    /// </returns>
+    public DVector MovingAverage(int degree) => ToVector().MovingAverage(degree);
 
     /// <summary>Computes the real discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>

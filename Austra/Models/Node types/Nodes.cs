@@ -220,6 +220,22 @@ internal static class OxyExts
         return model;
     }
 
+    public static OxyPlot.PlotModel CreateStepSeries(
+        this OxyPlot.PlotModel model, NVector vector, string? title = null, bool hidden = false)
+    {
+        OxyPlot.Series.StairStepSeries stepSeries = new()
+        {
+            TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
+            IsVisible = !hidden,
+        };
+        if (!string.IsNullOrEmpty(title))
+            stepSeries.Title = title;
+        for (int i = 0; i < vector.Length; i++)
+            stepSeries.Points.Add(new(i, vector[i]));
+        model.Series.Add(stepSeries);
+        return model;
+    }
+
     public static void UpdateLine(this OxyPlot.PlotModel model, double value)
     {
         if (model.Annotations.Count > 0)

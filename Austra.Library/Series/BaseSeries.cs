@@ -616,6 +616,13 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     internal DVector AutoRegression(int degree, out Matrix matrix, out DVector correlations) =>
         Values.Reverse().AutoRegression(degree, out matrix, out correlations);
 
+    /// <summary>Finds the coefficients for a moving average model.</summary>
+    /// <param name="degree">Number of coefficients in the model.</param>
+    /// <returns>
+    /// The coefficients of the MA(degree) model. The first coefficient is the constant term.
+    /// </returns>
+    public DVector MovingAverage(int degree) => Values.Reverse().MovingAverage(degree);
+
     /// <summary>Calculates the sum of the series values.</summary>
     /// <returns>The sum of all series values.</returns>
     public double Sum() => new DVector(values).Sum();
