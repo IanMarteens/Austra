@@ -381,7 +381,7 @@ public readonly struct RMatrix :
         double[] result = new double[r];
         double[] vector = (double[])v;
         ref double pB = ref MM.GetArrayDataReference(result);
-        for (int row = 0, offset = 0; row < c; row++, offset += c)
+        for (int row = 0, offset = 0; row < r; row++, offset += c)
             Add(ref pB, row) = m.values.AsSpan(offset + row, c - row)
                 .DotProduct(vector.AsSpan(row));
         return result;
