@@ -41,6 +41,12 @@ internal sealed partial class Parser : IDisposable
     private static readonly MethodInfo MatrixCombine =
         typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
             [typeof(DVector), typeof(double), typeof(DVector)])!;
+    /// <summary>Method for squaring a matrix.</summary>
+    private static readonly MethodInfo MatrixSquare =
+        typeof(Matrix).GetMethod(nameof(Matrix.Square))!;
+    /// <summary>Method for squaring a lower-triangular matrix.</summary>
+    private static readonly MethodInfo LMatrixSquare =
+        typeof(LMatrix).GetMethod(nameof(LMatrix.Square))!;
     /// <summary>Method for cloning sequences.</summary>
     private static readonly MethodInfo SeqClone =
         typeof(DSequence).GetMethod(nameof(DSequence.Clone))!;

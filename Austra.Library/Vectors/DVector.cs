@@ -1141,6 +1141,14 @@ public readonly struct DVector :
     /// <returns>A full autoregressive model.</returns>
     public ARVModel ARModel(int degree) => new(this, degree);
 
+    /// <summary>Creates an MA model from a vector and a degree.</summary>
+    /// <remarks>
+    /// Coefficients are estimated using iterated OLS.
+    /// </remarks>
+    /// <param name="degree">Number of independent variables in the model.</param>
+    /// <returns>A full moving average model.</returns>
+    public MAVModel MAModel(int degree) => new(this, degree);
+
     /// <summary>Finds the coefficients for an autoregressive model.</summary>
     /// <param name="degree">Number of coefficients in the model.</param>
     /// <returns>The coefficients of the AR(degree) model.</returns>

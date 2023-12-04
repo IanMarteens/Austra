@@ -585,11 +585,18 @@ internal sealed partial class Parser
         if (IsArithmetic(e) && IsArithmetic(e1))
             return OptimizePowerOf() ? e : Expression.Power(ToDouble(e), ToDouble(e1));
         if (e.Type == typeof(Complex))
+        {
             if (e1.Type == typeof(Complex))
                 return Expression.Call(typeof(Complex), nameof(Complex.Pow), null, e, e1);
             else if (IsArithmetic(e1))
                 return OptimizePowerOf() ? e : Expression.Call(
                     typeof(Complex), nameof(Complex.Pow), null, e, ToDouble(e1));
+        }
+        else if (k == Token.Caret2)
+            if (e.Type == typeof(Matrix))
+                return Expression.Call(e, MatrixSquare);
+            else if (e.Type == typeof(LMatrix))
+                return Expression.Call(e, LMatrixSquare);
         return e.Type == typeof(DVector) && e1.Type == typeof(DVector)
             ? Expression.ExclusiveOr(e, e1)
             : throw Error("Operands must be numeric", pos);

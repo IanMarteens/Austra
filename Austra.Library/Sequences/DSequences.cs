@@ -457,6 +457,11 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// </returns>
     public DVector MovingAverage(int degree) => ToVector().MovingAverage(degree);
 
+    /// <summary>Creates a MV model from a sequence and a degree.</summary>
+    /// <param name="degree">Number of independent variables in the model.</param>
+    /// <returns>A full moving average model.</returns>
+    public MAVModel MAModel(int degree) => new(ToVector(), degree);
+
     /// <summary>Computes the real discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>
     public FftRModel Fft() => new(FFT.Transform(Materialize()));

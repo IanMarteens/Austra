@@ -35,6 +35,9 @@ internal sealed class MACalculator
         newCoefficients = new double[size + 1];
     }
 
+    /// <summary>Gets the residuals after the last iteration.</summary>
+    public DVector Residuals => residuals;
+
     /// <summary>
     /// Runs the algorithm for a given number of iterations or until the accuracy is reached.
     /// </summary>

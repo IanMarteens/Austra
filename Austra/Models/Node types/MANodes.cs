@@ -1,21 +1,27 @@
-﻿namespace Austra;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-/// <summary>An abstract autoregressive model.</summary>
+namespace Austra;
+
+/// <summary>An abstract moving average model.</summary>
 /// <typeparam name="M">Type of model.</typeparam>
 /// <typeparam name="T">Type of original dataset.</typeparam>
-public abstract class ARNode<M, T> : VarNode<M> where M : ARModel<T>
+public abstract class MANode<M, T> : VarNode<M> where M : MAModel<T>
 {
-    protected ARNode(string formula, M value) :
+    protected MANode(string formula, M value) :
         base(formula, value) =>
         (Degree, R2, RSS, TSS) =
             (value.Degrees, value.R2, value.ResidualSumSquares, value.TotalSumSquares);
 
-    protected ARNode(ClassNode? parent, string varName, M value) :
+    protected MANode(ClassNode? parent, string varName, M value) :
         base(parent, varName, value) =>
         (Degree, R2, RSS, TSS) =
             (value.Degrees, value.R2, value.ResidualSumSquares, value.TotalSumSquares);
 
-    public override string TypeName => "AR(p) model";
+    public override string TypeName => "MA(q) model";
 
     protected void Show(OxyPlot.PlotModel oxyModel)
     {
@@ -42,14 +48,14 @@ public abstract class ARNode<M, T> : VarNode<M> where M : ARModel<T>
     public double TSS { get; }
 }
 
-/// <summary>An autoregressive model for a time series.</summary>
-public sealed class ARSNode : ARNode<ARSModel, Series>
+/// <summary>A moving average model for a time series.</summary>
+public sealed class MASNode : MANode<MASModel, Series>
 {
-    public ARSNode(string formula, ARSModel value) :
+    public MASNode(string formula, MASModel value) :
         base(formula, value)
     { }
 
-    public ARSNode(ClassNode parent, string varName, ARSModel value) :
+    public MASNode(ClassNode parent, string varName, MASModel value) :
         base(parent, varName, value)
     { }
 
@@ -60,14 +66,14 @@ public sealed class ARSNode : ARNode<ARSModel, Series>
             .CreateSeries(Model.Prediction, "Predicted"));
 }
 
-/// <summary>An autoregressive model for samples in a vector.</summary>
-public sealed class ARVNode : ARNode<ARVModel, DVector>
+/// <summary>A moving average model for samples in a vector.</summary>
+public sealed class MAVNode : MANode<MAVModel, DVector>
 {
-    public ARVNode(string formula, ARVModel value) :
+    public MAVNode(string formula, MAVModel value) :
         base(formula, value)
     { }
 
-    public ARVNode(ClassNode? parent, string varName, ARVModel value) :
+    public MAVNode(ClassNode? parent, string varName, MAVModel value) :
         base(parent, varName, value)
     { }
 

@@ -396,6 +396,18 @@ public readonly struct RMatrix :
     /// <returns>The max-norm of the matrix.</returns>
     public double AMax() => values.AsSpan().AbsoluteMaximum();
 
+    /// <summary>Gets the cell with the minimum absolute value.</summary>
+    /// <remarks>Empty cells are ignored.</remarks>
+    /// <returns>The minimum absolute value in the triangular matrix.</returns>
+    public double AMin()
+    {
+        int r = Rows, c = Cols;
+        double min = values.AsSpan(0, c).AbsoluteMinimum();
+        for (int row = 1, offset = c; row < r; row++, offset += c)
+            min = Min(min, values.AsSpan(offset + row, c - row).AbsoluteMinimum());
+        return min;
+    }
+
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => values.DiagonalProduct(Rows, Cols);

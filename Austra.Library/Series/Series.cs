@@ -533,6 +533,12 @@ public sealed class Series : Series<Date>,
     public ARSModel ARModel(int degree) =>
         new(this, degree);
 
+    /// <summary>Creates an MA model from a series and a degree.</summary>
+    /// <param name="degree">Number of independent variables in the model.</param>
+    /// <returns>A full moving average model.</returns>
+    public MASModel MAModel(int degree) =>
+        new(this, degree);
+
     /// <summary>
     /// Creates a series retaining the first <paramref name="count"/> items.
     /// </summary>

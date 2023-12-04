@@ -562,9 +562,8 @@ public readonly struct LMatrix :
         int r = Rows, c = Cols;
         if (c < r)
             r = c;
-        int offset = c;
         double min = Abs(values[0]);
-        for (int row = 1; row < r; row++, offset += c)
+        for (int row = 1, offset = c; row < r; row++, offset += c)
             min = Min(min, values.AsSpan(offset, row).AbsoluteMinimum());
         if (Rows > c)
             min = Min(min, values.AsSpan(c * c).AbsoluteMinimum());
@@ -609,6 +608,10 @@ public readonly struct LMatrix :
         }
         return new(r, c, result);
     }
+
+    /// <summary>Multiplies this matrix by its own transposed.</summary>
+    /// <returns>The multiplication by the transposed argument.</returns>
+    public Matrix Square() => MultiplyTranspose(this);
 
     /// <summary>Transform a vector using a matrix.</summary>
     /// <param name="m">The transformation matrix.</param>
