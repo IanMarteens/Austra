@@ -37,7 +37,7 @@ public abstract class MAModel<T>
     /// <param name="oldValues">Original samples.</param>
     /// <param name="residuals">Residuals calculated by the iteration process.</param>
     /// <returns>Predicted samples.</returns>
-    protected double[] Predict(double[] oldValues, double[] residuals)
+    protected double[] Predict(DVector oldValues, DVector residuals)
     {
         double[] newValues = new double[oldValues.Length];
         for (int i = 0; i < Degrees; i++)
@@ -82,7 +82,7 @@ public sealed class MASModel : MAModel<Series>
         Mean = coeffs[0];
         Coefficients = coeffs[1..];
         DVector residuals = calc.Residuals;
-        double[] newValues = Predict((double[])reverse, (double[])residuals);
+        double[] newValues = Predict(reverse, residuals);
         Array.Reverse(newValues);
         Prediction = new(
             original.Name + ".MA(" + degrees + ")",
@@ -108,7 +108,7 @@ public sealed class MAVModel : MAModel<DVector>
         Mean = coeffs[0];
         Coefficients = coeffs[1..];
         DVector residuals = calc.Residuals;
-        Prediction = new(Predict((double[])original, (double[])residuals));
+        Prediction = new(Predict(original, residuals));
         (TotalSumSquares, ResidualSumSquares, R2) = Original.GetSumSquares(Prediction);
     }
 }
