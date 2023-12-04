@@ -7,22 +7,24 @@
 /// </remarks>
 internal sealed partial class ParserBindings
 {
-    /// <summary>The argument is a double.</summary>
-    private static readonly Type[] DArg = [typeof(double)];
-    /// <summary>The argument is an integer.</summary>
-    private static readonly Type[] NArg = [typeof(int)];
-    /// <summary>The argument is a vector.</summary>
-    private static readonly Type[] VArg = [typeof(DVector)];
     /// <summary>The argument is a complex.</summary>
     private static readonly Type[] CArg = [typeof(Complex)];
-    /// <summary>Two integer arguments.</summary>
-    private static readonly Type[] NNArg = [typeof(int), typeof(int)];
+    /// <summary>The argument is a double.</summary>
+    private static readonly Type[] DArg = [typeof(double)];
     /// <summary>Two double arguments.</summary>
     private static readonly Type[] DDArg = [typeof(double), typeof(double)];
-    /// <summary>Two vector arguments.</summary>
-    private static readonly Type[] VVArg = [typeof(DVector), typeof(DVector)];
     /// <summary>A double and a vector argument.</summary>
     private static readonly Type[] DVArg = [typeof(double), typeof(DVector)];
+    /// <summary>The argument is an integer.</summary>
+    private static readonly Type[] NArg = [typeof(int)];
+    /// <summary>An integer followed by a double argument.</summary>
+    private static readonly Type[] NDArg = [typeof(int), typeof(double)];
+    /// <summary>Two integer arguments.</summary>
+    private static readonly Type[] NNArg = [typeof(int), typeof(int)];
+    /// <summary>The argument is a vector.</summary>
+    private static readonly Type[] VArg = [typeof(DVector)];
+    /// <summary>Two vector arguments.</summary>
+    private static readonly Type[] VVArg = [typeof(DVector), typeof(DVector)];
 
     private static readonly MethodList MatrixEye = new(
         typeof(Matrix).MD(nameof(Matrix.Identity), NArg));
@@ -136,6 +138,8 @@ internal sealed partial class ParserBindings
                 new("plot(", "Plots vectors, series and sequences"),
             ],
             ["seq"] = [
+                new("ar(", "Creates an autoregressive (AR) sequence"),
+                new("ma(", "Creates an moving average (MA) sequence"),
                 new("new(", "Creates a sequence from a range, a grid or a vector"),
                 new("nrandom(", "Creates a sequence from normal random numbers"),
                 new("random(", "Creates a sequence from random numbers"),
@@ -538,8 +542,7 @@ internal sealed partial class ParserBindings
                 typeof(CSequence).MD(nameof(CSequence.Random), typeof(int))),
             ["cseq.nrandom"] = new(
                 typeof(CSequence).MD(nameof(CSequence.NormalRandom), typeof(int)),
-                typeof(CSequence).MD(nameof(CSequence.NormalRandom),
-                    typeof(int), typeof(double))),
+                typeof(CSequence).MD(nameof(CSequence.NormalRandom), NDArg)),
             ["cvec.new"] = new(
                 typeof(CVector).MD(VArg),
                 typeof(CVector).MD(VVArg),
@@ -707,6 +710,12 @@ internal sealed partial class ParserBindings
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix), typeof(string[])),
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix),
                     typeof(DVector), typeof(DVector), typeof(string[]))),
+            ["seq.ar"] = new(
+                typeof(DSequence).MD(nameof(DSequence.AR),
+                    typeof(int), typeof(double), typeof(DVector))),
+            ["seq.ma"] = new(
+                typeof(DSequence).MD(nameof(DSequence.MA),
+                    typeof(int), typeof(double), typeof(DVector))),
             ["seq.new"] = new(
                 typeof(DSequence).MD(nameof(DSequence.Create), NNArg),
                 typeof(DSequence).MD(nameof(DSequence.Create),
@@ -717,12 +726,7 @@ internal sealed partial class ParserBindings
                 typeof(DSequence).MD(nameof(DSequence.Random), typeof(int))),
             ["seq.nrandom"] = new(
                 typeof(DSequence).MD(nameof(DSequence.NormalRandom), typeof(int)),
-                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
-                    typeof(int), typeof(double)),
-                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
-                    typeof(int), typeof(double), typeof(DVector)),
-                typeof(DSequence).MD(nameof(DSequence.NormalRandom),
-                    typeof(int), typeof(double), typeof(double), typeof(DVector))),
+                typeof(DSequence).MD(nameof(DSequence.NormalRandom), NDArg)),
             ["series.new"] = new(
                 typeof(Series).MD(nameof(Series.Combine), typeof(DVector), typeof(Series[]))),
             ["spline.new"] = new(

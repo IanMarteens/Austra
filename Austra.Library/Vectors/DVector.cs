@@ -1134,6 +1134,9 @@ public readonly struct DVector :
         new(this, predictors);
 
     /// <summary>Creates an AR model from a vector and a degree.</summary>
+    /// <remarks>
+    /// Coefficients are estimated using the Yule-Walker method.
+    /// </remarks>
     /// <param name="degree">Number of independent variables in the model.</param>
     /// <returns>A full autoregressive model.</returns>
     public ARVModel ARModel(int degree) => new(this, degree);

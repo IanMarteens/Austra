@@ -202,6 +202,10 @@ vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
  		    	<entry><para>Creates a full linear model from a list of vectors. See <see cref="M:Austra.Library.DVector.FullLinearModel(Austra.Library.DVector[])" />.</para></entry>
 		  	  </row>
  		  	  <row>
+ 		    	<entry><para><codeInline>ma</codeInline></para></entry>
+ 		    	<entry><para>Estimates coefficients for an MA(q) model. See <see cref="M:Austra.Library.DVector.MovingAverage(System.Int32)" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
  		    	<entry><para><codeInline>map</codeInline></para></entry>
  		    	<entry><para>Pointwise transformation of the items in a vector. See <see cref="M:Austra.Library.DVector.Map(System.Func{System.Double,System.Double})" />.</para></entry>
 		  	  </row>

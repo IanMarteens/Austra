@@ -67,7 +67,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <param name="variance">The variance of the normal distribution.</param>
     /// <param name="coefficients">Autoregressive coefficients.</param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DSequence NormalRandom(int size, double variance, DVector coefficients) =>
+    public static DSequence AR(int size, double variance, DVector coefficients) =>
         coefficients.Length == 0
         ? throw new VectorLengthException()
         : new ArSequence(size, variance, coefficients);
@@ -75,13 +75,14 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <summary>Creates a moving average (MA) sequence.</summary>
     /// <param name="size">The size of the series.</param>
     /// <param name="variance">The variance of the normal distribution.</param>
-    /// <param name="mean">The independent term, that determines the mean.</param>
-    /// <param name="coefficients">Moving average coefficients.</param>
+    /// <param name="coefficients">
+    /// Moving average coefficients. The first term is the independent term.
+    /// </param>
     /// <returns>The sequence encapsulating the time series.</returns>
-    public static DSequence NormalRandom(int size, double variance, double mean, DVector coefficients) =>
+    public static DSequence MA(int size, double variance, DVector coefficients) =>
         coefficients.Length == 0
         ? throw new VectorLengthException()
-        : new MaSequence(size, variance, mean, coefficients);
+        : new MaSequence(size, variance, coefficients[0], coefficients[1..]);
 
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
