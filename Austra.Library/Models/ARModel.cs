@@ -67,8 +67,8 @@ public abstract class ARModel<T>: IFormattable
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>Regression coefficients and goodness of fit.</returns>
     public string ToString(string? format, IFormatProvider? provider) => new StringBuilder(1024)
-        .Append("Coefficients: ").Append(Coefficients.ToString(format, provider)).AppendLine()
-        .Append("(R² = ").Append(R2.ToString(format, provider)).Append(')').AppendLine()
+        .Append("Coefficients: ").AppendLine(Coefficients.ToString(format, provider))
+        .Append("R²: ").AppendLine(R2.ToString(format, provider))
         .ToString();
 }
 

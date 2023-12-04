@@ -61,8 +61,9 @@ public abstract class MAModel<T>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>Regression coefficients and goodness of fit.</returns>
     public string ToString(string? format, IFormatProvider? provider) => new StringBuilder(1024)
-        .Append("Coefficients: ").Append(Coefficients.ToString(format, provider)).AppendLine()
-        .Append("(R² = ").Append(R2.ToString(format, provider)).Append(')').AppendLine()
+        .Append("Coefficients: ").AppendLine(Coefficients.ToString(format, provider))
+        .Append("μ: ").AppendLine(Mean.ToString(format, provider))
+        .Append("R²: ").AppendLine(R2.ToString(format, provider))
         .ToString();
 }
 
@@ -78,7 +79,7 @@ public sealed class MASModel : MAModel<Series>
     {
         DVector reverse = original.Values.Reverse();
         MACalculator calc = new(degrees, reverse);
-        DVector coeffs = calc.Run(128, 1e-9);
+        DVector coeffs = calc.Run(200, 1e-9);
         Mean = coeffs[0];
         Coefficients = coeffs[1..];
         DVector residuals = calc.Residuals;
