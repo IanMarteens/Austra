@@ -270,7 +270,7 @@ public readonly struct DVector :
     public double Maximum()
     {
         Contract.Requires(IsInitialized);
-        return values.Maximum();
+        return values.AsSpan().Maximum();
     }
 
     /// <summary>Gets the item with the minimum value.</summary>
@@ -278,7 +278,7 @@ public readonly struct DVector :
     public double Minimum()
     {
         Contract.Requires(IsInitialized);
-        return values.Minimum();
+        return values.AsSpan().Minimum();
     }
 
     /// <summary>Adds two vectors.</summary>

@@ -1,6 +1,4 @@
-﻿using Austra.Library;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>A symbol table for predefined classes and methods.</summary>
 /// <remarks>
@@ -366,6 +364,16 @@ internal sealed partial class ParserBindings
                 new("rows", "Gets the number of rows"),
                 new("trace", "Gets the sum of the main diagonal"),
             ],
+            [typeof(MASModel)] = [
+                new("coefficients", "Gets the autoregression coefficients"),
+                new("mean", "Gets the independent term of the model"),
+                new("original", "Gets the series to be explained"),
+                new("prediction", "Gets the predicted series"),
+                new("r2", "Gets the regression coefficient"),
+                new("residuals", "Gets the estimated residuals"),
+                new("rss", "Gets the Residual Sum of Squares"),
+                new("tss", "Gets the Total Sum of Squares"),
+            ],
             [typeof(Matrix)] = [
                 new("amax", "Gets the maximum absolute value"),
                 new("amin", "Gets the minimum absolute value"),
@@ -386,6 +394,16 @@ internal sealed partial class ParserBindings
                 new("isSymmetric", "Checks if a matrix is symmetric"),
                 new("map(x => ", "Pointwise transformation of matrix cells"),
                 new("stats", "Calculates statistics on the cells"),
+            ],
+            [typeof(MAVModel)] = [
+                new("coefficients", "Gets the autoregression coefficients"),
+                new("mean", "Gets the independent term of the model"),
+                new("original", "Gets the vector to be explained"),
+                new("prediction", "Gets the predicted vector"),
+                new("r2", "Gets the regression coefficient"),
+                new("residuals", "Gets the estimated residuals"),
+                new("rss", "Gets the Residual Sum of Squares"),
+                new("tss", "Gets the Total Sum of Squares"),
             ],
             [typeof(MvoModel)] = [
                 new("first", "Gets the first corner portfolio"),
@@ -445,10 +463,10 @@ internal sealed partial class ParserBindings
                 new("cols", "Gets the number of columns"),
                 new("det", "Calculates the determinant"),
                 new("diag", "Extracts the diagonal as a vector"),
+                new("max", "Gets the maximum value"),
+                new("min", "Gets the minimum absolute value"),
                 new("rows", "Gets the number of rows"),
                 new("trace", "Gets the sum of the main diagonal"),
-                //new("max", "Gets the maximum value"),
-                //new("min", "Gets the minimum absolute value"),
             ],
             [typeof(Point<Date>)] = [
                 new("date", "Gets the date argument"),
@@ -926,19 +944,13 @@ internal sealed partial class ParserBindings
 
             [new(typeof(MASModel), "coeff")] = typeof(MASModel).Prop(nameof(MASModel.Coefficients)),
             [new(typeof(MASModel), "coefficients")] = typeof(MASModel).Prop(nameof(MASModel.Coefficients)),
+            [new(typeof(MASModel), "mean")] = typeof(MASModel).Prop(nameof(MASModel.Mean)),
             [new(typeof(MASModel), "original")] = typeof(MASModel).Prop(nameof(MASModel.Original)),
             [new(typeof(MASModel), "prediction")] = typeof(MASModel).Prop(nameof(MASModel.Prediction)),
             [new(typeof(MASModel), "r2")] = typeof(MASModel).Prop(nameof(MASModel.R2)),
+            [new(typeof(MASModel), "residuals")] = typeof(MASModel).Prop(nameof(MASModel.Residuals)),
             [new(typeof(MASModel), "rss")] = typeof(MASModel).Prop(nameof(MASModel.ResidualSumSquares)),
             [new(typeof(MASModel), "tss")] = typeof(MASModel).Prop(nameof(MASModel.TotalSumSquares)),
-
-            [new(typeof(MAVModel), "original")] = typeof(MAVModel).Prop(nameof(MAVModel.Original)),
-            [new(typeof(MAVModel), "prediction")] = typeof(MAVModel).Prop(nameof(MAVModel.Prediction)),
-            [new(typeof(MAVModel), "coefficients")] = typeof(MAVModel).Prop(nameof(MAVModel.Coefficients)),
-            [new(typeof(MAVModel), "coeff")] = typeof(MAVModel).Prop(nameof(MAVModel.Coefficients)),
-            [new(typeof(MAVModel), "r2")] = typeof(MAVModel).Prop(nameof(MAVModel.R2)),
-            [new(typeof(MAVModel), "rss")] = typeof(MAVModel).Prop(nameof(MAVModel.ResidualSumSquares)),
-            [new(typeof(MAVModel), "tss")] = typeof(MAVModel).Prop(nameof(MAVModel.TotalSumSquares)),
 
             [new(typeof(Matrix), "amax")] = typeof(Matrix).Get(nameof(Matrix.AMax)),
             [new(typeof(Matrix), "amin")] = typeof(Matrix).Get(nameof(Matrix.AMin)),
@@ -956,6 +968,16 @@ internal sealed partial class ParserBindings
             [new(typeof(Matrix), "trace")] = typeof(Matrix).Get(nameof(Matrix.Trace)),
             [new(typeof(Matrix), "stats")] = typeof(Matrix).Get(nameof(Matrix.Stats)),
             [new(typeof(Matrix), "sym")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
+
+            [new(typeof(MAVModel), "coeff")] = typeof(MAVModel).Prop(nameof(MAVModel.Coefficients)),
+            [new(typeof(MAVModel), "coefficients")] = typeof(MAVModel).Prop(nameof(MAVModel.Coefficients)),
+            [new(typeof(MAVModel), "mean")] = typeof(MAVModel).Prop(nameof(MAVModel.Mean)),
+            [new(typeof(MAVModel), "original")] = typeof(MAVModel).Prop(nameof(MAVModel.Original)),
+            [new(typeof(MAVModel), "prediction")] = typeof(MAVModel).Prop(nameof(MAVModel.Prediction)),
+            [new(typeof(MAVModel), "r2")] = typeof(MAVModel).Prop(nameof(MAVModel.R2)),
+            [new(typeof(MAVModel), "residuals")] = typeof(MAVModel).Prop(nameof(MAVModel.Residuals)),
+            [new(typeof(MAVModel), "rss")] = typeof(MAVModel).Prop(nameof(MAVModel.ResidualSumSquares)),
+            [new(typeof(MAVModel), "tss")] = typeof(MAVModel).Prop(nameof(MAVModel.TotalSumSquares)),
 
             [new(typeof(MvoModel), "first")] = typeof(MvoModel).Prop(nameof(MvoModel.First)),
             [new(typeof(MvoModel), "last")] = typeof(MvoModel).Prop(nameof(MvoModel.Last)),
@@ -1007,10 +1029,10 @@ internal sealed partial class ParserBindings
             [new(typeof(RMatrix), "cols")] = typeof(RMatrix).Prop(nameof(RMatrix.Cols)),
             [new(typeof(RMatrix), "det")] = typeof(RMatrix).Get(nameof(RMatrix.Determinant)),
             [new(typeof(RMatrix), "diag")] = typeof(RMatrix).Get(nameof(RMatrix.Diagonal)),
+            [new(typeof(RMatrix), "max")] = typeof(RMatrix).Get(nameof(RMatrix.Maximum)),
+            [new(typeof(RMatrix), "min")] = typeof(RMatrix).Get(nameof(RMatrix.Minimum)),
             [new(typeof(RMatrix), "rows")] = typeof(RMatrix).Prop(nameof(RMatrix.Rows)),
             [new(typeof(RMatrix), "trace")] = typeof(RMatrix).Get(nameof(RMatrix.Trace)),
-            //[new(typeof(RMatrix),"max")] = typeof(RMatrix).Get(nameof(RMatrix.Maximum)),
-            //[new(typeof(RMatrix),"min")] = typeof(RMatrix).Get(nameof(RMatrix.Minimum)),
 
             [new(typeof(Series), "count")] = typeof(Series).Prop(nameof(Series.Count)),
             [new(typeof(Series), "length")] = typeof(Series).Prop(nameof(Series.Count)),

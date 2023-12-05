@@ -1247,7 +1247,7 @@ public readonly struct Matrix :
     public double Maximum()
     {
         Contract.Requires(IsInitialized);
-        return values.Maximum();
+        return values.AsSpan().Maximum();
     }
 
     /// <summary>Gets the cell with the minimum value.</summary>
@@ -1255,7 +1255,7 @@ public readonly struct Matrix :
     public double Minimum()
     {
         Contract.Requires(IsInitialized);
-        return values.Minimum();
+        return values.AsSpan().Minimum();
     }
 
     /// <summary>Applies a function to each cell of the matrix.</summary>

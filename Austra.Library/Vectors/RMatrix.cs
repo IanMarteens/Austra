@@ -397,7 +397,7 @@ public readonly struct RMatrix :
     public double AMax() => values.AsSpan().AbsoluteMaximum();
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
-    /// <remarks>Empty cells are ignored.</remarks>
+    /// <remarks>Cells below the diagonal are ignored.</remarks>
     /// <returns>The minimum absolute value in the triangular matrix.</returns>
     public double AMin()
     {
@@ -405,6 +405,30 @@ public readonly struct RMatrix :
         double min = values.AsSpan(0, c).AbsoluteMinimum();
         for (int row = 1, offset = c; row < r; row++, offset += c)
             min = Min(min, values.AsSpan(offset + row, c - row).AbsoluteMinimum());
+        return min;
+    }
+
+    /// <summary>Gets the cell with the maximum value.</summary>
+    /// <remarks>Zeros below the diagonal are ignored.</remarks>
+    /// <returns>The maximum value in the triangular matrix.</returns>
+    public double Maximum()
+    {
+        int r = Rows, c = Cols;
+        double max = values.AsSpan(0, c).Maximum();
+        for (int row = 1, offset = c; row < r; row++, offset += c)
+            max = Max(max, values.AsSpan(offset + row, c - row).Maximum());
+        return max;
+    }
+
+    /// <summary>Gets the cell with the minimum value.</summary>
+    /// <remarks>Zeros below the diagonal are ignored.</remarks>
+    /// <returns>The minimum value in the triangular matrix.</returns>
+    public double Minimum()
+    {
+        int r = Rows, c = Cols;
+        double min = values.AsSpan(0, c).Minimum();
+        for (int row = 1, offset = c; row < r; row++, offset += c)
+            min = Min(min, values.AsSpan(offset + row, c - row).Minimum());
         return min;
     }
 

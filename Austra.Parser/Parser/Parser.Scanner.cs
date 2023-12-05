@@ -29,7 +29,7 @@ internal sealed partial class Parser : IDisposable
     private static readonly ConstantExpression PiExpr = Expression.Constant(Math.PI);
     /// <summary>Method for multiplying by a transposed matrix.</summary>
     private static readonly MethodInfo MatrixMultiplyTranspose =
-        typeof(Matrix).GetMethod(nameof(Matrix.MultiplyTranspose), [typeof(DVector)])!;
+        typeof(Matrix).GetMethod(nameof(Matrix.MultiplyTranspose), [typeof(Matrix)])!;
     /// <summary>Method for multiplying a vector by a transposed matrix.</summary>
     private static readonly MethodInfo MatrixTransposeMultiply =
         typeof(Matrix).Get(nameof(Matrix.TransposeMultiply));

@@ -25,6 +25,8 @@ public abstract class MAModel<T>
 
     /// <summary>Inferred coefficients of the moving average model.</summary>
     public DVector Coefficients { get; protected set; }
+    /// <summary>Residuals calculated by the iteration process.</summary>
+    public DVector Residuals { get; protected set; }
 
     /// <summary>Gets the total sum of squares.</summary>
     public double TotalSumSquares { get; protected set; }
@@ -82,8 +84,8 @@ public sealed class MASModel : MAModel<Series>
         DVector coeffs = calc.Run(200, 1e-9);
         Mean = coeffs[0];
         Coefficients = coeffs[1..];
-        DVector residuals = calc.Residuals;
-        double[] newValues = Predict(reverse, residuals);
+        Residuals = calc.Residuals;
+        double[] newValues = Predict(reverse, Residuals);
         Array.Reverse(newValues);
         Prediction = new(
             original.Name + ".MA(" + degrees + ")",
@@ -108,8 +110,8 @@ public sealed class MAVModel : MAModel<DVector>
         DVector coeffs = calc.Run(128, 1e-9);
         Mean = coeffs[0];
         Coefficients = coeffs[1..];
-        DVector residuals = calc.Residuals;
-        Prediction = new(Predict(original, residuals));
+        Residuals = calc.Residuals;
+        Prediction = new(Predict(original, Residuals));
         (TotalSumSquares, ResidualSumSquares, R2) = Original.GetSumSquares(Prediction);
     }
 }

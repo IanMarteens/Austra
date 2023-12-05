@@ -98,6 +98,7 @@ public static class CommonMatrix
             ref double p = ref MM.GetReference(span);
             ref double t = ref Add(ref p, span.Length - V8d.Count);
             V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
+            p = ref Add(ref p, V8d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8d.Count))
                 vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p)));
             return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref t))).Max();
@@ -107,6 +108,7 @@ public static class CommonMatrix
             ref double p = ref MM.GetReference(span);
             ref double t = ref Add(ref p, span.Length - V4d.Count);
             V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
+            p = ref Add(ref p, V4d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4d.Count))
                 vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p)));
             return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref t))).Max();
@@ -127,6 +129,7 @@ public static class CommonMatrix
             ref double p = ref MM.GetReference(span);
             ref double t = ref Add(ref p, span.Length - V8d.Count);
             V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
+            p = ref Add(ref p, V8d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8d.Count))
                 vm = V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref p)));
             return V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref t))).Min();
@@ -136,6 +139,7 @@ public static class CommonMatrix
             ref double p = ref MM.GetReference(span);
             ref double t = ref Add(ref p, span.Length - V4d.Count);
             V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
+            p = ref Add(ref p, V4d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4d.Count))
                 vm = V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref p)));
             return V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref t))).Min();
@@ -150,27 +154,29 @@ public static class CommonMatrix
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Maximum(this double[] values)
+    public static double Maximum(this Span<double> values)
     {
         if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
         {
-            ref double p = ref MM.GetArrayDataReference(values);
+            ref double p = ref MM.GetReference(values);
             ref double t = ref Add(ref p, values.Length - V8d.Count);
             V8d vm = V8.LoadUnsafe(ref p);
+            p = ref Add(ref p, V8d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8d.Count))
                 vm = V8.Max(vm, V8.LoadUnsafe(ref p));
             return V8.Max(vm, V8.LoadUnsafe(ref t)).Max();
         }
         if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
         {
-            ref double p = ref MM.GetArrayDataReference(values);
+            ref double p = ref MM.GetReference(values);
             ref double t = ref Add(ref p, values.Length - V4d.Count);
             V4d vm = V4.LoadUnsafe(ref p);
+            p = ref Add(ref p, V4d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4d.Count))
                 vm = Avx.Max(vm, V4.LoadUnsafe(ref p));
             return Avx.Max(vm, V4.LoadUnsafe(ref t)).Max();
         }
-        double max = double.MaxValue;
+        double max = double.MinValue;
         foreach (double d in values)
             max = Max(max, d);
         return max;
@@ -187,6 +193,7 @@ public static class CommonMatrix
             ref int p = ref MM.GetArrayDataReference(values);
             ref int t = ref Add(ref p, values.Length - V8i.Count);
             V8i vm = V8.LoadUnsafe(ref p);
+            p = ref Add(ref p, V8i.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8i.Count))
                 vm = V8.Max(vm, V8.LoadUnsafe(ref p));
             return V8.Max(vm, V8.LoadUnsafe(ref t)).Max();
@@ -196,6 +203,7 @@ public static class CommonMatrix
             ref int p = ref MM.GetArrayDataReference(values);
             ref int t = ref Add(ref p, values.Length - V4i.Count);
             V4i vm = V4.LoadUnsafe(ref p);
+            p = ref Add(ref p, V4i.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4i.Count))
                 vm = Avx2.Max(vm, V4.LoadUnsafe(ref p));
             return Avx2.Max(vm, V4.LoadUnsafe(ref t)).Max();
@@ -210,22 +218,24 @@ public static class CommonMatrix
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Minimum(this double[] values)
+    public static double Minimum(this Span<double> values)
     {
         if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
         {
-            ref double p = ref MM.GetArrayDataReference(values);
+            ref double p = ref MM.GetReference(values);
             ref double t = ref Add(ref p, values.Length - V8d.Count);
             V8d vm = V8.LoadUnsafe(ref p);
+            p = ref Add(ref p, V8d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8d.Count))
                 vm = V8.Min(vm, V8.LoadUnsafe(ref p));
             return V8.Min(vm, V8.LoadUnsafe(ref t)).Min();
         }
         if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
         {
-            ref double p = ref MM.GetArrayDataReference(values);
+            ref double p = ref MM.GetReference(values);
             ref double t = ref Add(ref p, values.Length - V4d.Count);
             V4d vm = V4.LoadUnsafe(ref p);
+            p = ref Add(ref p, V4d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4d.Count))
                 vm = Avx.Min(vm, V4.LoadUnsafe(ref p));
             return Avx.Min(vm, V4.LoadUnsafe(ref t)).Min();
@@ -247,6 +257,7 @@ public static class CommonMatrix
             ref int p = ref MM.GetArrayDataReference(values);
             ref int t = ref Add(ref p, values.Length - V8i.Count);
             V8i vm = V8.LoadUnsafe(ref p);
+            p = ref Add(ref p, V8i.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V8i.Count))
                 vm = V8.Min(vm, V8.LoadUnsafe(ref p));
             return V8.Min(vm, V8.LoadUnsafe(ref t)).Min();
@@ -256,6 +267,7 @@ public static class CommonMatrix
             ref int p = ref MM.GetArrayDataReference(values);
             ref int t = ref Add(ref p, values.Length - V4i.Count);
             V4i vm = V4.LoadUnsafe(ref p);
+            p = ref Add(ref p, V4i.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, V4i.Count))
                 vm = Avx2.Min(vm, V4.LoadUnsafe(ref p));
             return Avx2.Min(vm, V4.LoadUnsafe(ref t)).Min();
