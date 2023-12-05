@@ -299,6 +299,7 @@ series([0.5, 0.1, 0.9], aapl, msft);
       <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetic</link>
       <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
       <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
+      <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49">Matrices</link>
     </relatedTopics>
   </developerConceptualDocument>
 </topic>
