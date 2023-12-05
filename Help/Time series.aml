@@ -254,6 +254,14 @@ series([0.5, 0.1, 0.9], aapl, msft);
  		    	<entry><para>Creates a full linear model given a list of series. See <see cref="M:Austra.Library.Series.FullLinearModel(Austra.Library.Series[])" />.</para></entry>
 		  	  </row>
  		  	  <row>
+ 		    	<entry><para><codeInline>ma</codeInline></para></entry>
+ 		    	<entry><para>Calculates the moving average coefficients for a given order. See <see cref="M:Austra.Library.Series`1.MovingAverage(System.Int32)" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>maModel</codeInline></para></entry>
+ 		    	<entry><para>Creates a full MA(q) model. See <see cref="M:Austra.Library.Series.MAModel(System.Int32)" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
  		    	<entry><para><codeInline>map</codeInline></para></entry>
  		    	<entry><para>Pointwise transformation of the series with a lambda. See <see cref="M:Austra.Library.Series.Map(System.Func{System.Double,System.Double})" />.</para></entry>
 		  	  </row>

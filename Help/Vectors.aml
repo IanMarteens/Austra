@@ -67,7 +67,7 @@ vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
 		  <section>
 		    <title>Vector properties</title>
 		    <content>
-		      <para>These are the properties supported by a vector instance:</para>
+		      <para>Properties and methods or vectors are very similar to the ones from series. As a rule, almost all code in series that do not need to take dates into account, is implemented via the corresponding vector code, which is heavily optimized and hardware-accelerated. These are the properties supported by a vector instance:</para>
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>abs</codeInline></para></entry>
@@ -204,6 +204,10 @@ vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
  		  	  <row>
  		    	<entry><para><codeInline>ma</codeInline></para></entry>
  		    	<entry><para>Estimates coefficients for an MA(q) model. See <see cref="M:Austra.Library.DVector.MovingAverage(System.Int32)" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>maModel</codeInline></para></entry>
+ 		    	<entry><para>Creates a full MA(q) model. See <see cref="M:Austra.Library.DVector.MAModel(System.Int32)" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>map</codeInline></para></entry>
@@ -379,6 +383,39 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 		  </section>
 	    </sections>
 	  </content>
+    </section>
+    <section>
+      <title>Indexing and slicing</title>
+      <content>
+		<para>Individual values from vectors are accessed using its position, starting from zero, inside brackets:</para>
+		<code language="Austra">
+vec[0];
+vec[vec.length - 1]
+		</code>
+		<para>A segment or slice can be extracted as another vector by using this notation:</para>
+		<code language="Austra">
+vec[1:vec.length - 1]
+		</code>
+		<para>The above expression removes the first and the last element from a vector. The upper bound is excluded.</para>
+		<para>The caret ()<codeInline>^</codeInline>) can be used in indexes and segments, to count positions from the end. For instance, this expression returns the next to last item of a vector:</para>
+		<code language="Austra">
+vec[^1]
+		</code>
+		<para>These equalities hold:</para>
+		<code language="Austra">
+vec[1:^1] = vec[1:vec.length - 1];
+vec[^5:^2].length = 3
+		</code>
+		<para>Vectors and series also support safe indexers. With normal indexers, like <codeInline>v[1000]</codeInline>, an out-of-range reference throws an exception and interrupts the evaluation of the
+		formula. If braces are used instead of brackets, and out-of-range reference returns 0.0 and it is considered as a valid use. For instance, the following expression returns zero:</para>
+		<code language="Austra">
+[1, 2, 3, 4]{1000}
+		</code>
+		<para>Safe indexers are useful when used inside lambda functions. This expression creates a vector holding the first 30 Fibonacci numbers:</para>
+		<code language="Austra">
+		vec(30, (i, v) => max(1, v{i-1} + v{i-2}))
+		</code>
+      </content>
     </section>
     <relatedTopics>
       <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
