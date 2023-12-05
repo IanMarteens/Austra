@@ -168,10 +168,8 @@ public readonly struct LMatrix :
 
     /// <summary>Gets the number of rows.</summary>
     public int Rows { get; }
-
     /// <summary>Gets the number of columns.</summary>
     public int Cols { get; }
-
     /// <summary>Checks if the matrix is a square one.</summary>
     public bool IsSquare => Rows == Cols;
 

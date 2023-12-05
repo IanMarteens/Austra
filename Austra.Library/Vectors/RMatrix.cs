@@ -27,14 +27,12 @@ public readonly struct RMatrix :
 
     /// <summary>Creates an empty square matrix.</summary>
     /// <param name="size">Number of rows and columns.</param>
-    public RMatrix(int size) =>
-        (Rows, Cols, values) = (size, size, new double[size * size]);
+    public RMatrix(int size) => (Rows, Cols, values) = (size, size, new double[size * size]);
 
     /// <summary>Creates an empty rectangular matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    public RMatrix(int rows, int cols) =>
-        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
+    public RMatrix(int rows, int cols) => (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
 
     /// <summary>
     /// Creates a matrix with a given number of rows and columns, and its internal array.
@@ -50,9 +48,7 @@ public readonly struct RMatrix :
     public RMatrix(DVector diagonal) =>
         (Rows, Cols, values) = (diagonal.Length, diagonal.Length, diagonal.CreateDiagonal());
 
-    /// <summary>
-    /// Creates a matrix filled with a uniform distribution generator.
-    /// </summary>
+    /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="random">A random number generator.</param>
