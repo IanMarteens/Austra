@@ -305,11 +305,12 @@ internal sealed partial class Parser : IDisposable
                         : (Token.Eq, start);
                     return;
                 case '.':
-                    (kind, start) = Add(ref c, i) == '*'
-                        ? (Token.PointTimes, i++ - 1)
-                        : Add(ref c, i) == '/'
-                        ? (Token.PointDiv, i++ - 1)
-                        : (Token.Dot, start);
+                    (kind, start) = Add(ref c, i) switch
+                    {
+                        '*' => (Token.PointTimes, i++ - 1),
+                        '/' => (Token.PointDiv, i++ - 1),
+                        _ => (Token.Dot, start),
+                    };
                     return;
                 case ':':
                     (kind, start) = Add(ref c, i) == ':'
@@ -322,11 +323,12 @@ internal sealed partial class Parser : IDisposable
                         : (Token.Error, start);
                     return;
                 case '<':
-                    (kind, start) = Add(ref c, i) == '='
-                        ? (Token.Le, i++ - 1)
-                        : Add(ref c, i) == '>'
-                        ? (Token.Ne, i++ - 1)
-                        : (Token.Lt, start);
+                    (kind, start) = Add(ref c, i) switch
+                    {
+                        '=' => (Token.Le, i++ - 1),
+                        '>' => (Token.Ne, i++ - 1),
+                        _ => (Token.Lt, start),
+                    };
                     return;
                 case '>':
                     (kind, start) = Add(ref c, i) == '='

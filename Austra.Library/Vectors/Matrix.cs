@@ -1016,22 +1016,29 @@ public readonly struct Matrix :
     /// <param name="m">The transformation matrix.</param>
     /// <param name="v">Vector to transform.</param>
     /// <returns>The transformed vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DVector operator *(Matrix m, DVector v) =>
+        m.Transform(v, GC.AllocateUninitializedArray<double>(m.Rows));
+
+    /// <summary>Transforms a vector using a matrix and a preallocated buffer.</summary>
+    /// <remarks>The buffer must have <see cref="Matrix.Rows"/> items.</remarks>
+    /// <param name="v">Vector to transform.</param>
+    /// <param name="result">Preallocated buffer for the result.</param>
+    /// <returns>The transformed vector.</returns>
     /// <exception cref="MatrixSizeException">
     /// When the matrix and vector have non-matching sizes.
     /// </exception>
-    public static DVector operator *(Matrix m, DVector v)
+    public DVector Transform(DVector v, double[] result)
     {
-        Contract.Requires(m.IsInitialized);
+        Contract.Requires(IsInitialized);
         Contract.Requires(v.IsInitialized);
-        int r = m.Rows, c = m.Cols;
+        int r = Rows, c = Cols;
         if (c != v.Length)
             throw new MatrixSizeException();
 
-        double[] result = GC.AllocateUninitializedArray<double>(r);
-        double[] source = (double[])v;
         ref double b = ref MM.GetArrayDataReference(result);
         for (int i = 0, offset = 0; i < r; i++, offset += c)
-            Add(ref b, i) = m.values.AsSpan(offset, c).DotProduct(source);
+            Add(ref b, i) = values.AsSpan(offset, c).DotProduct((double[])v);
         return result;
     }
 

@@ -5,11 +5,12 @@ internal sealed class MACalculator
 {
     /// <summary>The vector with samples to model.</summary>
     private readonly DVector original;
+    /// <summary>
+    /// The original vector without the first <see cref="size"/> elements.
+    /// </summary>
     private readonly DVector v;
     /// <summary>The order of the model to estimate.</summary>
     private readonly int size;
-    private readonly double[] transposeBuffer;
-    private readonly double[] values;
     private double[] residuals;
     private double[] newResiduals;
     /// <summary>
@@ -25,9 +26,6 @@ internal sealed class MACalculator
     public MACalculator(int size, DVector original)
     {
         (this.original, v, this.size) = (original, original[size..], size);
-        transposeBuffer = GC.AllocateUninitializedArray<double>((size + 1) * (size + 1));
-        values = GC.AllocateUninitializedArray<double>((size + 1) * v.Length);
-        Array.Fill(values, 1.0, 0, v.Length);
         // Start demeaning the original vector for the first iteration.
         residuals = (double[])(original - original.Mean());
         coefficients = new double[size + 1];
@@ -46,6 +44,10 @@ internal sealed class MACalculator
     /// <returns>The calculated coefficients. The first element is the constant term.</returns>
     public DVector Run(int maxIterations, double accuracy)
     {
+        double[] values = GC.AllocateUninitializedArray<double>((size + 1) * v.Length);
+        Array.Fill(values, 1.0, 0, v.Length);
+        double[] transposeBuffer = GC.AllocateUninitializedArray<double>((size + 1) * (size + 1));
+        double[] transformBuffer = GC.AllocateUninitializedArray<double>(size + 1);
         int c = v.Length;
         ref double orig = ref MM.GetArrayDataReference((double[])original);
         for (int iter = maxIterations; iter >= 0; iter--)
@@ -54,7 +56,9 @@ internal sealed class MACalculator
             for (int i = 0, offset = c; i < size; i++, offset += c)
                 Array.Copy(residuals, size - i - 1, values, offset, c);
             Matrix x = new(size + 1, c, values);
-            x.MultiplyTranspose(x, transposeBuffer).Cholesky().Solve(x * v, newCoefficients);
+            x.MultiplyTranspose(x, transposeBuffer)
+                .Cholesky()
+                .Solve(x.Transform(v, transformBuffer), newCoefficients);
             // Check for convergence.
             if (newCoefficients.Distance(coefficients) <= accuracy)
                 return newCoefficients;
