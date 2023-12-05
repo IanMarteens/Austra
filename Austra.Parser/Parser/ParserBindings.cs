@@ -251,6 +251,9 @@ internal sealed partial class ParserBindings
                 new("addMonths(", "Adds a number of months to the date"),
                 new("addYears(", "Adds a number of years to the date"),
             ],
+            [typeof(double)] = [
+                new("toInt", "Converts this double value to integer"),
+                ],
             [typeof(DSequence)] = [
                 new("acf", "Gets the autocorrelation function"),
                 new("distinct", "Gets the unique values in the sequence"),

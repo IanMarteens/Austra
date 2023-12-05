@@ -648,13 +648,15 @@ internal sealed partial class Parser
                 {
                     double value = asReal;
                     Move();
-                    return Expression.Constant(value);
+                    e = Expression.Constant(value);
+                    break;
                 }
             case Token.Imag:
                 {
                     double value = asReal;
                     Move();
-                    return Expression.Constant(new Complex(0, value));
+                    e = Expression.Constant(new Complex(0, value));
+                    break;
                 }
             case Token.Str:
                 {
