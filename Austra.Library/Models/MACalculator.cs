@@ -1,37 +1,19 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Estimates the coefficients of a moving average model.</summary>
-internal sealed class MACalculator
+/// <param name="size">The order of the model to estimate.</param>
+/// <param name="original">The vector with samples to model.</param>
+internal sealed class MACalculator(int size, DVector original)
 {
-    /// <summary>The vector with samples to model.</summary>
-    private readonly DVector original;
-    /// <summary>
-    /// The original vector without the first <see cref="size"/> elements.
-    /// </summary>
-    private readonly DVector v;
     /// <summary>The order of the model to estimate.</summary>
-    private readonly int size;
-    private double[] residuals;
-    private double[] newResiduals;
-    /// <summary>
-    /// The buffer for the coefficients. The first element is the constant term.
-    /// </summary>
-    private double[] newCoefficients;
-    /// <summary>Auxiliary buffer for the coefficients.</summary>
-    private double[] coefficients;
-
-    /// <summary>Creates a calculator, allocating buffers for the algorithm.</summary>
-    /// <param name="size">The order of the model to estimate.</param>
-    /// <param name="original">The vector with samples to model.</param>
-    public MACalculator(int size, DVector original)
-    {
-        (this.original, v, this.size) = (original, original[size..], size);
-        // Start demeaning the original vector for the first iteration.
-        residuals = (double[])(original - original.Mean());
-        coefficients = new double[size + 1];
-        newResiduals = new double[original.Length];
-        newCoefficients = new double[size + 1];
-    }
+    private readonly int size = size;
+    /// <summary>The vector with samples to model.</summary>
+    private readonly DVector original = original;
+    /// <summary>The original vector without the first <see cref="size"/> elements.</summary>
+    private readonly DVector v = original[size..];
+    /// <summary>Residuals after the last iteration.</summary>
+    /// <remarks>Its initial value is the original vector demeaned.</remarks>
+    private double[] residuals = (double[])(original - original.Mean());
 
     /// <summary>Gets the residuals after the last iteration.</summary>
     public DVector Residuals => residuals;
@@ -48,6 +30,11 @@ internal sealed class MACalculator
         Array.Fill(values, 1.0, 0, v.Length);
         double[] transposeBuffer = GC.AllocateUninitializedArray<double>((size + 1) * (size + 1));
         double[] transformBuffer = GC.AllocateUninitializedArray<double>(size + 1);
+        // Buffers for the coefficients.
+        double[] coeffs = new double[size + 1];
+        double[] newCoeffs = new double[size + 1];
+        // A buffer for the residuals.
+        double[] newResiduals = new double[original.Length];
         int c = v.Length;
         ref double orig = ref MM.GetArrayDataReference((double[])original);
         for (int iter = maxIterations; iter >= 0; iter--)
@@ -58,12 +45,12 @@ internal sealed class MACalculator
             Matrix x = new(size + 1, c, values);
             x.MultiplyTranspose(x, transposeBuffer)
                 .Cholesky()
-                .Solve(x.Transform(v, transformBuffer), newCoefficients);
+                .Solve(x.Transform(v, transformBuffer), newCoeffs);
             // Check for convergence.
-            if (newCoefficients.Distance(coefficients) <= accuracy)
-                return newCoefficients;
+            if (newCoeffs.Distance(coeffs) <= accuracy)
+                return newCoeffs;
             // Calculate new residuals and switch buffers.
-            ref double rc = ref MM.GetArrayDataReference(newCoefficients);
+            ref double rc = ref MM.GetArrayDataReference(newCoeffs);
             ref double r = ref MM.GetArrayDataReference(residuals);
             ref double nr = ref MM.GetArrayDataReference(newResiduals);
             for (int i = 0; i < size; i++)
@@ -82,8 +69,8 @@ internal sealed class MACalculator
             }
             // Swap buffers for the next iteration.
             (residuals, newResiduals) = (newResiduals, residuals);
-            (newCoefficients, coefficients) = (coefficients, newCoefficients);
+            (newCoeffs, coeffs) = (coeffs, newCoeffs);
         }
-        return newCoefficients;
+        return newCoeffs;
     }
 }
