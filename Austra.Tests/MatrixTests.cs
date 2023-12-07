@@ -188,10 +188,21 @@ public class MatrixTests
     [Test]
     public void CheckLMatrixTransposeMultiply([Values(32, 35, 256, 257, 1024, 1025)] int size)
     {
-        LMatrix m1 = new(size, size + 2, new Random(), 0.3, 1.5);
-        LMatrix m2 = new(size + 1, size + 2, new Random(), 0.3, 1.5);
+        LMatrix m1 = new(size, size + 5, new Random(), 0.3, 1.5);
+        LMatrix m2 = new(size + 2, size + 5, new Random(), 0.3, 1.5);
         Matrix m3 = m1.MultiplyTranspose(m2);
         Matrix m4 = (Matrix)m1 * (Matrix)m2.Transpose();
         Assert.That(m3.Distance(m4), Is.LessThanOrEqualTo(1E-10));
+    }
+
+    [Test]
+    public void CheckRMatrixTransposeMultiply([Values(32, 35, 256, 257, 1024, 1025)] int size)
+    {
+        RMatrix m1 = new(size, size + 5, new Random(), 0.3, 1.5);
+        RMatrix m2 = new(size + 2, size + 5, new Random(), 0.3, 1.5);
+        Matrix m3 = m1.MultiplyTranspose(m2);
+        Matrix m4 = (Matrix)m1 * ((Matrix)m2).Transpose();
+        double distance = m3.Distance(m4);
+        Assert.That(distance, Is.LessThanOrEqualTo(1E-10));
     }
 }

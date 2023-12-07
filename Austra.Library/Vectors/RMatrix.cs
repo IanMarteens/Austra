@@ -59,9 +59,23 @@ public readonly struct RMatrix :
         double offset = 0.0, double width = 1.0)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        for (int r = 0; r < rows; r++)
+        ref double cell = ref MM.GetArrayDataReference(values);
+        for (int r = 0; r < rows; r++, cell = ref Add(ref cell, cols))
             for (int c = r; c < cols; c++)
-                values[r * Cols + c] = random.NextDouble() * width + offset;
+                Add(ref cell, c) = FusedMultiplyAdd(random.NextDouble(), width, offset);
+    }
+
+    /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
+    /// <param name="rows">Number of rows.</param>
+    /// <param name="cols">Number of columns.</param>
+    /// <param name="random">A random number generator.</param>
+    public RMatrix(int rows, int cols, Random random)
+    {
+        (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
+        ref double cell = ref MM.GetArrayDataReference(values);
+        for (int r = 0; r < rows; r++, cell = ref Add(ref cell, cols))
+            for (int c = r; c < cols; c++)
+                Add(ref cell, c) = random.NextDouble();
     }
 
     /// <summary>
@@ -441,20 +455,18 @@ public readonly struct RMatrix :
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
         int r = Rows, n = Cols, c = m.Rows;
-        double[] result = new double[r * c];
-        fixed (double* pA = values, pB = m.values, pC = result)
+        double[] result = GC.AllocateUninitializedArray<double>(r * c);
+        ref double pA = ref MM.GetArrayDataReference(values);
+        ref double pB = ref MM.GetArrayDataReference(m.values);
+        ref double pC = ref MM.GetArrayDataReference(result);
+        for (int i = 0; i < r; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, c))
         {
-            double* pAi = pA, pCi = pC;
-            for (int i = 0; i < r; i++, pAi += r, pCi += r)
+            ref double pBj = ref pB;
+            for (int j = 0; j < c; j++, pBj = ref Add(ref pBj, n))
             {
-                double* pBj = pB;
-                *pCi = *pAi * *pBj;
-                pBj += c;
-                for (int j = 1; j < c; j++, pBj += c)
-                {
-                    int s = Min(i, j) + 1;
-                    pCi[j] = new Span<double>(pAi, s).DotProduct(new Span<double>(pBj, s));
-                }
+                int s = Max(i, j), len = n - s;
+                Add(ref pC, j) = MM.CreateSpan(ref Add(ref pA, s), len)
+                    .DotProduct(MM.CreateSpan(ref Add(ref pBj, s), len));
             }
         }
         return new(r, c, result);

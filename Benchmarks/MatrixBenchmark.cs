@@ -6,7 +6,7 @@ public class MatrixBenchmark : BenchmarkControl
     private readonly Matrix cm1, cm2, sym;
     private readonly DVector cv1, cv2;
     private readonly LMatrix lm1, lm2;
-    private readonly RMatrix rm1;
+    private readonly RMatrix rm1, rm2;
 
     public MatrixBenchmark()
     {
@@ -20,6 +20,7 @@ public class MatrixBenchmark : BenchmarkControl
         lm1 = new LMatrix(size, rnd);
         lm2 = new LMatrix(size, rnd);
         rm1 = new RMatrix(size, rnd);
+        rm2 = new RMatrix(size, rnd);
     }
 
     //[Benchmark]
@@ -86,7 +87,10 @@ public class MatrixBenchmark : BenchmarkControl
     public LMatrix AustraTransposeRMatrix() => rm1.Transpose();
 
     [Benchmark]
-    public LMatrix AustraLMultiplyTranspose() => lm1.MultiplyTranspose(lm1);
+    public Matrix AustraLMultiplyTranspose() => lm1.MultiplyTranspose(lm1);
+
+    [Benchmark]
+    public Matrix AustraRMultiplyTranspose() => rm1.MultiplyTranspose(rm1);
 
     //[Benchmark]
     public Matrix AustraLRMatrixMult() => cm1 * lm1;
