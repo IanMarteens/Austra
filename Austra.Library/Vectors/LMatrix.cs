@@ -579,29 +579,39 @@ public readonly struct LMatrix :
     /// <summary>Multiplies this matrix by the transposed argument.</summary>
     /// <param name="m">Second operand.</param>
     /// <returns>The multiplication by the transposed argument.</returns>
-    public unsafe Matrix MultiplyTranspose(LMatrix m)
+    public Matrix MultiplyTranspose(LMatrix m)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
-        Contract.Requires(Cols == m.Cols);
+        if (Cols != m.Cols)
+            throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
-        int r = Rows, n = Cols, c = m.Rows;
-        double[] result = new double[r * c];
-        fixed (double* pA = values, pB = m.values, pC = result)
+        int r = Rows, c = m.Rows;
+        double[] result = GC.AllocateUninitializedArray<double>(r * c);
+        ref double pA = ref MM.GetArrayDataReference(values);
+        ref double pB = ref MM.GetArrayDataReference(m.values);
+        ref double pC = ref MM.GetArrayDataReference(result);
+        // The first row is special.
+        double d = pA;
+        for (int j = 0, jc = 0; j < c; j++, jc += m.Cols)
+            Add(ref pC, j) = d * Add(ref pB, jc);
+        // Iterate all the other rows of the result.
+        d = pB;
+        for (int i = 1; i < r; i++)
         {
-            double* pAi = pA, pCi = pC;
-            for (int i = 0; i < r; i++, pAi += r, pCi += r)
+            pA = ref Add(ref pA, Cols);
+            pC = ref Add(ref pC, c);
+            // The first column is also special.
+            pC = pA * d;
+            ref double pBj = ref pB;
+            // Iterate all other columns of the result.
+            for (int j = 1; j < c; j++)
             {
-                double* pBj = pB;
-                *pCi = *pAi * *pBj;
-                pBj += c;
-                for (int j = 1; j < c; j++, pBj += c)
-                {
-                    int s = Min(i, j) + 1;
-                    pCi[j] = new Span<double>(pAi, s).DotProduct(new Span<double>(pBj, s));
-                }
+                pBj = ref Add(ref pBj, m.Cols);
+                int s = Min(i, j) + 1;
+                Add(ref pC, j) = MM.CreateSpan(ref pA, s).DotProduct(MM.CreateSpan(ref pBj, s));
             }
         }
         return new(r, c, result);

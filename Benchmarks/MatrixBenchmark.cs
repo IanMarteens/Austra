@@ -85,7 +85,7 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public LMatrix AustraTransposeRMatrix() => rm1.Transpose();
 
-    //[Benchmark]
+    [Benchmark]
     public LMatrix AustraLMultiplyTranspose() => lm1.MultiplyTranspose(lm1);
 
     //[Benchmark]
@@ -94,6 +94,6 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public DVector AustraLMatrixSolve() => lm1.Solve(cv1);
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraGetDiagonal() => cm1.Diagonal();
 }

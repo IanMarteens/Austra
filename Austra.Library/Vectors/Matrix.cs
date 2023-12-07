@@ -999,7 +999,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
 
-        int r = Rows, n = Cols, c = m.Rows, top = n & Simd.MASK4;
+        int r = Rows, n = Cols, c = m.Rows;
         ref double a = ref MM.GetArrayDataReference(values);
         ref double b = ref MM.GetArrayDataReference(m.values);
         ref double t = ref MM.GetArrayDataReference(result);

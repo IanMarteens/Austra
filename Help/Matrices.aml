@@ -3,7 +3,21 @@
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
       <para>AUSTRA matrices are represented by the <codeInline>matrix</codeInline> class. They are implemented as row-first, double precision dense matrices.</para>
+      <para>The AUSTRA <codeInline>matrix</codeInline> class is based on three different C# structures: <codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference>, <codeEntityReference qualifyHint="false">T:Austra.Library.LMatrix</codeEntityReference>, and <codeEntityReference qualifyHint="false">T:Austra.Library.RMatrix</codeEntityReference>. The compiler takes automatically care of any conversions when needed.</para>
     </introduction>
+    <section>
+      <title>Matrix construction</title>
+      <content>
+        <para>A matrix can be constructed by enclosing its components inside brackets:</para>
+		<code language="Austra">
+[1, 2, 3; 2, 3, 4; 3, 4, 5]
+		</code>
+		<para>Rows must be separated by semicolons (<codeInline>;</codeInline>), and items in a row must be separated by commas. This syntax does not allows writing a matrix with only one row, since the compiler would not be able to tell it from a <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">vectors</link>. A workaround is writing a matrix with only one column, and transposing it:</para>
+		<code language="Austra">
+[1; 2; 3; 4]'
+		</code>
+      </content>
+    </section>
     <section address="Section1">
       <title>Indexing and slicing</title>
       <content>

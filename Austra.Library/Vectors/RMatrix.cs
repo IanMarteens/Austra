@@ -428,6 +428,42 @@ public readonly struct RMatrix :
         return min;
     }
 
+    /// <summary>Multiplies this matrix by the transposed argument.</summary>
+    /// <param name="m">Second operand.</param>
+    /// <returns>The multiplication by the transposed argument.</returns>
+    public unsafe Matrix MultiplyTranspose(RMatrix m)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(m.IsInitialized);
+        if (Cols != m.Cols)
+            throw new MatrixSizeException();
+        Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
+        Contract.Ensures(Contract.Result<Matrix>().Cols == m.Rows);
+
+        int r = Rows, n = Cols, c = m.Rows;
+        double[] result = new double[r * c];
+        fixed (double* pA = values, pB = m.values, pC = result)
+        {
+            double* pAi = pA, pCi = pC;
+            for (int i = 0; i < r; i++, pAi += r, pCi += r)
+            {
+                double* pBj = pB;
+                *pCi = *pAi * *pBj;
+                pBj += c;
+                for (int j = 1; j < c; j++, pBj += c)
+                {
+                    int s = Min(i, j) + 1;
+                    pCi[j] = new Span<double>(pAi, s).DotProduct(new Span<double>(pBj, s));
+                }
+            }
+        }
+        return new(r, c, result);
+    }
+
+    /// <summary>Multiplies this matrix by its own transposed.</summary>
+    /// <returns>The multiplication by the transposed argument.</returns>
+    public Matrix Square() => MultiplyTranspose(this);
+
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => values.DiagonalProduct(Rows, Cols);
