@@ -16,6 +16,56 @@
 		<code language="Austra">
 [1; 2; 3; 4]'
 		</code>
+		<sections>
+		  <section>
+		    <title>Class methods</title>
+		    <content>
+		      <para>These class methods are available for creating matrices:</para>
+			  <table>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::new</codeInline></para></entry>
+ 		    	  <entry><para>Overloaded constructor (see below).</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::rows</codeInline></para></entry>
+ 		    	  <entry><para>Creates a matrix given its rows as vectors.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::cols</codeInline></para></entry>
+ 		    	  <entry><para>Creates a matrix given its cols as vectors.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::eye</codeInline></para></entry>
+ 		    	  <entry><para>Creates an identity matrix given its size.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::diag</codeInline></para></entry>
+ 		    	  <entry><para>Creates a diagonal matrix given the diagonal as a vector.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::random</codeInline></para></entry>
+ 		    	  <entry><para>Creates a matrix with random values from a uniform distribution.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::nrandom</codeInline></para></entry>
+ 		    	  <entry><para>Creates a matrix with random values from a normal standard distribution.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::lrandom</codeInline></para></entry>
+ 		    	  <entry><para>Creates a lower-triangular matrix with random values from a uniform distribution.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::cov</codeInline></para></entry>
+ 		    	  <entry><para>Creates a covariance matrix given a list of series.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>matrix::corr</codeInline></para></entry>
+ 		    	  <entry><para>Creates a correlation matrix given a list of series.</para></entry>
+		  		</row>
+			  </table>
+		    </content>
+		  </section>
+		</sections>
       </content>
     </section>
     <section address="Section1">
