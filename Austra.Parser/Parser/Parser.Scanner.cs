@@ -47,6 +47,9 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Method for squaring a lower-triangular matrix.</summary>
     private static readonly MethodInfo LMatrixSquare =
         typeof(LMatrix).GetMethod(nameof(LMatrix.Square))!;
+    /// <summary>Method for squaring an upper-triangular matrix.</summary>
+    private static readonly MethodInfo RMatrixSquare =
+        typeof(RMatrix).GetMethod(nameof(RMatrix.Square))!;
     /// <summary>Method for cloning sequences.</summary>
     private static readonly MethodInfo SeqClone =
         typeof(DSequence).GetMethod(nameof(DSequence.Clone))!;
