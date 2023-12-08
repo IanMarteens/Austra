@@ -465,8 +465,11 @@ public readonly struct RMatrix :
             for (int j = 0; j < c; j++, pBj = ref Add(ref pBj, n))
             {
                 int s = Max(i, j), len = n - s;
-                Add(ref pC, j) = MM.CreateSpan(ref Add(ref pA, s), len)
-                    .DotProduct(MM.CreateSpan(ref Add(ref pBj, s), len));
+                if (len > 0)
+                    Add(ref pC, j) = MM.CreateSpan(ref Add(ref pA, s), len)
+                        .DotProduct(MM.CreateSpan(ref Add(ref pBj, s), len));
+                else
+                    Add(ref pC, j) = 0;
             }
         }
         return new(r, c, result);

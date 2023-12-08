@@ -610,7 +610,7 @@ public readonly struct LMatrix :
             for (int j = 1; j < c; j++)
             {
                 pBj = ref Add(ref pBj, m.Cols);
-                int s = Min(i, j) + 1;
+                int s = Min(m.Cols, Min(i, j) + 1);
                 Add(ref pC, j) = MM.CreateSpan(ref pA, s).DotProduct(MM.CreateSpan(ref pBj, s));
             }
         }
