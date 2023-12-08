@@ -681,7 +681,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m1.values.Length);
-        m1.values.AsSpan().AddV(m2.values, result);
+        m1.values.AsSpan().Add(m2.values, result);
         return new(m1.Rows, m1.Cols, result);
     }
 
@@ -699,7 +699,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m1.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m1.values.Length);
-        m1.values.AsSpan().SubV(m2.values, result);
+        m1.values.AsSpan().Sub(m2.values, result);
         return new(m1.Rows, m1.Cols, result);
     }
 
@@ -712,7 +712,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
-        m.values.AsSpan().NegV(result);
+        m.values.AsSpan().Neg(result);
         return new(m.Rows, m.Cols, result);
     }
 
@@ -726,7 +726,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
-        m.values.AsSpan().AddV(d, result);
+        m.values.AsSpan().Add(d, result);
         return new(m.Rows, m.Cols, result);
     }
 
@@ -747,7 +747,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
-        m.values.AsSpan().SubV(d, result);
+        m.values.AsSpan().Sub(d, result);
         return new(m.Rows, m.Cols, result);
     }
 
@@ -761,7 +761,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
-        CommonMatrix.SubV(d, m.values, result);
+        CommonMatrix.Sub(d, m.values, result);
         return new(m.Rows, m.Cols, result);
     }
 
@@ -776,7 +776,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
-        return new(Rows, Cols, values.AsSpan().MulV(m.values));
+        return new(Rows, Cols, values.AsSpan().Mul(m.values));
     }
 
     /// <summary>Cell by cell division with a second matrix.</summary>
@@ -790,7 +790,7 @@ public readonly struct Matrix :
             throw new MatrixSizeException();
         Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
-        return new(Rows, Cols, values.AsSpan().DivV(m.values));
+        return new(Rows, Cols, values.AsSpan().Div(m.values));
     }
 
     /// <summary>Multiplies a matrix by a scalar value.</summary>
@@ -803,7 +803,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
-        m.values.AsSpan().MulV(d, result);
+        m.values.AsSpan().Mul(d, result);
         return new(m.Rows, m.Cols, result);
     }
 
@@ -1007,7 +1007,7 @@ public readonly struct Matrix :
         {
             ref double bj = ref b;
             for (int j = 0; j < c; j++, bj = ref Add(ref bj, n))
-                Add(ref t, j) = MM.CreateSpan(ref a, n).DotProduct(MM.CreateSpan(ref bj, n));
+                Add(ref t, j) = MM.CreateSpan(ref a, n).Dot(MM.CreateSpan(ref bj, n));
         }
         return new(r, c, result);
     }
@@ -1038,7 +1038,7 @@ public readonly struct Matrix :
 
         ref double b = ref MM.GetArrayDataReference(result);
         for (int i = 0, offset = 0; i < r; i++, offset += c)
-            Add(ref b, i) = values.AsSpan(offset, c).DotProduct((double[])v);
+            Add(ref b, i) = values.AsSpan(offset, c).Dot((double[])v);
         return result;
     }
 
@@ -1096,7 +1096,7 @@ public readonly struct Matrix :
         ref double ad = ref MM.GetArrayDataReference((double[])add);
         ref double b = ref MM.GetArrayDataReference(result);
         for (int i = 0, offset = 0; i < r; i++, offset += c, ad = ref Add(ref ad, 1))
-            Add(ref b, i) = values.AsSpan(offset, c).DotProduct(source) + ad;
+            Add(ref b, i) = values.AsSpan(offset, c).Dot(source) + ad;
         return result;
     }
 
@@ -1121,7 +1121,7 @@ public readonly struct Matrix :
         ref double ad = ref MM.GetArrayDataReference((double[])add);
         ref double b = ref MM.GetArrayDataReference(result);
         for (int i = 0, offset = 0; i < r; i++, offset += c, ad = ref Add(ref ad, 1))
-            Add(ref b, i) = values.AsSpan(offset, c).DotProduct(source) + scale * ad;
+            Add(ref b, i) = values.AsSpan(offset, c).Dot(source) + scale * ad;
         return result;
     }
 
@@ -1145,7 +1145,7 @@ public readonly struct Matrix :
         ref double sb = ref MM.GetArrayDataReference((double[])sub);
         ref double b = ref MM.GetArrayDataReference(result);
         for (int i = 0, offset = 0; i < r; i++, offset += c, sb = ref Add(ref sb, 1))
-            Add(ref b, i) = values.AsSpan(offset, c).DotProduct(source) - sb;
+            Add(ref b, i) = values.AsSpan(offset, c).Dot(source) - sb;
         return result;
     }
 
@@ -1304,7 +1304,7 @@ public readonly struct Matrix :
     /// <param name="other">The matrix to be compared.</param>
     /// <returns><see langword="true"/> if the second matrix has the same values.</returns>
     public bool Equals(Matrix other) =>
-        Rows == other.Rows && Cols == other.Cols && values.EqualsV(other.values);
+        Rows == other.Rows && Cols == other.Cols && values.Eqs(other.values);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>

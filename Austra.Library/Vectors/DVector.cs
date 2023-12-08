@@ -293,7 +293,7 @@ public readonly struct DVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
-        v1.values.AsSpan().AddV(v2.values, result);
+        v1.values.AsSpan().Add(v2.values, result);
         return result;
     }
 
@@ -309,7 +309,7 @@ public readonly struct DVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
-        v1.values.AsSpan().SubV(v2.values, result);
+        v1.values.AsSpan().Sub(v2.values, result);
         return result;
     }
 
@@ -321,7 +321,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.values.Length);
-        v.values.AsSpan().NegV(result);
+        v.values.AsSpan().Neg(result);
         return result;
     }
 
@@ -334,7 +334,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        v.values.AsSpan().AddV(d, result);
+        v.values.AsSpan().Add(d, result);
         return result;
     }
 
@@ -354,7 +354,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        v.values.AsSpan().SubV(d, result);
+        v.values.AsSpan().Sub(d, result);
         return result;
     }
 
@@ -367,7 +367,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        CommonMatrix.SubV(d, v.values, result);
+        CommonMatrix.Sub(d, v.values, result);
         return result;
     }
 
@@ -382,7 +382,7 @@ public readonly struct DVector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<DVector>().Length == Length);
-        return values.AsSpan().MulV(other.values);
+        return values.AsSpan().Mul(other.values);
     }
 
     /// <summary>Pointwise division.</summary>
@@ -396,7 +396,7 @@ public readonly struct DVector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<DVector>().Length == Length);
-        return values.AsSpan().DivV(other.values);
+        return values.AsSpan().Div(other.values);
     }
 
     /// <summary>Dot product of two vectors.</summary>
@@ -411,7 +411,7 @@ public readonly struct DVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         Contract.EndContractBlock();
-        return v1.values.AsSpan().DotProduct(v2.values);
+        return v1.values.AsSpan().Dot(v2.values);
     }
 
     /// <summary>Gets the squared norm of this vector.</summary>
@@ -467,7 +467,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.values.Length);
-        v.values.AsSpan().MulV(d, result);
+        v.values.AsSpan().Mul(d, result);
         return result;
     }
 
@@ -500,7 +500,7 @@ public readonly struct DVector :
         ref double r = ref MM.GetArrayDataReference(result);
         foreach (double d in v1.values)
         {
-            v2.values.AsSpan().MulV(d, MM.CreateSpan(ref r, cols));
+            v2.values.AsSpan().Mul(d, MM.CreateSpan(ref r, cols));
             r = ref Add(ref r, cols);
         }
         return new(rows, cols, result);
@@ -1380,7 +1380,7 @@ public readonly struct DVector :
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>
     /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
-    public bool Equals(DVector other) => values.EqualsV(other.values);
+    public bool Equals(DVector other) => values.Eqs(other.values);
 
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>

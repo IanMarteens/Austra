@@ -124,7 +124,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(Math.Min(a1.Length, a2.Length));
-        a1.AsSpan(0, r.Length).AddV(a2.AsSpan(0, r.Length), r);
+        a1.AsSpan(0, r.Length).Add(a2.AsSpan(0, r.Length), r);
         return new VectorSequence(r);
     }
 
@@ -138,7 +138,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
             return s.Map(x => x + d);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        a.AsSpan().AddV(d, r.AsSpan());
+        a.AsSpan().Add(d, r.AsSpan());
         return new VectorSequence(r);
     }
 
@@ -160,7 +160,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(Math.Min(a1.Length, a2.Length));
-        a1.AsSpan(0, r.Length).SubV(a2.AsSpan(0, r.Length), r);
+        a1.AsSpan(0, r.Length).Sub(a2.AsSpan(0, r.Length), r);
         return new VectorSequence(r);
     }
 
@@ -174,7 +174,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
             return s.Map(x => x - d);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        a.AsSpan().SubV(d, r.AsSpan());
+        a.AsSpan().Sub(d, r.AsSpan());
         return new VectorSequence(r);
     }
 
@@ -188,7 +188,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
             return s.Map(x => d - x);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        CommonMatrix.SubV(d, a, r);
+        CommonMatrix.Sub(d, a, r);
         return new VectorSequence(r);
     }
 
@@ -201,7 +201,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
             return s.Negate();
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        a.AsSpan().NegV(r);
+        a.AsSpan().Neg(r);
         return new VectorSequence(r);
     }
 
@@ -220,7 +220,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
-        return a1.AsSpan(0, size).DotProduct(a2.AsSpan(0, size));
+        return a1.AsSpan(0, size).Dot(a2.AsSpan(0, size));
     }
 
     /// <summary>Multiplies a sequence by a scalar value.</summary>
@@ -233,7 +233,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
             return s.Scale(d);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        a.AsSpan().MulV(d, r.AsSpan());
+        a.AsSpan().Mul(d, r.AsSpan());
         return new VectorSequence(r);
     }
 
@@ -266,7 +266,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         double[] a1 = Materialize();
         double[] a2 = other.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
-        return new VectorSequence(a1.AsSpan(size).MulV(a2.AsSpan(size)));
+        return new VectorSequence(a1.AsSpan(size).Mul(a2.AsSpan(size)));
     }
 
     /// <summary>Item by item division of sequences.</summary>
@@ -279,7 +279,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         double[] a1 = Materialize();
         double[] a2 = other.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
-        return new VectorSequence(a1.AsSpan(size).DivV(a2.AsSpan(size)));
+        return new VectorSequence(a1.AsSpan(size).Div(a2.AsSpan(size)));
     }
 
     /// <summary>Gets all statistics from the values in the secuence.</summary>
@@ -404,7 +404,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <param name="other">The second sequence to be compared.</param>
     /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
     public bool Equals(DSequence? other) =>
-        other is not null && Materialize().EqualsV(other.Materialize());
+        other is not null && Materialize().Eqs(other.Materialize());
 
     /// <summary>Checks if the provided argument is a sequence with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>

@@ -12,12 +12,6 @@ IDataSource source = new DataSource();
 IAustraEngine engine = new AustraEngine(source);
 if (File.Exists(GetDefaultDataFile()))
     LoadFile(ref engine, ref source, false);
-RMatrix m = new(4, 2, [1, 2, 0, 3, 0, 0, 0, 0]);
-WriteLine(m.ToString());
-WriteLine();
-WriteLine(m.Square().ToString());
-Matrix m1 = (Matrix)m;
-WriteLine((m1 * m1.Transpose()).ToString());
 bool includeTime = false;
 for (; ; )
 {

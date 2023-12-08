@@ -635,7 +635,7 @@ public abstract partial class DSequence : IFormattable
         {
             if (current < length)
             {
-                value = generator.NextDouble() + coefficients.AsSpan().DotProduct(previousTerms);
+                value = generator.NextDouble() + coefficients.AsSpan().Dot(previousTerms);
                 Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
                 previousTerms[0] = value;
                 current++;
@@ -670,7 +670,7 @@ public abstract partial class DSequence : IFormattable
             if (current < length)
             {
                 double innovation = generator.NextDouble();
-                value = mean + innovation + coefficients.AsSpan().DotProduct(previousTerms);
+                value = mean + innovation + coefficients.AsSpan().Dot(previousTerms);
                 Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
                 previousTerms[0] = innovation;
                 current++;

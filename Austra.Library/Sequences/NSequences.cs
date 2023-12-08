@@ -94,7 +94,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(Math.Min(a1.Length, a2.Length));
-        a1.AsSpan(0, r.Length).AddV(a2.AsSpan(0, r.Length), r);
+        a1.AsSpan(0, r.Length).Add(a2.AsSpan(0, r.Length), r);
         return new VectorSequence(r);
     }
 
@@ -108,7 +108,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
             return s.Map(x => x + d);
         int[] a = s.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        a.AsSpan().AddV(d, r.AsSpan());
+        a.AsSpan().Add(d, r.AsSpan());
         return new VectorSequence(r);
     }
 
@@ -130,7 +130,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(Math.Min(a1.Length, a2.Length));
-        a1.AsSpan(0, r.Length).SubV(a2.AsSpan(0, r.Length), r);
+        a1.AsSpan(0, r.Length).Sub(a2.AsSpan(0, r.Length), r);
         return new VectorSequence(r);
     }
 
@@ -144,7 +144,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
             return s.Map(x => x - d);
         int[] a = s.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        a.AsSpan().SubV(d, r.AsSpan());
+        a.AsSpan().Sub(d, r.AsSpan());
         return new VectorSequence(r);
     }
 
@@ -158,7 +158,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
             return s.Map(x => d - x);
         int[] a = s.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        CommonMatrix.SubV(d, a, r);
+        CommonMatrix.Sub(d, a, r);
         return new VectorSequence(r);
     }
 
@@ -171,7 +171,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
             return s.Negate();
         int[] a = s.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        a.AsSpan().NegV(r);
+        a.AsSpan().Neg(r);
         return new VectorSequence(r);
     }
 
@@ -190,7 +190,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
-        return a1.AsSpan(0, size).DotProduct(a2.AsSpan(0, size));
+        return a1.AsSpan(0, size).Dot(a2.AsSpan(0, size));
     }
 
     /// <summary>Multiplies a sequence by a scalar value.</summary>
@@ -203,7 +203,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
             return s.Scale(d);
         int[] a = s.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        a.AsSpan().MulV(d, r.AsSpan());
+        a.AsSpan().Mul(d, r.AsSpan());
         return new VectorSequence(r);
     }
 
@@ -212,7 +212,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The quotient of the sequence over the scalar.</returns>
     public static NSequence operator /(NSequence s, int d) =>
-        new VectorSequence(s.Materialize().AsSpan().DivV(d));
+        new VectorSequence(s.Materialize().AsSpan().Div(d));
 
     /// <summary>Scales a sequence without an underlying storage.</summary>
     /// <param name="d">The scalar multiplier.</param>
@@ -236,7 +236,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         int[] a1 = Materialize();
         int[] a2 = other.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
-        return new VectorSequence(a1.AsSpan(size).MulV(a2.AsSpan(size)));
+        return new VectorSequence(a1.AsSpan(size).Mul(a2.AsSpan(size)));
     }
 
     /// <summary>Item by item division of sequences.</summary>
@@ -249,7 +249,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         int[] a1 = Materialize();
         int[] a2 = other.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
-        return new VectorSequence(a1.AsSpan(size).DivV(a2.AsSpan(size)));
+        return new VectorSequence(a1.AsSpan(size).Div(a2.AsSpan(size)));
     }
 
     /// <summary>Gets only the unique values in this sequence.</summary>

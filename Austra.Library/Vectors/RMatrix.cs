@@ -202,7 +202,7 @@ public readonly struct RMatrix :
         int r = m1.Rows, c = m1.Cols;
         double[] result = new double[m1.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            m1.values.AsSpan(offset + row, c - row).AddV(
+            m1.values.AsSpan(offset + row, c - row).Add(
                 m2.values.AsSpan(offset + row, c - row), result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
@@ -221,7 +221,7 @@ public readonly struct RMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = new double[m.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            m.values.AsSpan(offset + row, c - row).AddV(
+            m.values.AsSpan(offset + row, c - row).Add(
                 d, result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
@@ -257,7 +257,7 @@ public readonly struct RMatrix :
         int r = m1.Rows, c = m1.Cols;
         double[] result = new double[m1.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            m1.values.AsSpan(offset + row, c - row).SubV(
+            m1.values.AsSpan(offset + row, c - row).Sub(
                 m2.values.AsSpan(offset + row, c - row), result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
@@ -276,7 +276,7 @@ public readonly struct RMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = new double[m.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            m.values.AsSpan(offset + row, c - row).SubV(
+            m.values.AsSpan(offset + row, c - row).Sub(
                 d, result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
@@ -295,7 +295,7 @@ public readonly struct RMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = new double[m.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            CommonMatrix.SubV(d, m.values.AsSpan(offset + row, c - row),
+            CommonMatrix.Sub(d, m.values.AsSpan(offset + row, c - row),
                 result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
@@ -312,7 +312,7 @@ public readonly struct RMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = new double[m.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            m.values.AsSpan(offset + row, c - row).NegV(result.AsSpan(offset + row, c - row));
+            m.values.AsSpan(offset + row, c - row).Neg(result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
 
@@ -357,7 +357,7 @@ public readonly struct RMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = new double[m.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            m.values.AsSpan(offset + row, c - row).MulV(
+            m.values.AsSpan(offset + row, c - row).Mul(
                 d, result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }
@@ -393,7 +393,7 @@ public readonly struct RMatrix :
         ref double pB = ref MM.GetArrayDataReference(result);
         for (int row = 0, offset = 0; row < r; row++, offset += c)
             Add(ref pB, row) = m.values.AsSpan(offset + row, c - row)
-                .DotProduct(vector.AsSpan(row));
+                .Dot(vector.AsSpan(row));
         return result;
     }
 
@@ -445,7 +445,7 @@ public readonly struct RMatrix :
     /// <summary>Multiplies this matrix by the transposed argument.</summary>
     /// <param name="m">Second operand.</param>
     /// <returns>The multiplication by the transposed argument.</returns>
-    public unsafe Matrix MultiplyTranspose(RMatrix m)
+    public Matrix MultiplyTranspose(RMatrix m)
     {
         Contract.Requires(IsInitialized);
         Contract.Requires(m.IsInitialized);
@@ -458,20 +458,34 @@ public readonly struct RMatrix :
         double[] result = GC.AllocateUninitializedArray<double>(r * c);
         ref double pA = ref MM.GetArrayDataReference(values);
         ref double pB = ref MM.GetArrayDataReference(m.values);
-        ref double pC = ref MM.GetArrayDataReference(result);
-        for (int i = 0; i < r; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, c))
-        {
-            ref double pBj = ref pB;
-            for (int j = 0; j < c; j++, pBj = ref Add(ref pBj, n))
+        ref double pC = ref MM.GetArrayDataReference(result), r0 = ref pC;
+        if (values == m.values)
+            for (int i = 0; i < r; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, c))
             {
-                int s = Max(i, j), len = n - s;
-                if (len > 0)
-                    Add(ref pC, j) = MM.CreateSpan(ref Add(ref pA, s), len)
-                        .DotProduct(MM.CreateSpan(ref Add(ref pBj, s), len));
-                else
-                    Add(ref pC, j) = 0;
+                ref double pBj = ref pB;
+                for (int j = 0; j < i; j++, pBj = ref Add(ref pBj, n))
+                    Add(ref pC, j) = Add(ref r0, j * c + i);
+                for (int j = i, len = n - i; j < c; j++, len--, pBj = ref Add(ref pBj, n))
+                    if (len > 0)
+                        Add(ref pC, j) = MM.CreateSpan(ref Add(ref pA, j), len)
+                            .Dot(MM.CreateSpan(ref Add(ref pBj, j), len));
+                    else
+                        Add(ref pC, j) = 0;
             }
-        }
+        else
+            for (int i = 0; i < r; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, c))
+            {
+                ref double pBj = ref pB;
+                for (int j = 0; j < c; j++, pBj = ref Add(ref pBj, n))
+                {
+                    int s = Max(i, j), len = n - s;
+                    if (len > 0)
+                        Add(ref pC, j) = MM.CreateSpan(ref Add(ref pA, s), len)
+                            .Dot(MM.CreateSpan(ref Add(ref pBj, s), len));
+                    else
+                        Add(ref pC, j) = 0;
+                }
+            }
         return new(r, c, result);
     }
 

@@ -260,11 +260,11 @@ public readonly struct EVD : IFormattable
             double h = d[i + 1];
             if (h != 0.0)
             {
-                new Span<double>(ai1, i + 1).MulV(1d / h, new Span<double>(d, i + 1));
+                new Span<double>(ai1, i + 1).Mul(1d / h, new Span<double>(d, i + 1));
                 double* aj = a;
                 for (int j = 0; j <= i; j++, aj += r)
                 {
-                    double g = new Span<double>(ai1, i + 1).DotProduct(new Span<double>(aj, i + 1));
+                    double g = new Span<double>(ai1, i + 1).Dot(new Span<double>(aj, i + 1));
                     new Span<double>(d, i + 1).MulNegStore(g, new Span<double>(aj, i + 1));
                 }
             }
@@ -517,7 +517,7 @@ public readonly struct EVD : IFormattable
                 for (int j = m, jO = m * rank; j < rank; j++, jO += rank)
                 {
                     double f = new Span<double>(ort + m, rank - m).
-                        DotProduct(new Span<double>(h + jO + m, rank - m)) / hh;
+                        Dot(new Span<double>(h + jO + m, rank - m)) / hh;
                     i = m;
                     if (Avx512F.IsSupported)
                     {
@@ -564,7 +564,7 @@ public readonly struct EVD : IFormattable
                 for (int j = m, jO = m * rank; j < rank; j++, jO += rank)
                 {
                     double g = new Span<double>(ort + m, rank - m)
-                        .DotProduct(new Span<double>(a + jO + m, rank - m));
+                        .Dot(new Span<double>(a + jO + m, rank - m));
                     // Double division avoids possible underflow
                     g = g / ort[m] / h[mm1O + m];
                     new Span<double>(ort + m, rank - m)

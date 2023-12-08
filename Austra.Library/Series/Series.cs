@@ -483,7 +483,7 @@ public sealed class Series : Series<Date>,
             throw new Exception("Cannot mix series with different frequencies");
         int len = Min(Count, other.Count);
         Date[] newArgs = Count == len ? args : other.args;
-        double[] newValues = values.AsSpan(0, len).MulV(other.values.AsSpan(0, len));
+        double[] newValues = values.AsSpan(0, len).Mul(other.values.AsSpan(0, len));
         return new(
             Name + ".*" + other.Name, Ticker,
             newArgs, newValues, Combine(Type, other.Type), other.Freq);
@@ -499,7 +499,7 @@ public sealed class Series : Series<Date>,
             throw new Exception("Cannot mix series with different frequencies");
         int len = Min(Count, other.Count);
         Date[] newArgs = Count == len ? args : other.args;
-        double[] newValues = values.AsSpan(0, len).DivV(other.values.AsSpan(0, len));
+        double[] newValues = values.AsSpan(0, len).Div(other.values.AsSpan(0, len));
         return new(
             Name + "./" + other.Name, Ticker,
             newArgs, newValues, Combine(Type, other.Type), other.Freq);

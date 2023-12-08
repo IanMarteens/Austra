@@ -81,7 +81,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                     for (int i = j; i < n; i++)
                     {
                         double* pDi = pD + (i + 1) * rows;
-                        tmp[i] = new Span<double>(pDi, j).DotProduct(new Span<double>(tmp, j));
+                        tmp[i] = new Span<double>(pDi, j).Dot(new Span<double>(tmp, j));
                     }
                     for (int i = j, idx = (j + 1) * rows + j; i < n; i++, idx += rows)
                         pD[idx] = (pS[idx] - tmp[i]) * r;
@@ -161,7 +161,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
             double* pAi = pA;
             for (int i = 0; i < size; i++, pAi += size)
                 pB[i] = (pB[i] - new Span<double>(pAi, i)
-                    .DotProduct(new Span<double>(pB, i))) / pAi[i];
+                    .Dot(new Span<double>(pB, i))) / pAi[i];
             int s4 = 4 * size, s8 = s4 + s4;
             for (int i = size - 1; i >= 0; i--)
             {

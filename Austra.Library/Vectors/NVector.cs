@@ -269,7 +269,7 @@ public readonly struct NVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
-        v1.values.AsSpan().AddV(v2.values, result);
+        v1.values.AsSpan().Add(v2.values, result);
         return result;
     }
 
@@ -285,7 +285,7 @@ public readonly struct NVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
-        v1.values.AsSpan().SubV(v2.values, result);
+        v1.values.AsSpan().Sub(v2.values, result);
         return result;
     }
 
@@ -297,7 +297,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.values.Length);
-        v.values.AsSpan().NegV(result);
+        v.values.AsSpan().Neg(result);
         return result;
     }
 
@@ -310,7 +310,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        v.values.AsSpan().AddV(d, result);
+        v.values.AsSpan().Add(d, result);
         return result;
     }
 
@@ -330,7 +330,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        v.values.AsSpan().SubV(d, result);
+        v.values.AsSpan().Sub(d, result);
         return result;
     }
 
@@ -343,7 +343,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        CommonMatrix.SubV(d, v.values, result);
+        CommonMatrix.Sub(d, v.values, result);
         return result;
     }
 
@@ -358,7 +358,7 @@ public readonly struct NVector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<NVector>().Length == Length);
-        return values.AsSpan().MulV(other.values);
+        return values.AsSpan().Mul(other.values);
     }
 
     /// <summary>Pointwise division.</summary>
@@ -372,7 +372,7 @@ public readonly struct NVector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<NVector>().Length == Length);
-        return values.AsSpan().DivV(other.values);
+        return values.AsSpan().Div(other.values);
     }
 
     /// <summary>Dot product of two vectors.</summary>
@@ -387,7 +387,7 @@ public readonly struct NVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         Contract.EndContractBlock();
-        return v1.values.AsSpan().DotProduct(v2.values);
+        return v1.values.AsSpan().Dot(v2.values);
     }
 
     /// <summary>Multiplies a vector by a scalar value.</summary>
@@ -399,7 +399,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.values.Length);
-        v.values.AsSpan().MulV(d, result);
+        v.values.AsSpan().Mul(d, result);
         return result;
     }
 
@@ -414,7 +414,7 @@ public readonly struct NVector :
     /// <param name="v">Vector to be divided.</param>
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The quotient of the vector over the scalar.</returns>
-    public static NVector operator /(NVector v, int d) => v.values.AsSpan().DivV(d);
+    public static NVector operator /(NVector v, int d) => v.values.AsSpan().Div(d);
 
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <returns>The sum of all vector's items.</returns>
@@ -725,7 +725,7 @@ public readonly struct NVector :
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>
     /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
-    public bool Equals(NVector other) => values.EqualsV(other.values);
+    public bool Equals(NVector other) => values.Eqs(other.values);
 
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>

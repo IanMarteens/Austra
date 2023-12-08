@@ -54,7 +54,7 @@ public readonly struct LU : IFormattable
                 for (int i = 0; i < r; i++, pAi += r)
                 {
                     int top = Min(i, j);
-                    double s = new Span<double>(pAi, top).DotProduct(new Span<double>(buf, top));
+                    double s = new Span<double>(pAi, top).Dot(new Span<double>(buf, top));
                     pAi[j] = buf[i] -= s;
                 }
 

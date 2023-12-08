@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.ComponentModel.Design;
+
+namespace Austra.Library;
 
 /// <summary>Represents a lower triangular matrix.</summary>
 /// <remarks>
@@ -264,12 +266,12 @@ public readonly struct LMatrix :
             r = c;
         result[0] = m1.values[0] + m2.values[0];    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            m1.values.AsSpan(offset, row + 1).AddV(
+            m1.values.AsSpan(offset, row + 1).Add(
                 m2.values.AsSpan(offset, row + 1), result.AsSpan(offset, row + 1));
         if (m1.Rows > c)
         {
             int c2 = c * c;
-            m1.values.AsSpan(c2).AddV(m2.values.AsSpan(c2), result.AsSpan(c2));
+            m1.values.AsSpan(c2).Add(m2.values.AsSpan(c2), result.AsSpan(c2));
         }
         return new(m1.Rows, m1.Cols, result);
     }
@@ -298,11 +300,11 @@ public readonly struct LMatrix :
             r = c;
         result[0] = m.values[0] + d;    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            m.values.AsSpan(offset, row + 1).AddV(d, result.AsSpan(offset, row + 1));
+            m.values.AsSpan(offset, row + 1).Add(d, result.AsSpan(offset, row + 1));
         if (m.Rows > c)
         {
             int c2 = c * c;
-            m.values.AsSpan(c2).AddV(d, result.AsSpan(c2));
+            m.values.AsSpan(c2).Add(d, result.AsSpan(c2));
         }
         return new(m.Rows, m.Cols, result);
     }
@@ -334,12 +336,12 @@ public readonly struct LMatrix :
             r = c;
         result[0] = m1.values[0] - m2.values[0];    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            m1.values.AsSpan(offset, row + 1).SubV(
+            m1.values.AsSpan(offset, row + 1).Sub(
                 m2.values.AsSpan(offset, row + 1), result.AsSpan(offset, row + 1));
         if (m1.Rows > c)
         {
             int c2 = c * c;
-            m1.values.AsSpan(c2).SubV(m2.values.AsSpan(c2), result.AsSpan(c2));
+            m1.values.AsSpan(c2).Sub(m2.values.AsSpan(c2), result.AsSpan(c2));
         }
         return new(m1.Rows, m1.Cols, result);
     }
@@ -368,11 +370,11 @@ public readonly struct LMatrix :
             r = c;
         result[0] = m.values[0] - d;    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            m.values.AsSpan(offset, row + 1).SubV(d, result.AsSpan(offset, row + 1));
+            m.values.AsSpan(offset, row + 1).Sub(d, result.AsSpan(offset, row + 1));
         if (m.Rows > c)
         {
             int c2 = c * c;
-            m.values.AsSpan(c2).SubV(d, result.AsSpan(c2));
+            m.values.AsSpan(c2).Sub(d, result.AsSpan(c2));
         }
         return new(m.Rows, m.Cols, result);
     }
@@ -394,11 +396,11 @@ public readonly struct LMatrix :
             r = c;
         result[0] = d - m.values[0];    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            CommonMatrix.SubV(d, m.values.AsSpan(offset, row + 1), result.AsSpan(offset, row + 1));
+            CommonMatrix.Sub(d, m.values.AsSpan(offset, row + 1), result.AsSpan(offset, row + 1));
         if (m.Rows > c)
         {
             int c2 = c * c;
-            CommonMatrix.SubV(d, m.values.AsSpan(c2), result.AsSpan(c2));
+            CommonMatrix.Sub(d, m.values.AsSpan(c2), result.AsSpan(c2));
         }
         return new(m.Rows, m.Cols, result);
     }
@@ -418,11 +420,11 @@ public readonly struct LMatrix :
             r = c;
         result[0] = -m.values[0];    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            m.values.AsSpan(offset, row + 1).NegV(result.AsSpan(offset, row + 1));
+            m.values.AsSpan(offset, row + 1).Neg(result.AsSpan(offset, row + 1));
         if (m.Rows > c)
         {
             int c2 = c * c;
-            m.values.AsSpan(c2).NegV(result.AsSpan(c2));
+            m.values.AsSpan(c2).Neg(result.AsSpan(c2));
         }
         return new(m.Rows, m.Cols, result);
     }
@@ -443,11 +445,11 @@ public readonly struct LMatrix :
             r = c;
         result[0] = m.values[0] * d;    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            m.values.AsSpan(offset, row + 1).MulV(d, result.AsSpan(offset, row + 1));
+            m.values.AsSpan(offset, row + 1).Mul(d, result.AsSpan(offset, row + 1));
         if (m.Rows > c)
         {
             int c2 = c * c;
-            m.values.AsSpan(c2).MulV(d, result.AsSpan(c2));
+            m.values.AsSpan(c2).Mul(d, result.AsSpan(c2));
         }
         return new(m.Rows, m.Cols, result);
     }
@@ -592,28 +594,47 @@ public readonly struct LMatrix :
         double[] result = GC.AllocateUninitializedArray<double>(r * c);
         ref double pA = ref MM.GetArrayDataReference(values);
         ref double pB = ref MM.GetArrayDataReference(m.values);
-        ref double pC = ref MM.GetArrayDataReference(result);
+        ref double pC = ref MM.GetArrayDataReference(result), r0 = ref pC;
         // The first row is special.
         double d = pA;
         for (int j = 0, jc = 0; j < c; j++, jc += m.Cols)
             Add(ref pC, j) = d * Add(ref pB, jc);
         // Iterate all the other rows of the result.
         d = pB;
-        for (int i = 1; i < r; i++)
-        {
-            pA = ref Add(ref pA, Cols);
-            pC = ref Add(ref pC, c);
-            // The first column is also special.
-            pC = pA * d;
-            ref double pBj = ref pB;
-            // Iterate all other columns of the result.
-            for (int j = 1; j < c; j++)
+        if (values == m.values)
+            for (int i = 1; i < r; i++)
             {
-                pBj = ref Add(ref pBj, m.Cols);
-                int s = Min(m.Cols, Min(i, j) + 1);
-                Add(ref pC, j) = MM.CreateSpan(ref pA, s).DotProduct(MM.CreateSpan(ref pBj, s));
+                pA = ref Add(ref pA, Cols);
+                pC = ref Add(ref pC, c);
+                // The first column is also special.
+                pC = pA * d;
+                ref double pBj = ref Add(ref pB, m.Cols * (i - 1));
+                // Iterate all other columns of the result.
+                for (int j = 1; j < i; j++)
+                    Add(ref pC, j) = Add(ref r0, j * c + i);
+                for (int j = i; j < c; j++)
+                {
+                    pBj = ref Add(ref pBj, m.Cols);
+                    int s = Min(m.Cols, i + 1);
+                    Add(ref pC, j) = MM.CreateSpan(ref pA, s).Dot(MM.CreateSpan(ref pBj, s));
+                }
             }
-        }
+        else
+            for (int i = 1; i < r; i++)
+            {
+                pA = ref Add(ref pA, Cols);
+                pC = ref Add(ref pC, c);
+                // The first column is also special.
+                pC = pA * d;
+                ref double pBj = ref pB;
+                // Iterate all other columns of the result.
+                for (int j = 1; j < c; j++)
+                {
+                    pBj = ref Add(ref pBj, m.Cols);
+                    int s = Min(m.Cols, Min(i, j) + 1);
+                    Add(ref pC, j) = MM.CreateSpan(ref pA, s).Dot(MM.CreateSpan(ref pBj, s));
+                }
+            }
         return new(r, c, result);
     }
 
@@ -638,7 +659,7 @@ public readonly struct LMatrix :
         // First row is special.
         pB = m.values[0] * vector[0];
         for (int i = 1, offset = c; i < r; i++, offset += c)
-            Add(ref pB, i) = m.values.AsSpan(offset, Min(i + 1, c)).DotProduct(vector.AsSpan());
+            Add(ref pB, i) = m.values.AsSpan(offset, Min(i + 1, c)).Dot(vector.AsSpan());
         return result;
     }
 
@@ -660,7 +681,7 @@ public readonly struct LMatrix :
         pB = values[0] * vector[0] + pC;
         for (int i = 1, offset = c; i < r; i++, offset += c)
             Add(ref pB, i) = values.AsSpan(offset, Min(i + 1, c))
-                .DotProduct(vector.AsSpan()) + Add(ref pC, i);
+                .Dot(vector.AsSpan()) + Add(ref pC, i);
         return result;
     }
 
@@ -687,7 +708,7 @@ public readonly struct LMatrix :
         pB = values[0] * vector[0] - pC;
         for (int i = 1, offset = c; i < r; i++, offset += c)
             Add(ref pB, i) = values.AsSpan(offset, Min(i + 1, c))
-                .DotProduct(vector.AsSpan()) - Add(ref pC, i);
+                .Dot(vector.AsSpan()) - Add(ref pC, i);
         return result;
     }
 
@@ -734,7 +755,7 @@ public readonly struct LMatrix :
         {
             pA = ref Add(ref pA, size);
             double sum = Add(ref pV, i) - MM.CreateSpan(ref pA, i)
-                .DotProduct(MM.CreateSpan(ref pR, i));
+                .Dot(MM.CreateSpan(ref pR, i));
             Add(ref pR, i) = sum / Add(ref pA, i);
         }
     }

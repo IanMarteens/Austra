@@ -193,6 +193,24 @@ public class MatrixTests
         Matrix m3 = m1.MultiplyTranspose(m2);
         Matrix m4 = (Matrix)m1 * ((Matrix)m2).Transpose();
         Assert.That(m3.Distance(m4), Is.LessThanOrEqualTo(1E-10));
+        m1 = new(size + 4, size, new Random(), 0.3, 1.5);
+        m2 = new(size + 2, size, new Random(), 0.3, 1.5);
+        m3 = m1.MultiplyTranspose(m2);
+        m4 = (Matrix)m1 * ((Matrix)m2).Transpose();
+        Assert.That(m3.Distance(m4), Is.LessThanOrEqualTo(1E-10));
+    }
+
+    [Test]
+    public void CheckLMatrixSquare([Values(32, 35, 256, 257, 1024, 1025)] int size)
+    {
+        LMatrix m1 = new(size + 2, size + 5, new Random(), 0.3, 1.5);
+        Matrix m3 = m1.Square();
+        Matrix m4 = (Matrix)m1 * ((Matrix)m1).Transpose();
+        Assert.That(m3.Distance(m4), Is.LessThanOrEqualTo(1E-10));
+        m1 = new(size + 4, size, new Random(), 0.3, 1.5);
+        m3 = m1.Square();
+        m4 = (Matrix)m1 * ((Matrix)m1).Transpose();
+        Assert.That(m3.Distance(m4), Is.LessThanOrEqualTo(1E-10));
     }
 
     [Test]
@@ -204,5 +222,50 @@ public class MatrixTests
         Matrix m4 = (Matrix)m1 * ((Matrix)m2).Transpose();
         double distance = m3.Distance(m4);
         Assert.That(distance, Is.LessThanOrEqualTo(1E-10));
+        m1 = new(size + 2, size, new Random(), 0.3, 1.5);
+        m2 = new(size + 4, size, new Random(), 0.3, 1.5);
+        m3 = m1.MultiplyTranspose(m2);
+        m4 = (Matrix)m1 * ((Matrix)m2).Transpose();
+        distance = m3.Distance(m4);
+        Assert.That(distance, Is.LessThanOrEqualTo(1E-10));
+    }
+
+    [Test]
+    public void CheckRMatrixSquare([Values(32, 35, 256, 257, 1024, 1025)] int size)
+    {
+        RMatrix m1 = new(size + 2, size + 5, new Random(), 0.3, 1.5);
+        Matrix m3 = m1.Square();
+        Matrix m4 = (Matrix)m1 * ((Matrix)m1).Transpose();
+        double distance = m3.Distance(m4);
+        Assert.That(distance, Is.LessThanOrEqualTo(1E-10));
+        m1 = new(size + 2, size, new Random(), 0.3, 1.5);
+        m3 = m1.Square();
+        m4 = (Matrix)m1 * ((Matrix)m1).Transpose();
+        distance = m3.Distance(m4);
+        Assert.That(distance, Is.LessThanOrEqualTo(1E-10));
+    }
+
+    [Test]
+    public void CheckLMatrixTranspose([Values(32, 35, 256, 257, 1024, 1025)] int size)
+    {
+        Random rnd = new();
+        LMatrix m1 = new(size + rnd.Next(-1, 2) * 2, size, new Random(), 0.3, 1.5);
+        Matrix m2 = (Matrix)m1;
+        RMatrix m3 = m1.Transpose();
+        Matrix m4 = m2.Transpose();
+        double distance = m4.Distance((Matrix)m3);
+        Assert.That(distance, Is.LessThanOrEqualTo(1E-14));
+    }
+
+    [Test]
+    public void CheckRMatrixTranspose([Values(32, 35, 256, 257, 1024, 1025)] int size)
+    {
+        Random rnd = new();
+        RMatrix m1 = new(size + rnd.Next(-1, 2) * 2, size, new Random(), 0.3, 1.5);
+        Matrix m2 = (Matrix)m1;
+        LMatrix m3 = m1.Transpose();
+        Matrix m4 = m2.Transpose();
+        double distance = m4.Distance((Matrix)m3);
+        Assert.That(distance, Is.LessThanOrEqualTo(1E-14));
     }
 }
