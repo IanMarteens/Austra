@@ -79,7 +79,7 @@ public static class CommonMatrix
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <returns>The product of the main diagonal.</returns>
-    public static double DiagonalProduct(this double[] values, int rows, int cols)
+    public static double Det(this double[] values, int rows, int cols)
     {
         int r = cols + 1, size = Min(rows, cols);
         double product = 1.0;

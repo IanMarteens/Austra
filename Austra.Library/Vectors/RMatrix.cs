@@ -495,7 +495,7 @@ public readonly struct RMatrix :
 
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
-    public double Determinant() => values.DiagonalProduct(Rows, Cols);
+    public double Determinant() => values.Det(Rows, Cols);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>

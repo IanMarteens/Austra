@@ -472,7 +472,7 @@ public readonly struct LMatrix :
     /// <param name="m1">A lower triangular matrix.</param>
     /// <param name="m2">A rectangular matrix.</param>
     /// <returns>The resulting rectangular matrix.</returns>
-    public static unsafe Matrix operator *(LMatrix m1, Matrix m2)
+    public static Matrix operator *(LMatrix m1, Matrix m2)
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
@@ -482,17 +482,15 @@ public readonly struct LMatrix :
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        int last = p & Simd.MASK4;
-        fixed (double* pA = m1.values, pB = (double[])m2, pC = result)
+        ref double pA = ref MM.GetArrayDataReference(m1.values);
+        ref double pB = ref MM.GetArrayDataReference((double[])m2);
+        ref double pC = ref MM.GetArrayDataReference(result);
+        for (int i = 0; i < m; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, n))
         {
-            double* pAi = pA, pCi = pC;
-            for (int i = 0; i < m; i++, pAi += n, pCi += n)
-            {
-                double* pBk = pB;
-                Span<double> target = new(pCi, p);
-                for (int k = 0, top = Min(i + 1, n); k < top; k++, pBk += p)
-                    new Span<double>(pBk, p).MulAddStore(pAi[k], target);
-            }
+            ref double pBk = ref pB;
+            Span<double> target = MM.CreateSpan(ref pC, p);
+            for (int k = 0, top = Min(i + 1, n); k < top; k++, pBk = ref Add(ref pBk, p))
+                MM.CreateSpan(ref pBk, p).MulAddStore(Add(ref pA, k), target);
         }
         return new(m, p, result);
     }
@@ -501,7 +499,7 @@ public readonly struct LMatrix :
     /// <param name="m1">A rectangular matrix.</param>
     /// <param name="m2">A lower triangular matrix.</param>
     /// <returns>The resulting rectangular matrix.</returns>
-    public static unsafe Matrix operator *(Matrix m1, LMatrix m2)
+    public static Matrix operator *(Matrix m1, LMatrix m2)
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
@@ -511,19 +509,18 @@ public readonly struct LMatrix :
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        fixed (double* pA = (double[])m1, pB = m2.values, pC = result)
+        ref double pA = ref MM.GetArrayDataReference((double[])m1);
+        ref double pB = ref MM.GetArrayDataReference(m2.values);
+        ref double pC = ref MM.GetArrayDataReference(result);
+        for (int i = 0; i < m; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, n))
         {
-            double* pAi = pA, pCi = pC;
-            for (int i = 0; i < m; i++, pAi += n, pCi += n)
+            pC += pB * pA;
+            ref double pBk = ref pB;
+            for (int k = 1; k < n; k++)
             {
-                double* pBk = pB;
-                *pCi += *pBk * *pAi;
-                for (int k = 1; k < n; k++)
-                {
-                    pBk += p;
-                    int top = Min(k + 1, n);
-                    new Span<double>(pBk, top).MulAddStore(pAi[k], new Span<double>(pCi, top));
-                }
+                pBk = ref Add(ref pBk, p);
+                int top = Min(k + 1, n);
+                MM.CreateSpan(ref pBk, top).MulAddStore(Add(ref pA, k), MM.CreateSpan(ref pC, top));
             }
         }
         return new(m, p, result);
@@ -762,7 +759,7 @@ public readonly struct LMatrix :
 
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
-    public double Determinant() => values.DiagonalProduct(Rows, Cols);
+    public double Determinant() => values.Det(Rows, Cols);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
