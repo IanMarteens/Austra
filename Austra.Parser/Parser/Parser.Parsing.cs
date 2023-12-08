@@ -438,8 +438,8 @@ internal sealed partial class Parser
                                 : e2 == e3
                                 ? Expression.Call(e2, typeof(Matrix).Get(nameof(Matrix.Square)))
                                 : Expression.Multiply(e2, e3))
-                            : e2 is ConstantExpression c1 && c1.Value is double d1 &&
-                                e3 is ConstantExpression c2 && c2.Value is double d2
+                            : e2 is ConstantExpression { Value: double d1 }  && 
+                                e3 is ConstantExpression { Value: double d2 }
                             ? Expression.Constant(opMul switch
                             {
                                 Token.Times => d1 * d2,
@@ -541,8 +541,8 @@ internal sealed partial class Parser
                                 ? Expression.Add(e1, e2) : Expression.Subtract(e1, e2);
                     }
                     else
-                        e1 = e1 is ConstantExpression c1 && c1.Value is double d1 &&
-                                e2 is ConstantExpression c2 && c2.Value is double d2
+                        e1 = e1 is ConstantExpression { Value: double d1 } &&
+                                e2 is ConstantExpression { Value: double d2 }
                             ? Expression.Constant(opAdd == Token.Plus ? d1 + d2 : d1 - d2)
                             : opAdd == Token.Plus
                             ? Expression.Add(e1, e2)
