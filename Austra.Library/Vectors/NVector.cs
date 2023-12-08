@@ -246,7 +246,7 @@ public readonly struct NVector :
     public int Maximum()
     {
         Contract.Requires(IsInitialized);
-        return values.Maximum();
+        return values.Max();
     }
 
     /// <summary>Gets the item with the minimum value.</summary>
@@ -254,7 +254,7 @@ public readonly struct NVector :
     public int Minimum()
     {
         Contract.Requires(IsInitialized);
-        return values.Minimum();
+        return values.Min();
     }
 
     /// <summary>Adds two vectors.</summary>

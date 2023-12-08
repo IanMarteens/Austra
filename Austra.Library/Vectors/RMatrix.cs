@@ -148,12 +148,7 @@ public readonly struct RMatrix :
     /// <summary>Gets the main diagonal.</summary>
     /// <returns>A vector containing values in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DVector Diagonal()
-    {
-        Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<DVector>().Length == Min(Rows, Cols));
-        return values.Diagonal(Rows, Cols);
-    }
+    public DVector Diagonal() => values.Diagonal(Rows, Cols);
 
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
@@ -404,7 +399,7 @@ public readonly struct RMatrix :
     /// which is filled with zeros.
     /// </remarks>
     /// <returns>The max-norm of the matrix.</returns>
-    public double AMax() => values.AsSpan().AbsoluteMaximum();
+    public double AMax() => values.AsSpan().AMax();
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
     /// <remarks>Cells below the diagonal are ignored.</remarks>
@@ -412,9 +407,9 @@ public readonly struct RMatrix :
     public double AMin()
     {
         int r = Rows, c = Cols;
-        double min = values.AsSpan(0, c).AbsoluteMinimum();
+        double min = values.AsSpan(0, c).AMin();
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            min = Min(min, values.AsSpan(offset + row, c - row).AbsoluteMinimum());
+            min = Min(min, values.AsSpan(offset + row, c - row).AMin());
         return min;
     }
 
@@ -424,9 +419,9 @@ public readonly struct RMatrix :
     public double Maximum()
     {
         int r = Rows, c = Cols;
-        double max = values.AsSpan(0, c).Maximum();
+        double max = values.AsSpan(0, c).Max();
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            max = Max(max, values.AsSpan(offset + row, c - row).Maximum());
+            max = Max(max, values.AsSpan(offset + row, c - row).Max());
         return max;
     }
 
@@ -436,9 +431,9 @@ public readonly struct RMatrix :
     public double Minimum()
     {
         int r = Rows, c = Cols;
-        double min = values.AsSpan(0, c).Minimum();
+        double min = values.AsSpan(0, c).Min();
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            min = Min(min, values.AsSpan(offset + row, c - row).Minimum());
+            min = Min(min, values.AsSpan(offset + row, c - row).Min());
         return min;
     }
 
@@ -456,34 +451,34 @@ public readonly struct RMatrix :
 
         int r = Rows, n = Cols, c = m.Rows;
         double[] result = GC.AllocateUninitializedArray<double>(r * c);
-        ref double pA = ref MM.GetArrayDataReference(values);
-        ref double pB = ref MM.GetArrayDataReference(m.values);
-        ref double pC = ref MM.GetArrayDataReference(result), r0 = ref pC;
+        ref double x = ref MM.GetArrayDataReference(values);
+        ref double y = ref MM.GetArrayDataReference(m.values);
+        ref double z = ref MM.GetArrayDataReference(result), r0 = ref z;
         if (values == m.values)
-            for (int i = 0; i < r; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, c))
+            for (int i = 0; i < r; i++, x = ref Add(ref x, n), z = ref Add(ref z, c))
             {
-                ref double pBj = ref pB;
+                ref double pBj = ref y;
                 for (int j = 0; j < i; j++, pBj = ref Add(ref pBj, n))
-                    Add(ref pC, j) = Add(ref r0, j * c + i);
+                    Add(ref z, j) = Add(ref r0, j * c + i);
                 for (int j = i, len = n - i; j < c; j++, len--, pBj = ref Add(ref pBj, n))
                     if (len > 0)
-                        Add(ref pC, j) = MM.CreateSpan(ref Add(ref pA, j), len)
+                        Add(ref z, j) = MM.CreateSpan(ref Add(ref x, j), len)
                             .Dot(MM.CreateSpan(ref Add(ref pBj, j), len));
                     else
-                        Add(ref pC, j) = 0;
+                        Add(ref z, j) = 0;
             }
         else
-            for (int i = 0; i < r; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, c))
+            for (int i = 0; i < r; i++, x = ref Add(ref x, n), z = ref Add(ref z, c))
             {
-                ref double pBj = ref pB;
+                ref double pBj = ref y;
                 for (int j = 0; j < c; j++, pBj = ref Add(ref pBj, n))
                 {
                     int s = Max(i, j), len = n - s;
                     if (len > 0)
-                        Add(ref pC, j) = MM.CreateSpan(ref Add(ref pA, s), len)
+                        Add(ref z, j) = MM.CreateSpan(ref Add(ref x, s), len)
                             .Dot(MM.CreateSpan(ref Add(ref pBj, s), len));
                     else
-                        Add(ref pC, j) = 0;
+                        Add(ref z, j) = 0;
                 }
             }
         return new(r, c, result);

@@ -49,7 +49,9 @@ public static class CommonMatrix
     public static DVector Diagonal(this double[] values, int rows, int cols)
     {
         ArgumentNullException.ThrowIfNull(values);
-        int r = cols + 1, size = Min(rows, cols);
+        Contract.Ensures(Contract.Result<DVector>().Length == Math.Min(rows, cols));
+
+        int r = cols + 1, size = Math.Min(rows, cols);
         double[] result = GC.AllocateUninitializedArray<double>(size);
         ref double a = ref MM.GetArrayDataReference(values);
         ref double b = ref MM.GetArrayDataReference(result);
@@ -68,7 +70,7 @@ public static class CommonMatrix
         if (values is null)
             return 0;
         double trace = 0;
-        int r = cols + 1, size = Min(rows, cols);
+        int r = cols + 1, size = Math.Min(rows, cols);
         for (ref double p = ref MM.GetArrayDataReference(values); size-- > 0; p = ref Unsafe.Add(ref p, r))
             trace += p;
         return trace;
@@ -81,7 +83,7 @@ public static class CommonMatrix
     /// <returns>The product of the main diagonal.</returns>
     public static double Det(this double[] values, int rows, int cols)
     {
-        int r = cols + 1, size = Min(rows, cols);
+        int r = cols + 1, size = Math.Min(rows, cols);
         double product = 1.0;
         for (ref double p = ref MM.GetArrayDataReference(values); size-- > 0; p = ref Unsafe.Add(ref p, r))
             product *= p;
@@ -91,7 +93,7 @@ public static class CommonMatrix
     /// <summary>Gets the item in an span with the maximum absolute value.</summary>
     /// <param name="span">The data span.</param>
     /// <returns>The maximum absolute value in the samples.</returns>
-    public static double AbsoluteMaximum(this Span<double> span)
+    public static double AMax(this Span<double> span)
     {
         if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
         {
@@ -115,14 +117,14 @@ public static class CommonMatrix
         }
         double max = Abs(span[0]);
         for (int i = 1; i < span.Length; i++)
-            max = Max(max, Abs(span[i]));
+            max = Math.Max(max, Abs(span[i]));
         return max;
     }
 
     /// <summary>Gets the item in a span with the minimum absolute value.</summary>
     /// <param name="span">The data span.</param>
     /// <returns>The minimum absolute value in the samples.</returns>
-    public static double AbsoluteMinimum(this Span<double> span)
+    public static double AMin(this Span<double> span)
     {
         if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
         {
@@ -146,7 +148,7 @@ public static class CommonMatrix
         }
         double min = Abs(span[0]);
         for (int i = 1; i < span.Length; i++)
-            min = Min(min, Abs(span[i]));
+            min = Math.Min(min, Abs(span[i]));
         return min;
     }
 
@@ -154,7 +156,7 @@ public static class CommonMatrix
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Maximum(this Span<double> values)
+    public static double Max(this Span<double> values)
     {
         if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
         {
@@ -178,7 +180,7 @@ public static class CommonMatrix
         }
         double max = double.MinValue;
         foreach (double d in values)
-            max = Max(max, d);
+            max = Math.Max(max, d);
         return max;
     }
 
@@ -186,7 +188,7 @@ public static class CommonMatrix
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Maximum(this int[] values)
+    public static int Max(this int[] values)
     {
         if (V8.IsHardwareAccelerated && values.Length >= V8i.Count)
         {
@@ -210,7 +212,7 @@ public static class CommonMatrix
         }
         int max = int.MinValue;
         foreach (int d in values)
-            max = Max(max, d);
+            max = Math.Max(max, d);
         return max;
     }
 
@@ -218,7 +220,7 @@ public static class CommonMatrix
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Minimum(this Span<double> values)
+    public static double Min(this Span<double> values)
     {
         if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
         {
@@ -242,7 +244,7 @@ public static class CommonMatrix
         }
         double min = double.MaxValue;
         foreach (double d in values)
-            min = Min(min, d);
+            min = Math.Min(min, d);
         return min;
     }
 
@@ -250,7 +252,7 @@ public static class CommonMatrix
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Minimum(this int[] values)
+    public static int Min(this int[] values)
     {
         if (V8.IsHardwareAccelerated && values.Length >= V8i.Count)
         {
@@ -274,7 +276,7 @@ public static class CommonMatrix
         }
         int max = int.MaxValue;
         foreach (int d in values)
-            max = Min(max, d);
+            max = Math.Min(max, d);
         return max;
     }
 
@@ -1125,7 +1127,7 @@ public static class CommonMatrix
     /// <returns>The max-norm of the vector difference.</returns>
     public static double Distance(this double[] first, double[] second)
     {
-        int len = Min(first.Length, second.Length);
+        int len = Math.Min(first.Length, second.Length);
         if (V8.IsHardwareAccelerated && len >= V8d.Count)
         {
             ref double p = ref MM.GetArrayDataReference(first);
@@ -1171,9 +1173,9 @@ public static class CommonMatrix
         if (data.Length == 0)
             return "";
         string[] cells = data.Select(formatter).ToArray();
-        int width = Max(3, cells.Max(c => c.Length));
+        int width = Math.Max(3, cells.Max(c => c.Length));
         int cols = (TERMINAL_COLUMNS + 2) / (width + 2);
-        StringBuilder sb = new(Min(data.Length / cols, 12) * (TERMINAL_COLUMNS + 2));
+        StringBuilder sb = new(Math.Min(data.Length / cols, 12) * (TERMINAL_COLUMNS + 2));
         int offset = 0;
         for (int row = 0; row < 11 && offset < data.Length; row++)
         {
@@ -1343,7 +1345,7 @@ public static class CommonMatrix
             Span<int> widths = stackalloc int[cols];
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    widths[j] = Max(widths[j], data[i, j]?.Length ?? 0);
+                    widths[j] = Math.Max(widths[j], data[i, j]?.Length ?? 0);
             StringBuilder sb = new();
             for (int i = 0; i < rows; i++)
             {

@@ -347,13 +347,7 @@ public readonly struct Matrix :
     /// <summary>Gets the main diagonal.</summary>
     /// <returns>A vector containing values in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DVector Diagonal()
-    {
-        Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<DVector>().Length == Min(Rows, Cols));
-
-        return values.Diagonal(Rows, Cols);
-    }
+    public DVector Diagonal() => values.Diagonal(Rows, Cols);
 
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
@@ -361,8 +355,8 @@ public readonly struct Matrix :
     public double Trace() => values.Trace(Rows, Cols);
 
     /// <summary>Gets or sets the value of a single cell.</summary>
-    /// <param name="row">The row number, between 0 and Rows - 1.</param>
-    /// <param name="column">The column number, between 0 and Cols - 1.</param>
+    /// <param name="row">The row number, between 0 and <see cref="Rows"/> - 1.</param>
+    /// <param name="column">The column number, between 0 and <see cref="Cols"/> - 1.</param>
     /// <returns>The value at the given cell.</returns>
     public double this[int row, int column]
     {
@@ -373,8 +367,8 @@ public readonly struct Matrix :
     }
 
     /// <summary>Gets the value of a single cell using <see cref="Index"/>.</summary>
-    /// <param name="row">The row number, between 0 and Rows - 1.</param>
-    /// <param name="column">The column number, between 0 and Cols - 1.</param>
+    /// <param name="row">The row number, between 0 and <see cref="Rows"/> - 1.</param>
+    /// <param name="column">The column number, between 0 and <see cref="Cols"/> - 1.</param>
     /// <returns>The value at the given cell.</returns>
     public double this[Index row, Index column]
     {
@@ -1238,7 +1232,7 @@ public readonly struct Matrix :
     public double AMax()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().AbsoluteMaximum();
+        return values.AsSpan().AMax();
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
@@ -1246,7 +1240,7 @@ public readonly struct Matrix :
     public double AMin()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().AbsoluteMinimum();
+        return values.AsSpan().AMin();
     }
 
     /// <summary>Gets the cell with the maximum value.</summary>
@@ -1254,7 +1248,7 @@ public readonly struct Matrix :
     public double Maximum()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().Maximum();
+        return values.AsSpan().Max();
     }
 
     /// <summary>Gets the cell with the minimum value.</summary>
@@ -1262,7 +1256,7 @@ public readonly struct Matrix :
     public double Minimum()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().Minimum();
+        return values.AsSpan().Min();
     }
 
     /// <summary>Applies a function to each cell of the matrix.</summary>

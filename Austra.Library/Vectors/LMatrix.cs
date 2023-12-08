@@ -178,12 +178,7 @@ public readonly struct LMatrix :
     /// <summary>Gets the main diagonal.</summary>
     /// <returns>A vector containing values in the main diagonal.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DVector Diagonal()
-    {
-        Contract.Requires(IsInitialized);
-        Contract.Ensures(Contract.Result<DVector>().Length == Min(Rows, Cols));
-        return values.Diagonal(Rows, Cols);
-    }
+    public DVector Diagonal() => values.Diagonal(Rows, Cols);
 
     /// <summary>Calculates the trace of a matrix.</summary>
     /// <returns>The sum of the cells in the main diagonal.</returns>
@@ -482,15 +477,15 @@ public readonly struct LMatrix :
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        ref double pA = ref MM.GetArrayDataReference(m1.values);
-        ref double pB = ref MM.GetArrayDataReference((double[])m2);
-        ref double pC = ref MM.GetArrayDataReference(result);
-        for (int i = 0; i < m; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, n))
+        ref double x = ref MM.GetArrayDataReference(m1.values);
+        ref double y = ref MM.GetArrayDataReference((double[])m2);
+        ref double z = ref MM.GetArrayDataReference(result);
+        for (int i = 0; i < m; i++, x = ref Add(ref x, n), z = ref Add(ref z, n))
         {
-            ref double pBk = ref pB;
-            Span<double> target = MM.CreateSpan(ref pC, p);
-            for (int k = 0, top = Min(i + 1, n); k < top; k++, pBk = ref Add(ref pBk, p))
-                MM.CreateSpan(ref pBk, p).MulAddStore(Add(ref pA, k), target);
+            ref double yk = ref y;
+            Span<double> target = MM.CreateSpan(ref z, p);
+            for (int k = 0, top = Min(i + 1, n); k < top; k++, yk = ref Add(ref yk, p))
+                MM.CreateSpan(ref yk, p).MulAddStore(Add(ref x, k), target);
         }
         return new(m, p, result);
     }
@@ -509,18 +504,18 @@ public readonly struct LMatrix :
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        ref double pA = ref MM.GetArrayDataReference((double[])m1);
-        ref double pB = ref MM.GetArrayDataReference(m2.values);
-        ref double pC = ref MM.GetArrayDataReference(result);
-        for (int i = 0; i < m; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, n))
+        ref double x = ref MM.GetArrayDataReference((double[])m1);
+        ref double y = ref MM.GetArrayDataReference(m2.values);
+        ref double z = ref MM.GetArrayDataReference(result);
+        for (int i = 0; i < m; i++, x = ref Add(ref x, n), z = ref Add(ref z, n))
         {
-            pC += pB * pA;
-            ref double pBk = ref pB;
+            z += y * x;
+            ref double yk = ref y;
             for (int k = 1; k < n; k++)
             {
-                pBk = ref Add(ref pBk, p);
+                yk = ref Add(ref yk, p);
                 int top = Min(k + 1, n);
-                MM.CreateSpan(ref pBk, top).MulAddStore(Add(ref pA, k), MM.CreateSpan(ref pC, top));
+                MM.CreateSpan(ref yk, top).MulAddStore(Add(ref x, k), MM.CreateSpan(ref z, top));
             }
         }
         return new(m, p, result);
@@ -547,7 +542,7 @@ public readonly struct LMatrix :
     /// which is filled with zeros.
     /// </remarks>
     /// <returns>The max-norm of the matrix.</returns>
-    public double AMax() => values.AsSpan().AbsoluteMaximum();
+    public double AMax() => values.AsSpan().AMax();
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
     /// <returns>The minimum absolute value in the triangular matrix.</returns>
@@ -561,9 +556,9 @@ public readonly struct LMatrix :
             r = c;
         double min = Abs(values[0]);
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            min = Min(min, values.AsSpan(offset, row).AbsoluteMinimum());
+            min = Min(min, values.AsSpan(offset, row).AMin());
         if (Rows > c)
-            min = Min(min, values.AsSpan(c * c).AbsoluteMinimum());
+            min = Min(min, values.AsSpan(c * c).AMin());
         return min;
     }
 
@@ -589,47 +584,47 @@ public readonly struct LMatrix :
 
         int r = Rows, c = m.Rows;
         double[] result = GC.AllocateUninitializedArray<double>(r * c);
-        ref double pA = ref MM.GetArrayDataReference(values);
-        ref double pB = ref MM.GetArrayDataReference(m.values);
-        ref double pC = ref MM.GetArrayDataReference(result), r0 = ref pC;
+        ref double x = ref MM.GetArrayDataReference(values);
+        ref double y = ref MM.GetArrayDataReference(m.values);
+        ref double z = ref MM.GetArrayDataReference(result), r0 = ref z;
         // The first row is special.
-        double d = pA;
+        double d = x;
         for (int j = 0, jc = 0; j < c; j++, jc += m.Cols)
-            Add(ref pC, j) = d * Add(ref pB, jc);
+            Add(ref z, j) = d * Add(ref y, jc);
         // Iterate all the other rows of the result.
-        d = pB;
+        d = y;
         if (values == m.values)
             for (int i = 1; i < r; i++)
             {
-                pA = ref Add(ref pA, Cols);
-                pC = ref Add(ref pC, c);
+                x = ref Add(ref x, Cols);
+                z = ref Add(ref z, c);
                 // The first column is also special.
-                pC = pA * d;
-                ref double pBj = ref Add(ref pB, m.Cols * (i - 1));
+                z = x * d;
+                ref double yj = ref Add(ref y, m.Cols * (i - 1));
                 // Iterate all other columns of the result.
                 for (int j = 1; j < i; j++)
-                    Add(ref pC, j) = Add(ref r0, j * c + i);
+                    Add(ref z, j) = Add(ref r0, j * c + i);
                 for (int j = i; j < c; j++)
                 {
-                    pBj = ref Add(ref pBj, m.Cols);
+                    yj = ref Add(ref yj, m.Cols);
                     int s = Min(m.Cols, i + 1);
-                    Add(ref pC, j) = MM.CreateSpan(ref pA, s).Dot(MM.CreateSpan(ref pBj, s));
+                    Add(ref z, j) = MM.CreateSpan(ref x, s).Dot(MM.CreateSpan(ref yj, s));
                 }
             }
         else
             for (int i = 1; i < r; i++)
             {
-                pA = ref Add(ref pA, Cols);
-                pC = ref Add(ref pC, c);
+                x = ref Add(ref x, Cols);
+                z = ref Add(ref z, c);
                 // The first column is also special.
-                pC = pA * d;
-                ref double pBj = ref pB;
+                z = x * d;
+                ref double yj = ref y;
                 // Iterate all other columns of the result.
                 for (int j = 1; j < c; j++)
                 {
-                    pBj = ref Add(ref pBj, m.Cols);
+                    yj = ref Add(ref yj, m.Cols);
                     int s = Min(m.Cols, Min(i, j) + 1);
-                    Add(ref pC, j) = MM.CreateSpan(ref pA, s).Dot(MM.CreateSpan(ref pBj, s));
+                    Add(ref z, j) = MM.CreateSpan(ref x, s).Dot(MM.CreateSpan(ref yj, s));
                 }
             }
         return new(r, c, result);

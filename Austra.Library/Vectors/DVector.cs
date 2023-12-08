@@ -254,7 +254,7 @@ public readonly struct DVector :
     public double AMax()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().AbsoluteMaximum();
+        return values.AsSpan().AMax();
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
@@ -262,7 +262,7 @@ public readonly struct DVector :
     public double AMin()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().AbsoluteMinimum();
+        return values.AsSpan().AMin();
     }
 
     /// <summary>Gets the item with the maximum value.</summary>
@@ -270,7 +270,7 @@ public readonly struct DVector :
     public double Maximum()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().Maximum();
+        return values.AsSpan().Max();
     }
 
     /// <summary>Gets the item with the minimum value.</summary>
@@ -278,7 +278,7 @@ public readonly struct DVector :
     public double Minimum()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().Minimum();
+        return values.AsSpan().Min();
     }
 
     /// <summary>Adds two vectors.</summary>
