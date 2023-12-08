@@ -41,12 +41,37 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
 
     /// <summary>Creates a sequence from random values inside an interval.</summary>
     /// <remarks>The <paramref name="upperBound"/> is exclusive.</remarks>
-    /// <param name="size">The size of the series.</param>
+    /// <param name="size">The size of the sequence.</param>
     /// <param name="lowerBound">The lower bound for the random values.</param>
     /// <param name="upperBound">The upper bound for the random values.</param>
     /// <returns>A random sequence of integers in the given interval.</returns>
     public static NSequence Random(int size, int lowerBound, int upperBound) =>
         new RandomSequence(size, lowerBound, upperBound, System.Random.Shared);
+
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static NSequence Unfold(int size, int seed, Func<int, int> unfold) =>
+        new Unfolder0(size, seed, unfold);
+
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static NSequence Unfold(int size, int seed, Func<int, int, int> unfold) =>
+        new Unfolder1(size, seed, unfold);
+
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="second">Second value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static NSequence Unfold(int size, int first, int second, Func<int, int, int> unfold) =>
+        new Unfolder2(size, first, second, unfold);
 
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>

@@ -49,6 +49,32 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public static CSequence NormalRandom(int size, double variance) =>
         new NormalRandomSequence(size, new NormalRandom(0, Sqrt(variance)));
 
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static CSequence Unfold(int size, Complex seed, Func<Complex, Complex> unfold) =>
+        new Unfolder0(size, seed, unfold);
+
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static CSequence Unfold(int size, Complex seed, Func<int, Complex, Complex> unfold) =>
+        new Unfolder1(size, seed, unfold);
+
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="second">Second value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static CSequence Unfold(int size, Complex first, Complex second,
+        Func<Complex, Complex, Complex> unfold) =>
+        new Unfolder2(size, first, second, unfold);
+
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>

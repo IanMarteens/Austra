@@ -84,6 +84,32 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         ? throw new VectorLengthException()
         : new MaSequence(size, variance, coefficients[0], coefficients[1..]);
 
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static DSequence Unfold(int size, double seed, Func<double, double> unfold) =>
+        new Unfolder0(size, seed, unfold);
+
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static DSequence Unfold(int size, double seed, Func<int, double, double> unfold) =>
+        new Unfolder1(size, seed, unfold);
+
+    /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="second">Second value in the sequence.</param>
+    /// <param name="unfold">The generating function.</param>
+    /// <returns>The sequence unfolded from the initial state and the function.</returns>
+    public static DSequence Unfold(int size, double first, double second,
+        Func<double, double, double> unfold) =>
+        new Unfolder2(size, first, second, unfold);
+
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>

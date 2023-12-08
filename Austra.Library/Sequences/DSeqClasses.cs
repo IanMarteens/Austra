@@ -655,8 +655,6 @@ public abstract partial class DSequence : IFormattable
     {
         /// <summary>The normal random source for noise.</summary>
         private readonly NormalRandom generator = new(0, variance);
-        /// <summary>The mean term.</summary>
-        private readonly double mean = mean;
         /// <summary>Autoregression coefficients.</summary>
         private readonly double[] coefficients = (double[])coefficients;
         /// <summary>Buffer for previous terms in the sequence.</summary>
@@ -673,6 +671,76 @@ public abstract partial class DSequence : IFormattable
                 value = mean + innovation + coefficients.AsSpan().Dot(previousTerms);
                 Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
                 previousTerms[0] = innovation;
+                current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements an unfolding sequence using a generator function.</summary>
+    /// <param name="length">Size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generator function.</param>
+    private sealed class Unfolder0(int length, double seed, Func<double, double> unfold) :
+        GenerativeSequence(length)
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current < length)
+            {
+                seed = unfold(value = seed);
+                current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements an unfolding sequence using a generator function.</summary>
+    /// <param name="length">Size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generator function.</param>
+    private sealed class Unfolder1(int length, double seed, Func<int, double, double> unfold) :
+        GenerativeSequence(length)
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current < length)
+            {
+                seed = unfold(++current, value = seed);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements an unfolding sequence using a generator function.</summary>
+    /// <param name="length">Size of the sequence.</param>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="second">Second value in the sequence.</param>
+    /// <param name="unfold">The generator function.</param>
+    private sealed class Unfolder2(int length, double first, double second, 
+        Func<double, double, double> unfold) : GenerativeSequence(length)
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current < length)
+            {
+                value = first;
+                second = unfold(value, first = second);
                 current++;
                 return true;
             }

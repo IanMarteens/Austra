@@ -392,4 +392,74 @@ public abstract partial class CSequence
             return false;
         }
     }
+
+    /// <summary>Implements an unfolding sequence using a generator function.</summary>
+    /// <param name="length">Size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generator function.</param>
+    private sealed class Unfolder0(int length, Complex seed, Func<Complex, Complex> unfold) :
+        GenerativeSequence(length)
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Complex value)
+        {
+            if (current < length)
+            {
+                seed = unfold(value = seed);
+                current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements an unfolding sequence using a generator function.</summary>
+    /// <param name="length">Size of the sequence.</param>
+    /// <param name="seed">First value in the sequence.</param>
+    /// <param name="unfold">The generator function.</param>
+    private sealed class Unfolder1(int length, Complex seed, Func<int, Complex, Complex> unfold) :
+        GenerativeSequence(length)
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Complex value)
+        {
+            if (current < length)
+            {
+                seed = unfold(++current, value = seed);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements an unfolding sequence using a generator function.</summary>
+    /// <param name="length">Size of the sequence.</param>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="second">Second value in the sequence.</param>
+    /// <param name="unfold">The generator function.</param>
+    private sealed class Unfolder2(int length, Complex first, Complex second,
+        Func<Complex, Complex, Complex> unfold) : GenerativeSequence(length)
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Complex value)
+        {
+            if (current < length)
+            {
+                value = first;
+                second = unfold(value, first = second);
+                current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
 }

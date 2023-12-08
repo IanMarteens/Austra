@@ -197,51 +197,9 @@ public readonly struct LMatrix :
 
     /// <summary>Transposes the matrix.</summary>
     /// <returns>A new matrix with swapped rows and cells.</returns>
-    public RMatrix Transpose()
-    {
-        Contract.Requires(IsInitialized);
-
-        nuint c = (nuint)Cols, r = (nuint)Rows;
-        double[] result = new double[values.Length];
-        ref double pA = ref MM.GetArrayDataReference(values);
-        ref double pB = ref MM.GetArrayDataReference(result);
-        if (Avx.IsSupported && r == c && (r & 0b11) == 0)
-        {
-            // Columns and rows are equal and multiples of four.
-            nuint r2 = r + r;
-            for (nuint row = 0; row < r; row += 4)
-            {
-                nuint top = Min(row + 1, c);
-                for (nuint col = 0; col < top; col += 4)
-                {
-                    ref double pp = ref Add(ref pA, row * r + col);
-                    var row1 = V4.LoadUnsafe(ref pp);
-                    var row2 = V4.LoadUnsafe(ref pp, r);
-                    var row3 = V4.LoadUnsafe(ref pp, r2);
-                    var row4 = V4.LoadUnsafe(ref pp, r2 + r);
-                    var t1 = Avx.Shuffle(row1, row2, 0b0000);
-                    var t2 = Avx.Shuffle(row1, row2, 0b1111);
-                    var t3 = Avx.Shuffle(row3, row4, 0b0000);
-                    var t4 = Avx.Shuffle(row3, row4, 0b1111);
-                    row1 = Avx.Permute2x128(t1, t3, 0b00100000);
-                    row2 = Avx.Permute2x128(t2, t4, 0b00100000);
-                    row3 = Avx.Permute2x128(t1, t3, 0b00110001);
-                    row4 = Avx.Permute2x128(t2, t4, 0b00110001);
-                    ref double qq = ref Add(ref pB, col * r + row);
-                    V4.StoreUnsafe(row1, ref qq);
-                    V4.StoreUnsafe(row2, ref qq, r);
-                    V4.StoreUnsafe(row3, ref qq, r2);
-                    V4.StoreUnsafe(row4, ref qq, r2 + r);
-                }
-            }
-        }
-        else
-            for (nuint row = 0; row < r; row++)
-                for (nuint col = 0, top = Min(row + 1, c); col < top; col++)
-                    Add(ref pB, col * r + row) = Add(ref pA, row * c + col);
-        return new(Cols, Rows, result);
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RMatrix Transpose() => ((Matrix)this).Transpose();
+ 
     /// <summary>Sums two lower matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>

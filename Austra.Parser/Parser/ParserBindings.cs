@@ -69,6 +69,7 @@ internal sealed partial class ParserBindings
                 new("new(", "Creates a complex sequence from a complex vector"),
                 new("nrandom(", "Creates a complex sequence from normal random numbers"),
                 new("random(", "Creates a complex sequence from random numbers"),
+                new("unfold", "Creates a complex sequence from a seed and a lambda"),
             ],
             ["cvec"] = [
                 new("new(", "Create a complex vector given a size and an optional lambda"),
@@ -78,6 +79,7 @@ internal sealed partial class ParserBindings
             ["iseq"] = [
                 new("new(", "Creates an integer sequence from a range or a vector"),
                 new("random(", "Creates an integer sequence with random numbers"),
+                new("unfold", "Creates an integer sequence from a seed and a lambda"),
             ],
             ["ivec"] = [
                 new("new(", "Creates an integer vector given a size and an optional lambda"),
@@ -143,6 +145,7 @@ internal sealed partial class ParserBindings
                 new("new(", "Creates a sequence from a range, a grid or a vector"),
                 new("nrandom(", "Creates a sequence from normal random numbers"),
                 new("random(", "Creates a sequence from random numbers"),
+                new("unfold", "Creates a sequence from a seed and a lambda"),
             ],
             ["series"] = [
                 new("new(", "Creates a new series using weights and a list of series"),
@@ -569,6 +572,14 @@ internal sealed partial class ParserBindings
             ["cseq.nrandom"] = new(
                 typeof(CSequence).MD(nameof(CSequence.NormalRandom), typeof(int)),
                 typeof(CSequence).MD(nameof(CSequence.NormalRandom), NDArg)),
+            ["cseq.unfold"] = new(
+                typeof(CSequence).MD(nameof(CSequence.Unfold),
+                    typeof(int), typeof(Complex), typeof(Func<Complex, Complex>)),
+                typeof(CSequence).MD(nameof(CSequence.Unfold),
+                    typeof(int), typeof(Complex), typeof(Func<int, Complex, Complex>)),
+                typeof(CSequence).MD(nameof(CSequence.Unfold),
+                    typeof(int), typeof(Complex), typeof(Complex),
+                    typeof(Func<Complex, Complex, Complex>))),
             ["cvec.new"] = new(
                 typeof(CVector).MD(VArg),
                 typeof(CVector).MD(VVArg),
@@ -586,6 +597,13 @@ internal sealed partial class ParserBindings
                 typeof(NSequence).MD(nameof(NSequence.Random), NArg),
                 typeof(NSequence).MD(nameof(NSequence.Random), NNArg),
                 typeof(NSequence).MD(nameof(NSequence.Random), [.. NNArg, typeof(int)])),
+            ["iseq.unfold"] = new(
+                typeof(NSequence).MD(nameof(NSequence.Unfold),
+                    typeof(int), typeof(int), typeof(Func<int, int>)),
+                typeof(NSequence).MD(nameof(NSequence.Unfold),
+                    typeof(int), typeof(int), typeof(Func<int, int, int>)),
+                typeof(NSequence).MD(nameof(NSequence.Unfold),
+                    typeof(int), typeof(int), typeof(int), typeof(Func<int, int, int>))),
             ["ivec.new"] = new(
                 typeof(NVector).MD(NArg),
                 typeof(NVector).MD(typeof(int), typeof(Func<int, int>)),
@@ -753,6 +771,14 @@ internal sealed partial class ParserBindings
             ["seq.nrandom"] = new(
                 typeof(DSequence).MD(nameof(DSequence.NormalRandom), typeof(int)),
                 typeof(DSequence).MD(nameof(DSequence.NormalRandom), NDArg)),
+            ["seq.unfold"] = new(
+                typeof(DSequence).MD(nameof(DSequence.Unfold),
+                    typeof(int), typeof(double), typeof(Func<double, double>)),
+                typeof(DSequence).MD(nameof(DSequence.Unfold),
+                    typeof(int), typeof(double), typeof(Func<int, double, double>)),
+                typeof(DSequence).MD(nameof(DSequence.Unfold),
+                    typeof(int), typeof(double), typeof(double),
+                    typeof(Func<double, double, double>))),
             ["series.new"] = new(
                 typeof(Series).MD(nameof(Series.Combine), typeof(DVector), typeof(Series[]))),
             ["spline.new"] = new(

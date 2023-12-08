@@ -167,19 +167,8 @@ public readonly struct RMatrix :
 
     /// <summary>Transposes the matrix.</summary>
     /// <returns>A new matrix with swapped rows and cells.</returns>
-    public LMatrix Transpose()
-    {
-        Contract.Requires(IsInitialized);
-
-        int c = Cols, r = Rows;
-        double[] result = GC.AllocateUninitializedArray<double>(values.Length);
-        ref double pA = ref MM.GetArrayDataReference(values);
-        ref double pB = ref MM.GetArrayDataReference(result);
-        for (int row = 0; row < r; row++, pA = ref Add(ref pA, c))
-            for (int col = row; col < c; col++)
-                Add(ref pB, col * r + row) = Add(ref pA, col);
-        return new(c, r, result);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public LMatrix Transpose() => ((Matrix)this).Transpose();
 
     /// <summary>Sums two upper matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
