@@ -220,7 +220,7 @@ seq(1, 100).filter(x => x % 2 = 0).map(x => x^2).sum
 			  <table>
 	 		    <row>
 	 		      <entry><para><codeInline>iseq::new</codeInline></para></entry>
-	 		      <entry><para>Creates a sequence, either from a range or from an integer vector.</para></entry>
+	 		      <entry><para>Creates a sequence, either from a range, a range and a step, or from an integer vector.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>iseq::random</codeInline></para></entry>
@@ -287,6 +287,37 @@ seq(1, 100).filter(x => x % 2 = 0).map(x => x^2).sum
 	 		      <entry><para>Materializes the sequence into a vector. See <see cref="M:Austra.Library.NSequence.ToVector" />.</para></entry>
 			    </row>
 			  </table>
+			  <para>These are the available methods:</para>
+			<table>
+	 		  <row>
+	 		    <entry><para><codeInline>all</codeInline></para></entry>
+	 		    <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+			  </row>
+	 		  <row>
+	 		    <entry><para><codeInline>any</codeInline></para></entry>
+	 		    <entry><para>Checks if there is a item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+			  </row>
+	 		  <row>
+	 		    <entry><para><codeInline>filter</codeInline></para></entry>
+	 		    <entry><para>Returns items of the original sequence satisfying a predicate. See <see cref="M:Austra.Library.NSequence.Filter(System.Func{System.Int32,System.Boolean})" />.</para></entry>
+			  </row>
+	 		  <row>
+	 		    <entry><para><codeInline>map</codeInline></para></entry>
+	 		    <entry><para>Transforms items with the help of a lambda function. See <see cref="M:Austra.Library.NSequence.Map(System.Func{System.Int32,System.Int32})" />.</para></entry>
+			  </row>
+	 		  <row>
+	 		    <entry><para><codeInline>mapReal</codeInline></para></entry>
+	 		    <entry><para>Transforms items with the help of a lambda function. See <see cref="M:Austra.Library.NSequence.MapReal(System.Func{System.Int32,System.Double})" />.</para></entry>
+			  </row>
+	 		  <row>
+	 		    <entry><para><codeInline>reduce</codeInline></para></entry>
+	 		    <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
+			  </row>
+	 		  <row>
+	 		    <entry><para><codeInline>zip</codeInline></para></entry>
+	 		    <entry><para>Combines two sequences using a lambda function. See <see cref="M:Austra.Library.NSequence.Zip(Austra.Library.NSequence,System.Func{System.Int32,System.Int32,System.Int32})" />.</para></entry>
+			  </row>
+			</table>
             </content>
           </section>
         </sections>

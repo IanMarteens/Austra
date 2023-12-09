@@ -77,7 +77,7 @@ internal sealed partial class ParserBindings
                 new("random(", "Creates a random complex vector given a length"),
             ],
             ["iseq"] = [
-                new("new(", "Creates an integer sequence from a range or a vector"),
+                new("new(", "Creates an integer sequence either from a range, a range and a step, or a vector"),
                 new("random(", "Creates an integer sequence with random numbers"),
                 new("unfold", "Creates an integer sequence from a seed and a lambda"),
             ],
@@ -256,7 +256,7 @@ internal sealed partial class ParserBindings
             ],
             [typeof(double)] = [
                 new("toInt", "Converts this double value to integer"),
-                ],
+            ],
             [typeof(DSequence)] = [
                 new("acf", "Gets the autocorrelation function"),
                 new("distinct", "Gets the unique values in the sequence"),
@@ -592,6 +592,7 @@ internal sealed partial class ParserBindings
                 typeof(CVector).MD(typeof(int), typeof(Random))),
             ["iseq.new"] = new(
                 typeof(NSequence).MD(nameof(NSequence.Create), NNArg),
+                typeof(NSequence).MD(nameof(NSequence.Create), [.. NNArg, typeof(int)]),
                 typeof(NSequence).MD(nameof(NSequence.Create), typeof(NVector))),
             ["iseq.random"] = new(
                 typeof(NSequence).MD(nameof(NSequence.Random), NArg),
