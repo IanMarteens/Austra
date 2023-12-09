@@ -35,7 +35,7 @@
                   <para>The library has been designed as a set of mostly inmmutable types, for facilitating their concurrent use. Most of the methods are hardware-accelerated, either using managed references, SIMD operations or both. Memory pinning, and raw pointers, have been reduced to the minimum, in order to ease the garbage collector's work.</para>
                   <para>Using immutable vectors, series and matrices has one drawback, and it is more stress for the garbage collector. For that reason, we offer combined operations, like other libraries do, to fuse several linear operations into one, when possible. The AUSTRA parser detects most of these cases for optimizing them.</para>
                   <sections>
-                    <section>
+                    <section address="algebra">
                       <title>Linear Algebra</title>
                       <content>
 						<para>Austra provides classes for dense vectors and matrices, for double-precision arithmetic. It also features an efficient <codeEntityReference qualifyHint="false">T:Austra.Library.CVector</codeEntityReference> type. Single-precision floats, complex and sparse matrices are planned for a future sprint. All operations takes advantage of C# operators when possible, so most of the operations are non-destructive.</para>
@@ -50,7 +50,7 @@
 						<para>All of these types are actually readonly structures, acting as a thin layer above C#'s arrays. Even the storage for a matrix is a one-dimensional array, since multidimensional arrays in .NET are less optimized for bound-checkings, getting a managed reference and other low-level operations.</para>
                       </content>
                     </section>
-                    <section>
+                    <section address="matFact">
                       <title>Matrix factorizations</title>
                       <content>
 						<para>Austra provides classes for the following matrix factorizations:</para>
@@ -62,14 +62,21 @@
 						<para><see cref="M:Austra.Library.Matrix.Solve(Austra.Library.DVector)" /> and <see cref="M:Austra.Library.Matrix.Solve(Austra.Library.Matrix)" /> uses the LU factorization internally.</para>
                       </content>
                     </section>
-                    <section>
+                    <section address="series">
                       <title>Time series</title>
                       <content>
 						<para>The kernel of Austra was an implementation of the Mean-Variance optimizer. This means that time series were implemented before vectors and matrices.</para>
 						<para>Series are collections of pairs date/value, and they are sorted by date. Values can be used as vectors, but there are some differences. Vector operations check, at run time, that the operands have the same length. The same behavior would be hard to enforce for series. On one hand, each series can have a different first available date. On the other hand, even series with the same frequency could have reported values at different days of the week or the month, and still, it could be interesting to mix them.</para>
                       </content>
                     </section>
-                    <section>
+                    <section address="mvo">
+                      <title>Mean-Variance Optimizer</title>
+                      <content>
+						<para>A Mean-Variance Optimizer implementation is included (<codeEntityReference qualifyHint="false">T:Austra.Library.MVO.MvoModel</codeEntityReference>). This functionality is available at the formula language via the <codeInline>model::mvo</codeInline> class method.</para>
+						<para>The MVO model is rendered as an interactive model by the AUSTRA desktop application.</para>
+                      </content>
+                    </section>
+                    <section address="polynomials">
                       <title>Polynomials and root finding</title>
                       <content>
 						<para>The <see cref="T:Austra.Library.Polynomials" /> static class provides methods for polynomial evaluation and root finding. The <see cref="T:Austra.Library.Solver" /> class implements a simple variant of the Newton-Raphson method for root finding.</para>
@@ -77,7 +84,7 @@
 						<para>Natural cubic splines has also been implemented, both for series and for functions, using a grid. You can even calculate the derivative of a spline at any point in the supported range.</para>
                       </content>
                     </section>
-                    <section>
+                    <section address="fft">
                       <title>Fast Fourier Transform</title>
                       <content>
 						<para>Austra implements a pretty decent FFT algorithm, compared to most popular managed implementations. It uses the Cooley-Tukey algorithm, and it's optimized for small sizes. Small primes are handled either with Bluestein's or Rader's algorithm, depending on the size.</para>
