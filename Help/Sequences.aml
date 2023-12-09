@@ -5,8 +5,8 @@
       <para>Sequences provides most of the operations from real and complex vectors, but avoiding the storage. Sequences are similar to enumerable types in C# with LINQ, and are a requisite for any functional language.</para>
       <para>AUSTRA supports three kinds of sequences: <codeInline>seq</codeInline>, for real valued sequences, <codeInline>cvec</codeInline> for complex ones, and <codeInline>iseq</codeInline>, for integer sequences.</para>
     </introduction>
-    <section address="Section1">
-      <title>Sequences as light vectors</title>
+    <section address="seqs">
+      <title>Double-valued sequences as light vectors</title>
       <content>
         <para>Let's say we want to calculate factorials. AUSTRA is a functional language, so we don't have explicit loops. We could, however, do this with a vector:</para>
         <code language="Austra">
@@ -19,7 +19,7 @@
         <para>Since the sequence's values are generated only by demand, there's no need for the internal storage.</para>
       </content>
       <sections>
-          <section address="SubSection1">
+          <section address="seqCtors">
               <title>Sequence constructors</title>
               <content>
                   <para>This code fragment shows some of the available constructors for sequences:</para>
@@ -29,6 +29,7 @@ seq(10, 1);         <markup><font color="DarkGreen">-- The inverted sequence.</f
 seq::new(1, 10);    <markup><font color="DarkGreen">-- ::new was omitted before.</font></markup>
 seq(0, τ, 128);     <markup><font color="DarkGreen">-- A uniform grid with 128 intervals.</font></markup>
 seq(v);             <markup><font color="DarkGreen">-- A sequence from a vector.</font></markup>
+seq([sqrt(2), e, π, τ]);
 seq::random(10);    <markup><font color="DarkGreen">-- A sequence with 10 random values.</font></markup>
 seq::nrandom(10),   <markup><font color="DarkGreen">-- A sequence with 10 Gaussian random values.</font></markup>
 seq::nrandom(10, 2)<markup><font color="DarkGreen">-- Ten normal samples with variance = 2.</font></markup>
@@ -43,10 +44,10 @@ seq::ma(1000, 1, [0, 0.1, 0.05, 0.01])
 				  </code>
 				  <para>Another class method for creating sequences is <codeInline>seq:unfold</codeInline>, which has three variants:</para>
 		          <code language="Austra">
-<markup><font color="DarkGreen">-- Ten powers of 2, starting with 2.</font></markup>
+<markup><font color="DarkGreen">-- Powers of 2, from 2 to 1024.</font></markup>
 seq::unfold(10, 2, x =&gt; 2x);
 <markup><font color="DarkGreen">-- Maclaurin series for exp(1).</font></markup>
-seq::unfold(100000, 1, (n, x) =&gt; x / (n + 1));
+seq::unfold(100000, 1, (n, x) =&gt; x / (n + 1)).sum + 1;
 <markup><font color="DarkGreen">-- Real-valued Fibonacci sequence.</font></markup>
 seq::unfold(50, 1, 1, (x, y) =&gt; x + y);
 				  </code>
@@ -56,7 +57,7 @@ seq::random(10).toVector
 				  </code>
               </content>
           </section>
-          <section address="SubSection2">
+          <section address="seqMethods">
               <title>Methods and properties</title>
               <content>
                   <para>These are the methods that can be used with a sequence:</para>
@@ -163,7 +164,7 @@ seq::random(10).toVector
 		</table>
               </content>
           </section>
-          <section address="SubSection2">
+          <section address="seqOps">
               <title>Sequence operators</title>
               <content>
                   <para>Sequence operators mimics most of vector's operators.</para>
@@ -182,7 +183,7 @@ seq::random(100) * 2 - 1;
 				  </alert>
               </content>
           </section>
-          <section address="SubSection2">
+          <section address="delayed">
               <title>Delayed execution</title>
               <content>
                   <para>Sequence are modeled after .NET LINQ enumerables, and so many other functional libraries. One of the most interesting features of these libraries is <newTerm>delayed execution</newTerm>.</para>
@@ -206,6 +207,90 @@ seq(1, 100).filter(x => x % 2 = 0).map(x => x^2).sum
               </content>
           </section>
       </sections>
+    </section>
+    <section address="iseqs">
+      <title>Integer sequences</title>
+      <content>
+        <para>Integer sequences are represented by the <codeInline>iseq</codeInline> class.</para>
+        <sections>
+          <section address="iseqCtors">
+            <title>Class methods</title>
+            <content>
+              <para>These are the class methods supported by <codeInline>iseq</codeInline>:</para>
+			  <table>
+	 		    <row>
+	 		      <entry><para><codeInline>iseq:new</codeInline></para></entry>
+	 		      <entry><para>Creates a sequence, either from a range or from an integer vector.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>iseq:random</codeInline></para></entry>
+	 		      <entry><para>Creates a sequence of random integers. You can pass an upper bound, or an interval for values.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>iseq:unfold</codeInline></para></entry>
+	 		      <entry><para>Similar to <codeInline>seq::unfold</codeInline>, but with integer arguments.</para></entry>
+			    </row>
+			  </table>
+            </content>
+          </section>
+          <section address="iseqMethods">
+            <title>Methods and properties</title>
+            <content>
+              <para>These properties can be used with integer sequences:</para>
+			  <table>
+	 		    <row>
+	 		      <entry><para><codeInline>distinct</codeInline></para></entry>
+	 		      <entry><para>Select unique values in the sequence, with no predefined order. See <see cref="M:Austra.Library.NSequence.Distinct" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>first</codeInline></para></entry>
+	 		      <entry><para>Gets the first term of the sequence. See <see cref="M:Austra.Library.NSequence.First" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>last</codeInline></para></entry>
+	 		      <entry><para>Gets the last term of the sequence. See <see cref="M:Austra.Library.NSequence.Last" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>length</codeInline></para></entry>
+	 		      <entry><para>Gets the number of elements in the sequence. See <see cref="M:Austra.Library.Sequence`2.Length" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>max</codeInline></para></entry>
+	 		      <entry><para>Get the maximum value in the sequence. See <see cref="M:Austra.Library.NSequence.Max" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>min</codeInline></para></entry>
+	 		      <entry><para>Get the minimum value in the sequence. See <see cref="M:Austra.Library.NSequence.Min" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>plot</codeInline></para></entry>
+	 		      <entry><para>Plots the sequence. See <see cref="M:Austra.Library.NSequence.Plot" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>prod</codeInline></para></entry>
+	 		      <entry><para>Multiplies all values in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Product</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>sort</codeInline></para></entry>
+	 		      <entry><para>Sorts values in ascending order. See <see cref="M:Austra.Library.NSequence.Sort" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>sortDesc</codeInline></para></entry>
+	 		      <entry><para>Sorts values in descending order. See <see cref="M:Austra.Library.NSequence.SortDescending" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>sum</codeInline></para></entry>
+	 		      <entry><para>Sums all values in the sequence. See <see cref="M:Austra.Library.Sequence`2.Sum" />.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>toVector</codeInline></para></entry>
+	 		      <entry><para>Materializes the sequence into a vector. See <see cref="M:Austra.Library.NSequence.ToVector" />.</para></entry>
+			    </row>
+			  </table>
+            </content>
+          </section>
+        </sections>
+      </content>
     </section>
     <relatedTopics>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>

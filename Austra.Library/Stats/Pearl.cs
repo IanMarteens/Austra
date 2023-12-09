@@ -16,6 +16,7 @@ public static partial class Functions
         "梅一輪 一輪ほどの 暖かさ (Ume ichi rin/Ichi rin hodo no /Atatakasa - Ransetsu)",
         "朝顔に 釣瓶とられて もらひ水 (Asagao ni/Tsurube torare te/Morai mizu - Chiyome)",
         "書てみたりけしたり果はけしの花 (Kaite mitari/keshitari hate wa/Keshi no hana - Hokushi)",
+        "プログラマー コードを書くのが 楽しい仕事 (コパイロット)",
         "So long, and thanks for all the fish. (Douglas Adams)",
     };
 

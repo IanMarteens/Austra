@@ -11,59 +11,71 @@
         <code language="Austra">
 [1, 2, 3, 4]
 		</code>
-		<para>Commas are optional, so they can be omitted:</para>
-        <code language="Austra">
-[1 2 3 4]
+		<para>Commas are mandatory for separating items, and white space and line feeds are always ignored.</para>
+		<para>Bracket lists can be also used to concatenate the content of several vectors, and you can add scalars to the mix:</para>
+		<code language="Austra">
+let v1=[1, 2], v2=[3, 4];
+<markup><font color="DarkGreen">-- Returns a vector with 4 items.</font></markup>
+[v1, v2];
+<markup><font color="DarkGreen">-- This also is accepted:</font></markup>
+[[1, 2], v2];
+<markup><font color="DarkGreen">-- Scalars can also be added.</font></markup>
+[0, v1, pi, v2, tau];
 		</code>
-		<para>These class methods are available for creating vectors:</para>
-		<table>
- 		  <row>
- 		    <entry><para><codeInline>vec::new</codeInline></para></entry>
- 		    <entry><para>Overloaded constructor (see below).</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>vec::ones</codeInline></para></entry>
- 		    <entry><para>Creates a vector filled with ones.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>vec::random</codeInline></para></entry>
- 		    <entry><para>Creates a vector with random values from a uniform distribution.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>vec::nrandom</codeInline></para></entry>
- 		    <entry><para>Creates a vector with random values from a normal standard distribution.</para></entry>
-		  </row>
-		</table>
-		<para>These are the overloads supported by <codeInline>vec::new</codeInline>:</para>
-        <code language="Austra">
+		<sections>
+		  <section>
+		    <title>Class methods</title>
+		    <content>
+			  <para>Vectors can also be created using these class methods:</para>
+			  <table>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>vec::new</codeInline></para></entry>
+ 		    	  <entry><para>Overloaded constructor (see below).</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>vec::ones</codeInline></para></entry>
+ 		    	  <entry><para>Creates a vector filled with ones.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>vec::random</codeInline></para></entry>
+ 		    	  <entry><para>Creates a vector with random values from a uniform distribution.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>vec::nrandom</codeInline></para></entry>
+ 		    	  <entry><para>Creates a vector with random values from a normal standard distribution.</para></entry>
+		  		</row>
+			  </table>
+			  <para>These are the overloads supported by <codeInline>vec::new</codeInline>:</para>
+        	  <code language="Austra">
 <markup><font color="DarkGreen">-- Creates a vector with 10 items, all of them zeros.</font></markup>
 vec::new(10);
 <markup><font color="DarkGreen">-- Remember that ::new can be omitted!</font></markup>
 vec(10));
 <markup><font color="DarkGreen">-- Creates a vector like [1 2 3 4 5 6 7 8 9 10]</font></markup>
 vec(10, i => i + 1)
-		</code>
-		<para>The last example shows how to create a vector using a <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">lambda function</link> parameter. This is a more sophisticated example of using a lambda to initialize items in a vector:</para>
-        <code language="Austra">
+			  </code>
+			  <para>The last example shows how to create a vector using a <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">lambda function</link> parameter. This is a more sophisticated example of using a lambda to initialize items in a vector:</para>
+        	  <code language="Austra">
 <markup><font color="DarkGreen">-- Mimics a periodic function.</font></markup>
 vec(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
-		</code>
-        <para><codeInline>vec::new</codeInline> can also be used to create a linear combination of vectors:</para>
-        <code language="Austra">
+			  </code>
+        	  <para><codeInline>vec::new</codeInline> can also be used to create a linear combination of vectors:</para>
+        	  <code language="Austra">
 vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
-		</code>
-		<para>The first parameter contains weights, and the remaining parameters are the vectors that will be linearly combined. If there is an extra value in the weights, as in the example, it is used as an independent term. The above expression is equivalent to this one:</para>
-        <code language="Austra">
+			  </code>
+			  <para>The first parameter contains weights, and the remaining parameters are the vectors that will be linearly combined. If there is an extra value in the weights, as in the example, it is used as an independent term. The above expression is equivalent to this one:</para>
+        	  <code language="Austra">
 0.5 + 0.1 * v1 + 0.7 * v2 + 0.2 * v3
-		</code>
-		<para>Please note that the parser can detect some code patterns and optimize expressions automatically. For instance, for vectors, the parser recognizes these patterns:</para>
-        <code language="Austra">
-			vector1 * scalar + vector2;
-			scalar * vector1 + vector2;
-			scalar1 * vector1 + scalar2 * vector2;
-		</code>
-		<para>Both these expressions are reduced to calls to one of the overloads of the method <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.MultiplyAdd(Austra.Library.DVector,Austra.Library.DVector)</codeEntityReference>. These methods are internally optimized to use a single temporary buffer, instead of the two buffers of a naïve implementation, and both of them use FMA fused operations when available. Of course, the method underlying the above presented <codeInline>vec::new</codeInline> constructor is even better optimized and runs several faster than even the optimized versions of lineal composition.</para>
-		<sections>
+			  </code>
+			  <para>Please note that the parser can detect some code patterns and optimize expressions automatically. For instance, for vectors, the parser recognizes these patterns:</para>
+        	  <code language="Austra">
+vector1 * scalar + vector2;
+scalar * vector1 + vector2;
+scalar1 * vector1 + scalar2 * vector2;
+			  </code>
+			  <para>Both these expressions are reduced to calls to one of the overloads of the method <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.MultiplyAdd(Austra.Library.DVector,Austra.Library.DVector)</codeEntityReference>. These methods are internally optimized to use a single temporary buffer, instead of the two buffers of a naïve implementation, and both of them use FMA fused operations when available. Of course, the method underlying the above presented <codeInline>vec::new</codeInline> constructor is even better optimized and runs several faster than even the optimized versions of lineal composition.</para>
+		    </content>
+		  </section>
 		  <section>
 		    <title>Vector properties</title>
 		    <content>
@@ -397,7 +409,7 @@ vec[vec.length - 1]
 vec[1:vec.length - 1]
 		</code>
 		<para>The above expression removes the first and the last element from a vector. The upper bound is excluded.</para>
-		<para>The caret ()<codeInline>^</codeInline>) can be used in indexes and segments, to count positions from the end. For instance, this expression returns the next to last item of a vector:</para>
+		<para>The caret (<codeInline>^</codeInline>) can be used in indexes and segments, to count positions from the end. For instance, this expression returns the next to last item of a vector:</para>
 		<code language="Austra">
 vec[^1]
 		</code>

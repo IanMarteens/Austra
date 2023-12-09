@@ -21,7 +21,7 @@
         </code>
       </content>
       <sections>
-      	<section>
+      	<section address="noVars">
       	  <title>Definitions cannot use session variables</title>
       	  <content>
       	  <para>Code definitions must respect some limitations. The most important one is that they cannot reference session variables. This sequence of commands is invalid:</para>
@@ -32,7 +32,7 @@
       	  <para>The reason behind this constraint is that session variables only store their current values, but not the formula that generated that value.</para>
       	  </content>
       	</section>
-      	<section>
+      	<section address="recDef">
       	  <title>Definitions may use existing definitions</title>
       	  <content>
       	  <para>A code definition may refer to an existing definition. For instance:</para>
@@ -44,7 +44,7 @@
       	  <para>In this case, removing either <codeInline>sm_cov</codeInline> or <codeInline>sm_ret</codeInline>, would also remove <codeInline>cxMvo</codeInline>.</para>
       	  </content>
       	</section>
-      	<section>
+      	<section address="determinism">
       	  <title>Deterministic callings</title>
       	  <content>
       	  <para>Let's say we make this definition:</para>
