@@ -465,10 +465,6 @@ public abstract partial class NSequence
         /// <returns>The maximum value.</returns>
         public override int Max() => max;
 
-        /// <summary>Gets the sum of all the values in the sequence.</summary>
-        /// <returns>The sum of all the values in the sequence.</returns>
-        public override int Sum() => (max * (max + 1) - first * (first - 1)) / 2;
-
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
