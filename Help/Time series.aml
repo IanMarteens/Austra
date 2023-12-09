@@ -294,6 +294,28 @@ series([0.5, 0.1, 0.9], aapl, msft);
         </section>
       </sections>
     </section>
+    <section address="seriesIdx">
+      <title>Indexing and slicing</title>
+      <content>
+		<para>Points in a series can be access using an index expression between brackets:</para>
+		<code language="Austra">
+aapl[0];
+aapl[appl.count - 1].value = aapl.last.value;
+aapl[^2] = aapl[aapl.count - 2]
+		</code>
+		<para>Series also supports extracting a slice using dates or indexes. In the first case, you must provide two dates inside brackets, separated by a range operator (<codeInline>..</codeInline>), and one of the bounds can be omitted:</para>
+		<code language="Austra">
+aapl[jan20..jan21];
+aapl[jan20..15@jan21];
+aapl[jan20..];
+aapl[..jan21]
+		</code>
+		<para>The upper bound is excluded from the result, as usual. Date arguments in a series index do not support the caret (<codeInline>^</codeInline>) operator for relative indexes. When using numerical indexes in a slice, the behaviour is similar to the one of vectors:</para>
+		<code language="Austra">
+aapl[1..aapl.count - 1].count = aapl[1..^1].count
+		</code>
+      </content>
+    </section>
     <relatedTopics>
       <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
       <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetic</link>
