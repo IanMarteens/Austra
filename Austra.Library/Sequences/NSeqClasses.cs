@@ -465,6 +465,18 @@ public abstract partial class NSequence
         /// <returns>The maximum value.</returns>
         public override int Max() => max;
 
+        /// <summary>Gets the sum of all the values in the sequence.</summary>
+        /// <returns>The sum of all the values in the sequence.</returns>
+        public override int Sum() => (length * first + step * length * (length - 1) / 2);
+
+        /// <summary>Adds a sequence to this sequence.</summary>
+        /// <param name="other">Sequence to add.</param>
+        /// <returns>The component by component sum of the sequences.</returns>
+        protected override NSequence Add(NSequence other) => other is GridSequence gs
+            ? new GridSequence(first + gs.first, step + gs.step,
+                length < gs.length ? max + gs[length - 1] : this[gs.length - 1] + gs.max)
+            : base.Add(other);
+
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
@@ -475,7 +487,7 @@ public abstract partial class NSequence
         /// <returns><see langword="true"/>, when there is a next number.</returns>
         public override bool Next(out int value)
         {
-            if (current < last)
+            if (current <= last)
             {
                 value = current;
                 current += step;

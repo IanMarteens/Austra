@@ -9,6 +9,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     IMultiplyOperators<NSequence, NSequence, int>,
     IMultiplyOperators<NSequence, int, NSequence>,
     IDivisionOperators<NSequence, int, NSequence>,
+    IUnaryNegationOperators<NSequence, NSequence>,
     IPointwiseOperators<NSequence>,
     IIndexable
 {
@@ -123,13 +124,18 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public static NSequence operator +(NSequence s1, NSequence s2)
     {
         if (!s1.HasStorage && !s2.HasStorage)
-            return s1.Zip(s2, (x, y) => x + y);
+            return s1.Add(s2);
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(Math.Min(a1.Length, a2.Length));
         a1.AsSpan(0, r.Length).Add(a2.AsSpan(0, r.Length), r);
         return new VectorSequence(r);
     }
+
+    /// <summary>Adds a sequence to this sequence.</summary>
+    /// <param name="other">Sequence to add.</param>
+    /// <returns>The component by component sum of the sequences.</returns>
+    protected virtual NSequence Add(NSequence other) => Zip(other, (x, y) => x + y);
 
     /// <summary>Adds a scalar value to a sequence.</summary>
     /// <param name="s">Sequence operand.</param>
@@ -385,7 +391,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
             while (Next(out int value))
             {
                 rd = value;
-                rd = ref Add(ref rd, 1);
+                rd = ref Unsafe.Add(ref rd, 1);
             }
             return data;
         }
