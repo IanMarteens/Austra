@@ -406,7 +406,7 @@ vec[vec.length - 1]
 		</code>
 		<para>A segment or slice can be extracted as another vector by using this notation:</para>
 		<code language="Austra">
-vec[1:vec.length - 1]
+vec[1..vec.length - 1]
 		</code>
 		<para>The above expression removes the first and the last element from a vector. The upper bound is excluded.</para>
 		<para>The caret (<codeInline>^</codeInline>) can be used in indexes and segments, to count positions from the end. For instance, this expression returns the next to last item of a vector:</para>
@@ -415,8 +415,8 @@ vec[^1]
 		</code>
 		<para>These equalities hold:</para>
 		<code language="Austra">
-vec[1:^1] = vec[1:vec.length - 1];
-vec[^5:^2].length = 3
+vec[1..^1] = vec[1..vec.length - 1];
+vec[^5..^2].length = 3
 		</code>
 		<para>Vectors and series also support safe indexers. With normal indexers, like <codeInline>v[1000]</codeInline>, an out-of-range reference throws an exception and interrupts the evaluation of the
 		formula. If braces are used instead of brackets, and out-of-range reference returns 0.0 and it is considered as a valid use. For instance, the following expression returns zero:</para>

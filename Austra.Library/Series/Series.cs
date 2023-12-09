@@ -224,7 +224,7 @@ public sealed class Series : Series<Date>,
     public Series LinearFit()
     {
         DVector coeffs = Fit();
-        double a = coeffs[0], b = coeffs[1];
+        double a = coeffs.UnsafeThis(0), b = coeffs.UnsafeThis(1);
         double[] newValues = GC.AllocateUninitializedArray<double>(Count);
         for (int i = 0; i < newValues.Length; i++)
             newValues[i] = a * (uint)args[i] + b;

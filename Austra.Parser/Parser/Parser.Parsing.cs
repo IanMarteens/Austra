@@ -836,10 +836,10 @@ internal sealed partial class Parser
     private Expression ParseIndexer(Expression e, bool allowSlice)
     {
         bool fromEnd1 = false;
-        Expression e1 = kind == Token.Colon && allowSlice
+        Expression e1 = kind == Token.Range && allowSlice
             ? ZeroExpr
             : ParseIndex(ref fromEnd1);
-        if (allowSlice && kind == Token.Colon)
+        if (allowSlice && kind == Token.Range)
         {
             Move();
             Expression e2 = kind == Token.RBra
@@ -865,10 +865,10 @@ internal sealed partial class Parser
             Move();
         else
         {
-            e1 = kind == Token.Colon
+            e1 = kind == Token.Range
                 ? Expression.Constant(Index.Start)
                 : ParseIndex(ref fromEnd11);
-            if (kind == Token.Colon)
+            if (kind == Token.Range)
             {
                 Move();
                 Expression e12 = kind == Token.Comma
@@ -886,10 +886,10 @@ internal sealed partial class Parser
             Move();
         else
         {
-            e2 = kind == Token.Colon
+            e2 = kind == Token.Range
                 ? Expression.Constant(Index.Start)
                 : ParseIndex(ref fromEnd21);
-            if (kind == Token.Colon)
+            if (kind == Token.Range)
             {
                 Move();
                 Expression e22 = kind == Token.RBra
@@ -929,7 +929,7 @@ internal sealed partial class Parser
         Expression? e1 = null, e2 = null;
         bool fromEnd1 = false, fromEnd2 = false;
         int pos = start;
-        if (kind != Token.Colon)
+        if (kind != Token.Range)
         {
             e1 = ParseIndex(ref fromEnd1, false);
             if (e1.Type == typeof(int))
@@ -946,7 +946,7 @@ internal sealed partial class Parser
                 throw Error("Lower bound must be a date or integer");
             else if (fromEnd1)
                 throw Error("Relative indexes not supported for dates", pos);
-            if (kind != Token.Colon)
+            if (kind != Token.Range)
                 throw Error(": expected in slice");
         }
         Move();
@@ -1371,6 +1371,8 @@ internal sealed partial class Parser
                 Move();
                 break;
             }
+            else
+                throw Error("Vector item separator expected");
         }
         Expression result;
         if (matrices > 0)

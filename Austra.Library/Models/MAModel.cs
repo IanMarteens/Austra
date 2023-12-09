@@ -48,7 +48,7 @@ public abstract class MAModel<T>
         {
             double tmpAR = Mean;
             for (int j = 0; j < Degrees; ++j)
-                tmpAR += Coefficients[j] * residuals[i - j - 1];
+                tmpAR += Coefficients.UnsafeThis(j) * residuals[i - j - 1];
             newValues[i] = tmpAR;
         }
         return newValues;

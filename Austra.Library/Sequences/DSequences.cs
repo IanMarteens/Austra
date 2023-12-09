@@ -139,6 +139,12 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>The sequence for the given range.</returns>
     public override DSequence this[Range range] => new VectorSequence(Materialize()[range]);
 
+    /// <summary>Implicit conversion from vector to sequence.</summary>
+    /// <param name="vector">A vector.</param>
+    /// <returns>A vector with the same components as the array.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator DSequence(DVector vector) => new VectorSequence(vector);
+
     /// <summary>Adds the common part of two sequences.</summary>
     /// <param name="s1">First sequence operand.</param>
     /// <param name="s2">Second sequence operand.</param>
@@ -161,7 +167,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public static DSequence operator +(DSequence s, double d)
     {
         if (!s.HasStorage)
-            return s.Map(x => x + d);
+            return s.Shift(d);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         a.AsSpan().Add(d, r.AsSpan());
@@ -174,6 +180,11 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>The component by component sum of the scalar and the sequence.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DSequence operator +(double d, DSequence s) => s + d;
+
+    /// <summary>Shifts a sequence without an underlying storage.</summary>
+    /// <param name="d">Amount to shift.</param>
+    /// <returns>The shifted sequence.</returns>
+    protected virtual DSequence Shift(double d) => Map(x => x + d);
 
     /// <summary>Subtracts the common part of two sequences.</summary>
     /// <param name="s1">Sequence minuend.</param>
@@ -197,7 +208,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public static DSequence operator -(DSequence s, double d)
     {
         if (!s.HasStorage)
-            return s.Map(x => x - d);
+            return s.Shift(-d);
         double[] a = s.Materialize();
         double[] r = GC.AllocateUninitializedArray<double>(a.Length);
         a.AsSpan().Sub(d, r.AsSpan());

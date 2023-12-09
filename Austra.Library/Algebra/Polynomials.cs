@@ -55,7 +55,7 @@ public static class Polynomials
         int k = coefficients.Length - 1;
         for (int i = 0; i < coefficients.Length - 1; i++)
         {
-            double c = coefficients[i] * k--;
+            double c = coefficients.UnsafeThis(i) * k--;
             res = new(
                 FusedMultiplyAdd(res.Real, value.Real, c - res.Imaginary * value.Imaginary),
                 FusedMultiplyAdd(res.Real, value.Imaginary, res.Imaginary * value.Real));
@@ -81,7 +81,7 @@ public static class Polynomials
         double result = 0.0;
         int k = coefficients.Length - 1;
         for (int i = 0; i < coefficients.Length - 1; i++)
-            result = FusedMultiplyAdd(result, value, k-- * coefficients[i]);
+            result = FusedMultiplyAdd(result, value, k-- * coefficients.UnsafeThis(i));
         return result;
     }
 

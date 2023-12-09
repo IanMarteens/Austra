@@ -225,6 +225,13 @@ public readonly struct NVector :
         ? 0
         : Add(ref MM.GetArrayDataReference(values), index);
 
+    /// <summary>Unsafe access to the vector's components, skipping bounds checking.</summary>
+    /// <param name="index">The index of the component.</param>
+    /// <returns>The value at the given index.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal int UnsafeThis(int index) =>
+        Add(ref MM.GetArrayDataReference(values), index);
+
     /// <summary>Gets the first value in the vector.</summary>
     public int First => values[0];
     /// <summary>Gets the last value in the vector.</summary>

@@ -52,7 +52,7 @@ public abstract class ARModel<T>: IFormattable
         {
             double tmpAR = 0.0;
             for (int j = 0; j < Degrees; ++j)
-                tmpAR += Coefficients[j] * oldValues[i - j - 1];
+                tmpAR += Coefficients.UnsafeThis(j) * oldValues[i - j - 1];
             newValues[i] = tmpAR;
         }
         return newValues;

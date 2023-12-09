@@ -117,7 +117,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <param name="d">Scalar operand.</param>
     /// <returns>The component by component sum of the sequence and the scalar.</returns>
     public static CSequence operator +(CSequence s, Complex d) => !s.HasStorage
-        ? s.Map(x => x + d)
+        ? s.Shift(d)
         : new VectorSequence(s.ToVector() + d);
 
     /// <summary>Adds a sequence to a scalar value.</summary>
@@ -126,6 +126,11 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <returns>The component by component sum of the scalar and the sequence.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CSequence operator +(Complex d, CSequence s) => s + d;
+
+    /// <summary>Shifts a sequence without an underlying storage.</summary>
+    /// <param name="d">Amount to shift.</param>
+    /// <returns>The shifted sequence.</returns>
+    protected virtual CSequence Shift(Complex d) => Map(x => x + d);
 
     /// <summary>Subtracts a scalar common part of two sequences.</summary>
     /// <param name="s1">Sequence minuend.</param>
@@ -140,7 +145,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <param name="d">Scalar subtrahend.</param>
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
     public static CSequence operator -(CSequence s, Complex d) => !s.HasStorage
-        ? s.Map(x => x - d)
+        ? s.Shift(-d)
         : new VectorSequence(s.ToVector() - d);
 
     /// <summary>Subtracts a scalar from a sequence.</summary>

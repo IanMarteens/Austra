@@ -3,6 +3,40 @@
 /// <summary>Represents any sequence returning complex values.</summary>
 public abstract partial class CSequence
 {
+    /// <summary>Implements a sequence of complex values based with a known length.</summary>
+    /// <param name="length">Number of items in the sequence.</param>
+    private abstract class FixLengthSequence(int length) : CSequence
+    {
+        /// <summary>The length of the sequence.</summary>
+        protected readonly int length = length;
+        /// <summary>The current index in the sequence.</summary>
+        protected int current;
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <returns>The total number of values in the sequence.</returns>
+        public sealed override int Length() => length;
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected sealed override bool HasLength => true;
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public sealed override CSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Creates an array with all values from the sequence.</summary>
+        /// <returns>The values as an array.</returns>
+        protected override Complex[] Materialize()
+        {
+            Complex[] result = GC.AllocateUninitializedArray<Complex>(length);
+            Materialize(result.AsSpan());
+            return result;
+        }
+    }
+
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="mapper">The mapping function.</param>
@@ -121,36 +155,17 @@ public abstract partial class CSequence
     /// <param name="lower">The first value in the sequence.</param>
     /// <param name="upper">The last value in the sequence.</param>
     /// <param name="steps">The number of steps in the sequence, minus one.</param>
-    private sealed class GridSequence(Complex lower, Complex upper, int steps) : CSequence
+    private sealed class GridSequence(Complex lower, Complex upper, int steps) :
+        FixLengthSequence(steps + 1)
     {
         /// <summary>The distance between two steps.</summary>
         private readonly Complex delta = (upper - lower) / steps;
-        /// <summary>Current index in the sequence.</summary>
-        private int current;
 
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => steps + 1;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected override Complex[] Materialize()
-        {
-            Complex[] result = GC.AllocateUninitializedArray<Complex>(steps + 1);
-            Materialize(result.AsSpan());
-            return result;
-        }
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override CSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
+        /// <summary>Shifts a sequence without an underlying storage.</summary>
+        /// <param name="d">Amount to shift.</param>
+        /// <returns>The shifted sequence.</returns>
+        protected override CSequence Shift(Complex d) =>
+            new GridSequence(lower + d, upper + d, steps);
 
         /// <summary>Negates a sequence without an underlying storage.</summary>
         /// <returns>The negated sequence.</returns>
@@ -237,29 +252,18 @@ public abstract partial class CSequence
     
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
-    private sealed class VectorSequence(CVector source) : CSequence
+    private sealed class VectorSequence(CVector source) : FixLengthSequence(source.Length)
     {
-        /// <summary>Current index in the sequence.</summary>
-        private int current;
-
         /// <summary>Creates a sequence of complex numbers from an array of complex numbers.</summary>
         /// <param name="values">An array of complex numbers.</param>
         public VectorSequence(Complex[] values) : this(new CVector(values)) { }
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override CSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
         public override bool Next(out Complex value)
         {
-            if (current < source.Length)
+            if (current < length)
             {
                 value = source[current++];
                 return true;
@@ -298,13 +302,6 @@ public abstract partial class CSequence
         /// <returns>The sum of all the values in the sequence.</returns>
         public override Complex Sum() => source.Sum();
 
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => source.Length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
-
         /// <summary>Checks the sequence has a storage.</summary>
         protected override bool HasStorage => true;
 
@@ -313,46 +310,10 @@ public abstract partial class CSequence
         protected override Complex[] Materialize() => (Complex[])source;
     }
 
-    /// <summary>
-    /// Implements a sequence of complex values based in a generator function.
-    /// </summary>
-    /// <param name="length">Number of items in the sequence.</param>
-    private abstract class GenerativeSequence(int length) : CSequence
-    {
-        /// <summary>The length of the sequence.</summary>
-        protected readonly int length = length;
-        /// <summary>The current index in the sequence.</summary>
-        protected int current;
-
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public sealed override int Length() => length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected sealed override bool HasLength => true;
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public sealed override CSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected sealed override Complex[] Materialize()
-        {
-            Complex[] result = GC.AllocateUninitializedArray<Complex>(length);
-            Materialize(result.AsSpan());
-            return result;
-        }
-    }
-
     /// <summary>Implements a sequence using random values.</summary>
     /// <param name="length">Size of the sequence.</param>
     /// <param name="random">Random generator.</param>
-    private sealed class RandomSequence(int length, Random random) : GenerativeSequence(length)
+    private sealed class RandomSequence(int length, Random random) : FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -374,7 +335,7 @@ public abstract partial class CSequence
     /// <param name="length">Size of the sequence.</param>
     /// <param name="random">Random generator.</param>
     private sealed class NormalRandomSequence(int length, NormalRandom random) :
-        GenerativeSequence(length)
+        FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -398,7 +359,7 @@ public abstract partial class CSequence
     /// <param name="seed">First value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder0(int length, Complex seed, Func<Complex, Complex> unfold) :
-        GenerativeSequence(length)
+        FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -421,7 +382,7 @@ public abstract partial class CSequence
     /// <param name="seed">First value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder1(int length, Complex seed, Func<int, Complex, Complex> unfold) :
-        GenerativeSequence(length)
+        FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -444,7 +405,7 @@ public abstract partial class CSequence
     /// <param name="second">Second value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder2(int length, Complex first, Complex second,
-        Func<Complex, Complex, Complex> unfold) : GenerativeSequence(length)
+        Func<Complex, Complex, Complex> unfold) : FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>

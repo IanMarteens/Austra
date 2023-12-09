@@ -3,6 +3,40 @@
 /// <summary>Represents any sequence returning integer values.</summary>
 public abstract partial class NSequence
 {
+    /// <summary>Implements a sequence of integers with a known length.</summary>
+    /// <param name="length">Number of items in the sequence.</param>
+    private abstract class FixLengthSequence(int length) : NSequence
+    {
+        /// <summary>The length of the sequence.</summary>
+        protected readonly int length = length;
+        /// <summary>The current index in the sequence.</summary>
+        protected int current;
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <returns>The total number of values in the sequence.</returns>
+        public sealed override int Length() => length;
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected sealed override bool HasLength => true;
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public sealed override NSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Creates an array with all values from the sequence.</summary>
+        /// <returns>The values as an array.</returns>
+        protected override int[] Materialize()
+        {
+            int[] result = GC.AllocateUninitializedArray<int>(length);
+            Materialize(result.AsSpan());
+            return result;
+        }
+    }
+
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="mapper">The mapping function.</param>
@@ -341,27 +375,16 @@ public abstract partial class NSequence
 
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
-    private sealed class VectorSequence(NVector source) : NSequence
+    private sealed class VectorSequence(NVector source) : FixLengthSequence(source.Length)
     {
-        /// <summary>Current index in the sequence.</summary>
-        private int current;
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override NSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
-
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
         public override bool Next(out int value)
         {
-            if (current < source.Length)
+            if (current < length)
             {
-                value = source[current++];
+                value = source.UnsafeThis(current++);
                 return true;
             }
             value = default;
@@ -410,13 +433,6 @@ public abstract partial class NSequence
         /// <returns>The product of all the values in the sequence.</returns>
         public override int Product() => source.Product();
 
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => source.Length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
-
         /// <summary>Checks the sequence has a storage.</summary>
         protected override bool HasStorage => true;
 
@@ -425,49 +441,13 @@ public abstract partial class NSequence
         protected override int[] Materialize() => (int[])source;
     }
 
-    /// <summary>
-    /// Implements a sequence of integer values based in a generator function.
-    /// </summary>
-    /// <param name="length">Number of items in the sequence.</param>
-    private abstract class GenerativeSequence(int length) : NSequence
-    {
-        /// <summary>The length of the sequence.</summary>
-        protected readonly int length = length;
-        /// <summary>The current index in the sequence.</summary>
-        protected int current;
-
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public sealed override int Length() => length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected sealed override bool HasLength => true;
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public sealed override NSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected sealed override int[] Materialize()
-        {
-            int[] result = GC.AllocateUninitializedArray<int>(length);
-            Materialize(result.AsSpan());
-            return result;
-        }
-    }
-
     /// <summary>Implements a sequence using random values.</summary>
     /// <param name="length">Size of the sequence.</param>
     /// <param name="lo">Lower bound of the random values.</param>
     /// <param name="hi">Upper bound of the random values.</param>
     /// <param name="random">Random generator.</param>
     private sealed class RandomSequence(int length, int lo, int hi, Random random) : 
-        GenerativeSequence(length)
+        FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -490,7 +470,7 @@ public abstract partial class NSequence
     /// <param name="seed">First value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder0(int length, int seed, Func<int, int> unfold) :
-        GenerativeSequence(length)
+        FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -513,7 +493,7 @@ public abstract partial class NSequence
     /// <param name="seed">First value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder1(int length, int seed, Func<int, int, int> unfold) :
-        GenerativeSequence(length)
+        FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -536,7 +516,7 @@ public abstract partial class NSequence
     /// <param name="second">Second value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder2(int length, int first, int second, Func<int, int, int> unfold) :
-        GenerativeSequence(length)
+        FixLengthSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>

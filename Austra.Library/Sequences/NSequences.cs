@@ -130,7 +130,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public static NSequence operator +(NSequence s, int d)
     {
         if (!s.HasStorage)
-            return s.Map(x => x + d);
+            return s.Shift(d);
         int[] a = s.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(a.Length);
         a.AsSpan().Add(d, r.AsSpan());
@@ -143,6 +143,11 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <returns>The component by component sum of the scalar and the sequence.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NSequence operator +(int d, NSequence s) => s + d;
+
+    /// <summary>Shifts a sequence without an underlying storage.</summary>
+    /// <param name="d">Amount to shift.</param>
+    /// <returns>The shifted sequence.</returns>
+    protected virtual NSequence Shift(int d) => Map(x => x + d);
 
     /// <summary>Subtracts the common part of two sequences.</summary>
     /// <param name="s1">Sequence minuend.</param>
@@ -166,7 +171,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public static NSequence operator -(NSequence s, int d)
     {
         if (!s.HasStorage)
-            return s.Map(x => x - d);
+            return s.Shift(-d);
         int[] a = s.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(a.Length);
         a.AsSpan().Sub(d, r.AsSpan());

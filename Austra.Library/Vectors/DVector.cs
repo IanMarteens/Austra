@@ -221,6 +221,13 @@ public readonly struct DVector :
         ? 0.0
         : Add(ref MM.GetArrayDataReference(values), index);
 
+    /// <summary>Unsafe access to the vector's components, skipping bounds checking.</summary>
+    /// <param name="index">The index of the component.</param>
+    /// <returns>The value at the given index.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal double UnsafeThis(int index) =>
+        Add(ref MM.GetArrayDataReference(values), index);
+
     /// <summary>Gets the first value in the vector.</summary>
     public double First => values[0];
     /// <summary>Gets the last value in the vector.</summary>
@@ -701,14 +708,14 @@ public readonly struct DVector :
         ref double p = ref MM.GetArrayDataReference(values);
         int firstW = weights.Length == vectors.Length ? 0 : 1;
         if (firstW > 0)
-            Array.Fill(values, weights[0]);
+            Array.Fill(values, weights.UnsafeThis(0));
         nuint t = V8.IsHardwareAccelerated ? (nuint)(size - V8d.Count) : (nuint)(size - V4d.Count);
         for (int i = 0; i < vectors.Length; i++)
         {
             if (vectors[i].Length != size)
                 throw new VectorLengthException();
             ref double q = ref MM.GetArrayDataReference(vectors[i].values);
-            double w = weights[firstW + i];
+            double w = weights.UnsafeThis(firstW + i);
             if (V8.IsHardwareAccelerated && size >= V8d.Count)
             {
                 V8d vec = V8.Create(w);

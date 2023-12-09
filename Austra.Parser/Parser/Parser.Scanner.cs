@@ -215,7 +215,7 @@ internal sealed partial class Parser : IDisposable
                 kind = Token.Date;
                 asDate = ParseDateLiteral(text.AsSpan()[start..i], start);
             }
-            else if (ch == '.')
+            else if (ch == '.' && Add(ref c, i + 1) != '.')
             {
                 do i++;
                 while ((uint)(Add(ref c, i) - '0') < 10u);
@@ -312,6 +312,7 @@ internal sealed partial class Parser : IDisposable
                     {
                         '*' => (Token.PointTimes, i++ - 1),
                         '/' => (Token.PointDiv, i++ - 1),
+                        '.' => (Token.Range, i++ - 1),
                         _ => (Token.Dot, start),
                     };
                     return;

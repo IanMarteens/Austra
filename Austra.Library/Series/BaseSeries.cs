@@ -570,7 +570,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
         }
         double[] values = new double[size];
         if (firstW > 0)
-            Array.Fill(values, weights[0]);
+            Array.Fill(values, weights.UnsafeThis(0));
         fixed (double* p = values)
         {
             for (int i = 0; i < series.Length; i++)
@@ -578,7 +578,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
                 fixed (double* pa = series[i].values)
                 {
                     int j = 0;
-                    double w = weights[firstW + i];
+                    double w = weights.UnsafeThis(firstW + i);
                     if (Avx.IsSupported)
                     {
                         V4d vec = V4.Create(w);

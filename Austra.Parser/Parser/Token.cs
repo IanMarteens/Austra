@@ -51,7 +51,9 @@ public enum Token
     Dot,
     /// <summary>The comma separator.</summary>
     Comma,
-    /// <summary>Colon, as separator for slices.</summary>
+    /// <summary>Two consequtive dots, as range marker and separator for slices.</summary>
+    Range,
+    /// <summary>Colon, as separator for definition descriptions.</summary>
     Colon,
     /// <summary>Semicolon, as a row separator in matrix literals.</summary>
     Semicolon,

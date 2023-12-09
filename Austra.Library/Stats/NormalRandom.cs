@@ -56,6 +56,11 @@ public sealed class NormalRandom
     /// <summary>A shared instance of the generator using a randomized seed.</summary>
     public static NormalRandom Shared => shared ??= new(Random.Shared);
 
+    /// <summary>Creates a new generator with a shifted mean.</summary>
+    /// <param name="value">The value to be added to the mean.</param>
+    /// <returns>A new shifted generator.</returns>
+    public NormalRandom Shift(double value) => new(random, mean + value, stdDev);
+
     /// <summary>
     /// Returns a random value according to the standard normal distribution.
     /// </summary>
