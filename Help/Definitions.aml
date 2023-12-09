@@ -19,6 +19,10 @@
         <code language="Austra">
 		<markup><b>undef</b></markup> cxMvo
         </code>
+        <para>In the AUSTRA desktop application, definitions appears in the <legacyBold>Variables</legacyBold> panel, inside a <legacyBold>Definitions</legacyBold> node:</para>
+        <mediaLink>
+			<image placement="near" xlink:href="d001"/>
+		</mediaLink>
       </content>
       <sections>
       	<section address="noVars">

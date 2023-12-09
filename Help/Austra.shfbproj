@@ -97,6 +97,10 @@
     <None Include="Welcome.aml" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="d001.png">
+      <ImageId>d001</ImageId>
+      <AlternateText>d 001</AlternateText>
+    </Image>
     <Image Include="ostara.png">
       <ImageId>ostara</ImageId>
       <AlternateText>ostara</AlternateText>
