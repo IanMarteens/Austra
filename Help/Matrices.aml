@@ -5,7 +5,7 @@
       <para>AUSTRA matrices are represented by the <codeInline>matrix</codeInline> class. They are implemented as row-first, double precision dense matrices.</para>
       <para>The AUSTRA <codeInline>matrix</codeInline> class is based on three different C# structures: <codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference>, <codeEntityReference qualifyHint="false">T:Austra.Library.LMatrix</codeEntityReference>, and <codeEntityReference qualifyHint="false">T:Austra.Library.RMatrix</codeEntityReference>. The compiler takes automatically care of any conversions when needed.</para>
     </introduction>
-    <section>
+    <section address="matLiterals">
       <title>Matrix construction</title>
       <content>
         <para>A matrix can be constructed by enclosing its components inside brackets:</para>
@@ -32,7 +32,7 @@ The vector is handled as a row vector.</font></markup>
 [v; m];
 		</code>
 		<sections>
-		  <section address="matCtors">
+		  <section address="matrixCtors">
 		    <title>Class methods</title>
 		    <content>
 		      <para>These class methods are available for creating matrices:</para>
@@ -70,6 +70,10 @@ The vector is handled as a row vector.</font></markup>
  		    	  <entry><para>Creates a lower-triangular matrix with random values from a uniform distribution.</para></entry>
 		  		</row>
  		  		<row>
+ 		    	  <entry><para><codeInline>matrix::lnrandom</codeInline></para></entry>
+ 		    	  <entry><para>Creates a lower-triangular matrix with random values from a standard normal distribution.</para></entry>
+		  		</row>
+ 		  		<row>
  		    	  <entry><para><codeInline>matrix::cov</codeInline></para></entry>
  		    	  <entry><para>Creates a covariance matrix given a list of series.</para></entry>
 		  		</row>
@@ -82,6 +86,70 @@ The vector is handled as a row vector.</font></markup>
 		  </section>
 		</sections>
       </content>
+    </section>
+    <section address="matMethods">
+      <title>Methods and properties</title>
+      <content>
+        <para>These are the properties available for matrices:</para>
+		<table>
+		  <row>
+	    	<entry><para><codeInline>amax</codeInline></para></entry>
+	    	<entry><para>Gets the absolute maximum. See <see cref="M:Austra.Library.Matrix.AMax" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>amin</codeInline></para></entry>
+	    	<entry><para>Gets the absolute minimum. See <see cref="M:Austra.Library.Matrix.AMin" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>chol</codeInline></para></entry>
+	    	<entry><para>Calculates the Cholesky factorization. See <see cref="M:Austra.Library.Matrix.Cholesky" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>cols</codeInline></para></entry>
+	    	<entry><para>Gets the number of columns. See <see cref="P:Austra.Library.Matrix.Cols" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>det</codeInline></para></entry>
+	    	<entry><para>Calculates the determinant. See <see cref="M:Austra.Library.Matrix.Determinant" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>diag</codeInline></para></entry>
+	    	<entry><para>Gets the main diagonal as a vector. See <see cref="M:Austra.Library.Matrix.Diagonal" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>evd</codeInline></para></entry>
+	    	<entry><para>Calculates the EigenValues Decomposition. See <see cref="M:Austra.Library.Matrix.EVD" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>inverse</codeInline></para></entry>
+	    	<entry><para>Gets the inverse of this matrix. See <see cref="M:Austra.Library.Matrix.Inverse" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>isSymmetric</codeInline></para></entry>
+	    	<entry><para>Verifies if the matrix is a symmetric one. See <see cref="M:Austra.Library.Matrix.IsSymmetric" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>max</codeInline></para></entry>
+	    	<entry><para>Gets the maximum value from the cells. See <see cref="M:Austra.Library.Matrix.Maximum" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>min</codeInline></para></entry>
+	    	<entry><para>Gets the minimum value from the cells. See <see cref="M:Austra.Library.Matrix.Minimum" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>rows</codeInline></para></entry>
+	    	<entry><para>Gets the number of rows. See <see cref="P:Austra.Library.Matrix.Rows" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>trace</codeInline></para></entry>
+	    	<entry><para>Gets the sum of the main diagonal. See <see cref="M:Austra.Library.Matrix.Trace" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>stats</codeInline></para></entry>
+	    	<entry><para>Returns statistics on cells. See <see cref="M:Austra.Library.Matrix.Stats" />.</para></entry>
+	  	  </row>
+	  	</table>
+	  </content>
     </section>
     <section address="Section1">
       <title>Indexing and slicing</title>
