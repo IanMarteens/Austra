@@ -206,6 +206,9 @@ public abstract partial class DSequence : IFormattable
             return this;
         }
 
+        /// <summary>Checks if the sequence contains a zero value.</summary>
+        protected override bool ContainsZero => first <= 0 && last >= 0;
+
         /// <summary>Negates a sequence without an underlying storage.</summary>
         /// <returns>The negated sequence.</returns>
         protected override DSequence Negate() => new RangeSequenceDesc(-first, -last);
@@ -300,6 +303,9 @@ public abstract partial class DSequence : IFormattable
                     first - offset, first - (offset + length - 1));
             }
         }
+
+        /// <summary>Checks if the sequence contains a zero value.</summary>
+        protected override bool ContainsZero => first >= 0 && last <= 0;
 
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
@@ -497,6 +503,14 @@ public abstract partial class DSequence : IFormattable
         /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
         public override double Last() => source[^1];
 
+        /// <summary>Checks if the sequence contains a zero value.</summary>
+        /// <remarks>
+        /// This is a fast check, and we try it to be sure.
+        /// Of course, a zero could be anywhere in the sequence.
+        /// </remarks>
+        protected override bool ContainsZero =>
+            Length() > 1 && (source[0] == 0d || source[^1] == 0d);
+
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
         public override double Min() => source.Minimum();
@@ -511,7 +525,7 @@ public abstract partial class DSequence : IFormattable
 
         /// <summary>Gets the product of all the values in the sequence.</summary>
         /// <returns>The product of all the values in the sequence.</returns>
-        public override double Product() => source.Product();
+        public override double Product() => ContainsZero ? 0d : source.Product();
 
         /// <summary>Checks the sequence has a storage.</summary>
         protected override bool HasStorage => true;

@@ -680,6 +680,40 @@ public readonly struct CVector :
         return new(new DVector(re).Sum(), new DVector(im).Sum());
     }
 
+    /// <summary>Calculates the product of the vector's items.</summary>
+    /// <returns>The product of all vector's items.</returns>
+    public Complex Product()
+    {
+        Contract.Requires(IsInitialized);
+
+        Complex result = 1d;
+        ref double p = ref MM.GetArrayDataReference(re);
+        ref double q = ref MM.GetArrayDataReference(im);
+        ref double t = ref Add(ref p, Length);
+        if (V4.IsHardwareAccelerated && Length > V4d.Count)
+        {
+            ref double last = ref Add(ref p, Length & Simd.MASK4);
+            V4d prodRe = V4d.One, prodIm = V4d.Zero;
+            do
+            {
+                V4d aRe = V4.LoadUnsafe(ref p);
+                V4d aIm = V4.LoadUnsafe(ref q);
+                prodRe = prodRe * aRe - prodIm * aIm;
+                prodIm = prodRe * aIm + prodIm * aRe;
+                p = ref Add(ref p, V4d.Count);
+                q = ref Add(ref q, V4d.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = new Complex(prodRe.ToScalar(), prodIm.ToScalar())
+                * new Complex(prodRe.GetElement(1), prodIm.GetElement(1))
+                * new Complex(prodRe.GetElement(2), prodIm.GetElement(2))
+                * new Complex(prodRe.GetElement(3), prodIm.GetElement(3));
+        }
+        for (; IsAddressLessThan(ref p, ref t); p = ref Add(ref p, 1), q = ref Add(ref q, 1))
+            result *= new Complex(p, q);
+        return result;
+    }
+
     /// <summary>Computes the mean of the vector's items.</summary>
     /// <returns><code>this.Sum() / this.Length</code></returns>
     public Complex Mean() => Sum() / Length;

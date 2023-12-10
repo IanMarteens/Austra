@@ -335,6 +335,10 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
  		    	<entry><para>Shows the vector in a chart. See <see cref="M:Austra.Library.CVector.Plot" />.</para></entry>
 		  	  </row>
  		  	  <row>
+ 		    	<entry><para><codeInline>prod</codeInline></para></entry>
+ 		    	<entry><para>Multiplies all items in the vector. See <see cref="M:Austra.Library.CVector.Product" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
  		    	<entry><para><codeInline>real</codeInline></para></entry>
  		    	<entry><para>Gets the real components as a vector. See <see cref="P:Austra.Library.CVector.Real" />.</para></entry>
 		  	  </row>

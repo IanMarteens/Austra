@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Collections.Generic;
+
+namespace Austra.Library;
 
 /// <summary>Represents any sequence returning integer values.</summary>
 public abstract partial class NSequence
@@ -254,6 +256,9 @@ public abstract partial class NSequence
             }
         }
 
+        /// <summary>Checks if the sequence contains a zero value.</summary>
+        protected override bool ContainsZero => first < 0 && max >= 0 && (-first) % step == 0;
+
         /// <summary>Shifts a sequence without an underlying storage.</summary>
         /// <param name="d">Amount to shift.</param>
         /// <returns>The shifted sequence.</returns>
@@ -364,6 +369,9 @@ public abstract partial class NSequence
             }
         }
 
+        /// <summary>Checks if the sequence contains a zero value.</summary>
+        protected override bool ContainsZero => first >= 0 && min <= 0 && (-min) % step == 0;
+
         /// <summary>Shifts a sequence without an underlying storage.</summary>
         /// <param name="d">Amount to shift.</param>
         /// <returns>The shifted sequence.</returns>
@@ -464,6 +472,14 @@ public abstract partial class NSequence
         /// <summary>Gets the last value in the sequence.</summary>
         /// <returns>The last value.</returns>
         public override int Last() => source[^1];
+
+        /// <summary>Checks if the sequence contains a zero value.</summary>
+        /// <remarks>
+        /// This is a fast check, and we try it to be sure.
+        /// Of course, a zero could be anywhere in the sequence.
+        /// </remarks>
+        protected override bool ContainsZero =>
+            Length() > 1 && (source[0] == 0 || source[^1] == 0);
 
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>

@@ -305,9 +305,21 @@ public abstract partial class CSequence
         /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
         public override Complex Last() => source[^1];
 
+        /// <summary>Checks if the sequence contains a zero value.</summary>
+        /// <remarks>
+        /// This is a fast check, and we try it to be sure.
+        /// Of course, a zero could be anywhere in the sequence.
+        /// </remarks>
+        protected override bool ContainsZero =>
+            Length() > 1 && (source[0] == 0d || source[^1] == 0d);
+
         /// <summary>Gets the sum of all the values in the sequence.</summary>
         /// <returns>The sum of all the values in the sequence.</returns>
         public override Complex Sum() => source.Sum();
+
+        /// <summary>Gets the product of all the values in the sequence.</summary>
+        /// <returns>The product of all the values in the sequence.</returns>
+        public override Complex Product() => ContainsZero ? Complex.Zero : source.Product();
 
         /// <summary>Checks the sequence has a storage.</summary>
         protected override bool HasStorage => true;

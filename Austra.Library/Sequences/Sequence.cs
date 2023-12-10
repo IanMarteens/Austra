@@ -112,11 +112,16 @@ public abstract class Sequence<T, TSelf>
     /// <returns>The product of all the values in the sequence.</returns>
     public virtual T Product()
     {
+        if (ContainsZero)
+            return T.AdditiveIdentity;
         T product = T.MultiplicativeIdentity;
         while (Next(out T value))
             product *= value;
         return product;
     }
+
+    /// <summary>Checks if the sequence contains a zero value.</summary>
+    protected virtual bool ContainsZero => false;
 
     /// <summary>Gets the total number of values in the sequence.</summary>
     /// <returns>The total number of values in the sequence.</returns>
