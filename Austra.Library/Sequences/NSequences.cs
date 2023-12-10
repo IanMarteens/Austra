@@ -17,16 +17,18 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <param name="first">The first value in the sequence.</param>
     /// <param name="last">The last value in the sequence.</param>
     /// <returns>A sequence returning a range of values.</returns>
-    public static NSequence Create(int first, int last) =>
-        first <= last ? new RangeSequence(first, last) : new RangeSequenceDesc(first, last);
+    public static NSequence Create(int first, int last) => first <= last
+        ? new GridSequence(first, 1, last)
+        : new GridSequenceDesc(first, 1, last);
 
     /// <summary>Creates a sequence from a range and a step.</summary>
     /// <param name="first">First value in the sequence.</param>
     /// <param name="step">Distance between sequence values.</param>
     /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
     /// <returns>A sequence returning a range of values.</returns>
-    public static NSequence Create(int first, int step, int last) =>
-        new GridSequence(first, step, last);
+    public static NSequence Create(int first, int step, int last) => first <= last
+        ? new GridSequence(first, step, last)
+        : new GridSequenceDesc(first, step, last);
 
     /// <summary>Creates a sequence from a vector.</summary>
     /// <param name="values">The vector containing the sequence's values.</param>

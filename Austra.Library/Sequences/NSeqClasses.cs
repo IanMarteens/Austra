@@ -10,6 +10,11 @@ public abstract partial class NSequence
         /// <summary>The length of the sequence.</summary>
         protected readonly int length = length;
 
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="idx">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        public sealed override int this[Index idx] => this[idx.GetOffset(length)];
+
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
         public sealed override int Length() => length;
@@ -196,196 +201,32 @@ public abstract partial class NSequence
             HasLength ? Math.Min(s1.Length(), s2.Length()) : base.Length();
     }
 
-    /// <summary>Implements a sequence of double values based in an integer range.</summary>
-    /// <remarks>Creates a double sequence from an integer range.</remarks>
-    /// <param name="first">The first value in the sequence.</param>
-    /// <param name="last">The last value in the sequence.</param>
-    private class RangeSequence(int first, int last) : FixLengthSequence(Abs(last - first) + 1)
-    {
-        /// <summary>Current value.</summary>
-        protected int current = first;
-        /// <summary>First value in the sequence.</summary>
-        protected int first = first;
-        /// <summary>Last value in the sequence.</summary>
-        protected int last = last;
-
-        /// <summary>Gets the value at the specified index.</summary>
-        /// <param name="index">A position inside the sequence.</param>
-        /// <returns>The value at the given position.</returns>
-        /// <exception cref="IndexOutOfRangeException">
-        /// When <paramref name="index"/> is out of range.
-        /// </exception>
-        public override int this[int index] =>
-            (uint)index < length ? first + index : throw new IndexOutOfRangeException();
-
-        /// <summary>Gets the value at the specified index.</summary>
-        /// <param name="idx">A position inside the sequence.</param>
-        /// <returns>The value at the given position.</returns>
-        public override int this[Index idx] => idx.IsFromEnd
-            ? new RangeSequenceDesc(last, first)[idx.Value - 1]
-            : this[idx.Value];
-
-        /// <summary>Gets a range from the sequence.</summary>
-        /// <param name="range">A range inside the sequence.</param>
-        /// <returns>The sequence for the given range.</returns>
-        public override NSequence this[Range range]
-        {
-            get
-            {
-                (int offset, int length) = range.GetOffsetAndLength(Length());
-                return new RangeSequence(first + offset, first + (offset + length - 1));
-            }
-        }
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override NSequence Reset()
-        {
-            current = first;
-            return this;
-        }
-
-        /// <summary>Negates a sequence without an underlying storage.</summary>
-        /// <returns>The negated sequence.</returns>
-        protected override NSequence Negate() => new RangeSequenceDesc(-first, -last);
-
-        /// <summary>Sorts the content of this sequence.</summary>
-        /// <returns>A sorted sequence.</returns>
-        public override NSequence Sort() => this;
-
-        /// <summary>Sorts the content of this sequence in descending order.</summary>
-        /// <returns>A sorted sequence in descending order.</returns>
-        public override NSequence SortDescending() => new RangeSequenceDesc(last, first);
-
-        /// <summary>Gets the first value in the sequence.</summary>
-        /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
-        public override int First() => first;
-
-        /// <summary>Gets the last value in the sequence.</summary>
-        /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
-        public override int Last() => last;
-
-        /// <summary>Gets the minimum value from the sequence.</summary>
-        /// <returns>The minimum value.</returns>
-        public override int Min() => first;
-
-        /// <summary>Gets the maximum value from the sequence.</summary>
-        /// <returns>The maximum value.</returns>
-        public override int Max() => last;
-
-        /// <summary>Gets only the unique values in this sequence.</summary>
-        /// <remarks>This sequence has always unique values.</remarks>
-        /// <returns>A sequence with unique values.</returns>
-        public sealed override NSequence Distinct() => this;
-
-        /// <summary>Gets the next number in the sequence.</summary>
-        /// <param name="value">The next number in the sequence.</param>
-        /// <returns><see langword="true"/>, when there is a next number.</returns>
-        public override bool Next(out int value)
-        {
-            if (current <= last)
-            {
-                value = current++;
-                return true;
-            }
-            value = default;
-            return false;
-        }
-    }
-
-    /// <summary>Implements a sequence of double values based in an integer range.</summary>
-    /// <remarks>Creates a double sequence from an integer range.</remarks>
-    /// <param name="first">The first value in the sequence.</param>
-    /// <param name="last">The last value in the sequence.</param>
-    private sealed class RangeSequenceDesc(int first, int last) : RangeSequence(first, last)
-    {
-        /// <summary>Sorts the content of this sequence.</summary>
-        /// <returns>A sorted sequence.</returns>
-        public override NSequence Sort() => new RangeSequence(last, first);
-
-        /// <summary>Sorts the content of this sequence in descending order.</summary>
-        /// <returns>A sorted sequence in descending order.</returns>
-        public override NSequence SortDescending() => this;
-
-        /// <summary>Gets the value at the specified index.</summary>
-        /// <param name="index">A position inside the sequence.</param>
-        /// <returns>The value at the given position.</returns>
-        /// <exception cref="IndexOutOfRangeException">
-        /// When <paramref name="index"/> is out of range.
-        /// </exception>
-        public override int this[int index] =>
-            (uint)index < length ? first - index : throw new IndexOutOfRangeException();
-
-        /// <summary>Gets the value at the specified index.</summary>
-        /// <param name="idx">A position inside the sequence.</param>
-        /// <returns>The value at the given position.</returns>
-        public override int this[Index idx] => idx.IsFromEnd
-            ? new RangeSequence(last, first)[idx.Value - 1]
-            : this[idx.Value];
-
-        /// <summary>Gets a range from the sequence.</summary>
-        /// <param name="range">A range inside the sequence.</param>
-        /// <returns>The sequence for the given range.</returns>
-        public override NSequence this[Range range]
-        {
-            get
-            {
-                (int offset, int length) = range.GetOffsetAndLength(Length());
-                return new RangeSequenceDesc(
-                    first - offset, first - (offset + length - 1));
-            }
-        }
-
-        /// <summary>Gets the minimum value from the sequence.</summary>
-        /// <returns>The minimum value.</returns>
-        public override int Min() => last;
-
-        /// <summary>Gets the maximum value from the sequence.</summary>
-        /// <returns>The maximum value.</returns>
-        public override int Max() => first;
-
-        /// <summary>Negates a sequence without an underlying storage.</summary>
-        /// <returns>The negated sequence.</returns>
-        protected override NSequence Negate() => new RangeSequence(-first, -last);
-
-        /// <summary>Gets the next number in the sequence.</summary>
-        /// <param name="value">The next number in the sequence.</param>
-        /// <returns><see langword="true"/>, when there is a next number.</returns>
-        public override bool Next(out int value)
-        {
-            if (current >= last)
-            {
-                value = current--;
-                return true;
-            }
-            value = default;
-            return false;
-        }
-    }
-
     /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <remarks><c>first &lt;= last</c></remarks>
     /// <param name="first">First value in the sequence.</param>
     /// <param name="step">Distance between sequence values.</param>
     /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
-    private sealed class GridSequence(int first, int step, int last) :
-        FixLengthSequence((last - first) / step + 1)
+    private class GridSequence(int first, int step, int last) :
+        FixLengthSequence(Abs(last - first) / step + 1)
     {
         /// <summary>The first value in the sequence.</summary>
-        private readonly int first = first;
+        protected readonly int first = first;
         /// <summary>The last value in the sequence.</summary>
-        private readonly int last = last;
+        protected readonly int last = last;
         /// <summary>The step of the sequence.</summary>
-        private readonly int step = step;
+        protected readonly int step = step;
         /// <summary>
         /// Maximum value in the sequence, which is the last value rounded down to the step.
         /// </summary>
-        private readonly int max = first + ((last - first) / step) * step;
+        private readonly int max =  first + ((last - first) / step) * step;
         /// <summary>Current value.</summary>
-        private int current = first;
+        protected int current = first;
 
-        /// <summary>Resets the sequence.</summary>
+        /// <summary>
+        /// Resets the sequence by setting the next value to <see cref="first"/>.
+        /// </summary>
         /// <returns>Echoes this sequence.</returns>
-        public override NSequence Reset()
+        public sealed override NSequence Reset()
         {
             current = first;
             return this;
@@ -400,11 +241,6 @@ public abstract partial class NSequence
         public override int this[int index] =>
             (uint)index < length ? first + index * step : throw new IndexOutOfRangeException();
 
-        /// <summary>Gets the value at the specified index.</summary>
-        /// <param name="idx">A position inside the sequence.</param>
-        /// <returns>The value at the given position.</returns>
-        public override int this[Index idx] => this[idx.GetOffset(length)];
-
         /// <summary>Gets a range from the sequence.</summary>
         /// <param name="range">A range inside the sequence.</param>
         /// <returns>The sequence for the given range.</returns>
@@ -418,9 +254,30 @@ public abstract partial class NSequence
             }
         }
 
+        /// <summary>Shifts a sequence without an underlying storage.</summary>
+        /// <param name="d">Amount to shift.</param>
+        /// <returns>The shifted sequence.</returns>
+        protected override NSequence Shift(int d) =>
+            new GridSequence(first + d, step, max + d);
+
+        /// <summary>Negates a sequence without an underlying storage.</summary>
+        /// <returns>The negated sequence.</returns>
+        protected override NSequence Negate() => new GridSequenceDesc(-first, step, -max);
+
+        /// <summary>Scales a sequence without an underlying storage.</summary>
+        /// <param name="d">The scalar multiplier.</param>
+        /// <returns>The scaled sequence.</returns>
+        protected override NSequence Scale(int d) => d >= 0
+            ? new GridSequence(first * d, step * d, max * d)
+            : new GridSequenceDesc(first * d, -step * d, max * d);
+
         /// <summary>Sorts the content of this sequence.</summary>
         /// <returns>A sorted sequence.</returns>
         public override NSequence Sort() => this;
+
+        /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override NSequence SortDescending() => new GridSequenceDesc(max, step, first);
 
         /// <summary>Gets the first value in the sequence.</summary>
         /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
@@ -445,15 +302,16 @@ public abstract partial class NSequence
         /// <summary>Adds a sequence to this sequence.</summary>
         /// <param name="other">Sequence to add.</param>
         /// <returns>The component by component sum of the sequences.</returns>
-        protected override NSequence Add(NSequence other) => other is GridSequence gs
+        protected override NSequence Add(NSequence other) => 
+            other is GridSequence gs and not GridSequenceDesc
             ? new GridSequence(first + gs.first, step + gs.step,
                 length < gs.length ? max + gs[length - 1] : this[gs.length - 1] + gs.max)
-            : base.Add(other);
+            : Zip(other, (x, y) => x + y);
 
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
         /// <returns>A sequence with unique values.</returns>
-        public override NSequence Distinct() => this;
+        public sealed override NSequence Distinct() => this;
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -464,6 +322,103 @@ public abstract partial class NSequence
             {
                 value = current;
                 current += step;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <remarks><c>first &gt;= last</c></remarks>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="step">Distance between sequence values.</param>
+    /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
+    private sealed class GridSequenceDesc(int first, int step, int last) :
+        GridSequence(first, step, last)
+    {
+        /// <summary>
+        /// Last actual value in the sequence, which is the last value rounded up to the step.
+        /// </summary>
+        private readonly int min = first - step * (Abs(last - first) / step);
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override int this[int index] =>
+            (uint)index < length ? first - index * step : throw new IndexOutOfRangeException();
+
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override NSequence this[Range range]
+        {
+            get
+            {
+                (int offset, int length) = range.GetOffsetAndLength(Length());
+                return new GridSequenceDesc(
+                    first - offset * step, step, first - (offset + length - 1) * step);
+            }
+        }
+
+        /// <summary>Shifts a sequence without an underlying storage.</summary>
+        /// <param name="d">Amount to shift.</param>
+        /// <returns>The shifted sequence.</returns>
+        protected override NSequence Shift(int d) =>
+            new GridSequenceDesc(first + d, step, last + d);
+
+        /// <summary>Negates a sequence without an underlying storage.</summary>
+        /// <returns>The negated sequence.</returns>
+        protected override NSequence Negate() => new GridSequence(-first, step, -min);
+
+        /// <summary>Scales a sequence without an underlying storage.</summary>
+        /// <param name="d">The scalar multiplier.</param>
+        /// <returns>The scaled sequence.</returns>
+        protected override NSequence Scale(int d) => d >= 0
+            ? new GridSequenceDesc(first * d, step * d, min * d)
+            : new GridSequence(first * d, -step * d, min * d);
+
+        /// <summary>Sorts the content of this sequence.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override NSequence Sort() => new GridSequence(min, step, first);
+
+        /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override NSequence SortDescending() => this;
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override int Min() => min;
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override int Max() => first;
+
+        /// <summary>Gets the sum of all the values in the sequence.</summary>
+        /// <returns>The sum of all the values in the sequence.</returns>
+        public override int Sum() => (length * min + step * length * (length - 1) / 2);
+
+        /// <summary>Adds a sequence to this sequence.</summary>
+        /// <param name="other">Sequence to add.</param>
+        /// <returns>The component by component sum of the sequences.</returns>
+        protected override NSequence Add(NSequence other) =>
+            other is GridSequenceDesc gs
+            ? new GridSequenceDesc(first + gs.first, step + gs.step,
+                length < gs.length ? min + gs[length - 1] : this[gs.length - 1] + gs.min)
+            : Zip(other, (x, y) => x + y);
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out int value)
+        {
+            if (current >= last)
+            {
+                value = current;
+                current -= step;
                 return true;
             }
             value = default;
@@ -496,11 +451,6 @@ public abstract partial class NSequence
         /// When <paramref name="index"/> is out of range.
         /// </exception>
         public override int this[int index] => source[index];
-
-        /// <summary>Gets the value at the specified index.</summary>
-        /// <param name="idx">A position inside the sequence.</param>
-        /// <returns>The value at the given position.</returns>
-        public override int this[Index idx] => source[idx];
 
         /// <summary>Gets a range from the sequence.</summary>
         /// <param name="range">A range inside the sequence.</param>
