@@ -9,8 +9,6 @@ public abstract partial class DSequence : IFormattable
     {
         /// <summary>The length of the sequence.</summary>
         protected readonly int length = length;
-        /// <summary>The current index in the sequence.</summary>
-        protected int current;
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
@@ -19,14 +17,6 @@ public abstract partial class DSequence : IFormattable
         /// <summary>Checks if we can get the length without iterating.</summary>
         protected sealed override bool HasLength => true;
 
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public sealed override DSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
-
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
         protected override double[] Materialize()
@@ -34,6 +24,22 @@ public abstract partial class DSequence : IFormattable
             double[] result = GC.AllocateUninitializedArray<double>(length);
             Materialize(result.AsSpan());
             return result;
+        }
+    }
+
+    /// <summary>A fixed length sequence with an integer cursor.</summary>
+    /// <param name="length">Number of items in the sequence.</param>
+    private abstract class CursorSequence(int length): FixLengthSequence(length)
+    {
+        /// <summary>The current cursor/index in the sequence.</summary>
+        protected int current;
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public sealed override DSequence Reset()
+        {
+            current = 0;
+            return this;
         }
     }
 
@@ -141,7 +147,8 @@ public abstract partial class DSequence : IFormattable
         /// We can calculate the length if both operands has a known length.
         /// </remarks>
         /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => HasLength ? Math.Min(s1.Length(), s2.Length()) : base.Length();
+        public override int Length() =>
+            HasLength ? Math.Min(s1.Length(), s2.Length()) : base.Length();
 
         /// <summary>Checks if we can get the length without iterating.</summary>
         /// <remarks>
@@ -154,23 +161,14 @@ public abstract partial class DSequence : IFormattable
     /// <remarks>Creates a double sequence from an integer range.</remarks>
     /// <param name="first">The first value in the sequence.</param>
     /// <param name="last">The last value in the sequence.</param>
-    private class RangeSequence(int first, int last) : DSequence
+    private class RangeSequence(int first, int last) : FixLengthSequence(Abs(last - first) + 1)
     {
-        /// <summary>Calculated length of the sequence.</summary>
-        protected readonly int length = Abs(last - first) + 1;
         /// <summary>Current value.</summary>
         protected int current = first;
         /// <summary>First value in the sequence.</summary>
         protected int first = first;
         /// <summary>Last value in the sequence.</summary>
         protected int last = last;
-
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public sealed override int Length() => length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected sealed override bool HasLength => true;
 
         /// <summary>Gets the value at the specified index.</summary>
         /// <param name="index">A position inside the sequence.</param>
@@ -198,15 +196,6 @@ public abstract partial class DSequence : IFormattable
                 (int offset, int length) = range.GetOffsetAndLength(Length());
                 return new RangeSequence(first + offset, first + (offset + length - 1));
             }
-        }
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected sealed override double[] Materialize()
-        {
-            double[] result = GC.AllocateUninitializedArray<double>(length);
-            Materialize(result.AsSpan());
-            return result;
         }
 
         /// <summary>Resets the sequence.</summary>
@@ -349,7 +338,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="upper">The last value in the sequence.</param>
     /// <param name="steps">The number of steps in the sequence, minus one.</param>
     private sealed class GridSequence(double lower, double upper, int steps) :
-        FixLengthSequence(steps + 1)
+        CursorSequence(steps + 1)
     {
         /// <summary>The distance between two steps.</summary>
         private readonly double delta = (upper - lower) / steps;
@@ -453,7 +442,7 @@ public abstract partial class DSequence : IFormattable
 
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
-    private sealed class VectorSequence(DVector source) : FixLengthSequence(source.Length)
+    private sealed class VectorSequence(DVector source) : CursorSequence(source.Length)
     {
         /// <summary>Creates a sequence of doubles from an array of doubles.</summary>
         /// <param name="values">An array of doubles.</param>
@@ -535,7 +524,7 @@ public abstract partial class DSequence : IFormattable
     /// <summary>Implements a sequence using random values.</summary>
     /// <param name="length">Size of the sequence.</param>
     /// <param name="random">Random generator.</param>
-    private sealed class RandomSequence(int length, Random random) : FixLengthSequence(length)
+    private sealed class RandomSequence(int length, Random random) : CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -557,7 +546,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="length">Size of the sequence.</param>
     /// <param name="random">Random generator.</param>
     private sealed class NormalRandomSequence(int length, NormalRandom random) :
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>Shifts a sequence without an underlying storage.</summary>
         /// <param name="d">Amount to shift.</param>
@@ -586,7 +575,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="variance">Variance of the sequence.</param>
     /// <param name="coefficients">Autoregression coefficients.</param>
     private sealed class ArSequence(int length, double variance, DVector coefficients) :
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>The normal random source for noise.</summary>
         private readonly NormalRandom generator = new(0, variance);
@@ -618,7 +607,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="mean">Mean term.</param>
     /// <param name="coefficients">Moving average coefficients.</param>
     private sealed class MaSequence(int length, double variance, double mean, DVector coefficients) :
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>The normal random source for noise.</summary>
         private readonly NormalRandom generator = new(0, variance);
@@ -651,7 +640,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="seed">First value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder0(int length, double seed, Func<double, double> unfold) :
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -674,7 +663,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="seed">First value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder1(int length, double seed, Func<int, double, double> unfold) :
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -697,7 +686,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="second">Second value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder2(int length, double first, double second, 
-        Func<double, double, double> unfold) : FixLengthSequence(length)
+        Func<double, double, double> unfold) : CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>

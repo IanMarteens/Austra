@@ -5,12 +5,10 @@ public abstract partial class NSequence
 {
     /// <summary>Implements a sequence of integers with a known length.</summary>
     /// <param name="length">Number of items in the sequence.</param>
-    private abstract class FixLengthSequence(int length) : NSequence
+    private abstract class FixLengthSequence(int length): NSequence
     {
         /// <summary>The length of the sequence.</summary>
         protected readonly int length = length;
-        /// <summary>The current index in the sequence.</summary>
-        protected int current;
 
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
@@ -18,14 +16,6 @@ public abstract partial class NSequence
 
         /// <summary>Checks if we can get the length without iterating.</summary>
         protected sealed override bool HasLength => true;
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public sealed override NSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
@@ -37,11 +27,28 @@ public abstract partial class NSequence
         }
     }
 
+    /// <summary>Implements a sequence with an integer cursor.</summary>
+    /// <param name="length">Number of items in the sequence.</param>
+    private abstract class CursorSequence(int length) : FixLengthSequence(length)
+    {
+        /// <summary>The current index/cursor on the sequence.</summary>
+        protected int current;
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public sealed override NSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+    }
+
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="mapper">The mapping function.</param>
     private sealed class Mapped(NSequence source, Func<int, int> mapper) : NSequence
     {
+        /// <summary>The mapping function.</summary>
         private readonly Func<int, int> mapper = mapper;
 
         /// <summary>Gets the next number in the sequence.</summary>
@@ -64,6 +71,9 @@ public abstract partial class NSequence
         public override NSequence Map(Func<int, int> mapper) =>
             new Mapped(source, x => mapper(this.mapper(x)));
 
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => source.HasLength;
+
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
         public override int Length() =>
@@ -76,9 +86,6 @@ public abstract partial class NSequence
             source.Reset();
             return this;
         }
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => source.HasLength;
     }
 
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
@@ -102,6 +109,9 @@ public abstract partial class NSequence
             return false;
         }
 
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => source.HasLength;
+
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
         public override int Length() =>
@@ -114,9 +124,6 @@ public abstract partial class NSequence
             source.Reset();
             return this;
         }
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => source.HasLength;
     }
 
     /// <summary>Implements a sequence filtered by a predicate.</summary>
@@ -174,41 +181,33 @@ public abstract partial class NSequence
             return this;
         }
 
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <remarks>
-        /// We can calculate the length if both operands has a known length.
-        /// </remarks>
-        /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => HasLength ? Math.Min(s1.Length(), s2.Length()) : base.Length();
-
         /// <summary>Checks if we can get the length without iterating.</summary>
         /// <remarks>
         /// We can calculate the length if both operands has a known length.
         /// </remarks>
         protected override bool HasLength => s1.HasLength && s2.HasLength;
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <remarks>
+        /// We can calculate the length if both operands has a known length.
+        /// </remarks>
+        /// <returns>The total number of values in the sequence.</returns>
+        public override int Length() =>
+            HasLength ? Math.Min(s1.Length(), s2.Length()) : base.Length();
     }
 
     /// <summary>Implements a sequence of double values based in an integer range.</summary>
     /// <remarks>Creates a double sequence from an integer range.</remarks>
     /// <param name="first">The first value in the sequence.</param>
     /// <param name="last">The last value in the sequence.</param>
-    private class RangeSequence(int first, int last) : NSequence
+    private class RangeSequence(int first, int last) : FixLengthSequence(Abs(last - first) + 1)
     {
-        /// <summary>Calculated length of the sequence.</summary>
-        protected readonly int length = Abs(last - first) + 1;
         /// <summary>Current value.</summary>
         protected int current = first;
         /// <summary>First value in the sequence.</summary>
         protected int first = first;
         /// <summary>Last value in the sequence.</summary>
         protected int last = last;
-
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public sealed override int Length() => length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected sealed override bool HasLength => true;
 
         /// <summary>Gets the value at the specified index.</summary>
         /// <param name="index">A position inside the sequence.</param>
@@ -236,15 +235,6 @@ public abstract partial class NSequence
                 (int offset, int length) = range.GetOffsetAndLength(Length());
                 return new RangeSequence(first + offset, first + (offset + length - 1));
             }
-        }
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected sealed override int[] Materialize()
-        {
-            int[] result = GC.AllocateUninitializedArray<int>(length);
-            Materialize(result.AsSpan());
-            return result;
         }
 
         /// <summary>Resets the sequence.</summary>
@@ -377,7 +367,8 @@ public abstract partial class NSequence
     /// <param name="first">First value in the sequence.</param>
     /// <param name="step">Distance between sequence values.</param>
     /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
-    private sealed class GridSequence(int first, int step, int last) : NSequence
+    private sealed class GridSequence(int first, int step, int last) :
+        FixLengthSequence((last - first) / step + 1)
     {
         /// <summary>The first value in the sequence.</summary>
         private readonly int first = first;
@@ -385,21 +376,12 @@ public abstract partial class NSequence
         private readonly int last = last;
         /// <summary>The step of the sequence.</summary>
         private readonly int step = step;
-        /// <summary>Length of the sequence.</summary>
-        private readonly int length = (last - first) / step + 1;
         /// <summary>
         /// Maximum value in the sequence, which is the last value rounded down to the step.
         /// </summary>
         private readonly int max = first + ((last - first) / step) * step;
         /// <summary>Current value.</summary>
         private int current = first;
-
-        /// <summary>Gets the total number of values in the sequence.</summary>
-        /// <returns>The total number of values in the sequence.</returns>
-        public override int Length() => length;
-
-        /// <summary>Checks if we can get the length without iterating.</summary>
-        protected override bool HasLength => true;
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
@@ -434,15 +416,6 @@ public abstract partial class NSequence
                 return new GridSequence(
                     first + offset * step, step, first + (offset + length - 1) * step);
             }
-        }
-
-        /// <summary>Creates an array with all values from the sequence.</summary>
-        /// <returns>The values as an array.</returns>
-        protected sealed override int[] Materialize()
-        {
-            int[] result = GC.AllocateUninitializedArray<int>(length);
-            Materialize(result.AsSpan());
-            return result;
         }
 
         /// <summary>Sorts the content of this sequence.</summary>
@@ -500,7 +473,7 @@ public abstract partial class NSequence
 
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
-    private sealed class VectorSequence(NVector source) : FixLengthSequence(source.Length)
+    private sealed class VectorSequence(NVector source) : CursorSequence(source.Length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -572,7 +545,7 @@ public abstract partial class NSequence
     /// <param name="hi">Upper bound of the random values.</param>
     /// <param name="random">Random generator.</param>
     private sealed class RandomSequence(int length, int lo, int hi, Random random) : 
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -595,7 +568,7 @@ public abstract partial class NSequence
     /// <param name="seed">First value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder0(int length, int seed, Func<int, int> unfold) :
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -618,7 +591,7 @@ public abstract partial class NSequence
     /// <param name="seed">First value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder1(int length, int seed, Func<int, int, int> unfold) :
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -641,7 +614,7 @@ public abstract partial class NSequence
     /// <param name="second">Second value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
     private sealed class Unfolder2(int length, int first, int second, Func<int, int, int> unfold) :
-        FixLengthSequence(length)
+        CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
