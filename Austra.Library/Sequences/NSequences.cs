@@ -2,6 +2,7 @@
 
 /// <summary>Represents any sequence returning integer values.</summary>
 public abstract partial class NSequence : Sequence<int, NSequence>,
+    IFormattable,
     IAdditionOperators<NSequence, NSequence, NSequence>,
     IAdditionOperators<NSequence, int, NSequence>,
     ISubtractionOperators<NSequence, NSequence, NSequence>,
@@ -83,6 +84,34 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <returns>The sequence unfolded from the initial state and the function.</returns>
     public static NSequence Unfold(int size, int first, int second, Func<int, int, int> unfold) =>
         new Unfolder2(size, first, second, unfold);
+
+    /// <summary>Creates an integer sequence for finding values in a vector.</summary>
+    /// <param name="vector">The source vector.</param>
+    /// <param name="value">The value to find.</param>
+    /// <returns>All indexes where the value exists, or an empty sequence.</returns>
+    internal static NSequence Iterate(DVector vector, double value) =>
+        new IndexFinder(vector, value);
+
+    /// <summary>Creates an integer sequence for finding values in a vector.</summary>
+    /// <param name="vector">The source vector.</param>
+    /// <param name="condition">A predicate on the value of a vector's item.</param>
+    /// <returns>All indexes where the value exists, or an empty sequence.</returns>
+    internal static NSequence Iterate(DVector vector, Func<double, bool> condition) =>
+        new IndexFinderWithLambda(vector, condition);
+
+    /// <summary>Creates an integer sequence for finding values in a vector.</summary>
+    /// <param name="vector">The source vector.</param>
+    /// <param name="value">The value to find.</param>
+    /// <returns>All indexes where the value exists, or an empty sequence.</returns>
+    internal static NSequence Iterate(CVector vector, Complex value) =>
+        new CIndexFinder(vector, value);
+
+    /// <summary>Creates an integer sequence for finding values in a vector.</summary>
+    /// <param name="vector">The source vector.</param>
+    /// <param name="condition">A predicate on the value of a vector's item.</param>
+    /// <returns>All indexes where the value exists, or an empty sequence.</returns>
+    internal static NSequence Iterate(CVector vector, Func<Complex, bool> condition) =>
+        new CIndexFinderWithLambda(vector, condition);
 
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
@@ -371,8 +400,17 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="NVector"/>.</summary>
     /// <returns>A formated list of double values.</returns>
-    public override string ToString() =>
-        Materialize().ToString(v => v.ToString("N0"));
+    public override string ToString() => ToString("N0");
+
+    /// <summary>Gets a textual representation of this sequence.</summary>
+    /// <param name="format">A format specifier.</param>
+    /// <param name="provider">Supplies culture-specific formatting information.</param>
+    /// <returns>Space-separated components.</returns>
+    public string ToString(string? format, IFormatProvider? provider = null)
+    {
+        int[] values = Materialize();
+        return values.Length == 0 ? "∅" : values.ToString(v => v.ToString(format, provider));
+    }
 
     /// <summary>Converts this sequence into an integer vector.</summary>
     /// <returns>A new vector.</returns>

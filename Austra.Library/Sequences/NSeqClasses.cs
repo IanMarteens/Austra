@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning integer values.</summary>
 public abstract partial class NSequence
 {
     /// <summary>Implements a sequence of integers with a known length.</summary>
     /// <param name="length">Number of items in the sequence.</param>
-    private abstract class FixLengthSequence(int length): NSequence
+    private abstract class FixLengthSequence(int length) : NSequence
     {
         /// <summary>The length of the sequence.</summary>
         protected readonly int length = length;
@@ -220,7 +218,7 @@ public abstract partial class NSequence
         /// <summary>
         /// Maximum value in the sequence, which is the last value rounded down to the step.
         /// </summary>
-        private readonly int max =  first + ((last - first) / step) * step;
+        private readonly int max = first + ((last - first) / step) * step;
         /// <summary>Current value.</summary>
         protected int current = first;
 
@@ -307,7 +305,7 @@ public abstract partial class NSequence
         /// <summary>Adds a sequence to this sequence.</summary>
         /// <param name="other">Sequence to add.</param>
         /// <returns>The component by component sum of the sequences.</returns>
-        protected override NSequence Add(NSequence other) => 
+        protected override NSequence Add(NSequence other) =>
             other is GridSequence gs and not GridSequenceDesc
             ? new GridSequence(first + gs.first, step + gs.step,
                 length < gs.length ? max + gs[length - 1] : this[gs.length - 1] + gs.max)
@@ -510,7 +508,7 @@ public abstract partial class NSequence
     /// <param name="lo">Lower bound of the random values.</param>
     /// <param name="hi">Upper bound of the random values.</param>
     /// <param name="random">Random generator.</param>
-    private sealed class RandomSequence(int length, int lo, int hi, Random random) : 
+    private sealed class RandomSequence(int length, int lo, int hi, Random random) :
         CursorSequence(length)
     {
         /// <summary>Gets the next number in the sequence.</summary>
@@ -594,6 +592,142 @@ public abstract partial class NSequence
                 current++;
                 return true;
             }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>An integer sequence with indexes in a vector for a given value.</summary>
+    /// <remarks>This is a trivial wrapper for <see cref="DVector.IndexOf(double, int)"/></remarks>
+    /// <param name="vector">Vector to search.</param>
+    /// <param name="v">Value to be searched in the vector.</param>
+    private sealed class IndexFinder(DVector vector, double v) : NSequence
+    {
+        /// <summary>The current index in the vector.</summary>
+        private int current;
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the next index in the sequence.</summary>
+        /// <param name="value">The next index in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next index.</returns>
+        public override bool Next(out int value)
+        {
+            if (current >= 0 && (current = vector.IndexOf(v, current)) >= 0)
+            {
+                value = current;
+                current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>An integer sequence with indexes in a vector for a given value.</summary>
+    /// <param name="vector">Vector to search.</param>
+    /// <param name="condition">A predicate on the value of a vector's item.</param>
+    private sealed class IndexFinderWithLambda(DVector vector, Func<double, bool> condition) : NSequence
+    {
+        /// <summary>The current index in the vector.</summary>
+        private int current;
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the next index in the sequence.</summary>
+        /// <param name="value">The next index in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next index.</returns>
+        public override bool Next(out int value)
+        {
+            if (current >= 0)
+                for (; current < vector.Length; current++)
+                    if (condition(vector[current]))
+                    {
+                        value = current;
+                        current++;
+                        return true;
+                    }
+            current = -1;
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>An integer sequence with indexes in a vector for a given value.</summary>
+    /// <remarks>This is a trivial wrapper for <see cref="CVector.IndexOf(Complex, int)"/></remarks>
+    /// <param name="vector">Vector to search.</param>
+    /// <param name="v">Value to be searched in the vector.</param>
+    private sealed class CIndexFinder(CVector vector, Complex v) : NSequence
+    {
+        /// <summary>The current index in the vector.</summary>
+        private int current;
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the next index in the sequence.</summary>
+        /// <param name="value">The next index in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next index.</returns>
+        public override bool Next(out int value)
+        {
+            if (current >= 0 && (current = vector.IndexOf(v, current)) >= 0)
+            {
+                value = current;
+                current++;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>An integer sequence with indexes in a vector for a given value.</summary>
+    /// <param name="vector">Vector to search.</param>
+    /// <param name="condition">A predicate on the value of a vector's item.</param>
+    private sealed class CIndexFinderWithLambda(CVector vector, Func<Complex, bool> condition) : NSequence
+    {
+        /// <summary>The current index in the vector.</summary>
+        private int current;
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the next index in the sequence.</summary>
+        /// <param name="value">The next index in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next index.</returns>
+        public override bool Next(out int value)
+        {
+            if (current >= 0)
+                for (; current < vector.Length; current++)
+                    if (condition(vector[current]))
+                    {
+                        value = current;
+                        current++;
+                        return true;
+                    }
+            current = -1;
             value = default;
             return false;
         }

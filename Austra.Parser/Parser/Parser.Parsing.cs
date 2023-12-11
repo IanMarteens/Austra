@@ -992,24 +992,29 @@ internal sealed partial class Parser
 
     private Expression ParseMethod(Expression e)
     {
-        if (!bindings.TryGetMethod(e.Type, id, out MethodInfo? mInfo))
-            throw Error($"Invalid method: {id}");
+        (string method, int pos) = (id, start);
         // Skip method name and left parenthesis.
         SkipFunctor();
-        ParameterInfo[] paramInfo = mInfo.GetParameters();
-        List<Expression> args = source.Rent(paramInfo.Length);
-        for (int i = 0; i < paramInfo.Length; i++, Move())
+        if (bindings.TryGetMethod(e.Type, method, out MethodInfo? mInfo))
         {
-            args.Add(ParseByType(paramInfo[i].ParameterType));
-            if (kind != Token.Comma)
-                break;
+            ParameterInfo[] paramInfo = mInfo.GetParameters();
+            List<Expression> args = source.Rent(paramInfo.Length);
+            for (int i = 0; i < paramInfo.Length; i++, Move())
+            {
+                args.Add(ParseByType(paramInfo[i].ParameterType));
+                if (kind != Token.Comma)
+                    break;
+            }
+            if (args.Count != paramInfo.Length)
+                throw Error("Invalid number of arguments");
+            CheckAndMove(Token.RPar, "Right parenthesis expected");
+            Expression result = Expression.Call(e, mInfo, args);
+            source.Return(args);
+            return result;
         }
-        if (args.Count != paramInfo.Length)
-            throw Error("Invalid number of arguments");
-        CheckAndMove(Token.RPar, "Right parenthesis expected");
-        Expression result = Expression.Call(e, mInfo, args);
-        source.Return(args);
-        return result;
+        if (bindings.TryGetOverloads(e.Type, method, out MethodList info))
+            return ParseClassMultiMethod(info, e);
+        throw Error($"Invalid method: {method}", pos);
     }
 
     private Expression ParseIndex(ref bool fromEnd, bool check = true)
@@ -1104,10 +1109,10 @@ internal sealed partial class Parser
     {
         (string function, int pos) = (id.ToLower(), start);
         SkipFunctor();
-        if (bindings.TryGetClassMethod("math." + function, out MethodList inf))
-            return inf.Methods.Length == 1
-                ? ParseClassSingleMethod(inf.Methods[0])
-                : ParseClassMultiMethod(inf);
+        if (bindings.TryGetClassMethod("math." + function, out MethodList info))
+            return info.Methods.Length == 1
+                ? ParseClassSingleMethod(info.Methods[0])
+                : ParseClassMultiMethod(info);
         if (function != "iff")
             throw Error("Invalid function name", pos);
         Expression a0 = ParseConditional();
@@ -1190,7 +1195,7 @@ internal sealed partial class Parser
             : throw Error($"Expected {expected.Name}");
     }
 
-    private Expression ParseClassMultiMethod(in MethodList info)
+    private Expression ParseClassMultiMethod(in MethodList info, Expression? instance = null)
     {
         List<Expression> args = source.Rent(16);
         List<int> starts = new(16);
@@ -1272,9 +1277,9 @@ internal sealed partial class Parser
                 bits = bits1;
             }
             if (mask == 0)
-                throw Error("No class method accepts this argument list.");
+                throw Error("No method accepts this argument list.");
             if (PopCount((uint)mask) != 1)
-                throw Error("Ambiguous class method call.");
+                throw Error("Ambiguous method call.");
         }
         // Get selected method overload and check conversions.
         MethodData mth = info.Methods[Log2((uint)mask)];
@@ -1282,7 +1287,7 @@ internal sealed partial class Parser
             args.Add(t == typeof(Random) || t == typeof(NormalRandom)
                 ? t.New() : Expression.Constant(t == typeof(One) ? 1d : 0d));
         if (mth.ExpectedArgs != int.MaxValue && args.Count < mth.ExpectedArgs)
-            throw Error("No class method accepts this argument list.");
+            throw Error("No method accepts this argument list.");
         for (int i = 0; i < mth.ExpectedArgs; i++)
         {
             Type expected = mth.Args[i], actual = args[i].Type;
@@ -1307,8 +1312,10 @@ internal sealed partial class Parser
                     throw Error($"Expected {expected.Name}", starts[i]);
             }
         }
-        CheckAndMove(Token.RPar, "Right parenthesis expected in class method call");
-        Expression result = mth.GetExpression(args);
+        CheckAndMove(Token.RPar, "Right parenthesis expected in method call");
+        Expression result = instance is null 
+            ? mth.GetExpression(args)
+            : mth.GetExpression(instance, args);
         source.Return(args);
         return result;
 

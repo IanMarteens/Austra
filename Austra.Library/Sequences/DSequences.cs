@@ -427,15 +427,17 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="DVector"/>.</summary>
     /// <returns>A formated list of double values.</returns>
-    public override string ToString() =>
-        Materialize().ToString(v => v.ToString("G6"));
+    public override string ToString() => ToString("G6");
 
     /// <summary>Gets a textual representation of this sequence.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>Space-separated components.</returns>
-    public string ToString(string? format, IFormatProvider? provider = null) =>
-        Materialize().ToString(v => v.ToString(format, provider));
+    public string ToString(string? format, IFormatProvider? provider = null)
+    {
+        double[] values = Materialize();
+        return values.Length == 0 ? "∅" : values.ToString(v => v.ToString(format, provider));
+    }
 
     /// <summary>Checks if two sequence has the same length and arguments.</summary>
     /// <param name="other">The second sequence to be compared.</param>

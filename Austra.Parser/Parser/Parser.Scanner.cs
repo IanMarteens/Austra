@@ -64,7 +64,7 @@ internal sealed partial class Parser : IDisposable
         typeof(CSequence).GetMethod(nameof(CSequence.Reset))!;
 
     /// <summary>Predefined classes and methods.</summary>
-    private readonly ParserBindings bindings;
+    private readonly Bindings bindings;
     /// <summary>Gets the outer scope for variables.</summary>
     private readonly IDataSource source;
     /// <summary>The text being scanned.</summary>
@@ -123,7 +123,7 @@ internal sealed partial class Parser : IDisposable
     /// <param name="bindings">Predefined classes and methods.</param>
     /// <param name="source">Environment variables.</param>
     /// <param name="text">Text of the formula.</param>
-    public Parser(ParserBindings bindings, IDataSource source, string text)
+    public Parser(Bindings bindings, IDataSource source, string text)
     {
         (this.bindings, this.source, this.text, id) = (bindings, source, text, "");
         letExpressions = source.Rent(8);

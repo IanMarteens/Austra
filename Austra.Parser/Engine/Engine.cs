@@ -128,7 +128,7 @@ public interface IAustraEngine : IVariableListener
 public partial class AustraEngine : IAustraEngine
 {
     /// <summary>Global bindings for the parser.</summary>
-    private readonly ParserBindings bindings = new();
+    private readonly Bindings bindings = new();
     /// <summary>The list of classes and global variables, for code completion.</summary>
     private readonly Member[] classesAndGlobals;
     /// <summary>The last value returned by the engine.</summary>

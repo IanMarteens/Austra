@@ -861,18 +861,30 @@ public readonly struct CVector :
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-    public int IndexOf(Complex value)
+    public int IndexOf(Complex value) => IndexOf(value, 0);
+
+    /// <summary>Returns the zero-based index of the next occurrence of a value.</summary>
+    /// <param name="value">The value to locate.</param>
+    /// <param name="from">The zero-based index at which search starts.</param>
+    /// <returns>Index of the next ocurrence, if found; <c>-1</c>, otherwise.</returns>
+    public int IndexOf(Complex value, int from)
     {
         DVector r = new(re);
-        int idx = r.IndexOf(value.Real);
-        while (idx != -1)
-        {
-            if (im[idx] == value.Imaginary)
-                return idx;
-            idx = r.IndexOf(value.Real, idx + 1);
-        }
-        return idx;
+        for (int i = r.IndexOf(value.Real, from); i != -1; i = r.IndexOf(value.Real, i + 1))
+            if (im[i] == value.Imaginary)
+                return i;
+        return -1;
     }
+
+    /// <summary>Returns all indexes containing ocurrences of a value.</summary>
+    /// <param name="value">Value to find.</param>
+    /// <returns>An integer sequences with all found indexes.</returns>
+    public NSequence Find(Complex value) => NSequence.Iterate(this, value);
+
+    /// <summary>Returns all indexes satisfying a condition.</summary>
+    /// <param name="condition">The condition to be satisfied.</param>
+    /// <returns>An integer sequences with all found indexes.</returns>
+    public NSequence Find(Func<Complex, bool> condition) => NSequence.Iterate(this, condition);
 
     /// <summary>
     /// Creates a new vector by transforming each item with the given function.

@@ -5,7 +5,7 @@
 /// This class is instantiated from <see cref="AustraEngine"/> and acts
 /// like a singleton for all the lifetime of the session.
 /// </remarks>
-internal sealed partial class ParserBindings
+internal sealed partial class Bindings
 {
     /// <summary>The argument is a complex.</summary>
     private static readonly Type[] CArg = [typeof(Complex)];
@@ -240,6 +240,7 @@ internal sealed partial class ParserBindings
                 new("all(x => ", "Universal operator"),
                 new("any(x => ", "Existential operator"),
                 new("filter(x => ", "Filters items by value"),
+                new("find(", "Finds the indexes of all ocurrences of a value"),
                 new("indexof(", "Returns the index where a value is stored"),
                 new("map(x => ", "Pointwise transformation of complex values"),
                 new("mapreal(x => ", "Transforms complex vector into a real one"),
@@ -315,6 +316,7 @@ internal sealed partial class ParserBindings
                 new("autocorr(", "Gets the autocorrelation given a lag"),
                 new("correlogram(", "Gets all autocorrelations up to a given lag"),
                 new("filter(x => ", "Filters items by value"),
+                new("find(", "Finds the indexes of all ocurrences of a value"),
                 new("indexof(", "Returns the index where a value is stored"),
                 new("linear(", "Gets the regression coefficients given a list of vectors"),
                 new("linearModel(", "Creates a linear model"),
@@ -1128,7 +1130,6 @@ internal sealed partial class ParserBindings
             [new(typeof(CVector), "all")] = typeof(CVector).Get(nameof(CVector.All)),
             [new(typeof(CVector), "any")] = typeof(CVector).Get(nameof(CVector.Any)),
             [new(typeof(CVector), "filter")] = typeof(CVector).Get(nameof(CVector.Filter)),
-            [new(typeof(CVector), "indexof")] = typeof(CVector).GetMethod(nameof(CVector.IndexOf), CArg)!,
             [new(typeof(CVector), "map")] = typeof(CVector).Get(nameof(CVector.Map)),
             [new(typeof(CVector), "mapr")] = typeof(CVector).Get(nameof(CVector.MapReal)),
             [new(typeof(CVector), "mapreal")] = typeof(CVector).Get(nameof(CVector.MapReal)),
@@ -1161,7 +1162,6 @@ internal sealed partial class ParserBindings
             [new(typeof(DVector), "autocorr")] = typeof(DVector).Get(nameof(DVector.AutoCorrelation)),
             [new(typeof(DVector), "correlogram")] = typeof(DVector).Get(nameof(DVector.Correlogram)),
             [new(typeof(DVector), "filter")] = typeof(DVector).Get(nameof(DVector.Filter)),
-            [new(typeof(DVector), "indexof")] = typeof(DVector).GetMethod(nameof(DVector.IndexOf), DArg)!,
             [new(typeof(DVector), "linear")] = typeof(DVector).Get(nameof(DVector.LinearModel)),
             [new(typeof(DVector), "linearmodel")] = typeof(DVector).Get(nameof(DVector.FullLinearModel)),
             [new(typeof(DVector), "ma")] = typeof(DVector).Get(nameof(DVector.MovingAverage)),
@@ -1188,7 +1188,6 @@ internal sealed partial class ParserBindings
             [new(typeof(NVector), "all")] = typeof(NVector).Get(nameof(NVector.All)),
             [new(typeof(NVector), "any")] = typeof(NVector).Get(nameof(NVector.Any)),
             [new(typeof(NVector), "filter")] = typeof(NVector).Get(nameof(NVector.Filter)),
-            [new(typeof(NVector), "indexof")] = typeof(NVector).GetMethod(nameof(NVector.IndexOf), NArg)!,
             [new(typeof(NVector), "map")] = typeof(NVector).Get(nameof(NVector.Map)),
             [new(typeof(NVector), "mapr")] = typeof(NVector).Get(nameof(NVector.MapReal)),
             [new(typeof(NVector), "mapreal")] = typeof(NVector).Get(nameof(NVector.MapReal)),
@@ -1227,6 +1226,27 @@ internal sealed partial class ParserBindings
             [new(typeof(VectorSpline), "derivative")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
             [new(typeof(VectorSpline), "deriv")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
             [new(typeof(VectorSpline), "der")] = typeof(VectorSpline).Get(nameof(VectorSpline.Derivative)),
+        }.ToFrozenDictionary();
+
+    /// <summary>Overloaded instance methods.</summary>
+    private static readonly FrozenDictionary<TypeId, MethodList> methodOverloads =
+        new Dictionary<TypeId, MethodList>()
+        {
+            [new(typeof(CVector), "find")] = new(
+                typeof(CVector).MD(nameof(CVector.Find), CArg),
+                typeof(CVector).MD(nameof(CVector.Find), typeof(Func<Complex, bool>))),
+            [new(typeof(CVector), "indexof")] = new(
+                typeof(CVector).MD(nameof(CVector.IndexOf), CArg),
+                typeof(CVector).MD(nameof(CVector.IndexOf), typeof(Complex), typeof(int))),
+            [new(typeof(DVector), "find")] = new(
+                typeof(DVector).MD(nameof(DVector.Find), DArg),
+                typeof(DVector).MD(nameof(DVector.Find), typeof(Func<double, bool>))),
+            [new(typeof(DVector), "indexof")] = new(
+                typeof(DVector).MD(nameof(DVector.IndexOf), DArg),
+                typeof(DVector).MD(nameof(DVector.IndexOf), typeof(double), typeof(int))),
+            [new(typeof(NVector), "indexof")] = new(
+                typeof(NVector).MD(nameof(NVector.IndexOf), NArg),
+                typeof(NVector).MD(nameof(NVector.IndexOf), NNArg)),
         }.ToFrozenDictionary();
 
     /// <summary>Get root expressions for code completion.</summary>
@@ -1382,6 +1402,14 @@ internal sealed partial class ParserBindings
     public bool TryGetMethod(Type type, string identifier, [MaybeNullWhen(false)] out MethodInfo info) =>
         methods.TryGetValue(new TypeId(type, identifier.ToLower()), out info);
 
+    /// <summary>Gets a list of instance method overloads for a given type and identifier.</summary>
+    /// <param name="type">Implementing type.</param>
+    /// <param name="identifier">Method name.</param>
+    /// <param name="info">The method overload list, on success.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    public bool TryGetOverloads(Type type, string identifier, [MaybeNullWhen(false)] out MethodList info) =>
+        methodOverloads.TryGetValue(new TypeId(type, identifier.ToLower()), out info);
+
     /// <summary>Gets an class method given the class and method names.</summary>
     /// <param name="identifier">Prefixed method name.</param>
     /// <param name="info">The method info, on success.</param>
@@ -1442,6 +1470,14 @@ internal readonly struct MethodData
         mInfo.IsConstructor
         ? Expression.New((ConstructorInfo)mInfo, actualArguments)
         : Expression.Call((MethodInfo)mInfo, actualArguments);
+
+    /// <summary>Creates an expression that calls an instance method on a target.</summary>
+    /// <param name="instance">The target for the instance method.</param>
+    /// <param name="actualArguments">Actual arguments.</param>
+    /// <returns>A expression node for calling an instance method.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Expression GetExpression(Expression instance, List<Expression> actualArguments) =>
+        Expression.Call(instance, (MethodInfo)mInfo, actualArguments);
 }
 
 /// <summary>Represents a set of overloaded methods.</summary>
