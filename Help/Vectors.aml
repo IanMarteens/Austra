@@ -23,7 +23,7 @@ let v1=[1, 2], v2=[3, 4];
 [0, v1, pi, v2, tau];
 		</code>
 		<sections>
-		  <section>
+		  <section address="vecclass">
 		    <title>Class methods</title>
 		    <content>
 			  <para>Vectors can also be created using these class methods:</para>
@@ -168,7 +168,7 @@ scalar1 * vector1 + scalar2 * vector2;
 			</table>
 			</content>
 		  </section>
-		  <section>
+		  <section address="vecmeths">
 		    <title>Vector methods</title>
 		    <content>
 		      <para>These are the methods supported by a vector instance:</para>
@@ -202,8 +202,12 @@ scalar1 * vector1 + scalar2 * vector2;
  		    	<entry><para>Filters items by value. See <see cref="M:Austra.Library.DVector.Filter(System.Func{System.Double,System.Boolean})" />.</para></entry>
 		  	  </row>
  		  	  <row>
+ 		    	<entry><para><codeInline>find</codeInline></para></entry>
+ 		    	<entry><para>Similar to <codeInline>filter</codeInline>, but returns a sequence of the indexes. See <see cref="M:Austra.Library.DVector.Find(System.Double)" /> and <see cref="M:Austra.Library.DVector.Find(System.Func{System.Double,System.Boolean})" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
  		    	<entry><para><codeInline>indexOf</codeInline></para></entry>
- 		    	<entry><para>Returns the first index where a value is stored. See <see cref="M:Austra.Library.DVector.IndexOf(System.Double)" />.</para></entry>
+ 		    	<entry><para>Returns the first index where a value is stored. See <see cref="M:Austra.Library.DVector.IndexOf(System.Double)" /> and <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.IndexOf(System.Double,System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linear</codeInline></para></entry>
@@ -239,7 +243,7 @@ scalar1 * vector1 + scalar2 * vector2;
 		</sections>
       </content>
     </section>
-    <section>
+    <section address="cvecs">
       <title>Complex vectors</title>
       <content>
 		<para>There's no special syntax for complex vector literals, but complex vectors can be easily created using the <codeInline>cvec::new</codeInline> class method and one or two vector constructors:</para>
@@ -375,8 +379,12 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
  		    		  <entry><para>Filters items by value. See <see cref="M:Austra.Library.CVector.Filter(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
 		  	  		</row>
  		  	  		<row>
+ 		    		  <entry><para><codeInline>find</codeInline></para></entry>
+ 		    		  <entry><para>Similar to <codeInline>filter</codeInline>, but returns a sequence of the indexes. See <see cref="M:Austra.Library.CVector.Find(System.Numerics.Complex)" /> and <see cref="M:Austra.Library.CVector.Find(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
+		  	  		</row>
+ 		  	  		<row>
  		    		  <entry><para><codeInline>indexOf</codeInline></para></entry>
- 		    		  <entry><para>Returns the first index where a value is stored. See <see cref="M:Austra.Library.CVector.IndexOf(System.Numerics.Complex)" />.</para></entry>
+ 		    		  <entry><para>Returns the first index where a value is stored. See <see cref="M:Austra.Library.CVector.IndexOf(System.Numerics.Complex,System.Int32)" />.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>map</codeInline></para></entry>
