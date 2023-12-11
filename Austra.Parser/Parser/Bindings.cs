@@ -1286,6 +1286,16 @@ internal sealed partial class Bindings
                         return ExtractType(m.Groups["header"] + trimmedText.ToString());
                     }
                     catch { }
+                else
+                {
+                    m = LetScopedHeaderRegex().Match(text);
+                    if (m.Success && !LetHeaderRegex().IsMatch(trimmedText))
+                        try
+                        {
+                            return ExtractType(m.Groups["header"] + trimmedText.ToString());
+                        }
+                        catch { }
+                }
             }
         type = null;
         return [];
@@ -1420,6 +1430,10 @@ internal sealed partial class Bindings
     /// <summary>Gets a regex that matches a set statement.</summary>
     [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase)]
     private static partial Regex LetHeaderRegex();
+
+    /// <summary>Gets a regex that matches a scoped set statement.</summary>
+    [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s*\\;)", RegexOptions.IgnoreCase)]
+    private static partial Regex LetScopedHeaderRegex();
 
     /// <summary>Represents a dictionary key with a type and a string identifier.</summary>
     /// <param name="Type">The type.</param>
