@@ -278,6 +278,10 @@ seq(1, 100).filter(x => x % 2 = 0).map(x => x^2).sum
 	 		      <entry><para><codeInline>sortDesc</codeInline></para></entry>
 	 		      <entry><para>Sorts values in descending order. See <see cref="M:Austra.Library.NSequence.SortDescending" />.</para></entry>
 			    </row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>stats</codeInline></para></entry>
+ 		    	  <entry><para>Gets all statistic moments of the sequence. See <see cref="M:Austra.Library.NSequence.Stats" />.</para></entry>
+		  		</row>		  
 	 		    <row>
 	 		      <entry><para><codeInline>sum</codeInline></para></entry>
 	 		      <entry><para>Sums all values in the sequence. See <see cref="M:Austra.Library.Sequence`2.Sum" />.</para></entry>

@@ -327,6 +327,16 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         return new VectorSequence(a1.AsSpan(size).Div(a2.AsSpan(size)));
     }
 
+    /// <summary>Gets all statistics from the values in the secuence.</summary>
+    /// <returns>Simple statistics of all the values in the sequence.</returns>
+    public virtual Accumulator Stats()
+    {
+        Accumulator result = new();
+        while (Next(out int value))
+            result += value;
+        return result;
+    }
+
     /// <summary>Gets only the unique values in this sequence.</summary>
     /// <returns>A sequence with unique values.</returns>
     public override NSequence Distinct()

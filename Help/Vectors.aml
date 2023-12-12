@@ -150,6 +150,10 @@ scalar1 * vector1 + scalar2 * vector2;
  		    	<entry><para>Gets a new vector with its items sorted. See <see cref="M:Austra.Library.DVector.Sort" />.</para></entry>
 		  	  </row>
  		  	  <row>
+ 		    	<entry><para><codeInline>sortDescending</codeInline></para></entry>
+ 		    	<entry><para>Gets a new vector with its items sorted in descending order. See <see cref="M:Austra.Library.DVector.SortDescending" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
  		    	<entry><para><codeInline>sqr</codeInline></para></entry>
  		    	<entry><para>Gets the scalar product of the vector with itself. See <see cref="M:Austra.Library.DVector.Squared" />.</para></entry>
 		  	  </row>
@@ -484,6 +488,10 @@ ivec::random(-10, 10)
  		  	  <row>
  		    	<entry><para><codeInline>sortDesc</codeInline></para></entry>
  		    	<entry><para>Sorts the vector in descending order. See <see cref="M:Austra.Library.NVector.SortDescending" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>stats</codeInline></para></entry>
+ 		    	<entry><para>Gets all statistics in one call. See <see cref="M:Austra.Library.NVector.Stats" />.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sum</codeInline></para></entry>

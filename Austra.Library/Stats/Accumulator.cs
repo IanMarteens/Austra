@@ -20,6 +20,14 @@ public sealed class Accumulator
     /// <summary>Creates an empty accumulator.</summary>
     public Accumulator() { }
 
+    /// <summary>Creates an accumulator from an array of integer samples.</summary>
+    /// <param name="values">Samples for initialization.</param>
+    public Accumulator(int[] values)
+    {
+        foreach (int v in values)
+            Add(v);
+    }
+
     /// <summary>Creates an accumulator from an array of samples.</summary>
     /// <param name="values">Samples for initialization.</param>
     public Accumulator(double[] values) => Add(values);
@@ -214,7 +222,10 @@ public sealed class Accumulator
         return new()
         {
             Count = n,
-            m1 = m1, m2 = m2, m3 = m3, m4 = m4,
+            m1 = m1,
+            m2 = m2,
+            m3 = m3,
+            m4 = m4,
             min = Min(a1.min, a2.min),
             max = Max(a1.max, a2.max),
         };

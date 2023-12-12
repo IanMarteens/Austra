@@ -382,6 +382,11 @@ public readonly struct NVector :
         return values.AsSpan().Div(other.values);
     }
 
+    /// <summary>Gets statistics on the vector values.</summary>
+    /// <returns>The vector's statistics.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Accumulator Stats() => new(values);
+
     /// <summary>Dot product of two vectors.</summary>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
@@ -690,14 +695,18 @@ public readonly struct NVector :
         double[] newValues = GC.AllocateUninitializedArray<double>(Length);
         ref int p = ref MM.GetArrayDataReference(values);
         ref double q = ref MM.GetArrayDataReference(newValues);
-        if (Avx.IsSupported && Length >= V4d.Count)
+        if (Avx.IsSupported && Length >= V4i.Count)
         {
-            nuint top = (nuint)(Length - V4d.Count);
-            for (nuint i = 0; i < top; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(
-                    Avx.ConvertToVector256Double(Vector128.LoadUnsafe(ref p, i)), ref q, i);
-            V4.StoreUnsafe(
-                Avx.ConvertToVector256Double(Vector128.LoadUnsafe(ref p, top)), ref q, top);
+            nuint top = (nuint)(Length - V4i.Count);
+            for (nuint i = 0; i < top; i += (nuint)V4i.Count)
+            {
+                var (lower, upper) = V4.Widen(V4.LoadUnsafe(ref p, i));
+                V4.StoreUnsafe(V4.ConvertToDouble(lower), ref q, i);
+                V4.StoreUnsafe(V4.ConvertToDouble(upper), ref q, i + 4);
+            }
+            var (lo, up) = V4.Widen(V4.LoadUnsafe(ref p, top));
+            V4.StoreUnsafe(V4.ConvertToDouble(lo), ref q, top);
+            V4.StoreUnsafe(V4.ConvertToDouble(up), ref q, top + 4);
         }
         else
             for (int i = 0; i < newValues.Length; i++)

@@ -463,6 +463,10 @@ public abstract partial class NSequence
         /// <returns>The sequence for the given range.</returns>
         public override NSequence this[Range range] => new VectorSequence(source[range]);
 
+        /// <summary>Gets all statistics from the values in the secuence.</summary>
+        /// <returns>Simple statistics of all the values in the sequence.</returns>
+        public override Accumulator Stats() => source.Stats();
+
         /// <summary>Gets the first value in the sequence.</summary>
         /// <returns>The first value.</returns>
         public override int First() => source[0];
