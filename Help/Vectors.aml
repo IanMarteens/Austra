@@ -50,7 +50,7 @@ let v1=[1, 2], v2=[3, 4];
 <markup><font color="DarkGreen">-- Creates a vector with 10 items, all of them zeros.</font></markup>
 vec::new(10);
 <markup><font color="DarkGreen">-- Remember that ::new can be omitted!</font></markup>
-vec(10));
+vec(10);
 <markup><font color="DarkGreen">-- Creates a vector like [1 2 3 4 5 6 7 8 9 10]</font></markup>
 vec(10, i => i + 1)
 			  </code>
@@ -203,11 +203,11 @@ scalar1 * vector1 + scalar2 * vector2;
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>find</codeInline></para></entry>
- 		    	<entry><para>Similar to <codeInline>filter</codeInline>, but returns a sequence of the indexes. See <see cref="M:Austra.Library.DVector.Find(System.Double)" /> and <see cref="M:Austra.Library.DVector.Find(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Similar to <codeInline>filter</codeInline>, but returns a sequence of the indexes. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Find(System.Double)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>indexOf</codeInline></para></entry>
- 		    	<entry><para>Returns the first index where a value is stored. See <see cref="M:Austra.Library.DVector.IndexOf(System.Double)" /> and <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.IndexOf(System.Double,System.Int32)</codeEntityReference>.</para></entry>
+ 		    	<entry><para>Returns the first index where a value is stored. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.IndexOf(System.Double,System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linear</codeInline></para></entry>
@@ -281,7 +281,7 @@ cvec(10, i => polar(2π*i/10));
 cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 	    </code>
 	    <sections>
-		  <section>
+		  <section address="cvecprop">
 		    <title>Complex vector properties</title>
 		    <content>
 		      <para>These are the properties supported by a complex vector instance:</para>
@@ -361,7 +361,7 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 			</table>
 			</content>
 		  </section>
-		  	<section>
+		  	<section aaddress="cvecmeth">
 		      <title>Complex vector methods</title>
 		    	<content>
 		      	  <para>These are the methods supported by a complex vector instance:</para>
@@ -380,11 +380,11 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>find</codeInline></para></entry>
- 		    		  <entry><para>Similar to <codeInline>filter</codeInline>, but returns a sequence of the indexes. See <see cref="M:Austra.Library.CVector.Find(System.Numerics.Complex)" /> and <see cref="M:Austra.Library.CVector.Find(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
+ 		    		  <entry><para>Similar to <codeInline>filter</codeInline>, but returns a sequence of the indexes. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Find(System.Numerics.Complex)</codeEntityReference>.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>indexOf</codeInline></para></entry>
- 		    		  <entry><para>Returns the first index where a value is stored. See <see cref="M:Austra.Library.CVector.IndexOf(System.Numerics.Complex,System.Int32)" />.</para></entry>
+ 		    		  <entry><para>Returns the first index where a value is stored. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.IndexOf(System.Numerics.Complex)</codeEntityReference>.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>map</codeInline></para></entry>
@@ -408,7 +408,134 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 	    </sections>
 	  </content>
     </section>
-    <section>
+    <section address="ivecs">
+      <title>Integer vectors</title>
+      <content>
+        <para>Integer vectors are also supported, using the <codeInline>ivec</codeInline> class.</para>
+	    <table>
+  		  <row>
+    	    <entry><para><codeInline>ivec::new</codeInline></para></entry>
+    	    <entry><para>Overloaded constructor.</para></entry>
+  		  </row>
+  		  <row>
+    	    <entry><para><codeInline>ivec::ones</codeInline></para></entry>
+    	    <entry><para>Creates a vector filled with ones.</para></entry>
+  		  </row>
+  		  <row>
+    	    <entry><para><codeInline>ivec::random</codeInline></para></entry>
+    	    <entry><para>Creates a vector with random values from a uniform distribution.</para></entry>
+  		  </row>
+	    </table>
+        <para><codeInline>ivec::random</codeInline> has three overloaded variants:</para>
+		<code language="Austra">
+<markup><font color="DarkGreen">-- Ten items. Values between <codeInline>0</codeInline> and <codeInline>int.MaxValue - 1</codeInline>.</font></markup>
+ivec::random(10);
+<markup><font color="DarkGreen">-- Values between <codeInline>0</codeInline> and <codeInline>999</codeInline>.</font></markup>
+ivec::random(10, 1000);
+<markup><font color="DarkGreen">-- Values between <codeInline>-10</codeInline> and <codeInline>9</codeInline>.</font></markup>
+ivec::random(-10, 10)
+		</code>
+		<sections>
+		  <section address="ivecprop">
+		    <title>Integer vector properties</title>
+		    <content>
+		    <para>Integer vectors support these properties:</para>
+			<table>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>abs</codeInline></para></entry>
+ 		    	<entry><para>Gets a new vector with absolute values. See <see cref="M:Austra.Library.NVector.Abs" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>distinct</codeInline></para></entry>
+ 		    	<entry><para>Gets a new vector with the unique values from the original one. See <see cref="M:Austra.Library.NVector.Distinct" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>first</codeInline></para></entry>
+ 		    	<entry><para>Gets the first item in the vector. See <see cref="P:Austra.Library.NVector.First" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>last</codeInline></para></entry>
+ 		    	<entry><para>Gets the last item in the vector. See <see cref="P:Austra.Library.NVector.Last" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>length</codeInline></para></entry>
+ 		    	<entry><para>Gets the number of values in the vector. See <see cref="P:Austra.Library.NVector.Length" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>max</codeInline></para></entry>
+ 		    	<entry><para>Gets the maximum value from the vector. See <see cref="M:Austra.Library.NVector.Maximum" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>min</codeInline></para></entry>
+ 		    	<entry><para>Gets the minimum values from the vector. See <see cref="M:Austra.Library.NVector.Minimum" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>prod</codeInline></para></entry>
+ 		    	<entry><para>Multiplies all items in the vector. See <see cref="M:Austra.Library.NVector.Product" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>reverse</codeInline></para></entry>
+ 		    	<entry><para>Creates a new vector with items in reverse order. See <see cref="M:Austra.Library.NVector.Reverse" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>sort</codeInline></para></entry>
+ 		    	<entry><para>Sorts the vector in ascending order. See <see cref="M:Austra.Library.NVector.Sort" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>sortDesc</codeInline></para></entry>
+ 		    	<entry><para>Sorts the vector in descending order. See <see cref="M:Austra.Library.NVector.SortDescending" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>sum</codeInline></para></entry>
+ 		    	<entry><para>Gets the sum of all values. See <see cref="M:Austra.Library.NVector.Sum" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>toVector</codeInline></para></entry>
+ 		    	<entry><para>Converts the integer vector into a double vector. See <see cref="M:Austra.Library.NVector.ToVector" />.</para></entry>
+		  	  </row>
+			</table>
+			</content>
+		  </section>
+		  <section address="ivecmth">
+		    <title>Integer vector methods</title>
+		    <content>
+		    <para>These are the methods for integer vectors:</para>
+			<table>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>all</codeInline></para></entry>
+ 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <see cref="M:Austra.Library.NVector.All(System.Func{System.Int32,System.Boolean})" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>any</codeInline></para></entry>
+ 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <see cref="M:Austra.Library.NVector.Any(System.Func{System.Int32,System.Boolean})" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>filter</codeInline></para></entry>
+ 		    	<entry><para>Filters items by value. See <see cref="M:Austra.Library.NVector.Filter(System.Func{System.Int32,System.Boolean})" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>map</codeInline></para></entry>
+ 		    	<entry><para>Pointwise transformation of the items in another integer vector. See <see cref="M:Austra.Library.NVector.Map(System.Func{System.Int32,System.Int32})" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>mapReal</codeInline></para></entry>
+ 		    	<entry><para>Pointwise transformation of the items into a real vector. See <see cref="M:Austra.Library.NVector.MapReal(System.Func{System.Int32,System.Double})" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>reduce</codeInline></para></entry>
+ 		    	<entry><para>Reduces all items in a vector to a single integer value. See <see cref="M:Austra.Library.NVector.Reduce(System.Int32,System.Func{System.Int32,System.Int32,System.Int32})" />.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>zip</codeInline></para></entry>
+ 		    	<entry><para></para>Combines two integer vectors using a lambda function. See <see cref="M:Austra.Library.NVector.Zip(Austra.Library.NVector,System.Func{System.Int32,System.Int32,System.Int32})" />.</entry>
+		  	  </row>
+			</table>
+			</content>
+		  </section>
+		</sections>
+      </content>
+    </section>
+    <section address="vecidx">
       <title>Indexing and slicing</title>
       <content>
 		<para>Individual values from vectors are accessed using its position, starting from zero, inside brackets:</para>

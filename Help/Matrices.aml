@@ -31,62 +31,60 @@ The vector is handled as a row vector.</font></markup>
 [m; v];
 [v; m];
 		</code>
-		<sections>
-		  <section address="matrixCtors">
-		    <title>Class methods</title>
-		    <content>
-		      <para>These class methods are available for creating matrices:</para>
-			  <table>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::new</codeInline></para></entry>
- 		    	  <entry><para>Overloaded constructor (see below).</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::rows</codeInline></para></entry>
- 		    	  <entry><para>Creates a matrix given its rows as vectors.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::cols</codeInline></para></entry>
- 		    	  <entry><para>Creates a matrix given its cols as vectors.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::eye</codeInline></para></entry>
- 		    	  <entry><para>Creates an identity matrix given its size.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::diag</codeInline></para></entry>
- 		    	  <entry><para>Creates a diagonal matrix given the diagonal as a vector.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::random</codeInline></para></entry>
- 		    	  <entry><para>Creates a matrix with random values from a uniform distribution.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::nrandom</codeInline></para></entry>
- 		    	  <entry><para>Creates a matrix with random values from a normal standard distribution.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::lrandom</codeInline></para></entry>
- 		    	  <entry><para>Creates a lower-triangular matrix with random values from a uniform distribution.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::lnrandom</codeInline></para></entry>
- 		    	  <entry><para>Creates a lower-triangular matrix with random values from a standard normal distribution.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::cov</codeInline></para></entry>
- 		    	  <entry><para>Creates a covariance matrix given a list of series.</para></entry>
-		  		</row>
- 		  		<row>
- 		    	  <entry><para><codeInline>matrix::corr</codeInline></para></entry>
- 		    	  <entry><para>Creates a correlation matrix given a list of series.</para></entry>
-		  		</row>
-			  </table>
-		    </content>
-		  </section>
-		</sections>
       </content>
     </section>
+	<section address="matrixCtors">
+	  <title>Class methods</title>
+	  <content>
+	    <para>These class methods are available for creating matrices:</para>
+		<table>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::new</codeInline></para></entry>
+	    	  <entry><para>Overloaded constructor (see below).</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::rows</codeInline></para></entry>
+	    	  <entry><para>Creates a matrix given its rows as vectors.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::cols</codeInline></para></entry>
+	    	  <entry><para>Creates a matrix given its cols as vectors.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::eye</codeInline></para></entry>
+	    	  <entry><para>Creates an identity matrix given its size.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::diag</codeInline></para></entry>
+	    	  <entry><para>Creates a diagonal matrix given the diagonal as a vector.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::random</codeInline></para></entry>
+	    	  <entry><para>Creates a matrix with random values from a uniform distribution.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::nrandom</codeInline></para></entry>
+	    	  <entry><para>Creates a matrix with random values from a normal standard distribution.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::lrandom</codeInline></para></entry>
+	    	  <entry><para>Creates a lower-triangular matrix with random values from a uniform distribution.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::lnrandom</codeInline></para></entry>
+	    	  <entry><para>Creates a lower-triangular matrix with random values from a standard normal distribution.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::cov</codeInline></para></entry>
+	    	  <entry><para>Creates a covariance matrix given a list of series.</para></entry>
+	  		</row>
+	  		<row>
+	    	  <entry><para><codeInline>matrix::corr</codeInline></para></entry>
+	    	  <entry><para>Creates a correlation matrix given a list of series.</para></entry>
+	  		</row>
+		</table>
+	  </content>
+	</section>
     <section address="matMethods">
       <title>Methods and properties</title>
       <content>
@@ -147,6 +145,29 @@ The vector is handled as a row vector.</font></markup>
 		  <row>
 	    	<entry><para><codeInline>stats</codeInline></para></entry>
 	    	<entry><para>Returns statistics on cells. See <see cref="M:Austra.Library.Matrix.Stats" />.</para></entry>
+	  	  </row>
+	  	</table>
+	  	<para>And these are the supported methods:</para>
+		<table>
+		  <row>
+	    	<entry><para><codeInline>all</codeInline></para></entry>
+	    	<entry><para>Checks if all cells satisfy a lambda predicate. See <see cref="M:Austra.Library.Matrix.All(System.Func{System.Double,System.Boolean})" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>any</codeInline></para></entry>
+	    	<entry><para>Checks if exists a cell satisfying a lambda predicate. See <see cref="M:Austra.Library.Matrix.Any(System.Func{System.Double,System.Boolean})" />.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>getCol</codeInline></para></entry>
+	    	<entry><para>Gets a column by its index. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.GetColumn(System.Int32)</codeEntityReference>.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>getRow</codeInline></para></entry>
+	    	<entry><para>Gets a row by its index. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.GetRow(System.Index)</codeEntityReference>.</para></entry>
+	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>map</codeInline></para></entry>
+	    	<entry><para>Creates a new matrix with transformed cells. See <see cref="M:Austra.Library.Matrix.Map(System.Func{System.Double,System.Double})" />.</para></entry>
 	  	  </row>
 	  	</table>
 	  </content>

@@ -333,10 +333,19 @@ public class DataSource : IDataSource
                 // "ans" cannot be memoized because of its dynamic type.
                 ? Expression.Convert(
                     Expression.Property(sourceParameter, "Item",
-                    Expression.Constant("ans")), val.GetType())
+                    Expression.Constant("ans")), GetAnswerBestType(val))
                 : memos[identifier] = Expression.Convert(
                     Expression.Property(sourceParameter, "Item",
                     Expression.Constant(identifier)), val.GetType())
+        };
+
+        // Make sure sequences have their root type.
+        static Type GetAnswerBestType(object value) => value switch
+        {
+            NSequence => typeof(NSequence),
+            DSequence => typeof(DSequence),
+            CSequence => typeof(CSequence),
+            _ => value.GetType()
         };
     }
 

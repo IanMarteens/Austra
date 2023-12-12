@@ -1170,8 +1170,8 @@ internal sealed partial class Bindings
             [new(typeof(DVector), "reduce")] = typeof(DVector).Get(nameof(DVector.Reduce)),
             [new(typeof(DVector), "zip")] = typeof(DVector).Get(nameof(DVector.Zip)),
 
-            [new(typeof(Matrix), "any")] = typeof(Matrix).Get(nameof(Matrix.Any)),
             [new(typeof(Matrix), "all")] = typeof(Matrix).Get(nameof(Matrix.All)),
+            [new(typeof(Matrix), "any")] = typeof(Matrix).Get(nameof(Matrix.Any)),
             [new(typeof(Matrix), "getcol")] = typeof(Matrix).GetMethod(nameof(Matrix.GetColumn), NArg)!,
             [new(typeof(Matrix), "getrow")] = typeof(Matrix).GetMethod(nameof(Matrix.GetRow), NArg)!,
             [new(typeof(Matrix), "map")] = typeof(Matrix).Get(nameof(Matrix.Map)),
@@ -1300,14 +1300,57 @@ internal sealed partial class Bindings
         type = null;
         return [];
 
+        // Finds the type of an object path.
         IList<Member> ExtractType(string text)
         {
             using Parser parser = new(this, source, text);
-            return parser.ParseType() is var types
-                && types is not null && types.Length > 0 && types[0] is not null
+            return parser.ParseType() is Type[] types
+                && types.Length > 0 && types[0] is not null
                 && members.TryGetValue(types[0], out Member[]? list)
                 ? list
                 : [];
+        }
+
+        // Extracts an object path from an expression fragment.
+        static ReadOnlySpan<char> ExtractObjectPath(string text)
+        {  
+            int i = text.Length - 1;
+            for (ref char c = ref Unsafe.As<Str>(text).FirstChar; i >= 0; )
+            {
+                char ch = Unsafe.Add(ref c, i);
+                if (char.IsLetterOrDigit(ch) || ch is '_' or '.' or ':' or '=' or '\''
+                    || char.IsWhiteSpace(ch))
+                    i--;
+                else if (ch is '(' or '[')
+                    return text.AsSpan()[(i + 1)..];
+                else if (ch == ')')
+                {
+                    int count = 1;
+                    while (--i >= 0)
+                        if ((ch = Unsafe.Add(ref c, i)) == ')')
+                            count++;
+                        else if (ch == '(' && --count == 0)
+                            break;
+                    if (count > 0)
+                        return [];
+                    i--;
+                }
+                else if (ch == ']')
+                {
+                    int count = 1;
+                    while (--i >= 0)
+                        if ((ch = Unsafe.Add(ref c, i)) == ']')
+                            count++;
+                        else if (ch == '[' && --count == 0)
+                            break;
+                    if (count > 0)
+                        return [];
+                    i--;
+                }
+                else
+                    break;
+            }
+            return text.AsSpan()[(i + 1)..].Trim();
         }
     }
 
@@ -1336,64 +1379,6 @@ internal sealed partial class Bindings
                 i--;
             return text[(i + 1)..end].Trim();
         }
-    }
-
-    /// <summary>Extracts an object path from an expression fragment.</summary>
-    /// <param name="text">A fragment of an expression.</param>
-    /// <returns>The final object path.</returns>
-    private ReadOnlySpan<char> ExtractObjectPath(string text)
-    {
-        ref char c = ref Unsafe.As<Str>(text).FirstChar;
-        int i = text.Length - 1;
-        while (i >= 0)
-        {
-            char ch = Unsafe.Add(ref c, i);
-            if (char.IsLetterOrDigit(ch) ||
-                ch is '_' or '.' or ':' or '=' or '\'' ||
-                char.IsWhiteSpace(ch))
-                i--;
-            else if (ch is '(' or '[')
-                return text.AsSpan()[(i + 1)..];
-            else if (ch == ')')
-            {
-                int count = 1;
-                while (--i >= 0)
-                {
-                    ch = Unsafe.Add(ref c, i);
-                    if (ch == ')')
-                        count++;
-                    else if (ch == '(')
-                    {
-                        if (--count == 0)
-                            break;
-                    }
-                }
-                if (count > 0)
-                    return [];
-                i--;
-            }
-            else if (ch == ']')
-            {
-                int count = 1;
-                while (--i >= 0)
-                {
-                    ch = Unsafe.Add(ref c, i);
-                    if (ch == ']')
-                        count++;
-                    else if (ch == '[')
-                    {
-                        if (--count == 0)
-                            break;
-                    }
-                }
-                if (count > 0)
-                    return [];
-                i--;
-            }
-            else
-                break;
-        }
-        return text.AsSpan()[(i + 1)..].Trim();
     }
 
     /// <summary>Gets a property method for a given type and identifier.</summary>
