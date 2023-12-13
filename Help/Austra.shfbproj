@@ -101,6 +101,10 @@
       <ImageId>d001</ImageId>
       <AlternateText>d 001</AlternateText>
     </Image>
+    <Image Include="v001.png">
+      <ImageId>v001</ImageId>
+      <AlternateText>v 001</AlternateText>
+    </Image>
     <Image Include="ostara.png">
       <ImageId>ostara</ImageId>
       <AlternateText>ostara</AlternateText>
