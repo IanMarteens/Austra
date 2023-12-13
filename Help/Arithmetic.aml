@@ -103,7 +103,7 @@ and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInli
 		    </content>
 		  </section>
 		  <section address="Section2A">
-		    <title>Complex properties</title>
+		    <title>Complex properties and operators</title>
 		    <content>
 		    <para>When you have a complex value in your hands, you can drill into it using a dot and a property name, to extract information about the poor little value:</para>
 		    <table>
@@ -129,6 +129,14 @@ and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInli
 	c = c.real + c.imaginary * i
             </code>
 		    <para>If typing <codeInline>magnitude</codeInline> is too hard for your nerves, you can use <codeInline>mag</codeInline> as an accepted synonym. <codeInline>real</codeInline> can be shortened to <codeInline>re</codeInline>, and <codeInline>imag</codeInline> and even <codeInline>im</codeInline> can be used instead of <codeInline>imaginary</codeInline>. Since my heart is cold and empty for <codeInline>phase</codeInline>, on the other hand, there is no diminutive for that fellow.</para>
+		    <para>In addition to the usual operators, there's a sufix operator for conjugating a complex value:</para>
+		    <table>
+		      <row>
+		        <entry><para><codeInline>'</codeInline></para></entry>
+		        <entry><para>Unary suffix operator for complex conjugation.</para></entry>
+		      </row>
+		    </table>
+		    <para>The <codeInline>'</codeInline> operator is also used for <codeEntityReference qualifyHint="false" autoUpgrade="true" linkText="transposing">M:Austra.Library.Matrix.Transpose</codeEntityReference> a <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49#MatrixOperators">matrix</link>.</para>
 		    </content>
 		  </section>
 		</sections>

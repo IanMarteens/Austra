@@ -208,7 +208,7 @@ The vector is handled as a row vector.</font></markup>
 		  </row>
 		  <row>
 		    <entry><para><codeInline>'</codeInline></para></entry>
-		    <entry><para>Unary sufix operator for matrix transposal.</para></entry>
+		    <entry><para>Unary sufix operator for matrix transpose.</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><codeInline>\</codeInline></para></entry>
