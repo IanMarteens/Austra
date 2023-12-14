@@ -244,6 +244,53 @@ scalar1 * vector1 + scalar2 * vector2;
 			</table>
 			</content>
 		  </section>
+		  <section address="vecOperators">
+		    <title>Vector operators</title>
+		    <content>
+			  <para>Real-valued vectors supports the basic repertoire of operators:</para>
+			  <table>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>+</codeInline></para></entry>
+ 		    	  <entry><para>Adds two vectors, or a vector and a scalar.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>-</codeInline></para></entry>
+ 		    	  <entry><para>Subtracts two vectors, or a vector and a scalar. Also works as the unary negation.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>*</codeInline></para></entry>
+ 		    	  <entry><para>Multiplying two vectors represents the inner vector product, returning a number. A vector multiplied by a scalar is a vector scaling operation.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>/</codeInline></para></entry>
+ 		    	  <entry><para>Divides a vector by a scalar.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>.*</codeInline></para></entry>
+ 		    	  <entry><para>Pointwise vector multiplication.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>./</codeInline></para></entry>
+ 		    	  <entry><para>Pointwise vector division.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>^</codeInline></para></entry>
+ 		    	  <entry><para>Outer product for two vectors, returning a matrix.</para></entry>
+		  		</row>
+			  </table>
+			  <para>The outer product of vectors <math>x[i]</math> and <math>y[i]</math> returns the matrix with components <math>m[i,j]=x[i]*y[j]</math>. This expression call:</para>
+			  <code language="Austra">
+[1,2,3]^[4,5,6]
+			  </code>
+			  <para>returns this matrix:</para>
+			  <code language="Austra Desktop">
+ans ∊ ℝ(3⨯3)
+ 4   5   6
+ 8  10  12
+12  15  18
+			  </code>
+		    </content>
+		  </section>
 		</sections>
       </content>
     </section>
@@ -408,6 +455,19 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 		  	  		</row>
 				  </table>
 			</content>
+		  </section>
+		  <section address="cvecOperators">
+		    <title>Complex vector operators</title>
+		    <content>
+			  <para>Complex vectors supports the same operators as real-valued operators, with the exception of the outer product <codeInline>^</codeInline>. On the other hand, they add support for complex vector conjugation using a unary suffix operator:</para>
+			  <table>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>'</codeInline></para></entry>
+ 		    	  <entry><para>Unary suffix operator for complex vector conjugation.</para></entry>
+		  		</row>
+			  </table>
+			  <para>Complex vector conjugation inverts the sign of each imaginary component in the vector. The inner product of two complex vectors actually conjugates the second vector operand.</para>
+		    </content>
 		  </section>
 	    </sections>
 	  </content>
