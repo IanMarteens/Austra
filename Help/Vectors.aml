@@ -14,7 +14,7 @@
 		<para>Commas are mandatory for separating items, and white space and line feeds are always ignored.</para>
 		<para>Bracket lists can be also used to concatenate the content of several vectors, and you can add scalars to the mix:</para>
 		<code language="Austra">
-let v1=[1, 2], v2=[3, 4];
+<markup><b>let</b></markup> v1=[1, 2], v2=[3, 4];
 <markup><font color="DarkGreen">-- Returns a vector with 4 items.</font></markup>
 [v1, v2];
 <markup><font color="DarkGreen">-- This also is accepted:</font></markup>

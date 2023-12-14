@@ -32,7 +32,7 @@ seq(v);             <markup><font color="DarkGreen">-- A sequence from a vector.
 seq([sqrt(2), e, π, τ]);
 seq::random(10);    <markup><font color="DarkGreen">-- A sequence with 10 random values.</font></markup>
 seq::nrandom(10),   <markup><font color="DarkGreen">-- A sequence with 10 Gaussian random values.</font></markup>
-seq::nrandom(10, 2)<markup><font color="DarkGreen">-- Ten normal samples with variance = 2.</font></markup>
+seq::nrandom(10, 2) <markup><font color="DarkGreen">-- Ten normal samples with variance = 2.</font></markup>
 				  </code>
 				  <para>There are two additional class methods for generating autoregressive, AR(p), and moving average, MA(q), sequences:</para>
 		          <code language="Austra">

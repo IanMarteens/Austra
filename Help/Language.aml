@@ -85,9 +85,9 @@
       	  <content>
 			<para>Though we do not expect anyone to write hundreds of pages of AUSTRA script, we still support line comments for better documentation. Comments always starts with two consecutive hyphens and extends to the next line feed or the end of the expression, whatever comes first:</para>
 			<code language="Austra">
-			<markup><font color="DarkGreen">-- A verbose version of math::min()</font></markup>
-if aapl.mean &lt; msft.mean then aapl.mean <markup><font color="DarkGreen">-- Another comment.</font></markup>
-else msft.mean
+			<markup><font color="DarkGreen">-- A verbose version of math::min()</font><br/>
+<b>if</b></markup> aapl.mean &lt; msft.mean <markup><b>then</b></markup> aapl.mean <markup><font color="DarkGreen">-- Another comment.</font><br/>
+<b>else</b></markup> msft.mean
 			</code>
       	  </content>
       	</section>
@@ -133,7 +133,7 @@ v2.plot
 <markup><font color="DarkGreen">-- Every use of <em>v1</em> returns always the same vector:</font></markup>
 v1 = v1;
 <markup><font color="DarkGreen">-- This is in contrast with the behavior of local variables.</font><br/>
-<b>let</b></markup>> v2 = vec::random(10);
+<b>let</b></markup> v2 = vec::random(10);
 <markup><font color="DarkGreen">-- This expression will return <b>false</b>:</font></markup>
 v2 = v2
             </code>

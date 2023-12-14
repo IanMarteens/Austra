@@ -18,7 +18,7 @@
 		</code>
 		<para>You can also create a new matrix by concatenating two existing matrices, or a matrix and a vector. You can use either vertical or horizontal concatenation:</para>
 		<code language="Austra">
-let m = [1,2;3,4], v=[1, 1];
+<markup><b>let</b></markup> m = [1,2;3,4], v=[1, 1];
 <markup><font color="DarkGreen">-- Horizontal concatenation (2x4 matrix).</font></markup>
 [m, m];
 <markup><font color="DarkGreen">-- Horizontal concatenation (2x3 matrix).</font></markup>
