@@ -148,8 +148,8 @@ and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInli
         <para>The <codeInline>math</codeInline> class groups methods and properties dealing with arithmetic operations. Most of these features come straight from the C#'s <codeEntityReference qualifyHint="false">T:System.Math</codeEntityReference> and <codeEntityReference qualifyHint="false">T:System.Numerics.Complex</codeEntityReference>, but it also incorporate other functions that are used in statistics and probabilities.</para>
         <para>Our <codeInline>math</codeInline> is special in that the class prefix is assumed when not present in a function or property call:</para>
 		    <code language="Austra">
-<markup><font color="DarkGreen">-- Write like this, if you are a sucker for pain.</font></markup>
-math::sin(math::pi/4) = math::sqrt(2)/2;
+<markup><font color="DarkGreen">-- Write like this, if you are a sucker for pain.</font><br/>
+<b><font color="DarkCyan">math::</font></b></markup>sin(<markup><b><font color="DarkCyan">math::</font></b></markup>pi/4) = <markup><b><font color="DarkCyan">math::</font></b></markup>sqrt(2)/2;
 <markup><font color="DarkGreen">-- Standard people use this style.</font></markup>
 sin(pi/4) = sqrt(2)/2
             </code>

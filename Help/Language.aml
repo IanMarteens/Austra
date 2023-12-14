@@ -129,11 +129,11 @@ v2.plot
             <para>Only the value of the variable is stored, but not the formula that was used to calculate that value. This means, for example, that every use of the session variable will return the same value, even if the value was created using a random number generator:</para>
             <code language="Austra">
 <markup><font color="DarkGreen">-- <em>v1</em> is created using random numbers:</font><br/>
-<b>set</b></markup> v1 = vec::random(10);
+<b>set</b></markup> v1 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
 <markup><font color="DarkGreen">-- Every use of <em>v1</em> returns always the same vector:</font></markup>
 v1 = v1;
 <markup><font color="DarkGreen">-- This is in contrast with the behavior of local variables.</font><br/>
-<b>let</b></markup> v2 = vec::random(10);
+<b>let</b></markup> v2 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
 <markup><font color="DarkGreen">-- This expression will return <b>false</b>:</font></markup>
 v2 = v2
             </code>
@@ -148,20 +148,20 @@ v2 = v2
             <para>Class methods in AUSTRA correspond both to constructors and static methods in traditional OOP languages, like C#.</para>
             <para>Let's start with some variables:</para>
             <code language="Austra">
-i = math::i;
-e = math::e;
-pi = math::pi <markup><b>and</b></markup> pi = math::π
+i = <markup><b><font color="DarkCyan">math::</font></b></markup>i;
+e = <markup><b><font color="DarkCyan">math::</font></b></markup>e;
+pi = <markup><b><font color="DarkCyan">math::</font></b></markup>pi <markup><b>and</b></markup> pi = <markup><b><font color="DarkCyan">math::</font></b></markup>π
             </code>
             <para>Actually, the same equivalence is valid for what we normally would consider "global functions":</para>
             <code language="Austra">
 exp(π*i);
-math::exp(math::pi * math::i)
+<markup><b><font color="DarkCyan">math::</font></b></markup>exp(<markup><b><font color="DarkCyan">math::</font></b></markup>pi * <markup><b><font color="DarkCyan">math::</font></b></markup>i)
             </code>
 			<para>Those global functions and constants are considered as belonging to the <codeInline>math</codeInline> for avoiding problems if any of these simbols is redefined as a persistent or session variable.</para>
 			<para>Of course, there are more classes than <codeInline>math</codeInline>, and we can use their class methods for creating new objects:</para>
 			<code language="Austra">
-matrix::random(10);
-vec::new(10);
+<markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
+<markup><b><font color="DarkCyan">vec::</font></b></markup>new(10);
 vec(10)
             </code>
             <para>As the last example shows, when you call a <codeInline>new</codeInline> method on a class, you can omit the <codeInline>::new</codeInline> part and use just the class name as synonym.</para>

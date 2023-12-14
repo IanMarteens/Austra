@@ -9,11 +9,11 @@
       <content>
         <para>Definitions are created using the <codeInline>def</codeInline> statement:</para>
         <code language="Austra">
-		<markup><b>def</b></markup> cxMvo = model::mvo(sm_ret, sm_cov, sm_low, sm_high)
+		<markup><b>def</b></markup> cxMvo = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, sm_low, sm_high)
         </code>
         <para>A description can be associated to a definition using the following syntax:</para>
         <code language="Austra">
-		<markup><b>def</b></markup> cxMvo:"MVO Model" = model::mvo(sm_ret, sm_cov, sm_low, sm_high)
+		<markup><b>def</b></markup> cxMvo:"MVO Model" = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, sm_low, sm_high)
         </code>
         <para>Removing an existing definition is achieved with the <codeInline>undef</codeInline> command:</para>
         <code language="Austra">
@@ -30,8 +30,8 @@
       	  <content>
       	  <para>Code definitions must respect some limitations. The most important one is that they cannot reference session variables. This sequence of commands is invalid:</para>
       	  <code language="Austra">
-<markup><b>set</b></markup> vec = [1, 2, 3, 4];
-<markup><b>def</b></markup> fact4 = vec.products <markup><font color="DarkGreen">-- Invalid code definition.</font></markup>
+<markup><b>set</b></markup> vector = [1, 2, 3, 4];
+<markup><b>def</b></markup> fact4 = vector.product <markup><font color="DarkGreen">-- Invalid code definition.</font></markup>
       	  </code>
       	  <para>The reason behind this constraint is that session variables only store their current values, but not the formula that generated that value.</para>
       	  </content>
@@ -41,9 +41,9 @@
       	  <content>
       	  <para>A code definition may refer to an existing definition. For instance:</para>
       	  <code language="Austra">
-<markup><b>def</b></markup> sm_cov = matrix::covariance(aapl, msft, hog, dax);
+<markup><b>def</b></markup> sm_cov = <markup><b><font color="DarkCyan">matrix::</font></b></markup>covariance(aapl, msft, hog, dax);
 <markup><b>def</b></markup> sm_ret = [1, 0.9, 1.2, 0.8];
-<markup><b>def</b></markup> cxMvo = model::mvo(sm_ret, sm_cov, vec(4), vec::ones(4))
+<markup><b>def</b></markup> cxMvo = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, vec(4), <markup><b><font color="DarkCyan">vec::</font></b></markup>ones(4))
       	  </code>
       	  <para>In this case, removing either <codeInline>sm_cov</codeInline> or <codeInline>sm_ret</codeInline>, would also remove <codeInline>cxMvo</codeInline>.</para>
       	  </content>
@@ -53,7 +53,7 @@
       	  <content>
       	  <para>Let's say we make this definition:</para>
       	  <code language="Austra">
-<markup><b>def</b></markup> extProduct = vec::random(4) ^ vec::random(4)
+<markup><b>def</b></markup> extProduct = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(4) ^ <markup><b><font color="DarkCyan">vec::</font></b></markup>random(4)
       	  </code>
       	  <para>This definition calls twice a class method that creates a random vector. The caret operator, <codeInline>^</codeInline>, combines those two vectors in a 4x4 matrix. Executing this definitions two times in a row gives, as expected, different results:</para>
       	  <code language="Austra">

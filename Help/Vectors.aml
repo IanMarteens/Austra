@@ -47,8 +47,8 @@
 			  </table>
 			  <para>These are the overloads supported by <codeInline>vec::new</codeInline>:</para>
         	  <code language="Austra">
-<markup><font color="DarkGreen">-- Creates a vector with 10 items, all of them zeros.</font></markup>
-vec::new(10);
+<markup><font color="DarkGreen">-- Creates a vector with 10 items, all of them zeros.</font><br/>
+<b><font color="DarkCyan">vec::</font></b></markup>new(10);
 <markup><font color="DarkGreen">-- Remember that ::new can be omitted!</font></markup>
 vec(10);
 <markup><font color="DarkGreen">-- Creates a vector like [1 2 3 4 5 6 7 8 9 10]</font></markup>
@@ -299,7 +299,7 @@ ans ∊ ℝ(3⨯3)
       <content>
 		<para>There's no special syntax for complex vector literals, but complex vectors can be easily created using the <codeInline>cvec::new</codeInline> class method and one or two vector constructors:</para>
         <code language="Austra">
-cvec::new([1 2 3 4], [4 3 2 1]);
+<markup><b><font color="DarkCyan">cvec::</font></b></markup>new([1 2 3 4], [4 3 2 1]);
 <markup><font color="DarkGreen">-- ::new can be omitted.</font></markup>
 cvec([1 2 3 4], [4 3 2 1])
 		</code>
@@ -492,12 +492,12 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 	    </table>
         <para><codeInline>ivec::random</codeInline> has three overloaded variants:</para>
 		<code language="Austra">
-<markup><font color="DarkGreen">-- Ten items. Values between <codeInline>0</codeInline> and <codeInline>int.MaxValue - 1</codeInline>.</font></markup>
-ivec::random(10);
-<markup><font color="DarkGreen">-- Values between <codeInline>0</codeInline> and <codeInline>999</codeInline>.</font></markup>
-ivec::random(10, 1000);
-<markup><font color="DarkGreen">-- Values between <codeInline>-10</codeInline> and <codeInline>9</codeInline>.</font></markup>
-ivec::random(-10, 10)
+<markup><font color="DarkGreen">-- Ten items. Values between <codeInline>0</codeInline> and <codeInline>int.MaxValue - 1</codeInline>.</font><br/>
+<b><font color="DarkCyan">ivec::</font></b></markup>random(10);
+<markup><font color="DarkGreen">-- Values between <codeInline>0</codeInline> and <codeInline>999</codeInline>.</font><br/>
+<b><font color="DarkCyan">ivec::</font></b></markup>random(10, 1000);
+<markup><font color="DarkGreen">-- Values between <codeInline>-10</codeInline> and <codeInline>9</codeInline>.</font><br/>
+<b><font color="DarkCyan">ivec::</font></b></markup>random(-10, 10)
 		</code>
 		<sections>
 		  <section address="ivecprop">
