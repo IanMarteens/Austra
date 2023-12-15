@@ -419,15 +419,15 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 				  <table>
  		  	  		<row>
  		    		  <entry><para><codeInline>all</codeInline></para></entry>
- 		    		  <entry><para>Checks if all items satisfy a lambda predicate. See <see cref="M:Austra.Library.CVector.All(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
+ 		    		  <entry><para>Checks if all items satisfy a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.All(System.Func{System.Numerics.Complex,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>any</codeInline></para></entry>
- 		    		  <entry><para>Checks if exists an item satisfying a lambda predicate. See <see cref="M:Austra.Library.CVector.Any(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
+ 		    		  <entry><para>Checks if exists an item satisfying a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Any(System.Func{System.Numerics.Complex,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>filter</codeInline></para></entry>
- 		    		  <entry><para>Filters items by value. See <see cref="M:Austra.Library.CVector.Filter(System.Func{System.Numerics.Complex,System.Boolean})" />.</para></entry>
+ 		    		  <entry><para>Filters items by value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Filter(System.Func{System.Numerics.Complex,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>find</codeInline></para></entry>
@@ -439,19 +439,19 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>map</codeInline></para></entry>
- 		    		  <entry><para>Pointwise transformation of the items in a vector. See <see cref="M:Austra.Library.CVector.Map(System.Func{System.Numerics.Complex,System.Numerics.Complex})" />.</para></entry>
+ 		    		  <entry><para>Pointwise transformation of the items in a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Map(System.Func{System.Numerics.Complex,System.Numerics.Complex})</codeEntityReference>.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>mapReal</codeInline></para></entry>
- 		    		  <entry><para>Pointwise transformation of the items in a vector. Returns a real vector. See <see cref="M:Austra.Library.CVector.MapReal(System.Func{System.Numerics.Complex,System.Double})" />.</para></entry>
+ 		    		  <entry><para>Pointwise transformation of the items in a vector. Returns a real vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.MapReal(System.Func{System.Numerics.Complex,System.Double})</codeEntityReference>.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>reduce</codeInline></para></entry>
- 		    		  <entry><para>Reduces all items in a vector to a single value. See <see cref="M:Austra.Library.CVector.Reduce(System.Numerics.Complex,System.Func{System.Numerics.Complex,System.Numerics.Complex,System.Numerics.Complex})" />.</para></entry>
+ 		    		  <entry><para>Reduces all items in a vector to a single value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Reduce(System.Numerics.Complex,System.Func{System.Numerics.Complex,System.Numerics.Complex,System.Numerics.Complex})</codeEntityReference>.</para></entry>
 		  	  		</row>
  		  	  		<row>
  		    		  <entry><para><codeInline>zip</codeInline></para></entry>
- 		    		  <entry><para></para>Combines two vectors using a lambda function. See <see cref="M:Austra.Library.CVector.Zip(Austra.Library.CVector,System.Func{System.Numerics.Complex,System.Numerics.Complex,System.Numerics.Complex})" />.</entry>
+ 		    		  <entry><para></para>Combines two vectors using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Zip(Austra.Library.CVector,System.Func{System.Numerics.Complex,System.Numerics.Complex,System.Numerics.Complex})</codeEntityReference>.</entry>
 		  	  		</row>
 				  </table>
 			</content>
