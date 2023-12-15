@@ -92,70 +92,70 @@ The vector is handled as a row vector.</font></markup>
 		<table>
 		  <row>
 	    	<entry><para><codeInline>amax</codeInline></para></entry>
-	    	<entry><para>Gets the absolute maximum. See <see cref="M:Austra.Library.Matrix.AMax" />.</para></entry>
+	    	<entry><para>Gets the absolute maximum. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.AMax</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>amin</codeInline></para></entry>
-	    	<entry><para>Gets the absolute minimum. See <see cref="M:Austra.Library.Matrix.AMin" />.</para></entry>
+	    	<entry><para>Gets the absolute minimum. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.AMin</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>chol</codeInline></para></entry>
-	    	<entry><para>Calculates the Cholesky factorization. See <see cref="M:Austra.Library.Matrix.Cholesky" />.</para></entry>
+	    	<entry><para>Calculates the Cholesky factorization. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Cholesky</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>cols</codeInline></para></entry>
-	    	<entry><para>Gets the number of columns. See <see cref="P:Austra.Library.Matrix.Cols" />.</para></entry>
+	    	<entry><para>Gets the number of columns. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Matrix.Cols</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>det</codeInline></para></entry>
-	    	<entry><para>Calculates the determinant. See <see cref="M:Austra.Library.Matrix.Determinant" />.</para></entry>
+	    	<entry><para>Calculates the determinant. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Determinant</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>diag</codeInline></para></entry>
-	    	<entry><para>Gets the main diagonal as a vector. See <see cref="M:Austra.Library.Matrix.Diagonal" />.</para></entry>
+	    	<entry><para>Gets the main diagonal as a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Diagonal</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>evd</codeInline></para></entry>
-	    	<entry><para>Calculates the EigenValues Decomposition. See <see cref="M:Austra.Library.Matrix.EVD" />.</para></entry>
+	    	<entry><para>Calculates the EigenValues Decomposition. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.EVD</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>inverse</codeInline></para></entry>
-	    	<entry><para>Gets the inverse of this matrix. See <see cref="M:Austra.Library.Matrix.Inverse" />.</para></entry>
+	    	<entry><para>Gets the inverse of this matrix. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Inverse</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>isSymmetric</codeInline></para></entry>
-	    	<entry><para>Verifies if the matrix is a symmetric one. See <see cref="M:Austra.Library.Matrix.IsSymmetric" />.</para></entry>
+	    	<entry><para>Verifies if the matrix is a symmetric one. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.IsSymmetric</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>max</codeInline></para></entry>
-	    	<entry><para>Gets the maximum value from the cells. See <see cref="M:Austra.Library.Matrix.Maximum" />.</para></entry>
+	    	<entry><para>Gets the maximum value from the cells. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Maximum</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>min</codeInline></para></entry>
-	    	<entry><para>Gets the minimum value from the cells. See <see cref="M:Austra.Library.Matrix.Minimum" />.</para></entry>
+	    	<entry><para>Gets the minimum value from the cells. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Minimum</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>rows</codeInline></para></entry>
-	    	<entry><para>Gets the number of rows. See <see cref="P:Austra.Library.Matrix.Rows" />.</para></entry>
+	    	<entry><para>Gets the number of rows. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Matrix.Rows</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>trace</codeInline></para></entry>
-	    	<entry><para>Gets the sum of the main diagonal. See <see cref="M:Austra.Library.Matrix.Trace" />.</para></entry>
+	    	<entry><para>Gets the sum of the main diagonal. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Trace</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>stats</codeInline></para></entry>
-	    	<entry><para>Returns statistics on cells. See <see cref="M:Austra.Library.Matrix.Stats" />.</para></entry>
+	    	<entry><para>Returns statistics on cells. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Stats</codeEntityReference>.</para></entry>
 	  	  </row>
 	  	</table>
 	  	<para>And these are the supported methods:</para>
 		<table>
 		  <row>
 	    	<entry><para><codeInline>all</codeInline></para></entry>
-	    	<entry><para>Checks if all cells satisfy a lambda predicate. See <see cref="M:Austra.Library.Matrix.All(System.Func{System.Double,System.Boolean})" />.</para></entry>
+	    	<entry><para>Checks if all cells satisfy a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.All(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>any</codeInline></para></entry>
-	    	<entry><para>Checks if exists a cell satisfying a lambda predicate. See <see cref="M:Austra.Library.Matrix.Any(System.Func{System.Double,System.Boolean})" />.</para></entry>
+	    	<entry><para>Checks if exists a cell satisfying a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Any(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>getCol</codeInline></para></entry>
@@ -167,7 +167,7 @@ The vector is handled as a row vector.</font></markup>
 	  	  </row>
 		  <row>
 	    	<entry><para><codeInline>map</codeInline></para></entry>
-	    	<entry><para>Creates a new matrix with transformed cells. See <see cref="M:Austra.Library.Matrix.Map(System.Func{System.Double,System.Double})" />.</para></entry>
+	    	<entry><para>Creates a new matrix with transformed cells. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Map(System.Func{System.Double,System.Double})</codeEntityReference>.</para></entry>
 	  	  </row>
 	  	</table>
 	  </content>

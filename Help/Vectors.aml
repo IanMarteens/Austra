@@ -30,7 +30,8 @@
 			  <table>
  		  		<row>
  		    	  <entry><para><codeInline>vec::new</codeInline></para></entry>
- 		    	  <entry><para>Overloaded constructor (see below).</para></entry>
+ 		    	  <entry><para>Overloaded constructor (see <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.#ctor(System.Int32)</codeEntityReference>
+ 		    	  ).</para></entry>
 		  		</row>
  		  		<row>
  		    	  <entry><para><codeInline>vec::ones</codeInline></para></entry>
@@ -73,7 +74,7 @@ vector1 * scalar + vector2;
 scalar * vector1 + vector2;
 scalar1 * vector1 + scalar2 * vector2;
 			  </code>
-			  <para>Both these expressions are reduced to calls to one of the overloads of the method <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.MultiplyAdd(Austra.Library.DVector,Austra.Library.DVector)</codeEntityReference>. These methods are internally optimized to use a single temporary buffer, instead of the two buffers of a naïve implementation, and both of them use FMA fused operations when available. Of course, the method underlying the above presented <codeInline>vec::new</codeInline> constructor is even better optimized and runs several faster than even the optimized versions of lineal composition.</para>
+			  <para>All these expressions are reduced to calls to one of the overloads of either <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.MultiplyAdd(Austra.Library.DVector,Austra.Library.DVector)</codeEntityReference> or <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Combine2(System.Double,System.Double,Austra.Library.DVector,Austra.Library.DVector)</codeEntityReference>. These methods are internally optimized to use a single temporary buffer, instead of the two buffers of a naïve implementation, and both of them use FMA fused operations when available. Of course, the method underlying the above presented <codeInline>vec::new</codeInline> constructor is even better optimized and runs several faster than even the optimized versions of lineal composition.</para>
 		    </content>
 		  </section>
 		  <section>
@@ -83,91 +84,91 @@ scalar1 * vector1 + scalar2 * vector2;
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>abs</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with absolute values. See <see cref="M:Austra.Library.DVector.Abs" />.</para></entry>
+ 		    	<entry><para>Gets a new vector with absolute values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Abs</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>acf</codeInline></para></entry>
- 		    	<entry><para>The AutoCorrelation Function. See <see cref="M:Austra.Library.DVector.ACF" />.</para></entry>
+ 		    	<entry><para>The AutoCorrelation Function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.ACF</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>amax</codeInline></para></entry>
- 		    	<entry><para>Gets the maximum of the absolute values. See <see cref="M:Austra.Library.DVector.AMax" />.</para></entry>
+ 		    	<entry><para>Gets the maximum of the absolute values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.AMax</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>amin</codeInline></para></entry>
- 		    	<entry><para>Gets the minimum of the absolute values. See <see cref="M:Austra.Library.DVector.AMin" />.</para></entry>
+ 		    	<entry><para>Gets the minimum of the absolute values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.AMin</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>distinct</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with the unique values from the original one. See <see cref="M:Austra.Library.DVector.Distinct" />.</para></entry>
+ 		    	<entry><para>Gets a new vector with the unique values from the original one. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Distinct</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>fft</codeInline></para></entry>
- 		    	<entry><para>Gets the Fast Fourier Transform of the values. See <see cref="M:Austra.Library.DVector.Fft" />.</para></entry>
+ 		    	<entry><para>Gets the Fast Fourier Transform of the values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Fft</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>first</codeInline></para></entry>
- 		    	<entry><para>Gets the first item in the vector. See <see cref="P:Austra.Library.DVector.First" />.</para></entry>
+ 		    	<entry><para>Gets the first item in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.DVector.First</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>last</codeInline></para></entry>
- 		    	<entry><para>Gets the last item in the vector. See <see cref="P:Austra.Library.DVector.Last" />.</para></entry>
+ 		    	<entry><para>Gets the last item in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.DVector.Last</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>length</codeInline></para></entry>
- 		    	<entry><para>Gets the number of values in the vector. See <see cref="P:Austra.Library.DVector.Length" />.</para></entry>
+ 		    	<entry><para>Gets the number of values in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.DVector.Length</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>max</codeInline></para></entry>
- 		    	<entry><para>Get the maximum value from the vector. See <see cref="M:Austra.Library.DVector.Maximum" />.</para></entry>
+ 		    	<entry><para>Get the maximum value from the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Maximum</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>mean</codeInline></para></entry>
- 		    	<entry><para>Gets the average of the values in the vector. See <see cref="M:Austra.Library.DVector.Mean" />.</para></entry>
+ 		    	<entry><para>Gets the average of the values in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Mean</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>min</codeInline></para></entry>
- 		    	<entry><para>Get the minimum value from the vector. See <see cref="M:Austra.Library.DVector.Minimum" />.</para></entry>
+ 		    	<entry><para>Get the minimum value from the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Minimum</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>norm</codeInline></para></entry>
- 		    	<entry><para></para>Gets the Pythagorean norm of the vector. See <see cref="M:Austra.Library.DVector.Norm" />.</entry>
+ 		    	<entry><para></para>Gets the Pythagorean norm of the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Norm</codeEntityReference>.</entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>plot</codeInline></para></entry>
- 		    	<entry><para>Shows the vector in a chart. See <see cref="M:Austra.Library.DVector.Plot" />.</para></entry>
+ 		    	<entry><para>Shows the vector in a chart. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Plot</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>prod</codeInline></para></entry>
- 		    	<entry><para>Multiplies all items in the vector. See <see cref="M:Austra.Library.DVector.Product" />.</para></entry>
+ 		    	<entry><para>Multiplies all items in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Product</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>reverse</codeInline></para></entry>
- 		    	<entry><para>Creates a new vector with items in reverse order. See <see cref="M:Austra.Library.DVector.Reverse" />.</para></entry>
+ 		    	<entry><para>Creates a new vector with items in reverse order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Reverse</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sort</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with its items sorted. See <see cref="M:Austra.Library.DVector.Sort" />.</para></entry>
+ 		    	<entry><para>Gets a new vector with its items sorted. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Sort</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sortDescending</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with its items sorted in descending order. See <see cref="M:Austra.Library.DVector.SortDescending" />.</para></entry>
+ 		    	<entry><para>Gets a new vector with its items sorted in descending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.SortDescending</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sqr</codeInline></para></entry>
- 		    	<entry><para>Gets the scalar product of the vector with itself. See <see cref="M:Austra.Library.DVector.Squared" />.</para></entry>
+ 		    	<entry><para>Gets the scalar product of the vector with itself. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Squared</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sqrt</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with the square root of each item. See <see cref="M:Austra.Library.DVector.Sqrt" />.</para></entry>
+ 		    	<entry><para>Gets a new vector with the square root of each item. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Sqrt</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>stats</codeInline></para></entry>
- 		    	<entry><para>Gets all statistics in one call. See <see cref="M:Austra.Library.DVector.Stats" />.</para></entry>
+ 		    	<entry><para>Gets all statistics in one call. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Stats</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sum</codeInline></para></entry>
- 		    	<entry><para>Gets the sum of all values. See <see cref="M:Austra.Library.DVector.Sum" />.</para></entry>
+ 		    	<entry><para>Gets the sum of all values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Sum</codeEntityReference>.</para></entry>
 		  	  </row>
 			</table>
 			</content>
@@ -179,31 +180,31 @@ scalar1 * vector1 + scalar2 * vector2;
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>all</codeInline></para></entry>
- 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <see cref="M:Austra.Library.DVector.All(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.All(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>any</codeInline></para></entry>
- 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <see cref="M:Austra.Library.DVector.Any(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Any(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ar</codeInline></para></entry>
- 		    	<entry><para>Gets the autoregression coefficients for a given <codeInline>p</codeInline>. See <see cref="M:Austra.Library.DVector.AutoRegression(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Gets the autoregression coefficients for a given <codeInline>p</codeInline>. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.AutoRegression(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>arModel</codeInline></para></entry>
- 		    	<entry><para>Creates a full AR(p) model. See <see cref="M:Austra.Library.DVector.ARModel(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Creates a full AR(p) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.ARModel(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>autocorr</codeInline></para></entry>
- 		    	<entry><para>Gets the autocorrelation given a lag. See <see cref="M:Austra.Library.DVector.AutoCorrelation(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Gets the autocorrelation given a lag. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.AutoCorrelation(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>correlogram</codeInline></para></entry>
- 		    	<entry><para>Gets all autocorrelations up to a given lag. See <see cref="M:Austra.Library.DVector.Correlogram(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Gets all autocorrelations up to a given lag. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Correlogram(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>filter</codeInline></para></entry>
- 		    	<entry><para>Filters items by value. See <see cref="M:Austra.Library.DVector.Filter(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Filters items by value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Filter(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>find</codeInline></para></entry>
@@ -215,31 +216,31 @@ scalar1 * vector1 + scalar2 * vector2;
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linear</codeInline></para></entry>
- 		    	<entry><para>Gets the regression coefficients given a list of vectors. See <see cref="M:Austra.Library.DVector.LinearModel(Austra.Library.DVector[])" />.</para></entry>
+ 		    	<entry><para>Gets the regression coefficients given a list of vectors. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.LinearModel(Austra.Library.DVector[])</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linearModel</codeInline></para></entry>
- 		    	<entry><para>Creates a full linear model from a list of vectors. See <see cref="M:Austra.Library.DVector.FullLinearModel(Austra.Library.DVector[])" />.</para></entry>
+ 		    	<entry><para>Creates a full linear model from a list of vectors. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.FullLinearModel(Austra.Library.DVector[])</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ma</codeInline></para></entry>
- 		    	<entry><para>Estimates coefficients for an MA(q) model. See <see cref="M:Austra.Library.DVector.MovingAverage(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Estimates coefficients for an MA(q) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.MovingAverage(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>maModel</codeInline></para></entry>
- 		    	<entry><para>Creates a full MA(q) model. See <see cref="M:Austra.Library.DVector.MAModel(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Creates a full MA(q) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.MAModel(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>map</codeInline></para></entry>
- 		    	<entry><para>Pointwise transformation of the items in a vector. See <see cref="M:Austra.Library.DVector.Map(System.Func{System.Double,System.Double})" />.</para></entry>
+ 		    	<entry><para>Pointwise transformation of the items in a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Map(System.Func{System.Double,System.Double})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>reduce</codeInline></para></entry>
- 		    	<entry><para>Reduces all items in a vector to a single value. See <see cref="M:Austra.Library.DVector.Reduce(System.Double,System.Func{System.Double,System.Double,System.Double})" />.</para></entry>
+ 		    	<entry><para>Reduces all items in a vector to a single value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Reduce(System.Double,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>zip</codeInline></para></entry>
- 		    	<entry><para></para>Combines two vectors using a lambda function. See <see cref="M:Austra.Library.DVector.Zip(Austra.Library.DVector,System.Func{System.Double,System.Double,System.Double})" />.</entry>
+ 		    	<entry><para></para>Combines two vectors using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Zip(Austra.Library.DVector,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>.</entry>
 		  	  </row>
 			</table>
 			</content>
@@ -339,75 +340,75 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>amax</codeInline></para></entry>
- 		    	<entry><para>Gets the maximum of the absolute values. See <see cref="M:Austra.Library.CVector.AbsMax" />.</para></entry>
+ 		    	<entry><para>Gets the maximum of the absolute values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.AbsMax</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>amin</codeInline></para></entry>
- 		    	<entry><para>Gets the minimum of the absolute values. See <see cref="M:Austra.Library.CVector.AbsMin" />.</para></entry>
+ 		    	<entry><para>Gets the minimum of the absolute values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.AbsMin</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>distinct</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with the unique values from the original one. See <see cref="M:Austra.Library.CVector.Distinct" />.</para></entry>
+ 		    	<entry><para>Gets a new vector with the unique values from the original one. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Distinct</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>fft</codeInline></para></entry>
- 		    	<entry><para>Gets the Fast Fourier Transform of the values. See <see cref="M:Austra.Library.CVector.Fft" />.</para></entry>
+ 		    	<entry><para>Gets the Fast Fourier Transform of the values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Fft</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>first</codeInline></para></entry>
- 		    	<entry><para>Gets the first item in the vector. See <see cref="P:Austra.Library.CVector.First" />.</para></entry>
+ 		    	<entry><para>Gets the first item in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.CVector.First</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>imag</codeInline></para></entry>
- 		    	<entry><para>Gets the imaginary components as a vector. See <see cref="P:Austra.Library.CVector.Imaginary" />.</para></entry>
+ 		    	<entry><para>Gets the imaginary components as a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.CVector.Imaginary</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>last</codeInline></para></entry>
- 		    	<entry><para>Gets the last item in the vector. See <see cref="P:Austra.Library.CVector.Last" />.</para></entry>
+ 		    	<entry><para>Gets the last item in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.CVector.Last</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>length</codeInline></para></entry>
- 		    	<entry><para>Gets the number of values in the vector. See <see cref="P:Austra.Library.CVector.Length" />.</para></entry>
+ 		    	<entry><para>Gets the number of values in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.CVector.Length</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>magnitudes</codeInline></para></entry>
- 		    	<entry><para>Gets magnitudes as a vector. See <see cref="M:Austra.Library.CVector.Magnitudes" />.</para></entry>
+ 		    	<entry><para>Gets magnitudes as a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Magnitudes</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>mean</codeInline></para></entry>
- 		    	<entry><para>Gets the average of the values in the vector. See <see cref="M:Austra.Library.CVector.Mean" />.</para></entry>
+ 		    	<entry><para>Gets the average of the values in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Mean</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>norm</codeInline></para></entry>
- 		    	<entry><para></para>Gets the Pythagorean norm of the vector. See <see cref="M:Austra.Library.CVector.Norm" />.</entry>
+ 		    	<entry><para></para>Gets the Pythagorean norm of the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Norm</codeEntityReference>.</entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>phases</codeInline></para></entry>
- 		    	<entry><para></para>Gets phases as a vector. See <see cref="M:Austra.Library.CVector.Phases" />.</entry>
+ 		    	<entry><para></para>Gets phases as a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Phases</codeEntityReference>.</entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>plot</codeInline></para></entry>
- 		    	<entry><para>Shows the vector in a chart. See <see cref="M:Austra.Library.CVector.Plot" />.</para></entry>
+ 		    	<entry><para>Shows the vector in a chart. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Plot</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>prod</codeInline></para></entry>
- 		    	<entry><para>Multiplies all items in the vector. See <see cref="M:Austra.Library.CVector.Product" />.</para></entry>
+ 		    	<entry><para>Multiplies all items in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Product</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>real</codeInline></para></entry>
- 		    	<entry><para>Gets the real components as a vector. See <see cref="P:Austra.Library.CVector.Real" />.</para></entry>
+ 		    	<entry><para>Gets the real components as a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.CVector.Real</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>reverse</codeInline></para></entry>
- 		    	<entry><para>Creates a new vector with items in reverse order. See <see cref="M:Austra.Library.CVector.Reverse" />.</para></entry>
+ 		    	<entry><para>Creates a new vector with items in reverse order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Reverse</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sqr</codeInline></para></entry>
- 		    	<entry><para>Gets the scalar product of the vector with itself. See <see cref="M:Austra.Library.CVector.Squared" />.</para></entry>
+ 		    	<entry><para>Gets the scalar product of the vector with itself. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Squared</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sum</codeInline></para></entry>
- 		    	<entry><para>Gets the sum of all values. See <see cref="M:Austra.Library.CVector.Sum" />.</para></entry>
+ 		    	<entry><para>Gets the sum of all values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CVector.Sum</codeEntityReference>.</para></entry>
 		  	  </row>
 			</table>
 			</content>
@@ -507,59 +508,59 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>abs</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with absolute values. See <see cref="M:Austra.Library.NVector.Abs" />.</para></entry>
+ 		    	<entry><para>Gets a new vector with absolute values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Abs</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>distinct</codeInline></para></entry>
- 		    	<entry><para>Gets a new vector with the unique values from the original one. See <see cref="M:Austra.Library.NVector.Distinct" />.</para></entry>
+ 		    	<entry><para>Gets a new vector with the unique values from the original one. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Distinct</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>first</codeInline></para></entry>
- 		    	<entry><para>Gets the first item in the vector. See <see cref="P:Austra.Library.NVector.First" />.</para></entry>
+ 		    	<entry><para>Gets the first item in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.NVector.First</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>last</codeInline></para></entry>
- 		    	<entry><para>Gets the last item in the vector. See <see cref="P:Austra.Library.NVector.Last" />.</para></entry>
+ 		    	<entry><para>Gets the last item in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.NVector.Last</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>length</codeInline></para></entry>
- 		    	<entry><para>Gets the number of values in the vector. See <see cref="P:Austra.Library.NVector.Length" />.</para></entry>
+ 		    	<entry><para>Gets the number of values in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.NVector.Length</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>max</codeInline></para></entry>
- 		    	<entry><para>Gets the maximum value from the vector. See <see cref="M:Austra.Library.NVector.Maximum" />.</para></entry>
+ 		    	<entry><para>Gets the maximum value from the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Maximum</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>min</codeInline></para></entry>
- 		    	<entry><para>Gets the minimum values from the vector. See <see cref="M:Austra.Library.NVector.Minimum" />.</para></entry>
+ 		    	<entry><para>Gets the minimum values from the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Minimum</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>prod</codeInline></para></entry>
- 		    	<entry><para>Multiplies all items in the vector. See <see cref="M:Austra.Library.NVector.Product" />.</para></entry>
+ 		    	<entry><para>Multiplies all items in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Product</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>reverse</codeInline></para></entry>
- 		    	<entry><para>Creates a new vector with items in reverse order. See <see cref="M:Austra.Library.NVector.Reverse" />.</para></entry>
+ 		    	<entry><para>Creates a new vector with items in reverse order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Reverse</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sort</codeInline></para></entry>
- 		    	<entry><para>Sorts the vector in ascending order. See <see cref="M:Austra.Library.NVector.Sort" />.</para></entry>
+ 		    	<entry><para>Sorts the vector in ascending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Sort</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sortDesc</codeInline></para></entry>
- 		    	<entry><para>Sorts the vector in descending order. See <see cref="M:Austra.Library.NVector.SortDescending" />.</para></entry>
+ 		    	<entry><para>Sorts the vector in descending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.SortDescending</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>stats</codeInline></para></entry>
- 		    	<entry><para>Gets all statistics in one call. See <see cref="M:Austra.Library.NVector.Stats" />.</para></entry>
+ 		    	<entry><para>Gets all statistics in one call. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Stats</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sum</codeInline></para></entry>
- 		    	<entry><para>Gets the sum of all values. See <see cref="M:Austra.Library.NVector.Sum" />.</para></entry>
+ 		    	<entry><para>Gets the sum of all values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Sum</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>toVector</codeInline></para></entry>
- 		    	<entry><para>Converts the integer vector into a double vector. See <see cref="M:Austra.Library.NVector.ToVector" />.</para></entry>
+ 		    	<entry><para>Converts the integer vector into a double vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.ToVector</codeEntityReference>.</para></entry>
 		  	  </row>
 			</table>
 			</content>
@@ -571,31 +572,31 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>all</codeInline></para></entry>
- 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <see cref="M:Austra.Library.NVector.All(System.Func{System.Int32,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.All(System.Func{System.Int32,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>any</codeInline></para></entry>
- 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <see cref="M:Austra.Library.NVector.Any(System.Func{System.Int32,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Any(System.Func{System.Int32,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>filter</codeInline></para></entry>
- 		    	<entry><para>Filters items by value. See <see cref="M:Austra.Library.NVector.Filter(System.Func{System.Int32,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Filters items by value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Filter(System.Func{System.Int32,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>map</codeInline></para></entry>
- 		    	<entry><para>Pointwise transformation of the items in another integer vector. See <see cref="M:Austra.Library.NVector.Map(System.Func{System.Int32,System.Int32})" />.</para></entry>
+ 		    	<entry><para>Pointwise transformation of the items in another integer vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Map(System.Func{System.Int32,System.Int32})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>mapReal</codeInline></para></entry>
- 		    	<entry><para>Pointwise transformation of the items into a real vector. See <see cref="M:Austra.Library.NVector.MapReal(System.Func{System.Int32,System.Double})" />.</para></entry>
+ 		    	<entry><para>Pointwise transformation of the items into a real vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.MapReal(System.Func{System.Int32,System.Double})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>reduce</codeInline></para></entry>
- 		    	<entry><para>Reduces all items in a vector to a single integer value. See <see cref="M:Austra.Library.NVector.Reduce(System.Int32,System.Func{System.Int32,System.Int32,System.Int32})" />.</para></entry>
+ 		    	<entry><para>Reduces all items in a vector to a single integer value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Reduce(System.Int32,System.Func{System.Int32,System.Int32,System.Int32})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>zip</codeInline></para></entry>
- 		    	<entry><para></para>Combines two integer vectors using a lambda function. See <see cref="M:Austra.Library.NVector.Zip(Austra.Library.NVector,System.Func{System.Int32,System.Int32,System.Int32})" />.</entry>
+ 		    	<entry><para></para>Combines two integer vectors using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NVector.Zip(Austra.Library.NVector,System.Func{System.Int32,System.Int32,System.Int32})</codeEntityReference>.</entry>
 		  	  </row>
 			</table>
 			</content>

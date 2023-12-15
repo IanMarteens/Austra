@@ -50,7 +50,7 @@ and still, it could be interesting to mix them.</para>
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>series::new</codeInline></para></entry>
- 		    	<entry><para>Creates a linear combination of series.</para></entry>
+ 		    	<entry><para>Creates a linear combination of series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.Combine(Austra.Library.DVector,Austra.Library.Series[])</codeEntityReference>.</para></entry>
 		  	  </row>
 			</table>
 			<para>The first parameter of <codeInline>series::new</codeInline> must be a vector of weights, and from that point on, a list of series must be included. This class method creates a linear combination of series. The length of the weights
@@ -75,123 +75,123 @@ series([0.5, 0.1, 0.9], aapl, msft);
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>acf</codeInline></para></entry>
- 		    	<entry><para>The AutoCorrelation Function. See <see cref="M:Austra.Library.Series`1.ACF" />.</para></entry>
+ 		    	<entry><para>The AutoCorrelation Function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.ACF</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>amax</codeInline></para></entry>
- 		    	<entry><para>Gets the maximum of the absolute values. See <see cref="M:Austra.Library.Series`1.AbsMax" />.</para></entry>
+ 		    	<entry><para>Gets the maximum of the absolute values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.AbsMax</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>amin</codeInline></para></entry>
- 		    	<entry><para>Gets the minimum of the absolute values. See <see cref="M:Austra.Library.Series`1.AbsMin" />.</para></entry>
+ 		    	<entry><para>Gets the minimum of the absolute values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.AbsMin</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>count</codeInline></para></entry>
- 		    	<entry><para>Gets the number of values in the series. See <see cref="P:Austra.Library.Series`1.Count" />.</para></entry>
+ 		    	<entry><para>Gets the number of values in the series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Count</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>fft</codeInline></para></entry>
- 		    	<entry><para>Gets the Fast Fourier Transform of the values. See <see cref="M:Austra.Library.Series`1.Fft" />.</para></entry>
+ 		    	<entry><para>Gets the Fast Fourier Transform of the values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.Fft</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>first</codeInline></para></entry>
- 		    	<entry><para>Gets the first point in the series (the oldest one). See <see cref="P:Austra.Library.Series`1.First" />.</para></entry>
+ 		    	<entry><para>Gets the first point in the series (the oldest one). See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.First</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>fit</codeInline></para></entry>
- 		    	<entry><para>Gets a vector with two coefficients for a linear fit. See <see cref="M:Austra.Library.Series.Fit" />.</para></entry>
+ 		    	<entry><para>Gets a vector with two coefficients for a linear fit. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.Fit</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>kurt</codeInline></para></entry>
- 		    	<entry><para>Get the kurtosis. See <see cref="P:Austra.Library.Series`1.Kurtosis" />.</para></entry>
+ 		    	<entry><para>Get the kurtosis. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Kurtosis</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>kurtp</codeInline></para></entry>
- 		    	<entry><para>Get the kurtosis of the population. See <see cref="P:Austra.Library.Series`1.PopulationKurtosis" />.</para></entry>
+ 		    	<entry><para>Get the kurtosis of the population. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.PopulationKurtosis</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>last</codeInline></para></entry>
- 		    	<entry><para>Gets the last point in the series (the newest one). See <see cref="P:Austra.Library.Series`1.Last" />.</para></entry>
+ 		    	<entry><para>Gets the last point in the series (the newest one). See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Last</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linearFit</codeInline></para></entry>
- 		    	<entry><para>Gets a line fitting the original series. See <see cref="M:Austra.Library.Series.LinearFit" />.</para></entry>
+ 		    	<entry><para>Gets a line fitting the original series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.LinearFit</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>logs</codeInline></para></entry>
- 		    	<entry><para>Gets the logarithmic returns. See <see cref="M:Austra.Library.Series.AsLogReturns" />.</para></entry>
+ 		    	<entry><para>Gets the logarithmic returns. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.AsLogReturns</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>max</codeInline></para></entry>
- 		    	<entry><para>Get the maximum value from the series. See <see cref="P:Austra.Library.Series`1.Maximum" />.</para></entry>
+ 		    	<entry><para>Get the maximum value from the series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Maximum</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>mean</codeInline></para></entry>
- 		    	<entry><para>Gets the average of the values. See <see cref="P:Austra.Library.Series`1.Mean" />.</para></entry>
+ 		    	<entry><para>Gets the average of the values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Mean</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>min</codeInline></para></entry>
- 		    	<entry><para>Get the minimum value from the series. See <see cref="P:Austra.Library.Series`1.Minimum" />.</para></entry>
+ 		    	<entry><para>Get the minimum value from the series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Minimum</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>movingRet</codeInline></para></entry>
- 		    	<entry><para></para>Gets the moving monthly/yearly return. See <see cref="M:Austra.Library.Series.MovingRet" />.</entry>
+ 		    	<entry><para></para>Gets the moving monthly/yearly return. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.MovingRet</codeEntityReference>.</entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ncdf</codeInline></para></entry>
- 		    	<entry><para>Gets the percentile of the last value. See <see cref="M:Austra.Library.Series`1.NCdf" />.</para></entry>
+ 		    	<entry><para>Gets the percentile of the last value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.NCdf</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>perc</codeInline></para></entry>
- 		    	<entry><para>Gets the percentiles of the series. See <see cref="M:Austra.Library.Series`1.Percentiles" />.</para></entry>
+ 		    	<entry><para>Gets the percentiles of the series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.Percentiles</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>random</codeInline></para></entry>
- 		    	<entry><para>Creates a random series from a normal distribution. See <see cref="M:Austra.Library.Series.Random" />.</para></entry>
+ 		    	<entry><para>Creates a random series from a normal distribution. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.Random</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>rets</codeInline></para></entry>
- 		    	<entry><para>Gets the linear returns. See <see cref="M:Austra.Library.Series.AsReturns" />.</para></entry>
+ 		    	<entry><para>Gets the linear returns. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.AsReturns</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>skew</codeInline></para></entry>
- 		    	<entry><para>Gets the skewness. See <see cref="P:Austra.Library.Series`1.Skewness" />.</para></entry>
+ 		    	<entry><para>Gets the skewness. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Skewness</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>skewp</codeInline></para></entry>
- 		    	<entry><para>Gets the skewness of the population. See <see cref="P:Austra.Library.Series`1.PopulationSkewness" />.</para></entry>
+ 		    	<entry><para>Gets the skewness of the population. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.PopulationSkewness</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>stats</codeInline></para></entry>
- 		    	<entry><para>Gets all statistics in one call. See <see cref="P:Austra.Library.Series`1.Stats" />.</para></entry>
+ 		    	<entry><para>Gets all statistics in one call. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Stats</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>std</codeInline></para></entry>
- 		    	<entry><para>Gets the standard deviation. See <see cref="P:Austra.Library.Series`1.StandardDeviation" />.</para></entry>
+ 		    	<entry><para>Gets the standard deviation. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.StandardDeviation</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>stdp</codeInline></para></entry>
- 		    	<entry><para>Gets the standard deviation of the population. See <see cref="P:Austra.Library.Series`1.PopulationStandardDeviation" />.</para></entry>
+ 		    	<entry><para>Gets the standard deviation of the population. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.PopulationStandardDeviation</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>sum</codeInline></para></entry>
- 		    	<entry><para>Gets the sum of all values. See <see cref="M:Austra.Library.Series`1.Sum" />.</para></entry>
+ 		    	<entry><para>Gets the sum of all values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.Sum</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>type</codeInline></para></entry>
- 		    	<entry><para>Gets the type of the series. See <see cref="P:Austra.Library.Series`1.Type" />.</para></entry>
+ 		    	<entry><para>Gets the type of the series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Type</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>var</codeInline></para></entry>
- 		    	<entry><para>Gets the variance. See <see cref="P:Austra.Library.Series`1.Variance" />.</para></entry>
+ 		    	<entry><para>Gets the variance. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Variance</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>varp</codeInline></para></entry>
- 		    	<entry><para>Gets the variance of the population. See <see cref="P:Austra.Library.Series`1.PopulationVariance" />.</para></entry>
+ 		    	<entry><para>Gets the variance of the population. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.PopulationVariance</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>values</codeInline></para></entry>
- 		    	<entry><para>Gets the underlying vector of values. See <see cref="P:Austra.Library.Series`1.Values" />.</para></entry>
+ 		    	<entry><para>Gets the underlying vector of values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Series`1.Values</codeEntityReference>.</para></entry>
 		  	  </row>
 			</table>
           </content>
@@ -203,91 +203,91 @@ series([0.5, 0.1, 0.9], aapl, msft);
 			<table>
  		  	  <row>
  		    	<entry><para><codeInline>all</codeInline></para></entry>
- 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <see cref="M:Austra.Library.Series.All(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.All(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>any</codeInline></para></entry>
- 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <see cref="M:Austra.Library.Series.Any(System.Func{System.Double,System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.Any(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ar</codeInline></para></entry>
- 		    	<entry><para>Calculates the autoregression coefficients for a given order. See <see cref="M:Austra.Library.Series`1.AutoRegression(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Calculates the autoregression coefficients for a given order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.AutoRegression(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>arModel</codeInline></para></entry>
- 		    	<entry><para>Creates a full AR(p) model. See <see cref="M:Austra.Library.Series.ARModel(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Creates a full AR(p) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.ARModel(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>autocorr</codeInline></para></entry>
- 		    	<entry><para>Gets the autocorrelation given a lag. See <see cref="M:Austra.Library.Series`1.AutoCorrelation(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Gets the autocorrelation given a lag. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.AutoCorrelation(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>corr</codeInline></para></entry>
- 		    	<entry><para>Gets the correlation with a series given as a parameter. See <see cref="M:Austra.Library.Series`1.Correlation(Austra.Library.Series{`0})" />.</para></entry>
+ 		    	<entry><para>Gets the correlation with a series given as a parameter. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.Correlation(Austra.Library.Series{`0})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>correlogram</codeInline></para></entry>
- 		    	<entry><para>Gets all autocorrelations up to a given lag. See <see cref="M:Austra.Library.Series`1.Correlogram(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Gets all autocorrelations up to a given lag. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.Correlogram(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>cov</codeInline></para></entry>
- 		    	<entry><para>Gets the covariance with another given series. See <see cref="M:Austra.Library.Series`1.Covariance(Austra.Library.Series{`0})" />.</para></entry>
+ 		    	<entry><para>Gets the covariance with another given series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.Covariance(Austra.Library.Series{`0})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ewma</codeInline></para></entry>
- 		    	<entry><para>Calculates an Exponentially Weighted Moving Average. See <see cref="M:Austra.Library.Series.EWMA(System.Double)" />.</para></entry>
+ 		    	<entry><para>Calculates an Exponentially Weighted Moving Average. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.EWMA(System.Double)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>filter</codeInline></para></entry>
- 		    	<entry><para>Filters points by values or dates. See <see cref="M:Austra.Library.Series.Filter(System.Func{Austra.Library.Point{Austra.Library.Dates.Date},System.Boolean})" />.</para></entry>
+ 		    	<entry><para>Filters points by values or dates. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.Filter(System.Func{Austra.Library.Point{Austra.Library.Dates.Date},System.Boolean})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>indexOf</codeInline></para></entry>
- 		    	<entry><para>Returns the index where a value is stored. See <see cref="M:Austra.Library.Series`1.IndexOf(System.Double)" />.</para></entry>
+ 		    	<entry><para>Returns the index where a value is stored. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.IndexOf(System.Double)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linear</codeInline></para></entry>
- 		    	<entry><para>Gets the regression coefficients given a list of series. See <see cref="M:Austra.Library.Series`1.LinearModel(Austra.Library.Series[])" />.</para></entry>
+ 		    	<entry><para>Gets the regression coefficients given a list of series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.LinearModel(Austra.Library.Series[])</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>linearModel</codeInline></para></entry>
- 		    	<entry><para>Creates a full linear model given a list of series. See <see cref="M:Austra.Library.Series.FullLinearModel(Austra.Library.Series[])" />.</para></entry>
+ 		    	<entry><para>Creates a full linear model given a list of series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.FullLinearModel(Austra.Library.Series[])</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ma</codeInline></para></entry>
- 		    	<entry><para>Calculates the moving average coefficients for a given order. See <see cref="M:Austra.Library.Series`1.MovingAverage(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Calculates the moving average coefficients for a given order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.MovingAverage(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>maModel</codeInline></para></entry>
- 		    	<entry><para>Creates a full MA(q) model. See <see cref="M:Austra.Library.Series.MAModel(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Creates a full MA(q) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.MAModel(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>map</codeInline></para></entry>
- 		    	<entry><para>Pointwise transformation of the series with a lambda. See <see cref="M:Austra.Library.Series.Map(System.Func{System.Double,System.Double})" />.</para></entry>
+ 		    	<entry><para>Pointwise transformation of the series with a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.Map(System.Func{System.Double,System.Double})</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>movingAvg</codeInline></para></entry>
- 		    	<entry><para>Calculates a Simple Moving Average. See <see cref="M:Austra.Library.Series.MovingAvg(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Calculates a Simple Moving Average. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.MovingAvg(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>movingNcdf</codeInline></para></entry>
- 		    	<entry><para>Calculates a Moving Normal Percentile. See <see cref="M:Austra.Library.Series.MovingNcdf(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Calculates a Moving Normal Percentile. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.MovingNcdf(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>movingStd</codeInline></para></entry>
- 		    	<entry><para>Calculates a Moving Standard Deviation. See <see cref="M:Austra.Library.Series.MovingStd(System.Int32)" />.</para></entry>
+ 		    	<entry><para>Calculates a Moving Standard Deviation. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.MovingStd(System.Int32)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>ncdf</codeInline></para></entry>
- 		    	<entry><para>Gets the normal percentil for a given value. See <see cref="M:Austra.Library.Series`1.NCdf(System.Double)" />.</para></entry>
+ 		    	<entry><para>Gets the normal percentil for a given value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series`1.NCdf(System.Double)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>stats</codeInline></para></entry>
- 		    	<entry><para>Gets monthly statistics for a given date. See <see cref="M:Austra.Library.Series.GetSliceStats(Austra.Library.Dates.Date)" />.</para></entry>
+ 		    	<entry><para>Gets monthly statistics for a given date. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.GetSliceStats(Austra.Library.Dates.Date)</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
  		    	<entry><para><codeInline>zip</codeInline></para></entry>
- 		    	<entry><para>Combines two series using a lambda function. See <see cref="M:Austra.Library.Series.Zip(Austra.Library.Series,System.Func{System.Double,System.Double,System.Double})" />.</para></entry>
+ 		    	<entry><para>Combines two series using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.Zip(Austra.Library.Series,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>.</para></entry>
 		  	  </row>
 			</table>
           </content>
