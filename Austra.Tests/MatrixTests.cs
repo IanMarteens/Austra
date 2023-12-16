@@ -144,7 +144,7 @@ public class MatrixTests
     {
         RMatrix m = new RMatrix(size, new Random()) + RMatrix.Identity(size) * 0.1;
         DVector v = new(size, new NormalRandom());
-        DVector x = m / v;
+        DVector x = m.Solve(v);
         Assert.That((m * x - v).AMax(), Is.LessThanOrEqualTo(2E-6));
     }
 

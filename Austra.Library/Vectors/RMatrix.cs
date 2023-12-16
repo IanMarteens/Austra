@@ -365,19 +365,19 @@ public readonly struct RMatrix :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RMatrix operator *(double d, RMatrix m) => m * d;
 
-    /// <summary>Solves the equation m1*x = m2 for the matrix x.</summary>
-    /// <param name="m1">The matrix at the left side.</param>
-    /// <param name="m2">The matrix at the right side.</param>
+    /// <summary>Solves the equation m2*x = m1 for the matrix x.</summary>
+    /// <param name="m1">The matrix at the right side.</param>
+    /// <param name="m2">The matrix at the left side.</param>
     /// <returns>The solving matrix.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Matrix operator /(RMatrix m1, Matrix m2) => ((Matrix)m1).Solve(m2);
+    public static Matrix operator /(Matrix m1, RMatrix m2) => ((Matrix)m2).Solve(m1);
 
     /// <summary>Solves the equation m*x = v for the vector x.</summary>
-    /// <param name="m">The matrix at the left side.</param>
     /// <param name="v">The vector at the right side.</param>
+    /// <param name="m">The matrix at the left side.</param>
     /// <returns>The solving vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DVector operator /(RMatrix m, DVector v) => m.Solve(v);
+    public static DVector operator /(DVector v, RMatrix m) => m.Solve(v);
 
     /// <summary>Divides a matrix by a scalar value.</summary>
     /// <param name="m">Matrix to be multiplied.</param>
@@ -539,9 +539,9 @@ public readonly struct RMatrix :
             pA = ref Subtract(ref pA, size + 1);
             pV = ref Subtract(ref pV, 1);
             pR = ref Subtract(ref pR, 1);
-            double sum = pV - MM.CreateSpan(ref pA, size - i - 1)
+            double sum = pV - MM.CreateSpan(ref Add(ref pA, 1), size - i - 1)
                 .Dot(MM.CreateSpan(ref Add(ref pR, 1), size - i - 1));
-            pR = sum / Add(ref pA, i);
+            pR = sum / pA;
         }
     }
 
