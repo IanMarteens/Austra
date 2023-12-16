@@ -433,6 +433,12 @@ public readonly struct LMatrix :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static LMatrix operator /(LMatrix m, double d) => m * (1.0 / d);
 
+    /// <summary>Multiplies two lower-triangular matrices.</summary>
+    /// <param name="m1">First triangular matrix.</param>
+    /// <param name="m2">Second triangular matrix.</param>
+    /// <returns>The resulting lower-triangular matrix.</returns>
+    public static LMatrix operator *(LMatrix m1, LMatrix m2) => m1 * (Matrix)m2;
+
     /// <summary>Multiplies a lower triangular matrix by a rectangular one.</summary>
     /// <param name="m1">A lower triangular matrix.</param>
     /// <param name="m2">A rectangular matrix.</param>
