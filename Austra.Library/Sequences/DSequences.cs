@@ -43,6 +43,12 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public static DSequence Create(Series series) =>
         new VectorSequence(series);
 
+    /// <summary>Creates a sequence from a matrix.</summary>
+    /// <param name="matrix">A matrix containing the sequence's values.</param>
+    /// <returns>The sequence encapsulating the time series.</returns>
+    public static DSequence Create(Matrix matrix) =>
+        new VectorSequence((double[])matrix);
+
     /// <summary>Creates a sequence from random values.</summary>
     /// <param name="size">The size of the series.</param>
     /// <returns>The sequence encapsulating the time series.</returns>

@@ -408,13 +408,7 @@ internal sealed partial class Parser
                 (Token opMul, int opMPos) = (kind, start);
                 Move();
                 Expression e3 = ParseUnary();
-                if (opMul == Token.Backslash)
-                    e2 = e2.Type != typeof(Matrix)
-                        ? throw Error("First operand must be a matrix", opMPos)
-                        : e3.Type != typeof(DVector) && e3.Type != typeof(Matrix)
-                        ? throw Error("Second operand must be a vector or a matrix", opMPos)
-                        : typeof(Matrix).Call(e2, nameof(Matrix.Solve), e3);
-                else if (opMul == Token.PointTimes || opMul == Token.PointDiv)
+                if (opMul == Token.PointTimes || opMul == Token.PointDiv)
                     e2 = e2.Type == e3.Type && e2.Type.IsAssignableTo(
                             typeof(IPointwiseOperators<>).MakeGenericType(e2.Type))
                         ? e2.Type.Call(e2, opMul == Token.PointTimes

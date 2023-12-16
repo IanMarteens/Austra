@@ -353,6 +353,20 @@ public readonly struct RMatrix :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RMatrix operator *(double d, RMatrix m) => m * d;
 
+    /// <summary>Solves the equation m1*x = m2 for the matrix x.</summary>
+    /// <param name="m1">The matrix at the left side.</param>
+    /// <param name="m2">The matrix at the right side.</param>
+    /// <returns>The solving matrix.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Matrix operator /(RMatrix m1, Matrix m2) => ((Matrix)m1).Solve(m2);
+
+    /// <summary>Solves the equation m*x = v for the vector x.</summary>
+    /// <param name="m">The matrix at the left side.</param>
+    /// <param name="v">The vector at the right side.</param>
+    /// <returns>The solving vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DVector operator /(RMatrix m, DVector v) => ((Matrix)m).Solve(v);
+
     /// <summary>Divides a matrix by a scalar value.</summary>
     /// <param name="m">Matrix to be multiplied.</param>
     /// <param name="d">A scalar multiplicand.</param>
