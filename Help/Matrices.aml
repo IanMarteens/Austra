@@ -204,30 +204,26 @@ The vector is handled as a row vector.</font></markup>
 		  </row>
 		  <row>
 		    <entry><para><codeInline>/</codeInline></para></entry>
-		    <entry><para>Divides a matrix by a scalar.</para></entry>
+		    <entry><para>Divides a matrix by a scalar, but also admits a vector or a matrix as the second operand, for solving linear equations.</para></entry>
 		  </row>
 		  <row>
 		    <entry><para><codeInline>'</codeInline></para></entry>
 		    <entry><para>Unary sufix operator for matrix transpose.</para></entry>
 		  </row>
-		  <row>
-		    <entry><para><codeInline>\</codeInline></para></entry>
-		    <entry><para>Solves a system of linear equations.</para></entry>
-		  </row>
 		</table>
-		<para>This examples shows how to solve linear equations, using a vector as the second operand of the <codeInline>\</codeInline> operator:</para>
+		<para>This examples shows how to solve linear equations, using a vector as the second operand of the <codeInline>/</codeInline> operator:</para>
 		<code language="Austra">
 <markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(5) + 0.01,
     v = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(5),
-    answer = m \ v <markup><b>in</b></markup>
+    answer = m / v <markup><b>in</b></markup>
     m * answer - v
 		</code>
-		<para>The second operand of <codeInline>\</codeInline> may also be a matrix:</para>
+		<para>The second operand of <codeInline>/</codeInline> may also be a matrix:</para>
 		<code language="Austra">
 <markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(5) + 1;
-m \ <markup><b><font color="DarkCyan">matrix::</font></b></markup>eye(5) - m.inverse
+m / <markup><b><font color="DarkCyan">matrix::</font></b></markup>eye(5) - m.inverse
 		</code>
-		<para>Internally, the LU factorization of the matrix is used for equation solving.</para>
+		<para>Internally, the LU factorization of the matrix is used for equation solving, for the general case. When the matrix at the left is a triangular matrix, a most efficient algorithm is used.</para>
       </content>
     </section>
     <section address="MatrixIndexes">

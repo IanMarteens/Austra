@@ -86,6 +86,12 @@
 		</sections>
 	  </content>
 	</section>
+	<section address="LangDesign">
+      <title>Language goals and design</title>
+      <content>
+        <para>One of the motivations for creating Austra was having an easy to use language for testing and exploring functionality.</para>
+      </content>
+    </section>
     <relatedTopics>
     </relatedTopics>
   </developerConceptualDocument>

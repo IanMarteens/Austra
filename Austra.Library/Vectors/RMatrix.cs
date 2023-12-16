@@ -365,7 +365,7 @@ public readonly struct RMatrix :
     /// <param name="v">The vector at the right side.</param>
     /// <returns>The solving vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DVector operator /(RMatrix m, DVector v) => ((Matrix)m).Solve(v);
+    public static DVector operator /(RMatrix m, DVector v) => m.Solve(v);
 
     /// <summary>Divides a matrix by a scalar value.</summary>
     /// <param name="m">Matrix to be multiplied.</param>
@@ -490,6 +490,48 @@ public readonly struct RMatrix :
     /// <summary>Multiplies this matrix by its own transposed.</summary>
     /// <returns>The multiplication by the transposed argument.</returns>
     public Matrix Square() => MultiplyTranspose(this);
+
+    /// <summary>Solves the equation Ax = b for x.</summary>
+    /// <param name="v">The right side of the equation.</param>
+    /// <returns>The solving vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public DVector Solve(DVector v)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(IsSquare);
+        Contract.Requires(v.Length == Rows);
+        Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
+
+        DVector result = GC.AllocateUninitializedArray<double>(v.Length);
+        Solve(v, result);
+        return result;
+    }
+
+    /// <summary>Solves the equation Ax = b for x.</summary>
+    /// <param name="input">The right side of the equation.</param>
+    /// <param name="output">The solving vector.</param>
+    public void Solve(DVector input, DVector output)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(IsSquare);
+        Contract.Requires(input.Length == Rows);
+        Contract.Requires(output.Length == Rows);
+
+        int size = input.Length;
+        ref double pA = ref Add(ref MM.GetArrayDataReference(values), size * size - 1);
+        ref double pV = ref Add(ref MM.GetArrayDataReference((double[])input), size - 1);
+        ref double pR = ref Add(ref MM.GetArrayDataReference((double[])output), size - 1);
+        pR = pV / pA;    // Start from the last row/corner.
+        for (int i = size - 2; i >= 0; i--)
+        {
+            pA = ref Subtract(ref pA, size + 1);
+            pV = ref Subtract(ref pV, 1);
+            pR = ref Subtract(ref pR, 1);
+            double sum = pV - MM.CreateSpan(ref pA, size - i - 1)
+                .Dot(MM.CreateSpan(ref Add(ref pR, 1), size - i - 1));
+            pR = sum / Add(ref pA, i);
+        }
+    }
 
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>

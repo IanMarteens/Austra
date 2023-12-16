@@ -140,6 +140,15 @@ public class MatrixTests
     }
 
     [Test]
+    public void CheckRMatrixSolve([Values(32, 49, 61)] int size)
+    {
+        RMatrix m = new RMatrix(size, new Random()) + RMatrix.Identity(size) * 0.1;
+        DVector v = new(size, new NormalRandom());
+        DVector x = m / v;
+        Assert.That((m * x - v).AMax(), Is.LessThanOrEqualTo(2E-6));
+    }
+
+    [Test]
     public void CheckLMatrixTransform([Values(32, 49, 61)] int size)
     {
         LMatrix m = new LMatrix(size, new Random()) + LMatrix.Identity(size) * 0.05;

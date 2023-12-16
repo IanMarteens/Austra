@@ -29,6 +29,7 @@ seq(10, 1);         <markup><font color="DarkGreen">-- The inverted sequence.</f
 <b><font color="DarkCyan">seq::</font></b></markup>new(1, 10);    <markup><font color="DarkGreen">-- ::new was omitted before.</font></markup>
 seq(0, τ, 128);     <markup><font color="DarkGreen">-- A uniform grid with 128 intervals.</font></markup>
 seq(v);             <markup><font color="DarkGreen">-- A sequence from a vector.</font></markup>
+seq(v1^v2);         <markup><font color="DarkGreen">-- A sequence from a matrix.</font></markup>
 seq([sqrt(2), e, π, τ]);
 <markup><b><font color="DarkCyan">seq::</font></b></markup>random(10);    <markup><font color="DarkGreen">-- A sequence with 10 random values.</font><br/>
 <b><font color="DarkCyan">seq::</font></b></markup>nrandom(10),   <markup><font color="DarkGreen">-- A sequence with 10 Gaussian random values.</font><br/>
@@ -388,6 +389,10 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 	 		    <row>
 	 		      <entry><para><codeInline>map</codeInline></para></entry>
 	 		      <entry><para>Transforms items with the help of a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CSequence.Map(System.Func{System.Numerics.Complex,System.Numerics.Complex})</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>mapReal</codeInline></para></entry>
+	 		      <entry><para>Transforms items with the help of a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CSequence.MapReal(System.Func{System.Numerics.Complex,System.Double})</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>reduce</codeInline></para></entry>

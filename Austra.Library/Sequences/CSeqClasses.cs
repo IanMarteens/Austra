@@ -87,6 +87,44 @@ public abstract partial class CSequence
         }
     }
 
+    /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="mapper">The mapping function.</param>
+    private sealed class RealMapped(CSequence source, Func<Complex, double> mapper) : DSequence
+    {
+        private readonly Func<Complex, double> mapper = mapper;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (source.Next(out Complex cValue))
+            {
+                value = mapper(cValue);
+                return true;
+            }
+            value = 0d;
+            return false;
+        }
+
+        /// <summary>Checks if we can get the length without iterating.</summary>
+        protected override bool HasLength => source.HasLength;
+
+        /// <summary>Gets the total number of values in the sequence.</summary>
+        /// <returns>The total number of values in the sequence.</returns>
+        public override int Length() =>
+            source.HasLength ? source.Length() : base.Length();
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            source.Reset();
+            return this;
+        }
+    }
+
     /// <summary>Implements a sequence filtered by a predicate.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="filter">The filtering lambda.</param>

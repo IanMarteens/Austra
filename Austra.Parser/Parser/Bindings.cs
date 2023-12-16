@@ -215,6 +215,7 @@ internal sealed partial class Bindings
                 new("any(x => ", "Existential operator"),
                 new("filter(x => ", "Filters the sequence according to a predicate"),
                 new("map(x => ", "Transforms the sequence according to a mapping function"),
+                new("mapReal(x => ", "Transforms the sequence into a sequence of doubles"),
                 new("reduce(", "Combines all values in the sequence into a single value"),
                 new("zip(", "Combines two sequence using a lambda function"),
             ],
@@ -1129,6 +1130,8 @@ internal sealed partial class Bindings
             [new(typeof(CSequence), "any")] = typeof(CSequence).Get(nameof(CSequence.Any)),
             [new(typeof(CSequence), "filter")] = typeof(CSequence).Get(nameof(CSequence.Filter)),
             [new(typeof(CSequence), "map")] = typeof(CSequence).Get(nameof(CSequence.Map)),
+            [new(typeof(CSequence), "mapr")] = typeof(CSequence).Get(nameof(CSequence.MapReal)),
+            [new(typeof(CSequence), "mapreal")] = typeof(CSequence).Get(nameof(CSequence.MapReal)),
             [new(typeof(CSequence), "reduce")] = typeof(CSequence).Get(nameof(CSequence.Reduce)),
             [new(typeof(CSequence), "zip")] = typeof(CSequence).Get(nameof(CSequence.Zip)),
 

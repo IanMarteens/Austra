@@ -716,9 +716,8 @@ public readonly struct LMatrix :
         for (int i = 1; i < size; i++)
         {
             pA = ref Add(ref pA, size);
-            double sum = Add(ref pV, i) - MM.CreateSpan(ref pA, i)
-                .Dot(MM.CreateSpan(ref pR, i));
-            Add(ref pR, i) = sum / Add(ref pA, i);
+            Add(ref pR, i) = (Add(ref pV, i) - MM.CreateSpan(ref pA, i)
+                .Dot(MM.CreateSpan(ref pR, i))) / Add(ref pA, i);
         }
     }
 

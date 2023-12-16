@@ -81,6 +81,12 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public override CSequence Map(Func<Complex, Complex> mapper) =>
         new Mapped(this, mapper);
 
+    /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
+    /// <param name="mapper">The transforming function.</param>
+    /// <returns>The transformed sequence.</returns>
+    public DSequence MapReal(Func<Complex, double> mapper) =>
+        new RealMapped(this, mapper);
+
     /// <summary>Transform a sequence acording to the predicate passed as parameter.</summary>
     /// <param name="filter">A predicate for selecting surviving values</param>
     /// <returns>The filtered sequence.</returns>
