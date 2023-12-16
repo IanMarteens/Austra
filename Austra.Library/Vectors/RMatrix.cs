@@ -328,6 +328,12 @@ public readonly struct RMatrix :
         return new(m, p, result);
     }
 
+    /// <summary>Multiplies an upper triangular matrix by a rectangular one.</summary>
+    /// <param name="m1">An upper triangular matrix.</param>
+    /// <param name="m2">A rectangular matrix.</param>
+    /// <returns>The resulting rectangular matrix.</returns>
+    public static unsafe Matrix operator *(RMatrix m1, Matrix m2) => ((Matrix)m1) * m2;
+
     /// <summary>Multiplies an upper triangular matrix by a scalar value.</summary>
     /// <param name="m">Matrix to be multiplied.</param>
     /// <param name="d">A scalar multiplicand.</param>
