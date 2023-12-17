@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Topics>
   <Topic id="9acf5b7b-21bb-4894-bfa5-a86c67852fd9" visible="True" isExpanded="true" apiParentMode="InsertAfter" title="Welcome to AUSTRA" tocTitle="Welcome to AUSTRA">
-    <Topic id="04ea4168-169f-488a-9250-41bdab54e5e6" visible="True" isExpanded="true" isSelected="true" title="Language reference" tocTitle="Language reference">
+    <Topic id="04ea4168-169f-488a-9250-41bdab54e5e6" visible="True" isExpanded="true" title="Language reference" tocTitle="Language reference">
       <Topic id="90cb2899-abcf-4ebe-b96a-8cfac1b2809f" visible="True" />
       <Topic id="8b381718-bf08-4762-a51b-1516af27bef2" visible="True" title="Local variables" tocTitle="Local variables" />
       <Topic id="9ebcc778-37a1-4313-87f9-1ea37494d2c8" visible="True" title="Lambda functions" tocTitle="Lambda functions" />
@@ -10,6 +10,7 @@
       <Topic id="aae4328b-9ead-40dc-b407-54e8d0614cd5" visible="True" title="Vectors" tocTitle="Vectors" />
       <Topic id="d1757dd1-7bbd-4d90-88b9-cc034c5ad326" visible="True" title="Sequences" tocTitle="Sequences" />
       <Topic id="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49" visible="True" title="Matrices" tocTitle="Matrices" />
+      <Topic id="95cad3a9-e319-4787-a66b-596e34e6ddd6" visible="True" isSelected="true" title="List comprehensions" tocTitle="List comprehensions" />
     </Topic>
   </Topic>
 </Topics>

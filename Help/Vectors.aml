@@ -643,6 +643,7 @@ vec[^5..^2].length = 3
       <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
       <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49">Matrices</link>
+      <link xlink:href="95cad3a9-e319-4787-a66b-596e34e6ddd6">List comprehensions</link>
       <codeEntityReference qualifyHint="false">T:Austra.Library.DVector</codeEntityReference>
       <codeEntityReference qualifyHint="false">T:Austra.Library.CVector</codeEntityReference>
       <codeEntityReference qualifyHint="false">T:Austra.Library.NVector</codeEntityReference>

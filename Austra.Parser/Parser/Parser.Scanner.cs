@@ -118,6 +118,9 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Position where the parsing should be aborted.</summary>
     /// <remarks>This is checked by the scanner.</remarks>
     private int abortPosition = int.MaxValue;
+    /// <summary>Detects an IN operator after an identifier.</summary>
+    /// <remarks>Used while parsing list comprehensions.</remarks>
+    private bool nextIsIn;
 
     /// <summary>Initializes a parsing context.</summary>
     /// <param name="bindings">Predefined classes and methods.</param>
@@ -166,6 +169,7 @@ internal sealed partial class Parser : IDisposable
     {
         if (i >= abortPosition)
             throw new AbortException("Aborted by the scanner");
+        nextIsIn = false;
         ref char c = ref As<Str>(text).FirstChar;
     SKIP_BLANKS:
         while (char.IsWhiteSpace(Add(ref c, i)))
@@ -196,7 +200,26 @@ internal sealed partial class Parser : IDisposable
                 {
                     while (char.IsWhiteSpace(Add(ref c, i)))
                         i++;
-                    ch = Add(ref c, i);
+                    switch (Add(ref c, i))
+                    {
+                        case '(':
+                            kind = Token.Functor;
+                            break;
+                        case ':':
+                            kind = Add(ref c, i + 1) == ':' ? Token.ClassName : Token.Id;
+                            break;
+                        case 'i':
+                        case 'I':
+                            kind = Token.Id;
+                            if ((Add(ref c, i + 1) | 0x20) == 'n' &&
+                                Add(ref c, i + 2) is char c1 && 
+                                !char.IsLetterOrDigit(c1) && c1 != '_')
+                                nextIsIn = true;
+                            break;
+                        default:
+                            kind = Token.Id;
+                            break;
+                    }
                     kind = ch == '(' ? Token.Functor
                         : ch == ':' && Add(ref c, i + 1) == ':' ? Token.ClassName
                         : Token.Id;
@@ -210,6 +233,7 @@ internal sealed partial class Parser : IDisposable
             ch = Add(ref c, i);
             if (ch == '@')
             {
+                // It's a date literal.
                 do i++;
                 while (char.IsLetterOrDigit(Add(ref c, i)));
                 kind = Token.Date;
@@ -292,7 +316,6 @@ internal sealed partial class Parser : IDisposable
                 case '^': kind = Token.Caret; return;
                 case '²': kind = Token.Caret2; return;
                 case '\'': kind = Token.Transpose; return;
-                case '\\': kind = Token.Backslash; return;
                 case '-':
                     if (Add(ref c, i) == '-')
                     {

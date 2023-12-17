@@ -83,8 +83,6 @@ public enum Token
     PointTimes,
     /// <summary>The pointwise division.</summary>
     PointDiv,
-    /// <summary>The backslash \ is the matrix solver operator.</summary>
-    Backslash,
     /// <summary>The division <c>/</c> operator.</summary>
     Div,
     /// <summary>The module <c>%</c> operator.</summary>
@@ -105,7 +103,7 @@ public enum Token
     Le,
     /// <summary>The greater-or-equal operator.</summary>
     Ge,
-    /// <summary>The arrow =&gt;, for defining lambdas function.</summary>
+    /// <summary>The arrow =&gt;, for defining lambda functions.</summary>
     Arrow,
     /// <summary>A multiplied variable.</summary>
     /// <remarks>A juxtaposed pair of a real number and an identifier.</remarks>

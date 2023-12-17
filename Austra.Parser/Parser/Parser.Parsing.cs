@@ -1322,7 +1322,7 @@ internal sealed partial class Parser
                 && (actual == et || et == typeof(double) && actual == typeof(int));
     }
 
-    /// <summary>Parses a vector or matrix literal.</summary>
+    /// <summary>Parses a vector or matrix literal, or a list comprehension.</summary>
     /// <returns>An expression creating the vector or the matrix.</returns>
     private Expression ParseVectorLiteral()
     {
@@ -1332,6 +1332,8 @@ internal sealed partial class Parser
             Move();
             return typeof(DVector).New(ZeroExpr);
         }
+        else if (kind == Token.Id && nextIsIn)
+            return ParseListComprehension();
         List<Expression> items = source.Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
         for (; ; )
@@ -1408,6 +1410,74 @@ internal sealed partial class Parser
         }
         source.Return(items);
         return result;
+    }
+
+    /// <summary>Parses a list comprehension expression.</summary>
+    /// <returns>A sequence or vector type expression.</returns>
+    private Expression ParseListComprehension()
+    {
+        // Remember the lambda parameter name and skip it and the IN keyword.
+        string paramName = id;
+        Move(); Move();
+        Expression? filter = null, e2 = null;
+        // Parse the expression that generates the sequence.
+        Expression e = ParseLightConditional();
+        if (e.Type == typeof(int))
+        {
+            // It may be a range expression.
+            CheckAndMove(Token.Range, "Expected range in list comprehension");
+            Expression upper = ParseLightConditional();
+            if (upper.Type != typeof(int))
+                throw Error("Upper bound in range must be an integer");
+            e = typeof(DSequence).Call(nameof(DSequence.Create), e, upper);
+        }
+        // Verify that the expression is a sequence and get its type.
+        Type eType = e.Type, iType;
+        if (eType == typeof(DVector) || eType == typeof(DSequence) || eType == typeof(Series))
+            iType = typeof(double);
+        else if (eType == typeof(NVector) || eType == typeof(NSequence) || eType == typeof(Series))
+            iType = typeof(double);
+        else if (eType == typeof(CVector) || eType == typeof(CSequence))
+            iType = typeof(Complex);
+        else
+            throw Error("Invalid sequence type");
+        // Check a colon for a filter expression.
+        if (kind == Token.Colon)
+        {
+            Move();
+            // Parse the expression that filters the sequence.
+            lambdaParameter = Expression.Parameter(
+                eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName);
+            try { filter = ConvertToLambda(ParseConditional(), typeof(bool), lambdaParameter); }
+            finally { lambdaParameter = null; }
+        }
+        // Check an arrow for a mapping expression.
+        if (kind == Token.Arrow)
+        {
+            Move();
+            // Parse the expression that generates the result.
+            lambdaParameter = Expression.Parameter(iType, paramName);
+            try { e2 = ConvertToLambda(ParseLightConditional(), iType, lambdaParameter); }
+            finally { lambdaParameter = null; }
+        }
+        // Check and skip a right bracket.
+        CheckAndMove(Token.RBra, "] expected in list comprehension");
+        if (filter != null)
+            e = Expression.Call(e, "Filter", Type.EmptyTypes, filter);
+        if (e2 != null)
+            e = Expression.Call(e, "Map", Type.EmptyTypes, e2);
+        return e;
+
+        Expression ConvertToLambda(Expression e, Type retType, ParameterExpression param)
+        {
+            if (e.Type != retType)
+                e = retType == typeof(Complex) && IsArithmetic(e)
+                    ? Expression.Convert(e, typeof(Complex))
+                    : retType == typeof(double) && e.Type == typeof(int)
+                    ? IntToDouble(e)
+                    : throw Error($"Expected return type is {retType.Name}");
+            return Expression.Lambda(e, param);
+        }
     }
 
     private Expression ParseIdBang()
