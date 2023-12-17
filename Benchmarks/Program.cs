@@ -3,9 +3,10 @@ WriteLine("Benchmarks for AUSTRA");
 
 //BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 //BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).RunAllJoined();
-BenchmarkRunner.Run<SeqBenchmark>();
+BenchmarkRunner.Run<VectorBenchmark>();
 //BenchmarkRunner.Run<SplineBenchmark>();
 //BenchmarkRunner.Run<FunctionsBenchmark>();
 //BenchmarkRunner.Run<ParserBenchmark>();
-
+var b = new VectorBenchmark();
+WriteLine(b.AustraVectorAccumulator());
 

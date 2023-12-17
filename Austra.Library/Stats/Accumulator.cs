@@ -22,10 +22,10 @@ public sealed class Accumulator
 
     /// <summary>Creates an accumulator from an array of integer samples.</summary>
     /// <param name="values">Samples for initialization.</param>
-    public Accumulator(int[] values)
+    public unsafe Accumulator(int[] values)
     {
-        foreach (int v in values)
-            Add(v);
+        fixed (int* p = values)
+            Add(p, values.Length);
     }
 
     /// <summary>Creates an accumulator from an array of samples.</summary>
@@ -132,6 +132,87 @@ public sealed class Accumulator
                 t2 = μ2 * v3;
                 μ3 = μ3.MultiplyAdd(t1 - t2, vs);
                 μ2 += vt;
+            }
+            var a01 = Mix(c,
+                μ1.ToScalar(), μ2.ToScalar(), μ3.ToScalar(), μ4.ToScalar(),
+                μ1.GetElement(1), μ2.GetElement(1), μ3.GetElement(1), μ4.GetElement(1));
+            var a23 = Mix(c,
+                μ1.GetElement(2), μ2.GetElement(2), μ3.GetElement(2), μ4.GetElement(2),
+                μ1.GetElement(3), μ2.GetElement(3), μ3.GetElement(3), μ4.GetElement(3));
+            var a = Mix(c + c,
+                a01.m1, a01.m2, a01.m3, a01.m4,
+                a23.m1, a23.m2, a23.m3, a23.m4);
+            if (Count == 0)
+                (Count, m1, m2, m3, m4) = (4 * c, a.m1, a.m2, a.m3, a.m4);
+            else
+            {
+                long acCnt = 4 * c, n = Count + acCnt, n2 = n * n;
+                double d = a.m1 - m1, d2 = d * d, d3 = d2 * d, d4 = d2 * d2;
+                double nm1 = (Count * m1 + acCnt * a.m1) / n;
+                double nm2 = m2 + a.m2 + d2 * Count * acCnt / n;
+                double nm3 = m3 + a.m3
+                    + d3 * Count * acCnt * (Count - acCnt) / n2
+                    + 3 * d * (Count * a.m2 - acCnt * m2) / n;
+                m4 += a.m4 + d4 * Count * acCnt
+                        * (Count * (Count - acCnt) + acCnt * acCnt) / (n2 * n)
+                    + 6 * d2 * (Count * Count * a.m2 + acCnt * acCnt * m2) / n2
+                    + 4 * d * (Count * a.m3 - acCnt * m3) / n;
+                (m1, m2, m3, Count) = (nm1, nm2, nm3, n);
+            }
+            min = Min(min, vMin.Min());
+            max = Max(max, vMax.Max());
+
+            static (double m1, double m2, double m3, double m4) Mix(long c,
+                double a1, double a2, double a3, double a4,
+                double b1, double b2, double b3, double b4)
+            {
+                long n = c + c, n2 = n * n;
+                double d = b1 - a1, d2 = d * d, d4 = d2 * d2;
+                return (
+                    (a1 + b1) / 2,
+                    a2 + b2 + d2 * c / 2,
+                    a3 + b3 + 3 * d * (b2 - a2) / 2,
+                    a4 + b4 + d4 * c / 8 + 3 * d2 * (b2 + a2) / 2 + 2 * d * (b3 - a3));
+            }
+        }
+        for (; i < size; ++i)
+            Add(samples[i]);
+    }
+
+    /// <summary>Adds samples from a memory zone to this accumulator.</summary>
+    /// <remarks>This method supports hardware-acceleration.</remarks>
+    /// <param name="samples">The new samples.</param>
+    /// <param name="size">The number of samples.</param>
+    public unsafe void Add(int* samples, int size)
+    {
+        int i = 0;
+        if (Avx.IsSupported && size >= 16)
+        {
+            V4d vMin = V4.Create(double.PositiveInfinity);
+            V4d vMax = V4.Create(double.NegativeInfinity);
+            V4d μ1 = V4d.Zero, μ2 = V4d.Zero, μ3 = V4d.Zero, μ4 = V4d.Zero;
+            V4d v3 = V4.Create(3.0), v4 = V4.Create(4.0), v6 = V4.Create(6.0);
+            long c = 0;
+            for (int top = size & Simd.MASK8; i < top; i += V4i.Count)
+            {
+                var (lower, upper) = V4.Widen(Avx.LoadVector256(samples + i));
+                AddSample(lower);
+                AddSample(upper);
+
+                void AddSample(Vector256<long> sample)
+                {
+                    c++;
+                    V4d vSample = V4.ConvertToDouble(sample);
+                    vMin = Avx.Min(vMin, vSample); vMax = Avx.Max(vMax, vSample);
+                    V4d vd = vSample - μ1, vs = vd / V4.Create((double)c);
+                    V4d vt = vd * vs * V4.Create((double)(c - 1));
+                    μ1 += vs;
+                    V4d t1 = vt * vs * V4.Create((double)(c * (c - 3) + 3));
+                    V4d t2 = vs * μ2 * v6, t3 = v4 * μ3;
+                    μ4 = μ4.MultiplyAdd(t1 + t2 - t3, vs);
+                    t1 = vt * V4.Create((double)(c - 2)); t2 = μ2 * v3;
+                    μ3 = μ3.MultiplyAdd(t1 - t2, vs); μ2 += vt;
+                }
             }
             var a01 = Mix(c,
                 μ1.ToScalar(), μ2.ToScalar(), μ3.ToScalar(), μ4.ToScalar(),

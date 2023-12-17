@@ -4,6 +4,7 @@ public class VectorBenchmark : BenchmarkControl
 {
     private readonly int size;
     private readonly DVector cv1, cv2, cv3, cv4, cv5, cv6, cv7;
+    private readonly NVector nv1;
 
     public VectorBenchmark()
     {
@@ -16,6 +17,7 @@ public class VectorBenchmark : BenchmarkControl
         cv5 = new DVector(1024, rnd, 0.6, 1);
         cv6 = new DVector(1024, rnd);
         cv7 = new DVector(1024, new NormalRandom(rnd));
+        nv1 = new NVector(size, 100, rnd);
     }
 
     [Benchmark]
@@ -95,4 +97,7 @@ public class VectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public DVector AustraVectorReverse() => cv7.Reverse();
+
+    [Benchmark]
+    public Accumulator AustraVectorAccumulator() => nv1.Stats();
 }
