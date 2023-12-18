@@ -116,20 +116,17 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>
-    public override NSequence Map(Func<int, int> mapper) =>
-        new Mapped(this, mapper);
+    public override NSequence Map(Func<int, int> mapper) => new Mapped(this, mapper);
 
     /// <summary>Creates a real sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>
     /// <returns>The transformed sequence.</returns>
-    public DSequence MapReal(Func<int, double> mapper) =>
-        new RealMapped(this, mapper);
+    public DSequence MapReal(Func<int, double> mapper) => new RealMapped(this, mapper);
 
     /// <summary>Transform a sequence acording to the predicate passed as parameter.</summary>
     /// <param name="filter">A predicate for selecting surviving values</param>
     /// <returns>The filtered sequence.</returns>
-    public override NSequence Filter(Func<int, bool> filter) =>
-        new Filtered(this, filter);
+    public override NSequence Filter(Func<int, bool> filter) => new Filtered(this, filter);
 
     /// <summary>Joins the common part of two sequence with the help of a lambda.</summary>
     /// <param name="other">The second sequence.</param>
@@ -172,15 +169,8 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <param name="s">Sequence operand.</param>
     /// <param name="d">Scalar operand.</param>
     /// <returns>The component by component sum of the sequence and the scalar.</returns>
-    public static NSequence operator +(NSequence s, int d)
-    {
-        if (!s.HasStorage)
-            return s.Shift(d);
-        int[] a = s.Materialize();
-        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        a.AsSpan().Add(d, r.AsSpan());
-        return new VectorSequence(r);
-    }
+    public static NSequence operator +(NSequence s, int d) =>
+        s.HasStorage ? new VectorSequence(s.ToVector() + d) : s.Shift(d);
 
     /// <summary>Adds a sequence to a scalar value.</summary>
     /// <param name="d">Scalar operand.</param>
@@ -213,42 +203,21 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <param name="s">Sequence minuend.</param>
     /// <param name="d">Scalar subtrahend.</param>
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
-    public static NSequence operator -(NSequence s, int d)
-    {
-        if (!s.HasStorage)
-            return s.Shift(-d);
-        int[] a = s.Materialize();
-        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        a.AsSpan().Sub(d, r.AsSpan());
-        return new VectorSequence(r);
-    }
+    public static NSequence operator -(NSequence s, int d) =>
+        s.HasStorage ? new VectorSequence(s.ToVector() - d) : s.Shift(-d);
 
     /// <summary>Subtracts a sequence from a scalar.</summary>
     /// <param name="s">Sequence minuend.</param>
     /// <param name="d">Scalar subtrahend.</param>
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
-    public static NSequence operator -(int d, NSequence s)
-    {
-        if (!s.HasStorage)
-            return s.Map(x => d - x);
-        int[] a = s.Materialize();
-        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        CommonMatrix.Sub(d, a, r);
-        return new VectorSequence(r);
-    }
+    public static NSequence operator -(int d, NSequence s) =>
+        s.HasStorage ? new VectorSequence(d - s.ToVector()) : s.Map(x => d - x);
 
     /// <summary>Negates a sequence.</summary>
     /// <param name="s">The sequence operand.</param>
     /// <returns>The component by component negation.</returns>
-    public static NSequence operator -(NSequence s)
-    {
-        if (!s.HasStorage)
-            return s.Negate();
-        int[] a = s.Materialize();
-        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        a.AsSpan().Neg(r);
-        return new VectorSequence(r);
-    }
+    public static NSequence operator -(NSequence s) =>
+        s.HasStorage ? new VectorSequence(-s.ToVector()) : s.Negate();
 
     /// <summary>Negates a sequence without an underlying storage.</summary>
     /// <returns>The negated sequence.</returns>
@@ -272,15 +241,8 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <param name="s">Sequence multiplicand.</param>
     /// <param name="d">A scalar multiplier.</param>
     /// <returns>The multiplication of the sequence by the scalar.</returns>
-    public static NSequence operator *(NSequence s, int d)
-    {
-        if (!s.HasStorage)
-            return s.Scale(d);
-        int[] a = s.Materialize();
-        int[] r = GC.AllocateUninitializedArray<int>(a.Length);
-        a.AsSpan().Mul(d, r.AsSpan());
-        return new VectorSequence(r);
-    }
+    public static NSequence operator *(NSequence s, int d) =>
+        s.HasStorage ? new VectorSequence(s.ToVector() * d) : s.Scale(d);
 
     /// <summary>Divides a sequence by a scalar value.</summary>
     /// <param name="s">Sequence dividend.</param>
@@ -405,6 +367,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
 
     /// <summary>Converts this sequence into an integer vector.</summary>
     /// <returns>A new vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NVector ToVector() => Materialize();
 
     /// <summary>Creates a plot for this sequence.</summary>

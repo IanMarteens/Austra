@@ -170,15 +170,8 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <param name="s">Sequence operand.</param>
     /// <param name="d">Scalar operand.</param>
     /// <returns>The component by component sum of the sequence and the scalar.</returns>
-    public static DSequence operator +(DSequence s, double d)
-    {
-        if (!s.HasStorage)
-            return s.Shift(d);
-        double[] a = s.Materialize();
-        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        a.AsSpan().Add(d, r.AsSpan());
-        return new VectorSequence(r);
-    }
+    public static DSequence operator +(DSequence s, double d) =>
+        s.HasStorage ? new VectorSequence(s.ToVector() + d) : s.Shift(d);
 
     /// <summary>Adds a sequence to a scalar value.</summary>
     /// <param name="d">Scalar operand.</param>
@@ -211,42 +204,21 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <param name="s">Sequence minuend.</param>
     /// <param name="d">Scalar subtrahend.</param>
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
-    public static DSequence operator -(DSequence s, double d)
-    {
-        if (!s.HasStorage)
-            return s.Shift(-d);
-        double[] a = s.Materialize();
-        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        a.AsSpan().Sub(d, r.AsSpan());
-        return new VectorSequence(r);
-    }
+    public static DSequence operator -(DSequence s, double d) =>
+        s.HasStorage ? new VectorSequence(s.ToVector() - d) : s.Shift(-d);
 
     /// <summary>Subtracts a sequence from a scalar.</summary>
     /// <param name="s">Sequence minuend.</param>
     /// <param name="d">Scalar subtrahend.</param>
     /// <returns>The component by component subtraction of the sequence and the scalar.</returns>
-    public static DSequence operator -(double d, DSequence s)
-    {
-        if (!s.HasStorage)
-            return s.Map(x => d - x);
-        double[] a = s.Materialize();
-        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        CommonMatrix.Sub(d, a, r);
-        return new VectorSequence(r);
-    }
+    public static DSequence operator -(double d, DSequence s) =>
+        s.HasStorage ? new VectorSequence(d - s.ToVector()) : s.Map(x => d - x);
 
     /// <summary>Negates a sequence.</summary>
     /// <param name="s">The sequence operand.</param>
     /// <returns>The component by component negation.</returns>
-    public static DSequence operator -(DSequence s)
-    {
-        if (!s.HasStorage)
-            return s.Negate();
-        double[] a = s.Materialize();
-        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        a.AsSpan().Neg(r);
-        return new VectorSequence(r);
-    }
+    public static DSequence operator -(DSequence s) =>
+        s.HasStorage ? new VectorSequence(-s.ToVector()) : s.Negate();
 
     /// <summary>Negates a sequence without an underlying storage.</summary>
     /// <returns>The negated sequence.</returns>
@@ -260,25 +232,16 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     {
         if (!s1.HasStorage && !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x * y).Sum();
-        double[] a1 = s1.Materialize();
-        double[] a2 = s2.Materialize();
-        int size = Math.Min(a1.Length, a2.Length);
-        return a1.AsSpan(0, size).Dot(a2.AsSpan(0, size));
+        int size = Math.Min(s1.Length(), s2.Length());
+        return s1.Materialize().AsSpan(0, size).Dot(s2.Materialize().AsSpan(0, size));
     }
 
     /// <summary>Multiplies a sequence by a scalar value.</summary>
     /// <param name="s">Sequence multiplicand.</param>
     /// <param name="d">A scalar multiplier.</param>
     /// <returns>The multiplication of the sequence by the scalar.</returns>
-    public static DSequence operator *(DSequence s, double d)
-    {
-        if (!s.HasStorage)
-            return s.Scale(d);
-        double[] a = s.Materialize();
-        double[] r = GC.AllocateUninitializedArray<double>(a.Length);
-        a.AsSpan().Mul(d, r.AsSpan());
-        return new VectorSequence(r);
-    }
+    public static DSequence operator *(DSequence s, double d) =>
+        s.HasStorage ? new VectorSequence(s.ToVector() * d) : s.Scale(d);
 
     /// <summary>Scales a sequence without an underlying storage.</summary>
     /// <param name="d">The scalar multiplier.</param>
@@ -389,6 +352,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
 
     /// <summary>Converts this sequence into a vector.</summary>
     /// <returns>A new vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DVector ToVector() => Materialize();
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="DVector"/>.</summary>

@@ -215,9 +215,9 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     {
         if (!HasStorage && !other.HasStorage)
             return new Zipped(this, other, (x, y) => x * y);
-        CVector a1 = new(Materialize());
-        CVector a2 = new(other.Materialize());
-        int size = Min(a1.Length, a2.Length);
+        int size = Min(Length(), other.Length());
+        CVector a1 = new(Materialize(size));
+        CVector a2 = new(other.Materialize(size));
         return new VectorSequence(a1.PointwiseMultiply(a2));
     }
 
@@ -228,9 +228,9 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     {
         if (!HasStorage && !other.HasStorage)
             return new Zipped(this, other, (x, y) => x / y);
-        CVector a1 = new(Materialize());
-        CVector a2 = new(other.Materialize());
-        int size = Min(a1.Length, a2.Length);
+        int size = Min(Length(), other.Length());
+        CVector a1 = new(Materialize(size));
+        CVector a2 = new(other.Materialize(size));
         return new VectorSequence(a1.PointwiseDivide(a2));
     }
 
@@ -248,6 +248,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
 
     /// <summary>Converts this sequence into a complex vector.</summary>
     /// <returns>A new complex vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CVector ToVector() => new(Materialize());
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="CVector"/>.</summary>
