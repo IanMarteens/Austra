@@ -19,12 +19,7 @@ public abstract partial class DSequence : IFormattable
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
-        protected override double[] Materialize()
-        {
-            double[] result = GC.AllocateUninitializedArray<double>(length);
-            Materialize(result.AsSpan());
-            return result;
-        }
+        protected override double[] Materialize() => Materialize(length);
     }
 
     /// <summary>A fixed length sequence with an integer cursor.</summary>

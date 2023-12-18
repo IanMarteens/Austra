@@ -19,12 +19,7 @@ public abstract partial class CSequence
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
-        protected override Complex[] Materialize()
-        {
-            Complex[] result = GC.AllocateUninitializedArray<Complex>(length);
-            Materialize(result.AsSpan());
-            return result;
-        }
+        protected override Complex[] Materialize() => Materialize(length);
     }
 
     /// <summary>A sequence with an integer cursor.</summary>

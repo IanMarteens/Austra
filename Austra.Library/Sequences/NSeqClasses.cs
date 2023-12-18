@@ -24,12 +24,7 @@ public abstract partial class NSequence
 
         /// <summary>Creates an array with all values from the sequence.</summary>
         /// <returns>The values as an array.</returns>
-        protected override int[] Materialize()
-        {
-            int[] result = GC.AllocateUninitializedArray<int>(length);
-            Materialize(result.AsSpan());
-            return result;
-        }
+        protected override int[] Materialize() => Materialize(length);
     }
 
     /// <summary>Implements a sequence with an integer cursor.</summary>

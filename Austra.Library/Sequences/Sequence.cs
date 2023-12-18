@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System;
+
+namespace Austra.Library;
 
 /// <summary>Common base class for all sequences.</summary>
 /// <typeparam name="T">The type for the returned items.</typeparam>
@@ -178,15 +180,26 @@ public abstract class Sequence<T, TSelf>
     /// <summary>Checks if the sequence has a storage.</summary>
     protected virtual bool HasStorage => false;
 
+    /// <summary>Creates an array with a prefix of the values in the sequence.</summary>
+    /// <param name="size">The number of values to take.</param>
+    /// <returns>The values as an array.</returns>
+    protected T[] Materialize(int size)
+    {
+        T[] data = GC.AllocateUninitializedArray<T>(size);
+        for (ref T d = ref MM.GetArrayDataReference(data); Next(out T v); d = ref Add(ref d, 1))
+            d = v;
+        return data;
+    }
+
     /// <summary>Creates an array with all values from the sequence.</summary>
     /// <returns>The values as an array.</returns>
-    protected abstract T[] Materialize();
-
-    /// <summary>Fills a span with all values from the sequence.</summary>
-    /// <param name="span">The span to fill.</param>
-    protected void Materialize(Span<T> span)
+    protected virtual T[] Materialize()
     {
-        for (ref T d = ref MM.GetReference(span); Next(out T v); d = ref Add(ref d, 1))
-            d = v;
+        if (HasLength)
+            return Materialize(Length());
+        List<T> values = new(8);
+        while (Next(out T value))
+            values.Add(value);
+        return [.. values];
     }
 }

@@ -250,27 +250,6 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <returns>A new complex vector.</returns>
     public CVector ToVector() => new(Materialize());
 
-    /// <summary>Creates an array with all values from the sequence.</summary>
-    /// <returns>The values as an array.</returns>
-    protected override Complex[] Materialize()
-    {
-        if (HasLength)
-        {
-            Complex[] data = GC.AllocateUninitializedArray<Complex>(Length());
-            ref Complex rd = ref MM.GetArrayDataReference(data);
-            while (Next(out Complex value))
-            {
-                rd = value;
-                rd = ref Add(ref rd, 1);
-            }
-            return data;
-        }
-        List<Complex> values = [];
-        while (Next(out Complex value))
-            values.Add(value);
-        return [.. values];
-    }
-
     /// <summary>Evaluated the sequence and formats it like a <see cref="CVector"/>.</summary>
     /// <returns>A formated list of complex values.</returns>
     public override string ToString() => ToString("G6");

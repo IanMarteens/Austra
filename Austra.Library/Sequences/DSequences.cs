@@ -391,27 +391,6 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>A new vector.</returns>
     public DVector ToVector() => Materialize();
 
-    /// <summary>Creates an array with all values from the sequence.</summary>
-    /// <returns>The values as an array.</returns>
-    protected override double[] Materialize()
-    {
-        if (HasLength)
-        {
-            double[] data = GC.AllocateUninitializedArray<double>(Length());
-            ref double rd = ref MM.GetArrayDataReference(data);
-            while (Next(out double value))
-            {
-                rd = value;
-                rd = ref Add(ref rd, 1);
-            }
-            return data;
-        }
-        List<double> values = [];
-        while (Next(out double value))
-            values.Add(value);
-        return [.. values];
-    }
-
     /// <summary>Evaluated the sequence and formats it like a <see cref="DVector"/>.</summary>
     /// <returns>A formated list of double values.</returns>
     public override string ToString() => ToString("G6");

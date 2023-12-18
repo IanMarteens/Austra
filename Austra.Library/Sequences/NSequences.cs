@@ -410,25 +410,4 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <summary>Creates a plot for this sequence.</summary>
     /// <returns>A plot containing a frozen vector as its dataset.</returns>
     public Plot<NVector> Plot() => new(ToVector());
-
-    /// <summary>Creates an array with all values from the sequence.</summary>
-    /// <returns>The values as an array.</returns>
-    protected override int[] Materialize()
-    {
-        if (HasLength)
-        {
-            int[] data = GC.AllocateUninitializedArray<int>(Length());
-            ref int rd = ref MM.GetArrayDataReference(data);
-            while (Next(out int value))
-            {
-                rd = value;
-                rd = ref Unsafe.Add(ref rd, 1);
-            }
-            return data;
-        }
-        List<int> values = [];
-        while (Next(out int value))
-            values.Add(value);
-        return [.. values];
-    }
 }
