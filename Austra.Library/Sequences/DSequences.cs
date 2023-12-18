@@ -340,7 +340,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public virtual double Min()
     {
         if (!Next(out double value))
-            return double.NaN;
+            throw new EmptySequenceException();
         while (Next(out double v))
             value = Math.Min(value, v);
         return value;
@@ -351,7 +351,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public virtual double Max()
     {
         if (!Next(out double value))
-            return double.NaN;
+            throw new EmptySequenceException();
         while (Next(out double v))
             value = Math.Max(value, v);
         return value;

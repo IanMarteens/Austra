@@ -354,7 +354,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public virtual int Min()
     {
         if (!Next(out int value))
-            return int.MaxValue;
+            throw new EmptySequenceException();
         while (Next(out int v))
             value = Math.Min(value, v);
         return value;
@@ -365,7 +365,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public virtual int Max()
     {
         if (!Next(out int value))
-            return int.MinValue;
+            throw new EmptySequenceException();
         while (Next(out int v))
             value = Math.Max(value, v);
         return value;
