@@ -349,25 +349,6 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         return Create(new NVector([.. set]));
     }
 
-    /// <summary>Gets the first value in the sequence.</summary>
-    /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
-    public override int First()
-    {
-        if (!Next(out int value))
-            return default;
-        return value;
-    }
-
-    /// <summary>Gets the last value in the sequence.</summary>
-    /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
-    public override int Last()
-    {
-        int saved = default;
-        while (Next(out int value))
-            saved = value;
-        return saved;
-    }
-
     /// <summary>Gets the minimum value from the sequence.</summary>
     /// <returns>The minimum value.</returns>
     public virtual int Min()

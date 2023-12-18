@@ -134,12 +134,22 @@ public abstract class Sequence<T, TSelf>
     }
 
     /// <summary>Gets the first value in the sequence.</summary>
-    /// <returns>The first value, or a special value, when empty.</returns>
-    public abstract T First();
+    /// <returns>The first value, or an exception, when empty.</returns>
+    /// <exception cref="EmptySequenceException">When the sequence is empty.</exception>
+    public virtual T First() =>
+        Next(out T value) ? value : throw new EmptySequenceException();
 
     /// <summary>Gets the last value in the sequence.</summary>
-    /// <returns>The last value, or a special value, when empty.</returns>
-    public abstract T Last();
+    /// <returns>The last value, or an exception, when empty.</returns>
+    /// <exception cref="EmptySequenceException">When the sequence is empty.</exception>
+    public virtual T Last()
+    {
+        if (!Next(out T saved))
+            throw new EmptySequenceException();
+        while (Next(out T value))
+            saved = value;
+        return saved;
+    }
 
     /// <summary>Item by item multiplication of two sequences.</summary>
     /// <param name="other">The second sequence.</param>

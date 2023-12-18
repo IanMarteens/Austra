@@ -234,25 +234,6 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
         return new VectorSequence(a1.PointwiseDivide(a2));
     }
 
-    /// <summary>Gets the first value in the sequence.</summary>
-    /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
-    public override Complex First()
-    {
-        if (!Next(out Complex value))
-            return Complex.NaN;
-        return value;
-    }
-
-    /// <summary>Gets the last value in the sequence.</summary>
-    /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
-    public override Complex Last()
-    {
-        Complex saved = Complex.NaN;
-        while (Next(out Complex value))
-            saved = value;
-        return saved;
-    }
-
     /// <summary>Gets only the unique values in this sequence.</summary>
     /// <returns>A sequence with unique values.</returns>
     public override CSequence Distinct()

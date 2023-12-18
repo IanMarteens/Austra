@@ -114,3 +114,22 @@ public class PolynomialRootsException : Exception
         base(message, innerException)
     { }
 }
+
+/// <summary>The sequence is empty.</summary>
+[Serializable]
+public class EmptySequenceException : Exception
+{
+    /// <summary>Initializes an exception with the default message.</summary>
+    public EmptySequenceException() : base("Empty sequence") { }
+
+    /// <summary>Initializes an exception with a given message.</summary>
+    /// <param name="message">The message that describes the error.</param>
+    public EmptySequenceException(string message) : base(message) { }
+
+    /// <summary>Initializes an exception with a given message and inner exception.</summary>
+    /// <param name="message">The message that describes the error.</param>
+    /// <param name="innerException">The exception that caused this exception.</param>
+    public EmptySequenceException(string message, Exception innerException) :
+        base(message, innerException)
+    { }
+}

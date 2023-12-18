@@ -335,25 +335,6 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         return result;
     }
 
-    /// <summary>Gets the first value in the sequence.</summary>
-    /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
-    public override double First()
-    {
-        if (!Next(out double value))
-            return double.NaN;
-        return value;
-    }
-
-    /// <summary>Gets the last value in the sequence.</summary>
-    /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
-    public override double Last()
-    {
-        double saved = double.NaN;
-        while (Next(out double value))
-            saved = value;
-        return saved;
-    }
-
     /// <summary>Gets the minimum value from the sequence.</summary>
     /// <returns>The minimum value.</returns>
     public virtual double Min()
