@@ -29,6 +29,10 @@
 			\b(math|matrix|vec|cvec|ivec|seq|cseq|iseq|series|model|spline)(?=\:\:)\b
 		</Rule>
 
+		<Rule fontWeight="bold" foreground="Blue">
+			(?:(\[|\:)\s*)(any|all)(?=\s+\p{L}\w*\s+in\b)
+		</Rule>
+
 		<Rule foreground="MediumBlue">
 			\b0[xX][0-9a-fA-F]+  # hex number
 			|    \b

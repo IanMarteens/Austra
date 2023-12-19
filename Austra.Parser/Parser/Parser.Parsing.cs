@@ -432,7 +432,7 @@ internal sealed partial class Parser
                                 : e2 == e3
                                 ? Expression.Call(e2, typeof(Matrix).Get(nameof(Matrix.Square)))
                                 : Expression.Multiply(e2, e3))
-                            : e2 is ConstantExpression { Value: double d1 }  && 
+                            : e2 is ConstantExpression { Value: double d1 } &&
                                 e3 is ConstantExpression { Value: double d2 }
                             ? Expression.Constant(opMul switch
                             {
@@ -586,7 +586,7 @@ internal sealed partial class Parser
                 return OptimizePowerOf() ? e : Expression.Call(
                     typeof(Complex), nameof(Complex.Pow), null, e, ToDouble(e1));
         }
-        else if (k == Token.Caret2 || e1 is ConstantExpression { Value: 2})
+        else if (k == Token.Caret2 || e1 is ConstantExpression { Value: 2 })
             if (e.Type == typeof(Matrix))
                 return Expression.Call(e, MatrixSquare);
             else if (e.Type == typeof(LMatrix))
@@ -1307,7 +1307,7 @@ internal sealed partial class Parser
             }
         }
         CheckAndMove(Token.RPar, "Right parenthesis expected in method call");
-        Expression result = instance is null 
+        Expression result = instance is null
             ? mth.GetExpression(args)
             : mth.GetExpression(instance, args);
         source.Return(args);
@@ -1332,8 +1332,33 @@ internal sealed partial class Parser
             Move();
             return typeof(DVector).New(ZeroExpr);
         }
-        else if (kind == Token.Id && nextIsIn)
-            return ParseListComprehension();
+        // Verify if it's a list comprehension.
+        if (kind == Token.Id)
+        {
+            string saveId = id;
+            int saveCursor = i;
+            Move();
+            if (kind == Token.In)
+            {
+                id = saveId;
+                i = saveCursor;
+                return ParseListComprehension("");
+            }
+            else if (kind == Token.Id)
+            {
+                string qual = saveId.ToLower();
+                Move();
+                if ((qual == "all" || qual == "any") && kind == Token.In)
+                {
+                    id = saveId;
+                    i = saveCursor;
+                    return ParseListComprehension(qual);
+                }
+            }
+            id = saveId;
+            i = saveCursor;
+        }
+        // It's a vector or a matrix constructor.
         List<Expression> items = source.Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
         for (; ; )
@@ -1413,9 +1438,12 @@ internal sealed partial class Parser
     }
 
     /// <summary>Parses a list comprehension expression.</summary>
+    /// <param name="qualifier">Optional qualifier.</param>
     /// <returns>A sequence or vector type expression.</returns>
-    private Expression ParseListComprehension()
+    private Expression ParseListComprehension(string qualifier)
     {
+        if (qualifier != "")
+            Move();
         // Remember the lambda parameter name and skip it and the IN keyword.
         string paramName = id;
         Move(); Move();
@@ -1450,6 +1478,15 @@ internal sealed partial class Parser
                 eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName);
             try { filter = ConvertToLambda(ParseConditional(), typeof(bool), lambdaParameter); }
             finally { lambdaParameter = null; }
+        }
+        // Qualifiers do not allow a mapping expression.
+        if (qualifier != null)
+        {
+            // Check and skip a right bracket.
+            CheckAndMove(Token.RBra, "] expected in list comprehension");
+            if (filter != null)
+                e = Expression.Call(e, qualifier == "all" ? "All" : "Any", Type.EmptyTypes, filter);
+            return e;
         }
         // Check an arrow for a mapping expression.
         if (kind == Token.Arrow)

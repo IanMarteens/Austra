@@ -116,11 +116,11 @@ seq([sqrt(2), e, π, τ]);
 		  </row>
  		  <row>
  		    <entry><para><codeInline>first</codeInline></para></entry>
- 		    <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.First</codeEntityReference>.</para></entry>
+ 		    <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.First</codeEntityReference>.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>last</codeInline></para></entry>
- 		    <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Last</codeEntityReference>.</para></entry>
+ 		    <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Last</codeEntityReference>.</para></entry>
 		  </row>
  		  <row>
  		    <entry><para><codeInline>length</codeInline></para></entry>
@@ -222,11 +222,11 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>first</codeInline></para></entry>
-	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NSequence.First</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.First</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>last</codeInline></para></entry>
-	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NSequence.Last</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Last</codeEntityReference>.</para></entry>
 	 		    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>length</codeInline></para></entry>
@@ -345,11 +345,11 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>first</codeInline></para></entry>
-	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CSequence.First</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.First</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>last</codeInline></para></entry>
-	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CSequence.Last</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Last</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>length</codeInline></para></entry>
