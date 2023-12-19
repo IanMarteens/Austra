@@ -1480,7 +1480,7 @@ internal sealed partial class Parser
             finally { lambdaParameter = null; }
         }
         // Qualifiers do not allow a mapping expression.
-        if (qualifier != null)
+        if (qualifier != "")
         {
             // Check and skip a right bracket.
             CheckAndMove(Token.RBra, "] expected in list comprehension");
