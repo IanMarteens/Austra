@@ -114,9 +114,13 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <param name="s1">First sequence operand.</param>
     /// <param name="s2">Second sequence operand.</param>
     /// <returns>The component by component sum of the sequences.</returns>
-    public static CSequence operator +(CSequence s1, CSequence s2) => !s1.HasStorage && !s2.HasStorage
-        ? s1.Zip(s2, (x, y) => x + y)
-        : new VectorSequence(s1.ToVector() + s2.ToVector());
+    public static CSequence operator +(CSequence s1, CSequence s2)
+    {
+        if (!s1.HasStorage || !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x + y);
+        int size = Min(s1.Length(), s2.Length());
+        return new VectorSequence(s1.ToVector(size) + s2.ToVector(size));
+    }
 
     /// <summary>Adds a scalar value to a sequence.</summary>
     /// <param name="s">Sequence operand.</param>
@@ -142,9 +146,13 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <param name="s1">Sequence minuend.</param>
     /// <param name="s2">Sequence subtrahend.</param>
     /// <returns>The component by component subtraction of the sequences.</returns>
-    public static CSequence operator -(CSequence s1, CSequence s2) => !s1.HasStorage && !s2.HasStorage
-        ? s1.Zip(s2, (x, y) => x - y)
-        : new VectorSequence(s1.ToVector() - s2.ToVector());
+    public static CSequence operator -(CSequence s1, CSequence s2)
+    {
+        if (!s1.HasStorage || !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x - y);
+        int size = Min(s1.Length(), s2.Length());
+        return new VectorSequence(s1.ToVector(size) - s2.ToVector(size));
+    }
 
     /// <summary>Subtracts a scalar from a sequence.</summary>
     /// <param name="s">Sequence minuend.</param>
@@ -177,9 +185,13 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <param name="s1">First sequence.</param>
     /// <param name="s2">Second sequence.</param>
     /// <returns>The dot product of the common part.</returns>
-    public static Complex operator *(CSequence s1, CSequence s2) => !s1.HasStorage && !s2.HasStorage
-        ? s1.Zip(s2, (x, y) => x * Complex.Conjugate(y)).Sum()
-        : s1.ToVector() * s2.ToVector();
+    public static Complex operator *(CSequence s1, CSequence s2)
+    {
+        if (!s1.HasStorage || !s2.HasStorage)
+            return s1.Zip(s2, (x, y) => x * Complex.Conjugate(y)).Sum();
+        int size = Min(s1.Length(), s2.Length());
+        return s1.ToVector(size) * s2.ToVector(size);
+    }
 
     /// <summary>Multiplies a sequence by a scalar value.</summary>
     /// <param name="s">Sequence multiplicand.</param>
@@ -216,9 +228,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
         if (!HasStorage && !other.HasStorage)
             return new Zipped(this, other, (x, y) => x * y);
         int size = Min(Length(), other.Length());
-        CVector a1 = new(Materialize(size));
-        CVector a2 = new(other.Materialize(size));
-        return new VectorSequence(a1.PointwiseMultiply(a2));
+        return new VectorSequence(ToVector(size).PointwiseMultiply(other.ToVector(size)));
     }
 
     /// <summary>Item by item division of sequences.</summary>
@@ -229,9 +239,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
         if (!HasStorage && !other.HasStorage)
             return new Zipped(this, other, (x, y) => x / y);
         int size = Min(Length(), other.Length());
-        CVector a1 = new(Materialize(size));
-        CVector a2 = new(other.Materialize(size));
-        return new VectorSequence(a1.PointwiseDivide(a2));
+        return new VectorSequence(ToVector(size).PointwiseDivide(other.ToVector(size)));
     }
 
     /// <summary>Gets only the unique values in this sequence.</summary>
@@ -250,6 +258,12 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <returns>A new complex vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CVector ToVector() => new(Materialize());
+
+    /// <summary>Converts this sequence into a complex vector.</summary>
+    /// <param name="size">Number of values to take from the sequence.</param>
+    /// <returns>A new complex vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public CVector ToVector(int size) => new(Materialize(size));
 
     /// <summary>Evaluated the sequence and formats it like a <see cref="CVector"/>.</summary>
     /// <returns>A formated list of complex values.</returns>

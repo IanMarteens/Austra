@@ -1,4 +1,7 @@
-﻿namespace Austra.Library;
+﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
+
+namespace Austra.Library;
 
 /// <summary>Represents a dense vector of double values, of arbitrary size.</summary>
 /// <remarks>
@@ -949,8 +952,19 @@ public readonly struct DVector :
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
         ref double p = ref MM.GetArrayDataReference(values);
-        for (int i = 0; i < newValues.Length; i++)
-            newValues[i] = mapper(Add(ref p, i));
+        ref double q = ref MM.GetArrayDataReference(newValues);
+        int i = 0;
+        for (int size = newValues.Length & (~3); i < size; i += 4)
+        {
+            var (a, b, c, d) = (mapper(Add(ref p, i)), mapper(Add(ref p, i + 1)),
+                mapper(Add(ref p, i + 2)), mapper(Add(ref p, i + 3)));
+            Add(ref q, i) = a;
+            Add(ref q, i + 1) = b;
+            Add(ref q, i + 2) = c;
+            Add(ref q, i + 3) = d;
+        }
+        for (; i < newValues.Length; i++)
+            Add(ref q, i) = mapper(Add(ref p, i));
         return newValues;
     }
 
@@ -1065,7 +1079,7 @@ public readonly struct DVector :
             double x = Add(ref p, i) - average, y = Add(ref q, i) - average;
             ex += x; ey += y;
             exx = FusedMultiplyAdd(x, x, exx);
-            exy = FusedMultiplyAdd(x , y, exy);
+            exy = FusedMultiplyAdd(x, y, exy);
             eyy = FusedMultiplyAdd(y, y, eyy);
         }
         return (exy - ex * ey / count) /

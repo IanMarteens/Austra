@@ -858,7 +858,8 @@ internal sealed partial class Bindings
             [new(typeof(CSequence), "prod")] = typeof(CSequence).Get(nameof(CSequence.Product)),
             [new(typeof(CSequence), "product")] = typeof(CSequence).Get(nameof(CSequence.Product)),
             [new(typeof(CSequence), "sum")] = typeof(CSequence).Get(nameof(CSequence.Sum)),
-            [new(typeof(CSequence), "tovector")] = typeof(CSequence).Get(nameof(CSequence.ToVector)),
+            [new(typeof(CSequence), "tovector")] = typeof(CSequence).GetMethod(
+                nameof(CSequence.ToVector), Type.EmptyTypes)!,
 
             [new(typeof(CVector), "amax")] = typeof(CVector).Get(nameof(CVector.AbsMax)),
             [new(typeof(CVector), "amin")] = typeof(CVector).Get(nameof(CVector.AbsMin)),

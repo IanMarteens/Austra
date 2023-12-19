@@ -7,6 +7,5 @@ BenchmarkRunner.Run<VectorBenchmark>();
 //BenchmarkRunner.Run<SplineBenchmark>();
 //BenchmarkRunner.Run<FunctionsBenchmark>();
 //BenchmarkRunner.Run<ParserBenchmark>();
-var b = new VectorBenchmark();
-WriteLine(b.AustraVectorAccumulator());
+
 
