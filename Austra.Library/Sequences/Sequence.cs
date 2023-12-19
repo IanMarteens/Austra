@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Common base class for all sequences.</summary>
 /// <typeparam name="T">The type for the returned items.</typeparam>
