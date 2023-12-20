@@ -68,7 +68,7 @@ iseq(10, 100).any(x =&gt; x * x = x + x)
 iseq(2, 100).filter(x =&gt; iseq(2, x - 1).all(div => x % div != 0)))
         </code>
         <para>We need no inner brackets inside the main list comprehension, since it is evident how the qualified condition is nested. We could even add a mapping at the end of the comprehension to transform the calculated prime numbers, if required.</para>
-        <para>Please note that using regular lambdas, we will be nesting a lambda definition inside another. The generated code for the list comprehension also use nested lambdas, but with an easier to undestand syntax. Please note that the inner lambda is "capturing" the parameter of the outer lambda, so we must be careful naming local variables.</para>
+        <para>If we use regular lambdas, we will be nesting a lambda definition inside another. The generated code for the list comprehension also use nested lambdas, but with an easier to understand syntax. The inner lambda is "capturing" the parameter of the outer lambda, so we must be careful naming local variables.</para>
       </content>
      </section>
     <relatedTopics>

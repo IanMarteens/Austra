@@ -1,4 +1,5 @@
-﻿using System.Runtime.Intrinsics.X86;
+﻿using System.Collections.Generic;
+using System.Runtime.Intrinsics.X86;
 using static System.Runtime.CompilerServices.Unsafe;
 
 namespace Austra.Parser;
@@ -88,10 +89,8 @@ internal sealed partial class Parser : IDisposable
         new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Controls that only persisted values are used.</summary>
     private bool isParsingDefinition;
-    /// <summary>Place holder for the first lambda parameter, if any.</summary>
-    private ParameterExpression? lambdaParameter;
-    /// <summary>Place holder for the second lambda parameter, if any.</summary>
-    private ParameterExpression? lambdaParameter2;
+    /// <summary>Place holder for lambda arguments, if any.</summary>
+    private LambdaBlock lambdaBlock;
     /// <summary>Are we parsing a lambda header?</summary>
     private bool parsingLambdaHeader;
 
@@ -125,10 +124,10 @@ internal sealed partial class Parser : IDisposable
     /// <param name="text">Text of the formula.</param>
     public Parser(Bindings bindings, IDataSource source, string text)
     {
-        (this.bindings, this.source, this.text, id) = (bindings, source, text, "");
-        letExpressions = source.Rent(8);
-        setExpressions = source.Rent(8);
-        scriptExpressions = source.Rent(8);
+        (this.bindings, this.source, this.text, id, lambdaBlock,
+            letExpressions, setExpressions, scriptExpressions)
+            = (bindings, source, text, "", new(this),
+                source.Rent(8), source.Rent(8), source.Rent(8));
         Move();
     }
 
@@ -611,4 +610,65 @@ internal sealed partial class Parser : IDisposable
         abortPosition == int.MaxValue
         ? new AstException(message, start)
         : new AbortException(message);
+
+    private struct LambdaBlock(Parser parser)
+    {
+        public ParameterExpression? Param1;
+        public ParameterExpression? Param2;
+
+        public readonly void GatherParameters(List<Member> members)
+        {
+            if (Param1 is not null)
+            {
+                if (!string.IsNullOrEmpty(Param1.Name))
+                    members.Add(new(Param1.Name, "Lambda parameter"));
+                if (Param2 is not null && !string.IsNullOrEmpty(Param2.Name))
+                    members.Add(new(Param2.Name, "Lambda parameter"));
+            }
+        }
+
+        public void Clean() => Param1 = Param2 = null;
+
+        public Expression Create(Expression body, Type retType)
+        {
+            try
+            {
+                if (body.Type != retType)
+                    body = retType == typeof(Complex) && IsArithmetic(body)
+                        ? Expression.Convert(body, typeof(Complex))
+                        : retType == typeof(double) && body.Type == typeof(int)
+                        ? IntToDouble(body)
+                        : throw parser.Error($"Expected return type is {retType.Name}");
+                return Param1 is null
+                    ? Expression.Constant(0d)
+                    : Param2 is null
+                    ? Expression.Lambda(body, Param1)
+                    : Expression.Lambda(body, Param1, Param2);
+            }
+            finally
+            {
+                Clean();
+            }
+        }
+
+        public readonly bool TryMatch(
+            string identifier,
+            [NotNullWhen(true)] out ParameterExpression? parameter)
+        {
+            if (Param1 is not null
+                && identifier.Equals(Param1.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                parameter = Param1;
+                return true;
+            }
+            if (Param2 is not null
+                && identifier.Equals(Param2.Name, StringComparison.OrdinalIgnoreCase))
+            { 
+                parameter = Param2;
+                return true; 
+            }
+            parameter = null;
+            return false;
+        }
+    }
 }

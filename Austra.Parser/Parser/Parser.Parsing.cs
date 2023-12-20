@@ -113,17 +113,12 @@ internal sealed partial class Parser
             return [];
         List<Member> result = new(locals.Count + scriptLocals.Count + 2);
         foreach (KeyValuePair<string, ParameterExpression> pair in locals)
-            result.Add(new(pair.Key, $"Local variable: {pair.Value.Type.Name}"));
-        foreach (KeyValuePair<string, ParameterExpression> pair in scriptLocals)
-            if (!locals.ContainsKey(pair.Key))
+            if (!pair.Key.StartsWith('$'))
                 result.Add(new(pair.Key, $"Local variable: {pair.Value.Type.Name}"));
-        if (lambdaParameter != null)
-        {
-            if (!string.IsNullOrEmpty(lambdaParameter.Name))
-                result.Add(new(lambdaParameter.Name, "Lambda parameter"));
-            if (lambdaParameter2 != null && !string.IsNullOrEmpty(lambdaParameter2.Name))
-                result.Add(new(lambdaParameter2.Name, "Lambda parameter"));
-        }
+        foreach (KeyValuePair<string, ParameterExpression> pair in scriptLocals)
+            if (!locals.ContainsKey(pair.Key) && !pair.Key.StartsWith('$'))
+                result.Add(new(pair.Key, $"Local variable: {pair.Value.Type.Name}"));
+        lambdaBlock.GatherParameters(result);
         return result;
     }
 
@@ -1041,7 +1036,7 @@ internal sealed partial class Parser
             {
                 if (kind != Token.Id)
                     throw Error("Lambda parameter name expected");
-                lambdaParameter = Expression.Parameter(t1, id);
+                lambdaBlock.Param1 = Expression.Parameter(t1, id);
                 Move();
             }
             else
@@ -1049,35 +1044,26 @@ internal sealed partial class Parser
                 CheckAndMove(Token.LPar, "Lambda parameters expected");
                 if (kind != Token.Id)
                     throw Error("First lambda parameter name expected");
-                lambdaParameter = Expression.Parameter(t1, id);
+                lambdaBlock.Param1 = Expression.Parameter(t1, id);
                 Move();
                 CheckAndMove(Token.Comma, "Comma expected");
                 if (kind != Token.Id)
                     throw Error("Second lambda parameter name expected");
-                lambdaParameter2 = Expression.Parameter(t2, id);
+                lambdaBlock.Param2 = Expression.Parameter(t2, id);
                 Move();
                 CheckAndMove(Token.RPar, ") expected in lambda header");
             }
             CheckAndMove(Token.Arrow, "=> expected");
             parsingLambdaHeader = false;
             Expression body = ParseConditional();
-            if (body.Type != retType)
-                body = retType == typeof(Complex) && IsArithmetic(body)
-                    ? Expression.Convert(body, typeof(Complex))
-                    : retType == typeof(double) && body.Type == typeof(int)
-                    ? IntToDouble(body)
-                    : throw Error($"Expected return type is {retType.Name}");
-            Expression result = lambdaParameter2 != null
-                ? Expression.Lambda(body, lambdaParameter, lambdaParameter2)
-                : Expression.Lambda(body, lambdaParameter);
-            lambdaParameter = lambdaParameter2 = null;
+            Expression result = lambdaBlock.Create(body, retType);
             return result;
         }
         finally
         {
             if (abortPosition == int.MaxValue)
             {
-                lambdaParameter = lambdaParameter2 = null;
+                lambdaBlock.Clean();
                 parsingLambdaHeader = false;
             }
         }
@@ -1449,16 +1435,7 @@ internal sealed partial class Parser
         Move(); Move();
         Expression? filter = null, e2 = null;
         // Parse the expression that generates the sequence.
-        Expression e = ParseLightConditional();
-        if (e.Type == typeof(int))
-        {
-            // It may be a range expression.
-            CheckAndMove(Token.Range, "Expected range in list comprehension");
-            Expression upper = ParseLightConditional();
-            if (upper.Type != typeof(int))
-                throw Error("Upper bound in range must be an integer");
-            e = typeof(DSequence).Call(nameof(DSequence.Create), e, upper);
-        }
+        Expression e = ParseGenerator();
         // Verify that the expression is a sequence and get its type.
         Type eType = e.Type, iType;
         if (eType == typeof(DVector) || eType == typeof(DSequence) || eType == typeof(Series))
@@ -1474,10 +1451,9 @@ internal sealed partial class Parser
         {
             Move();
             // Parse the expression that filters the sequence.
-            lambdaParameter = Expression.Parameter(
+            lambdaBlock.Param1 = Expression.Parameter(
                 eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName);
-            try { filter = ConvertToLambda(ParseConditional(), typeof(bool), lambdaParameter); }
-            finally { lambdaParameter = null; }
+            filter = lambdaBlock.Create(ParseConditional(), typeof(bool));
         }
         // Qualifiers do not allow a mapping expression.
         if (qualifier != "")
@@ -1493,9 +1469,8 @@ internal sealed partial class Parser
         {
             Move();
             // Parse the expression that generates the result.
-            lambdaParameter = Expression.Parameter(iType, paramName);
-            try { e2 = ConvertToLambda(ParseLightConditional(), iType, lambdaParameter); }
-            finally { lambdaParameter = null; }
+            lambdaBlock.Param1 = Expression.Parameter(iType, paramName);
+            e2 = lambdaBlock.Create(ParseLightConditional(), iType);
         }
         // Check and skip a right bracket.
         CheckAndMove(Token.RBra, "] expected in list comprehension");
@@ -1504,17 +1479,51 @@ internal sealed partial class Parser
         if (e2 != null)
             e = Expression.Call(e, "Map", Type.EmptyTypes, e2);
         return e;
+    }
 
-        Expression ConvertToLambda(Expression e, Type retType, ParameterExpression param)
+    private Expression ParseGenerator()
+    {
+        Expression e = ParseLightConditional();
+        if (e.Type == typeof(int) || e.Type == typeof(double))
         {
-            if (e.Type != retType)
-                e = retType == typeof(Complex) && IsArithmetic(e)
-                    ? Expression.Convert(e, typeof(Complex))
-                    : retType == typeof(double) && e.Type == typeof(int)
-                    ? IntToDouble(e)
-                    : throw Error($"Expected return type is {retType.Name}");
-            return Expression.Lambda(e, param);
+            // It may be a range expression.
+            CheckAndMove(Token.Range, "Expected range in list comprehension");
+            Expression upperOrStep = ParseLightConditional();
+            Expression? last = null;
+            if (kind == Token.Range)
+            {
+                Move();
+                last = ParseLightConditional();
+                if (last.Type != e.Type)
+                    if (last.Type == typeof(int))
+                        last = IntToDouble(last);
+                    else
+                        e = e.Type == typeof(int)
+                            ? IntToDouble(e)
+                            : throw Error("Range bounds must be of the same type");
+                if (upperOrStep.Type != typeof(int))
+                    throw Error("Range step must be an integer");
+            }
+            else if (upperOrStep.Type != e.Type)
+                if (upperOrStep.Type == typeof(int))
+                    upperOrStep = IntToDouble(upperOrStep);
+                else
+                    e = e.Type == typeof(int)
+                        ? IntToDouble(e)
+                        : throw Error("Range bounds must be of the same type");
+            e = e.Type == typeof(int)
+                ? last != null
+                    ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+                        Type.EmptyTypes, e, upperOrStep, last)
+                    : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+                        Type.EmptyTypes, e, upperOrStep)
+                : last != null
+                    ? Expression.Call(typeof(DSequence), nameof(DSequence.Create),
+                        Type.EmptyTypes, e, last, upperOrStep)
+                    : Expression.Call(typeof(DSequence), nameof(DSequence.Create),
+                        Type.EmptyTypes, e, upperOrStep);
         }
+        return e;
     }
 
     private Expression ParseIdBang()
@@ -1533,14 +1542,8 @@ internal sealed partial class Parser
         (int pos, string ident) = (start, id);
         Move();
         // Check lambda parameters when present.
-        if (lambdaParameter != null)
-        {
-            if (ident.Equals(lambdaParameter.Name, StringComparison.OrdinalIgnoreCase))
-                return lambdaParameter;
-            if (lambdaParameter2 != null &&
-                ident.Equals(lambdaParameter2.Name, StringComparison.OrdinalIgnoreCase))
-                return lambdaParameter2;
-        }
+        if (lambdaBlock.TryMatch(ident, out ParameterExpression? param))
+            return param;
         // Check the local scope.
         if (scriptLocals.TryGetValue(ident, out ParameterExpression? local) ||
             locals.TryGetValue(ident, out local))

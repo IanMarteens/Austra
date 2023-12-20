@@ -23,6 +23,13 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public static DSequence Create(int first, int last) =>
         first <= last ? new RangeSequence(first, last) : new RangeSequenceDesc(first, last);
 
+    /// <summary>Creates a sequence from a range.</summary>
+    /// <param name="first">The first value in the sequence.</param>
+    /// <param name="last">The last value in the sequence.</param>
+    /// <returns>A sequence returning a range of values.</returns>
+    public static DSequence Create(double first, double last) =>
+        first <= last ? new RangeSequence((int)first, (int)last) : new RangeSequenceDesc((int)first, (int)last);
+
     /// <summary>Creates a sequence from a uniform grid.</summary>
     /// <param name="lower">The first value in the sequence.</param>
     /// <param name="upper">The last value in the sequence.</param>
