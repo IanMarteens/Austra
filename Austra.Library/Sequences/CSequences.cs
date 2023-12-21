@@ -225,7 +225,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <returns>A sequence with all the multiplication results.</returns>
     public override CSequence PointwiseMultiply(CSequence other)
     {
-        if (!HasStorage && !other.HasStorage)
+        if (!HasStorage || !other.HasStorage)
             return new Zipped(this, other, (x, y) => x * y);
         int size = Min(Length(), other.Length());
         return new VectorSequence(ToVector(size).PointwiseMultiply(other.ToVector(size)));
@@ -236,7 +236,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     /// <returns>A sequence with all the quotient results.</returns>
     public override CSequence PointwiseDivide(CSequence other)
     {
-        if (!HasStorage && !other.HasStorage)
+        if (!HasStorage || !other.HasStorage)
             return new Zipped(this, other, (x, y) => x / y);
         int size = Min(Length(), other.Length());
         return new VectorSequence(ToVector(size).PointwiseDivide(other.ToVector(size)));

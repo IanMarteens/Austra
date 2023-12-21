@@ -32,6 +32,12 @@
 			<content>
 			  <para>This will sound unintuitive, but it has been a guide when designing the Austra Library:</para>
 			  <quote>Library code should make as much use as possible of hardware vectorization, and only when this way is exhausted, you should turn to task concurrency if it makes sense.</quote>
+			  <para>My points:</para>
+			  <list class="bullet">
+			    <listItem>Library methods use to be short. For instance, <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Map(System.Func{System.Double,System.Double})</codeEntityReference> is embarrasingly parallel, but even a vector with 2048 items takes around a microsecond to be mapped. That is a very short span to attempt parallelization using tasks: the overhead of starting and waiting for finalization trumps any gains of task parallelism.</listItem>
+			    <listItem>Neither vectorization nor parallelization plays nice with modularity.</listItem>
+			    <listItem>We have chosen, for Austra, applying all possible vectorizations at the lowest level, and leaving task parallelism to higher level abstractions designed by the consumers of the class.</listItem>
+			  </list>
 			</content>
 		  </section>
 		  <section address="algebra">

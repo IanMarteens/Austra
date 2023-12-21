@@ -151,7 +151,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <returns>The component by component sum of the sequences.</returns>
     public static NSequence operator +(NSequence s1, NSequence s2)
     {
-        if (!s1.HasStorage && !s2.HasStorage)
+        if (!s1.HasStorage || !s2.HasStorage)
             return s1.Add(s2);
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
@@ -190,7 +190,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <returns>The component by component subtraction of the sequences.</returns>
     public static NSequence operator -(NSequence s1, NSequence s2)
     {
-        if (!s1.HasStorage && !s2.HasStorage)
+        if (!s1.HasStorage || !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x - y);
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
@@ -229,7 +229,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <returns>The dot product of the common part.</returns>
     public static int operator *(NSequence s1, NSequence s2)
     {
-        if (!s1.HasStorage && !s2.HasStorage)
+        if (!s1.HasStorage || !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x * y).Sum();
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
@@ -268,7 +268,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <returns>A sequence with all the multiplication results.</returns>
     public override NSequence PointwiseMultiply(NSequence other)
     {
-        if (!HasStorage && !other.HasStorage)
+        if (!HasStorage || !other.HasStorage)
             return new Zipped(this, other, (x, y) => x * y);
         int[] a1 = Materialize();
         int[] a2 = other.Materialize();
@@ -281,7 +281,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <returns>A sequence with all the quotient results.</returns>
     public override NSequence PointwiseDivide(NSequence other)
     {
-        if (!HasStorage && !other.HasStorage)
+        if (!HasStorage || !other.HasStorage)
             return new Zipped(this, other, (x, y) => x / y);
         int[] a1 = Materialize();
         int[] a2 = other.Materialize();

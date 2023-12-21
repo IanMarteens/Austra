@@ -164,7 +164,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>The component by component sum of the sequences.</returns>
     public static DSequence operator +(DSequence s1, DSequence s2)
     {
-        if (!s1.HasStorage && !s2.HasStorage)
+        if (!s1.HasStorage || !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x + y);
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
@@ -198,7 +198,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>The component by component subtraction of the sequences.</returns>
     public static DSequence operator -(DSequence s1, DSequence s2)
     {
-        if (!s1.HasStorage && !s2.HasStorage)
+        if (!s1.HasStorage || !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x - y);
         double[] a1 = s1.Materialize();
         double[] a2 = s2.Materialize();
@@ -237,7 +237,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>The dot product of the common part.</returns>
     public static double operator *(DSequence s1, DSequence s2)
     {
-        if (!s1.HasStorage && !s2.HasStorage)
+        if (!s1.HasStorage || !s2.HasStorage)
             return s1.Zip(s2, (x, y) => x * y).Sum();
         int size = Math.Min(s1.Length(), s2.Length());
         return s1.Materialize().AsSpan(0, size).Dot(s2.Materialize().AsSpan(0, size));
@@ -274,7 +274,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>A sequence with all the multiplication results.</returns>
     public override DSequence PointwiseMultiply(DSequence other)
     {
-        if (!HasStorage && !other.HasStorage)
+        if (!HasStorage || !other.HasStorage)
             return new Zipped(this, other, (x, y) => x * y);
         double[] a1 = Materialize();
         double[] a2 = other.Materialize();
@@ -287,7 +287,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>A sequence with all the quotient results.</returns>
     public override DSequence PointwiseDivide(DSequence other)
     {
-        if (!HasStorage && !other.HasStorage)
+        if (!HasStorage || !other.HasStorage)
             return new Zipped(this, other, (x, y) => x / y);
         double[] a1 = Materialize();
         double[] a2 = other.Materialize();
