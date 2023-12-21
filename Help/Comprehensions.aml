@@ -65,7 +65,7 @@ iseq(10, 100).any(x =&gt; x * x = x + x)
 <markup><font color="DarkGreen">-- Find all prime numbers between 2 and 100:</font></markup>
 [x <markup><b>in</b></markup> 2..100 : <markup><b>all</b></markup> div <markup><b>in</b></markup> 2 .. x - 1 : x % div != 0];
 <markup><font color="DarkGreen">-- Equivalent, but longer:</font></markup>
-iseq(2, 100).filter(x =&gt; iseq(2, x - 1).all(div => x % div != 0)))
+iseq(2, 100).filter(x =&gt; iseq(2, x - 1).all(div => x % div != 0))
         </code>
         <para>We need no inner brackets inside the main list comprehension, since it is evident how the qualified condition is nested. We could even add a mapping at the end of the comprehension to transform the calculated prime numbers, if required.</para>
         <para>If we use regular lambdas, we will be nesting a lambda definition inside another. The generated code for the list comprehension also use nested lambdas, but with an easier to understand syntax. The inner lambda is "capturing" the parameter of the outer lambda, so we must be careful naming local variables.</para>

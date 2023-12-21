@@ -50,7 +50,7 @@ prices.map(x => min(x, 1000))
         <para><codeInline>zip</codeInline> can act on arguments with different lengths, so it only acts in the common part of both. It generates a new series, vector or sequence, and each item will be the combined value created by the lambda function. In the above example, it will be the maximum price for each common date.</para>
       </content>
     </section>
-    <section>
+    <section address="capture">
       <title>Captured variables</title>
       <content>
       <para>The <codeInline>ncdf()</codeInline> method of a <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">series</link> takes a real value and classifies it according to its
@@ -89,6 +89,19 @@ reference it from our nested lambda function. This way, we avoid recalculating t
 			<para>The <codeInline>series.ncdf(x)</codeInline> method assumes that values in the serie can be described by a normal distribution. This is almost never true.</para>
 			<para>A most useful related method is <codeInline>series.movingNcdf(points)</codeInline>, which calculates the <codeInline>ncdf</codeInline> for each value in the series, but calculates the two parameters that defines a normal distribution from a configurable interval of points preceding each calculation.</para>
 		</alert>
+      </content>
+    </section>
+    <section address="nested">
+      <title>Nested lambdas</title>
+      <content>
+      <para>Another kind of capture takes place when a lambda function is defined inside another lambda. This formula finds all prime numbers up to 100, and uses nested lambdas:</para>
+      <code language="Austra">
+iseq(2, 100).filter(<markup><u><font color="DarkBlue"><b>x</b></font> =&gt; iseq(2, <font color="DarkBlue"><b>x</b></font> - 1).all(<font color="DarkRed"><b>div</b></font> => <font color="DarkBlue"><b>x</b></font> % <font color="DarkRed"><b>div</b></font> != 0)</u></markup>)
+      </code>
+	  <alert class="note">
+		<para>The above code also uses <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">sequences</link> for generating a range or list of integers.</para>
+	  </alert>
+	  <para>The underlined text is a definition of a lambda that is being used as the argument of the <codeInline>filter</codeInline> method. It's a function with a single parameter <codeInline>x</codeInline>. Note, however, that inside that lambda, we call another method that has its own lambda function, using the parameter <codeInline>div</codeInline>. The inner lambda can use both its own parameter <codeInline>div</codeInline>, but it also can use <codeInline>x</codeInline>, defined by the outer function.</para>
       </content>
     </section>
     <relatedTopics>
