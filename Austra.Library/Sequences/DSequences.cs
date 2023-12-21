@@ -32,12 +32,12 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
 
     /// <summary>Creates a sequence from a uniform grid.</summary>
     /// <param name="lower">The first value in the sequence.</param>
-    /// <param name="upper">The last value in the sequence.</param>
     /// <param name="steps">The number of steps in the sequence, minus one.</param>
+    /// <param name="upper">The last value in the sequence.</param>
     /// <returns>A sequence returning a uniform grid of values.</returns>
-    public static DSequence Create(double lower, double upper, int steps) =>
+    public static DSequence Create(double lower, int steps, double upper) =>
         new GridSequence(lower, upper, steps);
-
+    
     /// <summary>Creates a sequence from a vector.</summary>
     /// <param name="vector">The vector containing the sequence's values.</param>
     /// <returns>The sequence encapsulating the vector.</returns>

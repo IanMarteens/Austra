@@ -1036,7 +1036,7 @@ internal sealed partial class Parser
             {
                 if (kind != Token.Id)
                     throw Error("Lambda parameter name expected");
-                lambdaBlock.Param1 = Expression.Parameter(t1, id);
+                lambdaBlock.Add(t1, id);
                 Move();
             }
             else
@@ -1044,28 +1044,23 @@ internal sealed partial class Parser
                 CheckAndMove(Token.LPar, "Lambda parameters expected");
                 if (kind != Token.Id)
                     throw Error("First lambda parameter name expected");
-                lambdaBlock.Param1 = Expression.Parameter(t1, id);
+                string id1 = id;
                 Move();
                 CheckAndMove(Token.Comma, "Comma expected");
                 if (kind != Token.Id)
                     throw Error("Second lambda parameter name expected");
-                lambdaBlock.Param2 = Expression.Parameter(t2, id);
+                lambdaBlock.Add(t1, id1, t2, id);
                 Move();
                 CheckAndMove(Token.RPar, ") expected in lambda header");
             }
             CheckAndMove(Token.Arrow, "=> expected");
             parsingLambdaHeader = false;
-            Expression body = ParseConditional();
-            Expression result = lambdaBlock.Create(body, retType);
-            return result;
+            return lambdaBlock.Create(ParseConditional(), retType);
         }
         finally
         {
             if (abortPosition == int.MaxValue)
-            {
-                lambdaBlock.Clean();
                 parsingLambdaHeader = false;
-            }
         }
     }
 
@@ -1322,12 +1317,12 @@ internal sealed partial class Parser
         if (kind == Token.Id)
         {
             string saveId = id;
-            int saveCursor = i;
+            int saveCursor = lexCursor;
             Move();
             if (kind == Token.In)
             {
                 id = saveId;
-                i = saveCursor;
+                lexCursor = saveCursor;
                 return ParseListComprehension("");
             }
             else if (kind == Token.Id)
@@ -1337,12 +1332,12 @@ internal sealed partial class Parser
                 if ((qual == "all" || qual == "any") && kind == Token.In)
                 {
                     id = saveId;
-                    i = saveCursor;
+                    lexCursor = saveCursor;
                     return ParseListComprehension(qual);
                 }
             }
             id = saveId;
-            i = saveCursor;
+            lexCursor = saveCursor;
         }
         // It's a vector or a matrix constructor.
         List<Expression> items = source.Rent(16);
@@ -1451,8 +1446,7 @@ internal sealed partial class Parser
         {
             Move();
             // Parse the expression that filters the sequence.
-            lambdaBlock.Param1 = Expression.Parameter(
-                eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName);
+            lambdaBlock.Add(eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName);
             filter = lambdaBlock.Create(ParseConditional(), typeof(bool));
         }
         // Qualifiers do not allow a mapping expression.
@@ -1469,7 +1463,7 @@ internal sealed partial class Parser
         {
             Move();
             // Parse the expression that generates the result.
-            lambdaBlock.Param1 = Expression.Parameter(iType, paramName);
+            lambdaBlock.Add(iType, paramName);
             e2 = lambdaBlock.Create(ParseLightConditional(), iType);
         }
         // Check and skip a right bracket.

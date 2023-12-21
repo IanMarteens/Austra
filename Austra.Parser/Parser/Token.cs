@@ -11,7 +11,7 @@ public enum Token
     Int,
     /// <summary>Real literals.</summary>
     Real,
-    /// <summary>Imaginary literals, suffixed with <c>i</c>.</summary>
+    /// <summary>Imaginary literals, suffixed with <c>lexCursor</c>.</summary>
     Imag,
     /// <summary>Date literal.</summary>
     Date,

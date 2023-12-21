@@ -769,8 +769,9 @@ internal sealed partial class Bindings
                     typeof(int), typeof(double), typeof(DVector))),
             ["seq.new"] = new(
                 typeof(DSequence).MD(nameof(DSequence.Create), NNArg),
+                typeof(DSequence).MD(nameof(DSequence.Create), DDArg),
                 typeof(DSequence).MD(nameof(DSequence.Create),
-                    typeof(double), typeof(double), typeof(int)),
+                    typeof(double), typeof(int), typeof(double)),
                 typeof(DSequence).MD(nameof(DSequence.Create), typeof(DVector)),
                 typeof(DSequence).MD(nameof(DSequence.Create), typeof(Matrix)),
                 typeof(DSequence).MD(nameof(DSequence.Create), typeof(Series))),

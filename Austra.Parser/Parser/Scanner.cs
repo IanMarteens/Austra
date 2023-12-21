@@ -104,7 +104,7 @@ internal sealed partial class Parser : IDisposable
     private int start;
     /// <summary>Gets the string associated with the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    private string id;
+    private string id = "";
     /// <summary>Value of the current lexeme as a real number.</summary>
     private double asReal;
     /// <summary>Value of the lexeme as an integer.</summary>
@@ -113,7 +113,7 @@ internal sealed partial class Parser : IDisposable
     private Date asDate;
     /// <summary>Current position in the text.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    private int i;
+    private int lexCursor;
     /// <summary>Position where the parsing should be aborted.</summary>
     /// <remarks>This is checked by the scanner.</remarks>
     private int abortPosition = int.MaxValue;
@@ -124,9 +124,9 @@ internal sealed partial class Parser : IDisposable
     /// <param name="text">Text of the formula.</param>
     public Parser(Bindings bindings, IDataSource source, string text)
     {
-        (this.bindings, this.source, this.text, id, lambdaBlock,
+        (this.bindings, this.source, this.text, lambdaBlock,
             letExpressions, setExpressions, scriptExpressions)
-            = (bindings, source, text, "", new(this),
+            = (bindings, source, text, new(this),
                 source.Rent(8), source.Rent(8), source.Rent(8));
         Move();
     }
@@ -142,7 +142,7 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Skips two tokens with a single call.</summary>
     private void SkipFunctor()
     {
-        if (kind == Token.Functor) i++; else i += 2;
+        if (kind == Token.Functor) lexCursor++; else lexCursor += 2;
         Move();
     }
 
@@ -163,42 +163,42 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Advances the lexical analyzer one token.</summary>
     private void Move()
     {
-        if (i >= abortPosition)
+        if (lexCursor >= abortPosition)
             throw new AbortException("Aborted by the scanner");
         ref char c = ref As<Str>(text).FirstChar;
     SKIP_BLANKS:
-        while (char.IsWhiteSpace(Add(ref c, i)))
-            i++;
-        start = i;
-        char ch = Add(ref c, i);
+        while (char.IsWhiteSpace(Add(ref c, lexCursor)))
+            lexCursor++;
+        start = lexCursor;
+        char ch = Add(ref c, lexCursor);
         // Check keywords, functors, class names and identifiers.
         if (char.IsLetter(ch))
         {
-            do ch = Add(ref c, ++i);
+            do ch = Add(ref c, ++lexCursor);
             while (char.IsLetterOrDigit(ch) || ch == '_');
             // Check for keywords and function identifiers
             Token tok = Avx.IsSupported
-                ? IsIntelKeyword(ref Add(ref c, start), i - start)
-                : IsKeyword(text.AsSpan()[start..i]);
+                ? IsIntelKeyword(ref Add(ref c, start), lexCursor - start)
+                : IsKeyword(text.AsSpan()[start..lexCursor]);
             if (tok != Token.Id)
                 kind = tok;
             else
             {
                 // Skip blanks after the identifier.
-                id = text[start..i];
-                if (ch == '!' && Add(ref c, i + 1) != '=')
+                id = text[start..lexCursor];
+                if (ch == '!' && Add(ref c, lexCursor + 1) != '=')
                 {
                     kind = Token.IdBang;
-                    i++;
+                    lexCursor++;
                 }
                 else
                 {
-                    while (char.IsWhiteSpace(Add(ref c, i)))
-                        i++;
-                    kind = Add(ref c, i) switch
+                    while (char.IsWhiteSpace(Add(ref c, lexCursor)))
+                        lexCursor++;
+                    kind = Add(ref c, lexCursor) switch
                     {
                         '(' => Token.Functor,
-                        ':' => Add(ref c, i + 1) == ':' ? Token.ClassName : Token.Id,
+                        ':' => Add(ref c, lexCursor + 1) == ':' ? Token.ClassName : Token.Id,
                         _ => Token.Id
                     };
                 }
@@ -206,56 +206,56 @@ internal sealed partial class Parser : IDisposable
         }
         else if ((uint)(ch - '0') < 10u)
         {
-            do i++;
-            while ((uint)(Add(ref c, i) - '0') < 10u);
-            ch = Add(ref c, i);
+            do lexCursor++;
+            while ((uint)(Add(ref c, lexCursor) - '0') < 10u);
+            ch = Add(ref c, lexCursor);
             if (ch == '@')
             {
                 // It's a date literal.
-                do i++;
-                while (char.IsLetterOrDigit(Add(ref c, i)));
+                do lexCursor++;
+                while (char.IsLetterOrDigit(Add(ref c, lexCursor)));
                 kind = Token.Date;
-                asDate = ParseDateLiteral(text.AsSpan()[start..i], start);
+                asDate = ParseDateLiteral(text.AsSpan()[start..lexCursor], start);
             }
-            else if (ch == '.' && Add(ref c, i + 1) != '.')
+            else if (ch == '.' && Add(ref c, lexCursor + 1) != '.')
             {
-                do i++;
-                while ((uint)(Add(ref c, i) - '0') < 10u);
-                if ((Add(ref c, i) | 0x20) == 'e')
+                do lexCursor++;
+                while ((uint)(Add(ref c, lexCursor) - '0') < 10u);
+                if ((Add(ref c, lexCursor) | 0x20) == 'e')
                 {
-                    i++;
-                    if (Add(ref c, i) is '+' or '-')
-                        i++;
-                    while ((uint)(Add(ref c, i) - '0') < 10u)
-                        i++;
+                    lexCursor++;
+                    if (Add(ref c, lexCursor) is '+' or '-')
+                        lexCursor++;
+                    while ((uint)(Add(ref c, lexCursor) - '0') < 10u)
+                        lexCursor++;
                 }
-                if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    (kind, asReal) = (Token.Imag, ToReal(text, start, i++));
-                else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                    (kind, id, asReal, i) = (Token.MultVarR, text[i..j], ToReal(text, start, i), j);
+                if (Add(ref c, lexCursor) == 'i' && !char.IsLetterOrDigit(Add(ref c, lexCursor + 1)))
+                    (kind, asReal) = (Token.Imag, ToReal(text, start, lexCursor++));
+                else if (char.IsLetter(Add(ref c, lexCursor)) && IsVariableSuffix(text, lexCursor, out int j))
+                    (kind, id, asReal, lexCursor) = (Token.MultVarR, text[lexCursor..j], ToReal(text, start, lexCursor), j);
                 else
-                    (kind, asReal) = (Token.Real, ToReal(text, start, i));
+                    (kind, asReal) = (Token.Real, ToReal(text, start, lexCursor));
             }
             else if ((ch | 0x20) == 'e')
             {
-                if (Add(ref c, ++i) is '+' or '-')
-                    i++;
-                while ((uint)(Add(ref c, i) - '0') < 10u)
-                    i++;
-                if (Add(ref c, i) == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                    (kind, asReal) = (Token.Imag, ToReal(text, start, i++));
-                else if (char.IsLetter(Add(ref c, i)) && IsVariableSuffix(text, i, out int j))
-                    (kind, id, asReal, i) = (Token.MultVarR, text[i..j], ToReal(text, start, i), j);
+                if (Add(ref c, ++lexCursor) is '+' or '-')
+                    lexCursor++;
+                while ((uint)(Add(ref c, lexCursor) - '0') < 10u)
+                    lexCursor++;
+                if (Add(ref c, lexCursor) == 'i' && !char.IsLetterOrDigit(Add(ref c, lexCursor + 1)))
+                    (kind, asReal) = (Token.Imag, ToReal(text, start, lexCursor++));
+                else if (char.IsLetter(Add(ref c, lexCursor)) && IsVariableSuffix(text, lexCursor, out int j))
+                    (kind, id, asReal, lexCursor) = (Token.MultVarR, text[lexCursor..j], ToReal(text, start, lexCursor), j);
                 else
-                    (kind, asReal) = (Token.Real, ToReal(text, start, i));
+                    (kind, asReal) = (Token.Real, ToReal(text, start, lexCursor));
             }
-            else if (ch == 'i' && !char.IsLetterOrDigit(Add(ref c, i + 1)))
-                (kind, asReal) = (Token.Imag, ToReal(text, start, i++));
-            else if (char.IsLetter(ch) && IsVariableSuffix(text, i, out int k))
-                (kind, id, asInt, i)
-                    = (Token.MultVarI, text[i..k], int.Parse(text.AsSpan()[start..i]), k);
+            else if (ch == 'i' && !char.IsLetterOrDigit(Add(ref c, lexCursor + 1)))
+                (kind, asReal) = (Token.Imag, ToReal(text, start, lexCursor++));
+            else if (char.IsLetter(ch) && IsVariableSuffix(text, lexCursor, out int k))
+                (kind, id, asInt, lexCursor)
+                    = (Token.MultVarI, text[lexCursor..k], int.Parse(text.AsSpan()[start..lexCursor]), k);
             else
-                (kind, asInt) = (Token.Int, int.Parse(text.AsSpan()[start..i]));
+                (kind, asInt) = (Token.Int, int.Parse(text.AsSpan()[start..lexCursor]));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool IsVariableSuffix(string text, int i, out int j)
@@ -275,7 +275,7 @@ internal sealed partial class Parser : IDisposable
         }
         else
         {
-            i++;
+            lexCursor++;
             switch (ch)
             {
                 case '\0': (kind, start) = (Token.Eof, text.Length - 1); return;
@@ -295,90 +295,90 @@ internal sealed partial class Parser : IDisposable
                 case '²': kind = Token.Caret2; return;
                 case '\'': kind = Token.Transpose; return;
                 case '-':
-                    if (Add(ref c, i) == '-')
+                    if (Add(ref c, lexCursor) == '-')
                     {
-                        do ch = Add(ref c, ++i);
+                        do ch = Add(ref c, ++lexCursor);
                         while (ch is not '\r' and not '\n' and not '\0');
                         goto SKIP_BLANKS;
                     }
                     kind = Token.Minus;
                     return;
                 case '=':
-                    (kind, start) = Add(ref c, i) == '>'
-                        ? (Token.Arrow, i++ - 1)
+                    (kind, start) = Add(ref c, lexCursor) == '>'
+                        ? (Token.Arrow, lexCursor++ - 1)
                         : (Token.Eq, start);
                     return;
                 case '.':
-                    (kind, start) = Add(ref c, i) switch
+                    (kind, start) = Add(ref c, lexCursor) switch
                     {
-                        '*' => (Token.PointTimes, i++ - 1),
-                        '/' => (Token.PointDiv, i++ - 1),
-                        '.' => (Token.Range, i++ - 1),
+                        '*' => (Token.PointTimes, lexCursor++ - 1),
+                        '/' => (Token.PointDiv, lexCursor++ - 1),
+                        '.' => (Token.Range, lexCursor++ - 1),
                         _ => (Token.Dot, start),
                     };
                     return;
                 case ':':
-                    (kind, start) = Add(ref c, i) == ':'
-                        ? (Token.DoubleColon, i++ - 1)
+                    (kind, start) = Add(ref c, lexCursor) == ':'
+                        ? (Token.DoubleColon, lexCursor++ - 1)
                         : (Token.Colon, start);
                     return;
                 case '!':
-                    (kind, start) = Add(ref c, i) == '='
-                        ? (Token.Ne, i++ - 1)
+                    (kind, start) = Add(ref c, lexCursor) == '='
+                        ? (Token.Ne, lexCursor++ - 1)
                         : (Token.Error, start);
                     return;
                 case '<':
-                    (kind, start) = Add(ref c, i) switch
+                    (kind, start) = Add(ref c, lexCursor) switch
                     {
-                        '=' => (Token.Le, i++ - 1),
-                        '>' => (Token.Ne, i++ - 1),
+                        '=' => (Token.Le, lexCursor++ - 1),
+                        '>' => (Token.Ne, lexCursor++ - 1),
                         _ => (Token.Lt, start),
                     };
                     return;
                 case '>':
-                    (kind, start) = Add(ref c, i) == '='
-                        ? (Token.Ge, i++ - 1)
+                    (kind, start) = Add(ref c, lexCursor) == '='
+                        ? (Token.Ge, lexCursor++ - 1)
                         : (Token.Gt, start);
                     return;
                 case '"':
-                    int first = i--;
+                    int first = lexCursor--;
                     do
                     {
-                        ch = Add(ref c, ++i);
+                        ch = Add(ref c, ++lexCursor);
                         if (ch == '\0')
                             throw Error("Unterminated string literal");
                     }
                     while (ch != '"');
-                    if (Add(ref c, i + 1) != '"')
+                    if (Add(ref c, lexCursor + 1) != '"')
                     {
-                        (kind, id) = (Token.Str, text[first..i++]);
+                        (kind, id) = (Token.Str, text[first..lexCursor++]);
                         return;
                     }
                     // This is a string literal with embedded quotes.
                     sb ??= new();
                     sb.Length = 0;
-                    sb.Append(text.AsSpan()[first..(i + 1)]);
-                    first = i += 2;
+                    sb.Append(text.AsSpan()[first..(lexCursor + 1)]);
+                    first = lexCursor += 2;
                 MORE_STRING:
                     do
                     {
-                        ch = Add(ref c, i++);
+                        ch = Add(ref c, lexCursor++);
                         if (ch == '\0')
                             throw Error("Unterminated string literal");
                     }
                     while (ch != '"');
-                    sb.Append(text.AsSpan()[first..(i - 1)]);
-                    if (Add(ref c, i) == '"')
+                    sb.Append(text.AsSpan()[first..(lexCursor - 1)]);
+                    if (Add(ref c, lexCursor) == '"')
                     {
                         sb.Append('"');
-                        first = ++i;
+                        first = ++lexCursor;
                         goto MORE_STRING;
                     }
                     (kind, id) = (Token.Str, sb.ToString());
                     return;
                 default:
                     kind = Token.Error;
-                    i = text.Length - 1;
+                    lexCursor = text.Length - 1;
                     return;
             }
         }
@@ -610,65 +610,4 @@ internal sealed partial class Parser : IDisposable
         abortPosition == int.MaxValue
         ? new AstException(message, start)
         : new AbortException(message);
-
-    private struct LambdaBlock(Parser parser)
-    {
-        public ParameterExpression? Param1;
-        public ParameterExpression? Param2;
-
-        public readonly void GatherParameters(List<Member> members)
-        {
-            if (Param1 is not null)
-            {
-                if (!string.IsNullOrEmpty(Param1.Name))
-                    members.Add(new(Param1.Name, "Lambda parameter"));
-                if (Param2 is not null && !string.IsNullOrEmpty(Param2.Name))
-                    members.Add(new(Param2.Name, "Lambda parameter"));
-            }
-        }
-
-        public void Clean() => Param1 = Param2 = null;
-
-        public Expression Create(Expression body, Type retType)
-        {
-            try
-            {
-                if (body.Type != retType)
-                    body = retType == typeof(Complex) && IsArithmetic(body)
-                        ? Expression.Convert(body, typeof(Complex))
-                        : retType == typeof(double) && body.Type == typeof(int)
-                        ? IntToDouble(body)
-                        : throw parser.Error($"Expected return type is {retType.Name}");
-                return Param1 is null
-                    ? Expression.Constant(0d)
-                    : Param2 is null
-                    ? Expression.Lambda(body, Param1)
-                    : Expression.Lambda(body, Param1, Param2);
-            }
-            finally
-            {
-                Clean();
-            }
-        }
-
-        public readonly bool TryMatch(
-            string identifier,
-            [NotNullWhen(true)] out ParameterExpression? parameter)
-        {
-            if (Param1 is not null
-                && identifier.Equals(Param1.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                parameter = Param1;
-                return true;
-            }
-            if (Param2 is not null
-                && identifier.Equals(Param2.Name, StringComparison.OrdinalIgnoreCase))
-            { 
-                parameter = Param2;
-                return true; 
-            }
-            parameter = null;
-            return false;
-        }
-    }
 }
