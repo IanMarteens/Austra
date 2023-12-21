@@ -45,6 +45,10 @@ m
 <markup><font color="DarkGreen">-- The next statement is valid.</font></markup>
 m
         </code>
+		<alert class="note">
+			<para>Some functional languages, as Haskell, feature another construct for abstracting sub-expressions. Haskell, for instance, offers both <legacyBold>let</legacyBold> and <legacyBold>where</legacyBold>. <legacyBold>let</legacyBold> is located before the expressions that make use of it, and <legacyBold>where</legacyBold> comes after the main expression.</para>
+			<para>In AUSTRA, we prefer <codeInline>let</codeInline>, for the sake of Code Completion. So far, I cannot think of any use for <legacyBold>where</legacyBold> that cannot be solved better with <codeInline>let</codeInline>.</para>
+		</alert>
       </content>
     </section>
     <relatedTopics>

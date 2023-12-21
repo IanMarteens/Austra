@@ -5,7 +5,7 @@
 		<table>
 			<row>
 			<entry>
-              <para>AUSTRA is a very efficient mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models.</para>
+              <para>AUSTRA is an efficient mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models.</para>
               <para>Both, library and language, also support vectors, matrices, transforms and the most frequently used operations from linear algebra, statistics, and probability.</para>
               <para>The library code is hardware-accelerated, using all resources provided by the CPU. The language compiler is also an optimizing compiler, detecting common expression patterns and substituting them by more efficient method calls, whenever possible.</para>
         <para>Austra contains three main components:</para>
@@ -27,6 +27,13 @@
 		<para>The library has been designed as a set of mostly inmmutable types, for facilitating their concurrent use. Most of the methods are hardware-accelerated, either using managed references, SIMD operations or both. Memory pinning, and raw pointers, have been reduced to the minimum, in order to ease the garbage collector's work.</para>
 		<para>Using immutable vectors, series and matrices has one drawback, and it is more stress for the garbage collector. For that reason, we offer combined operations, like other libraries do, to fuse several linear operations into one, when possible. The AUSTRA parser detects most of these cases for optimizing them.</para>
         <sections>
+		  <section address="vectorization">
+			<title>Vectorization versus tasks</title>
+			<content>
+			  <para>This will sound unintuitive, but it has been a guide when designing the Austra Library:</para>
+			  <quote>Library code should make as much use as possible of hardware vectorization, and only when this way is exhausted, you should turn to task concurrency if it makes sense.</quote>
+			</content>
+		  </section>
 		  <section address="algebra">
 			<title>Linear Algebra</title>
 			<content>

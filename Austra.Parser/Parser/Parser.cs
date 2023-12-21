@@ -1435,8 +1435,8 @@ internal sealed partial class Parser
         Type eType = e.Type, iType;
         if (eType == typeof(DVector) || eType == typeof(DSequence) || eType == typeof(Series))
             iType = typeof(double);
-        else if (eType == typeof(NVector) || eType == typeof(NSequence) || eType == typeof(Series))
-            iType = typeof(double);
+        else if (eType == typeof(NVector) || eType == typeof(NSequence))
+            iType = typeof(int);
         else if (eType == typeof(CVector) || eType == typeof(CSequence))
             iType = typeof(Complex);
         else
@@ -1444,10 +1444,49 @@ internal sealed partial class Parser
         // Check a colon for a filter expression.
         if (kind == Token.Colon)
         {
+            bool backtrack = false;
             Move();
-            // Parse the expression that filters the sequence.
             lambdaBlock.Add(eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName);
-            filter = lambdaBlock.Create(ParseConditional(), typeof(bool));
+            string qual = id.ToLower();
+            if (kind == Token.Id && (qual == "all" || qual == "any"))
+            {
+                int savePos = lexCursor;
+                Move();
+                if (kind == Token.Id)
+                {
+                    string paramName1 = id;
+                    Move();
+                    if (kind == Token.In)
+                    {
+                        Move();
+                        Expression f = ParseGenerator();
+                        // Verify that the expression is a sequence and get its type.
+                        Type fType = f.Type, ifType;
+                        if (fType == typeof(DVector) || fType == typeof(DSequence) || fType == typeof(Series))
+                            ifType = typeof(double);
+                        else if (fType == typeof(NVector) || fType == typeof(NSequence))
+                            ifType = typeof(int);
+                        else if (fType == typeof(CVector) || fType == typeof(CSequence))
+                            ifType = typeof(Complex);
+                        else
+                            throw Error("Invalid sequence type");
+                        CheckAndMove(Token.Colon, ": expected in qualified filter in list comprehension");
+                        lambdaBlock.Add(fType == typeof(Series) ? typeof(Point<Date>) : ifType, paramName1);
+                        filter = lambdaBlock.Create(ParseConditional(), typeof(bool));
+                        filter = lambdaBlock.Create(Expression.Call(
+                            f, qual == "all" ? "All" : "Any", Type.EmptyTypes, filter), typeof(bool));
+                    }
+                    else
+                        backtrack = true;
+                }
+                if (backtrack)
+                {
+                    lexCursor = savePos;
+                    id = qual;
+                }
+            }
+            // Parse the expression that filters the sequence.
+            filter ??= lambdaBlock.Create(ParseConditional(), typeof(bool));
         }
         // Qualifiers do not allow a mapping expression.
         if (qualifier != "")
@@ -1477,47 +1516,40 @@ internal sealed partial class Parser
 
     private Expression ParseGenerator()
     {
-        Expression e = ParseLightConditional();
-        if (e.Type == typeof(int) || e.Type == typeof(double))
+        Expression first = ParseLightConditional();
+        if (first.Type != typeof(int) && first.Type != typeof(double))
+            return first;
+        // It may be a range expression.
+        CheckAndMove(Token.Range, "Expected range in list comprehension");
+        Expression? middle = ParseLightConditional();
+        Expression? last = null;
+        if (kind == Token.Range)
         {
-            // It may be a range expression.
-            CheckAndMove(Token.Range, "Expected range in list comprehension");
-            Expression upperOrStep = ParseLightConditional();
-            Expression? last = null;
-            if (kind == Token.Range)
-            {
-                Move();
-                last = ParseLightConditional();
-                if (last.Type != e.Type)
-                    if (last.Type == typeof(int))
-                        last = IntToDouble(last);
-                    else
-                        e = e.Type == typeof(int)
-                            ? IntToDouble(e)
-                            : throw Error("Range bounds must be of the same type");
-                if (upperOrStep.Type != typeof(int))
-                    throw Error("Range step must be an integer");
-            }
-            else if (upperOrStep.Type != e.Type)
-                if (upperOrStep.Type == typeof(int))
-                    upperOrStep = IntToDouble(upperOrStep);
-                else
-                    e = e.Type == typeof(int)
-                        ? IntToDouble(e)
-                        : throw Error("Range bounds must be of the same type");
-            e = e.Type == typeof(int)
-                ? last != null
-                    ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
-                        Type.EmptyTypes, e, upperOrStep, last)
-                    : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
-                        Type.EmptyTypes, e, upperOrStep)
-                : last != null
-                    ? Expression.Call(typeof(DSequence), nameof(DSequence.Create),
-                        Type.EmptyTypes, e, last, upperOrStep)
-                    : Expression.Call(typeof(DSequence), nameof(DSequence.Create),
-                        Type.EmptyTypes, e, upperOrStep);
+            Move();
+            last = ParseLightConditional();
         }
-        return e;
+        else
+            (middle, last) = (null, middle);
+        if (last!.Type != first.Type)
+            if (last.Type == typeof(int))
+                last = IntToDouble(last);
+            else
+                first = first.Type == typeof(int)
+                    ? IntToDouble(first)
+                    : throw Error("Range bounds must be of the same type");
+        if (middle is not null && middle.Type != typeof(int))
+            throw Error("Range step must be an integer");
+        return first.Type == typeof(int)
+            ? middle != null
+                ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+                    Type.EmptyTypes, first, middle, last)
+                : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+                    Type.EmptyTypes, first, last)
+            : middle != null
+                ? Expression.Call(typeof(DSequence), nameof(DSequence.Create),
+                    Type.EmptyTypes, first, middle, last)
+                : Expression.Call(typeof(DSequence), nameof(DSequence.Create),
+                    Type.EmptyTypes, first, last);
     }
 
     private Expression ParseIdBang()

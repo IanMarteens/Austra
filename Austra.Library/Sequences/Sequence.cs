@@ -63,7 +63,11 @@ public abstract class Sequence<T, TSelf>
     {
         while (Next(out T value))
             if (!predicate(value))
+            {
+                Reset();
                 return false;
+            }
+        Reset();
         return true;
     }
 
@@ -74,7 +78,11 @@ public abstract class Sequence<T, TSelf>
     {
         while (Next(out T value))
             if (predicate(value))
+            {
+                Reset();
                 return true;
+            }
+        Reset();
         return false;
     }
 
