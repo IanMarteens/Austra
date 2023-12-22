@@ -105,7 +105,9 @@
       <content>
         <para>One of the motivations for creating Austra was having an easy to use language for testing and exploring functionality.</para>
         <list class="bullet">
-        	<listItem>The language should be mostly a functional one.</listItem>
+        	<listItem>The language should be mostly a functional one. Functional languages are expression-oriented, concise and discourages mutability. These features match very well the characteristics of the library.</listItem>
+        	<listItem>On the other hand, we did not want a complicated language with lazy evaluation and monads. I really like monads! Some of my best friends are monads! Jokes aside: I want Austra to be used by a wide base of professionals, instead of a selected group of freaks.</listItem>
+        	<listItem>A problem with R and Matlab, which loosely fall in the same category as Austra, is the pollution of the global namespace. We wanted to avoid that. Instead of having a global <codeInline>product</codeInline> function that you could apply to a vector, we prefer a <codeInline>product</codeInline> method that is a feature of vectors.</listItem>
         </list>
       </content>
     </section>
