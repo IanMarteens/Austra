@@ -142,6 +142,45 @@ public abstract partial class NSequence
             return false;
         }
 
+        /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
+        /// <remarks>This implementation conflates filter and mapper into a single instance.</remarks>
+        /// <param name="mapper">The transforming function.</param>
+        /// <returns>The filtered and transformed sequence.</returns>
+        public override NSequence Map(Func<int, int> mapper) =>
+            new FilteredMapped(source, filter, mapper);
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            source.Reset();
+            return this;
+        }
+    }
+
+    /// <summary>A sequence filtered and transformed by lambdas.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="filter">The filtering lambda.</param>
+    /// <param name="mapper">The mapping function.</param>
+    private sealed class FilteredMapped(
+        NSequence source,
+        Func<int, bool> filter,
+        Func<int, int> mapper) : NSequence
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out int value)
+        {
+            while (source.Next(out value))
+                if (filter(value))
+                {
+                    value = mapper(value);
+                    return true;
+                }
+            return false;
+        }
+
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
         public override NSequence Reset()

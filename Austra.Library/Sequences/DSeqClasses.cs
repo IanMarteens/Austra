@@ -43,6 +43,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="mapper">The mapping function.</param>
     private sealed class Mapped(DSequence source, Func<double, double> mapper) : DSequence
     {
+        /// <summary>The mapping function.</summary>
         private readonly Func<double, double> mapper = mapper;
 
         /// <summary>Gets the next number in the sequence.</summary>
@@ -95,6 +96,45 @@ public abstract partial class DSequence : IFormattable
             while (source.Next(out value))
                 if (filter(value))
                     return true;
+            return false;
+        }
+
+        /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
+        /// <remarks>This implementation conflates filter and mapper into a single instance.</remarks>
+        /// <param name="mapper">The transforming function.</param>
+        /// <returns>The filtered and transformed sequence.</returns>
+        public override DSequence Map(Func<double, double> mapper) =>
+            new FilteredMapped(source, filter, mapper);
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            source.Reset();
+            return this;
+        }
+    }
+
+    /// <summary>A sequence filtered and transformed by lambdas.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="filter">The filtering lambda.</param>
+    /// <param name="mapper">The mapping function.</param>
+    private sealed class FilteredMapped(
+        DSequence source, 
+        Func<double, bool> filter,
+        Func<double, double> mapper) : DSequence
+    {
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            while (source.Next(out value))
+                if (filter(value))
+                {
+                    value = mapper(value);
+                    return true;
+                }
             return false;
         }
 
