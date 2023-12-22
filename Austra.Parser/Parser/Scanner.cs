@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Runtime.Intrinsics.X86;
+﻿using System.Runtime.Intrinsics.X86;
 using static System.Runtime.CompilerServices.Unsafe;
 
 namespace Austra.Parser;
@@ -126,7 +125,7 @@ internal sealed partial class Parser : IDisposable
     {
         (this.bindings, this.source, this.text, lambdaBlock,
             letExpressions, setExpressions, scriptExpressions)
-            = (bindings, source, text, new(this),
+            = (bindings, source, text, bindings.LambdaBlock,
                 source.Rent(8), source.Rent(8), source.Rent(8));
         Move();
     }
@@ -134,6 +133,7 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Returns allocated resources to the pool, in the data source.</summary>
     public void Dispose()
     {
+        lambdaBlock.Clean();
         source.Return(scriptExpressions);
         source.Return(setExpressions);
         source.Return(letExpressions);
@@ -601,12 +601,12 @@ internal sealed partial class Parser : IDisposable
         ? LambdaHeader1().IsMatch(text.AsSpan()[start..])
         : LambdaHeader2().IsMatch(text.AsSpan()[start..]);
 
-    private Exception Error(string message, int position) =>
+    internal Exception Error(string message, int position) =>
         abortPosition == int.MaxValue
         ? new AstException(message, position)
         : new AbortException(message);
 
-    private Exception Error(string message) =>
+    internal Exception Error(string message) =>
         abortPosition == int.MaxValue
         ? new AstException(message, start)
         : new AbortException(message);

@@ -1055,7 +1055,7 @@ internal sealed partial class Parser
             }
             CheckAndMove(Token.Arrow, "=> expected");
             parsingLambdaHeader = false;
-            return lambdaBlock.Create(ParseConditional(), retType);
+            return lambdaBlock.Create(this, ParseConditional(), retType);
         }
         finally
         {
@@ -1419,7 +1419,7 @@ internal sealed partial class Parser
     }
 
     /// <summary>Parses a list comprehension expression.</summary>
-    /// <param name="qualifier">Optional qualifier.</param>
+    /// <param name="qualifier">Optional qualifier: could be <c>any</c> or <c>all</c>.</param>
     /// <returns>A sequence or vector type expression.</returns>
     private Expression ParseListComprehension(string qualifier)
     {
@@ -1428,19 +1428,11 @@ internal sealed partial class Parser
         // Remember the lambda parameter name and skip it and the IN keyword.
         string paramName = id;
         Move(); Move();
-        Expression? filter = null, e2 = null;
+        Expression? filter = null, mapper = null;
         // Parse the expression that generates the sequence.
         Expression e = ParseGenerator();
         // Verify that the expression is a sequence and get its type.
-        Type eType = e.Type, iType;
-        if (eType == typeof(DVector) || eType == typeof(DSequence) || eType == typeof(Series))
-            iType = typeof(double);
-        else if (eType == typeof(NVector) || eType == typeof(NSequence))
-            iType = typeof(int);
-        else if (eType == typeof(CVector) || eType == typeof(CSequence))
-            iType = typeof(Complex);
-        else
-            throw Error("Invalid sequence type");
+        (Type eType, Type iType) = GetTypes(e);
         // Check a colon for a filter expression.
         if (kind == Token.Colon)
         {
@@ -1461,19 +1453,11 @@ internal sealed partial class Parser
                         Move();
                         Expression f = ParseGenerator();
                         // Verify that the expression is a sequence and get its type.
-                        Type fType = f.Type, ifType;
-                        if (fType == typeof(DVector) || fType == typeof(DSequence) || fType == typeof(Series))
-                            ifType = typeof(double);
-                        else if (fType == typeof(NVector) || fType == typeof(NSequence))
-                            ifType = typeof(int);
-                        else if (fType == typeof(CVector) || fType == typeof(CSequence))
-                            ifType = typeof(Complex);
-                        else
-                            throw Error("Invalid sequence type");
+                        (Type fType, Type ifType) = GetTypes(e);
                         CheckAndMove(Token.Colon, ": expected in qualified filter in list comprehension");
                         lambdaBlock.Add(fType == typeof(Series) ? typeof(Point<Date>) : ifType, paramName1);
-                        filter = lambdaBlock.Create(ParseConditional(), typeof(bool));
-                        filter = lambdaBlock.Create(Expression.Call(
+                        filter = lambdaBlock.Create(this, ParseConditional(), typeof(bool));
+                        filter = lambdaBlock.Create(this, Expression.Call(
                             f, qual == "all" ? "All" : "Any", Type.EmptyTypes, filter), typeof(bool));
                     }
                     else
@@ -1486,7 +1470,7 @@ internal sealed partial class Parser
                 }
             }
             // Parse the expression that filters the sequence.
-            filter ??= lambdaBlock.Create(ParseConditional(), typeof(bool));
+            filter ??= lambdaBlock.Create(this, ParseConditional(), typeof(bool));
         }
         // Qualifiers do not allow a mapping expression.
         if (qualifier != "")
@@ -1498,20 +1482,34 @@ internal sealed partial class Parser
             return e;
         }
         // Check an arrow for a mapping expression.
+        bool upgraded = false;
         if (kind == Token.Arrow)
         {
             Move();
             // Parse the expression that generates the result.
             lambdaBlock.Add(iType, paramName);
-            e2 = lambdaBlock.Create(ParseLightConditional(), iType);
+            (mapper, upgraded) = lambdaBlock.Create(
+                this, ParseLightConditional(), iType, iType == typeof(int));
         }
         // Check and skip a right bracket.
         CheckAndMove(Token.RBra, "] expected in list comprehension");
         if (filter != null)
-            e = Expression.Call(e, "Filter", Type.EmptyTypes, filter);
-        if (e2 != null)
-            e = Expression.Call(e, "Map", Type.EmptyTypes, e2);
+            if (e.Type == typeof(DVector) && mapper != null)
+                return Expression.Call(e, "FilterMap", Type.EmptyTypes, filter, mapper);
+            else
+                e = Expression.Call(e, "Filter", Type.EmptyTypes, filter);
+        if (mapper != null)
+            e = Expression.Call(e, upgraded ? "MapReal" : "Map", Type.EmptyTypes, mapper);
         return e;
+
+        (Type eType, Type iType) GetTypes(Expression e) =>
+            e.Type == typeof(DVector) || e.Type == typeof(DSequence) || e.Type == typeof(Series)
+            ? (e.Type, typeof(double))
+            : e.Type == typeof(NVector) || e.Type == typeof(NSequence)
+            ? (e.Type, typeof(int))
+            : e.Type == typeof(CVector) || e.Type == typeof(CSequence)
+            ? (e.Type, typeof(Complex))
+            : throw Error("Invalid sequence type");
     }
 
     private Expression ParseGenerator()

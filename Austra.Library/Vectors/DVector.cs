@@ -1005,6 +1005,21 @@ public readonly struct DVector :
         return j == 0 ? [] : j == Length ? this : newValues[..j];
     }
 
+    /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
+    /// <remarks>This method can save an intermediate buffer.</remarks>
+    /// <param name="predicate">The predicate to evaluate.</param>
+    /// <param name="mapper">The mapping function.</param>
+    /// <returns>A new vector with the filtered items.</returns>
+    public DVector FilterMap(Func<double, bool> predicate, Func<double, double> mapper)
+    {
+        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
+        int j = 0;
+        foreach (double value in values)
+            if (predicate(value))
+                newValues[j++] = mapper(value);
+        return j == 0 ? [] : j == Length ? this : newValues[..j];
+    }
+
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
     /// <param name="seed">The initial value.</param>
     /// <param name="reducer">The reducing function.</param>

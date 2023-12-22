@@ -47,6 +47,27 @@ seq(1, 100)
         	  </code>        	  
             </content>
           </section>
+          <section address="generators">
+            <title>Generators</title>
+            <content>
+        	  <para>As we have seen, range expressions can be used as generators. We support four variants of range expressions inside list comprehensions:</para>
+        	  <code language="Austra">
+<markup><font color="DarkGreen">-- Equivalent to iseq(1, 100)</font></markup>
+[x <markup><b>in</b></markup> 1..100];
+<markup><font color="DarkGreen">-- Equivalent to seq(1, 100)</font></markup>
+[x <markup><b>in</b></markup> 1.0..100.0];
+<markup><font color="DarkGreen">-- Even integers from 0 to 100.</font></markup>
+[x <markup><b>in</b></markup> 0..2..100];
+<markup><font color="DarkGreen">-- The same as seq(0, 1024, 2 * pi)).</font></markup>
+[x <markup><b>in</b></markup> 0..1024..2pi];
+        	  </code>
+        	  <para>In the last example, only the upper bound is real, so the compiler handles the generator as a real sequence.</para>
+        	  <para>We have mostly used constants for the range generators so far but, of course, each part of the generator could be an expression:</para>
+        	  <code language="Austra">
+[x <markup><b>in</b></markup> pi - 1..32 * 32..sqrt(200)];
+        	  </code>
+            </content>
+          </section>
         </sections>
       </content>
     </section>

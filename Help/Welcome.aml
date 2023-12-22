@@ -38,6 +38,7 @@
 			    <listItem>Neither vectorization nor parallelization plays nice with modularity.</listItem>
 			    <listItem>We have chosen, for Austra, applying all possible vectorizations at the lowest level, and leaving task parallelism to higher level abstractions designed by the consumers of the class.</listItem>
 			  </list>
+			  <para>In any case, using task parallelization with Austra is easy, in part due to classes implementing non-mutating operations.</para>
 			</content>
 		  </section>
 		  <section address="algebra">
@@ -103,6 +104,9 @@
       <title>Language goals and design</title>
       <content>
         <para>One of the motivations for creating Austra was having an easy to use language for testing and exploring functionality.</para>
+        <list class="bullet">
+        	<listItem>The language should be mostly a functional one.</listItem>
+        </list>
       </content>
     </section>
     <relatedTopics>

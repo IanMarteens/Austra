@@ -45,7 +45,10 @@ internal sealed partial class Bindings
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(DVector)),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
 
-    /// <summary>Code completion descriptors for root classes.</summary>
+    /// <summary>Reusable lambda block for parsing lambda expressions.</summary>
+    public LambdaBlock LambdaBlock { get; } = new();
+
+     /// <summary>Code completion descriptors for root classes.</summary>
     private readonly Member[] rootClasses =
     [
         new("cseq::", "Allows access to complex sequence constructors"),

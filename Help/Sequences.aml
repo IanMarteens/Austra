@@ -22,15 +22,42 @@
           <section address="seqCtors">
               <title>Sequence constructors</title>
               <content>
+                  <para>These are the class methods for <codeInline>seq</codeInline>:</para>
+			      <table>
+	 		        <row>
+	 		          <entry><para><codeInline>seq::new</codeInline></para></entry>
+	 		          <entry><para>Creates a sequence, either from a range, a range and a step, or from a vector or matrix. See examples below.</para></entry>
+			        </row>
+	 		        <row>
+	 		          <entry><para><codeInline>seq::random</codeInline></para></entry>
+	 		          <entry><para>Creates a sequence of random values.</para></entry>
+			        </row>
+	 		        <row>
+	 		          <entry><para><codeInline>seq::nrandom</codeInline></para></entry>
+	 		          <entry><para>Creates a sequence of random values, using a normal distribution.</para></entry>
+			        </row>
+	 		        <row>
+	 		          <entry><para><codeInline>seq::ar</codeInline></para></entry>
+	 		          <entry><para>Creates a sequence using an AutoRegressive process.</para></entry>
+			        </row>
+	 		        <row>
+	 		          <entry><para><codeInline>seq::ma</codeInline></para></entry>
+	 		          <entry><para>Creates a sequence using a Moving Average process.</para></entry>
+			        </row>
+	 		        <row>
+	 		          <entry><para><codeInline>seq::unfold</codeInline></para></entry>
+	 		          <entry><para>Generate values from a seed and a generating function.</para></entry>
+			        </row>
+			      </table>
                   <para>This code fragment shows some of the available constructors for sequences:</para>
 		          <code language="Austra">
 seq(1, 10);         <markup><font color="DarkGreen">-- Numbers from 1 to 10.</font></markup>
 seq(10, 1);         <markup><font color="DarkGreen">-- The inverted sequence.</font><br/>
 <b><font color="DarkCyan">seq::</font></b></markup>new(1, 10);    <markup><font color="DarkGreen">-- ::new was omitted before.</font></markup>
-seq(0, τ, 128);     <markup><font color="DarkGreen">-- A uniform grid with 128 intervals.</font></markup>
+seq(0, 128, τ);     <markup><font color="DarkGreen">-- A uniform grid with 128 intervals.</font></markup>
 seq(v);             <markup><font color="DarkGreen">-- A sequence from a vector.</font></markup>
-seq(v1^v2);         <markup><font color="DarkGreen">-- A sequence from a matrix.</font></markup>
 seq([sqrt(2), e, π, τ]);
+seq(v1^v2);         <markup><font color="DarkGreen">-- A sequence from a matrix.</font></markup>
 <markup><b><font color="DarkCyan">seq::</font></b></markup>random(10);    <markup><font color="DarkGreen">-- A sequence with 10 random values.</font><br/>
 <b><font color="DarkCyan">seq::</font></b></markup>nrandom(10),   <markup><font color="DarkGreen">-- A sequence with 10 Gaussian random values.</font><br/>
 <b><font color="DarkCyan">seq::</font></b></markup>nrandom(10, 2) <markup><font color="DarkGreen">-- Ten normal samples with variance = 2.</font></markup>
