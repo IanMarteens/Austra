@@ -23,9 +23,9 @@ public abstract class Sequence<T, TSelf>
     /// <returns>Echoes this sequence.</returns>
     public abstract TSelf Reset();
 
-    /// <summary>Performs a shallow copy of the sequence.</summary>
-    /// <returns>A shallow copy of the sequence.</returns>
-    public TSelf Clone() => (TSelf)MemberwiseClone();
+    /// <summary>Performs a shallow copy of the sequence and performs a reset.</summary>
+    /// <returns>A shallow copy of the sequence with clean state.</returns>
+    public TSelf Clone() => ((TSelf)MemberwiseClone()).Reset();
 
     /// <summary>Gets the value at the specified index.</summary>
     /// <param name="index">A position inside the sequence.</param>
@@ -113,6 +113,7 @@ public abstract class Sequence<T, TSelf>
         T total = T.AdditiveIdentity;
         while (Next(out T value))
             total += value;
+        Reset();
         return total;
     }
 
@@ -125,6 +126,7 @@ public abstract class Sequence<T, TSelf>
         T product = T.MultiplicativeIdentity;
         while (Next(out T value))
             product *= value;
+        Reset();
         return product;
     }
 
@@ -138,6 +140,7 @@ public abstract class Sequence<T, TSelf>
         int count = 0;
         while (Next(out _))
             count++;
+        Reset();
         return count;
     }
 
@@ -177,6 +180,7 @@ public abstract class Sequence<T, TSelf>
     {
         while (Next(out T value))
             seed = reducer(seed, value);
+        Reset();
         return seed;
     }
 
@@ -194,6 +198,7 @@ public abstract class Sequence<T, TSelf>
         T[] data = GC.AllocateUninitializedArray<T>(size);
         for (ref T d = ref MM.GetArrayDataReference(data); Next(out T v); d = ref Add(ref d, 1))
             d = v;
+        Reset();
         return data;
     }
 
@@ -206,6 +211,7 @@ public abstract class Sequence<T, TSelf>
         List<T> values = new(8);
         while (Next(out T value))
             values.Add(value);
+        Reset();
         return [.. values];
     }
 }

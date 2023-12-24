@@ -117,7 +117,9 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public static CSequence operator +(CSequence s1, CSequence s2)
     {
         if (!s1.HasStorage || !s2.HasStorage)
-            return s1.Zip(s2, (x, y) => x + y);
+            return ReferenceEquals(s1, s2)
+                ? s1.Map(x => x + x)
+                : s1.Zip(s2, (x, y) => x + y);
         int size = Min(s1.Length(), s2.Length());
         return new VectorSequence(s1.ToVector(size) + s2.ToVector(size));
     }
@@ -149,7 +151,9 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public static CSequence operator -(CSequence s1, CSequence s2)
     {
         if (!s1.HasStorage || !s2.HasStorage)
-            return s1.Zip(s2, (x, y) => x - y);
+            return ReferenceEquals(s1, s2)
+                ? s1.Map(x => Complex.Zero)
+                : s1.Zip(s2, (x, y) => x - y);
         int size = Min(s1.Length(), s2.Length());
         return new VectorSequence(s1.ToVector(size) - s2.ToVector(size));
     }
@@ -188,7 +192,9 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public static Complex operator *(CSequence s1, CSequence s2)
     {
         if (!s1.HasStorage || !s2.HasStorage)
-            return s1.Zip(s2, (x, y) => x * Complex.Conjugate(y)).Sum();
+            return ReferenceEquals(s1, s2)
+                ? s1.Map(x => x * Complex.Conjugate(x)).Sum()
+                : s1.Zip(s2, (x, y) => x * Complex.Conjugate(y)).Sum();
         int size = Min(s1.Length(), s2.Length());
         return s1.ToVector(size) * s2.ToVector(size);
     }
@@ -226,7 +232,9 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public override CSequence PointwiseMultiply(CSequence other)
     {
         if (!HasStorage || !other.HasStorage)
-            return new Zipped(this, other, (x, y) => x * y);
+            return ReferenceEquals(this, other)
+                ? new Mapped(this, x => x * x)
+                : new Zipped(this, other, (x, y) => x * y);
         int size = Min(Length(), other.Length());
         return new VectorSequence(ToVector(size).PointwiseMultiply(other.ToVector(size)));
     }
@@ -237,7 +245,9 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public override CSequence PointwiseDivide(CSequence other)
     {
         if (!HasStorage || !other.HasStorage)
-            return new Zipped(this, other, (x, y) => x / y);
+            return ReferenceEquals(this, other)
+                ? new Mapped(this, x => Complex.One)
+                : new Zipped(this, other, (x, y) => x / y);
         int size = Min(Length(), other.Length());
         return new VectorSequence(ToVector(size).PointwiseDivide(other.ToVector(size)));
     }
@@ -251,6 +261,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
         HashSet<Complex> set = HasLength ? new(Length()) : [];
         while (Next(out Complex d))
             set.Add(d);
+        Reset();
         return Create(new CVector(set.ToArray()));
     }
 

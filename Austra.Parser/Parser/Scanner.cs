@@ -50,18 +50,15 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Method for squaring an upper-triangular matrix.</summary>
     private static readonly MethodInfo RMatrixSquare =
         typeof(RMatrix).GetMethod(nameof(RMatrix.Square))!;
-    /// <summary>Method for cloning sequences.</summary>
-    private static readonly MethodInfo SeqClone =
-        typeof(DSequence).GetMethod(nameof(DSequence.Clone))!;
-    /// <summary>Method for restarting sequences.</summary>
-    private static readonly MethodInfo SeqReset =
-        typeof(DSequence).GetMethod(nameof(DSequence.Reset))!;
-    /// <summary>Method for cloning sequences.</summary>
+    /// <summary>Method for cloning complex sequences.</summary>
     private static readonly MethodInfo CSeqClone =
         typeof(CSequence).GetMethod(nameof(CSequence.Clone))!;
-    /// <summary>Method for restarting sequences.</summary>
-    private static readonly MethodInfo CSeqReset =
-        typeof(CSequence).GetMethod(nameof(CSequence.Reset))!;
+    /// <summary>Method for cloning real sequences.</summary>
+    private static readonly MethodInfo DSeqClone =
+        typeof(DSequence).GetMethod(nameof(DSequence.Clone))!;
+    /// <summary>Method for cloning integer sequences.</summary>
+    private static readonly MethodInfo NSeqClone =
+        typeof(NSequence).GetMethod(nameof(NSequence.Clone))!;
 
     /// <summary>Predefined classes and methods.</summary>
     private readonly Bindings bindings;

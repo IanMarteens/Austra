@@ -275,7 +275,9 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public override DSequence PointwiseMultiply(DSequence other)
     {
         if (!HasStorage || !other.HasStorage)
-            return new Zipped(this, other, (x, y) => x * y);
+            return ReferenceEquals(this, other)
+                ? new Mapped(this, x => x * x)
+                : new Zipped(this, other, (x, y) => x * y);
         double[] a1 = Materialize();
         double[] a2 = other.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
@@ -288,7 +290,9 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public override DSequence PointwiseDivide(DSequence other)
     {
         if (!HasStorage || !other.HasStorage)
-            return new Zipped(this, other, (x, y) => x / y);
+            return ReferenceEquals(this, other)
+                ? new Mapped(this, x => 1)
+                : new Zipped(this, other, (x, y) => x / y);
         double[] a1 = Materialize();
         double[] a2 = other.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
@@ -302,6 +306,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         Accumulator result = new();
         while (Next(out double value))
             result += value;
+        Reset();
         return result;
     }
 
@@ -313,6 +318,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
             throw new EmptySequenceException();
         while (Next(out double v))
             value = Math.Min(value, v);
+        Reset();
         return value;
     }
 
@@ -324,6 +330,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
             throw new EmptySequenceException();
         while (Next(out double v))
             value = Math.Max(value, v);
+        Reset();
         return value;
     }
 
@@ -354,6 +361,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         HashSet<double> set = HasLength ? new(Length()) : [];
         while (Next(out double d))
             set.Add(d);
+        Reset();
         return Create(set.ToArray());
     }
 

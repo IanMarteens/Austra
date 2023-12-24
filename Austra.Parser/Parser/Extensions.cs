@@ -44,6 +44,11 @@ internal static class ParserExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MethodCallExpression Call(this Type type,
+        string method, Expression a) =>
+        Expression.Call(type.GetMethod(method, [a.Type])!, a);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static MethodCallExpression Call(this Type type,
         string method, Expression a1, Expression a2) =>
         Expression.Call(type.GetMethod(method, [a1.Type, a2.Type])!, a1, a2);
 }

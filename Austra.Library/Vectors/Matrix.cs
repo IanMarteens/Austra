@@ -195,6 +195,29 @@ public readonly struct Matrix :
         return new(w, c, newValues);
     }
 
+    /// <summary>Horizontal concatenation of an array of matrices.</summary>
+    /// <param name="m">Array of matrices.</param>
+    /// <returns>A new matrix with more columns.</returns>
+    public static Matrix HCat(params Matrix[] m)
+    {
+        if (m == null || m.Length == 0)
+            throw new MatrixSizeException();
+        int w = m[0].Rows, c = m[0].Cols;
+        for (int i = 1; i < m.Length; i++)
+            if (m[i].Rows != w)
+                throw new MatrixSizeException();
+            else
+                c += m[i].Cols;
+        double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
+        for (int row = 0, offset = 0; row < w; row++)
+            for (int i = 0; i < m.Length; i++)
+            {
+                Array.Copy(m[i].values, row * m[i].Cols, newValues, offset, m[i].Cols);
+                offset += m[i].Cols;
+            }   
+        return new(w, c, newValues);
+    }
+
     /// <summary>Horizontal concatenation of a matrix and a new column.</summary>
     /// <param name="left">Left matrix.</param>
     /// <param name="newColumn">New column, as a vector.</param>
@@ -245,6 +268,29 @@ public readonly struct Matrix :
         double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
         Array.Copy(upper.values, newValues, upper.values.Length);
         Array.Copy(lower.values, 0, newValues, upper.values.Length, lower.values.Length);
+        return new(w, c, newValues);
+    }
+
+    /// <summary>Vertical concatenation of an array of matrices.</summary>
+    /// <param name="m">Array of matrices.</param>
+    /// <returns>A new matrix with more rows.</returns>
+    public static Matrix VCat(params Matrix[] m)
+    {
+        if (m == null || m.Length == 0)
+            throw new MatrixSizeException();
+        int w = m[0].Rows, c = m[0].Cols;
+        for (int i = 1; i < m.Length; i++)
+            if (m[i].Cols != c)
+                throw new MatrixSizeException();
+            else
+                w += m[i].Rows;
+        double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
+        for (int i = 0, offset = 0; i < m.Length; i++)
+        {
+            int len = m[i].values.Length;
+            Array.Copy(m[i].values, 0, newValues, offset, len);
+            offset += len;
+        }
         return new(w, c, newValues);
     }
 

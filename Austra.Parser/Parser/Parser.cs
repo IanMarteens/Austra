@@ -1338,6 +1338,7 @@ internal sealed partial class Parser
             }
             id = saveId;
             lexCursor = saveCursor;
+            kind = Token.Id;
         }
         // It's a vector or a matrix constructor.
         List<Expression> items = source.Rent(16);
@@ -1356,7 +1357,7 @@ internal sealed partial class Parser
             }
             else if (e.Type == typeof(Matrix))
             {
-                if (period > 1 || vectors + matrices != items.Count || items.Count >= 2)
+                if (period > 1 || vectors + matrices != items.Count || items.Count >= 2 && vectors > 0)
                     throw Error("Invalid matrix concatenation");
                 matrices++;
                 items.Add(e);
@@ -1385,8 +1386,13 @@ internal sealed partial class Parser
         }
         Expression result;
         if (matrices > 0)
-            result = period > 1 || vectors + matrices != items.Count || items.Count > 2
+            result = period > 1 || vectors + matrices != items.Count || items.Count > 2 && vectors > 0
                 ? throw Error("Invalid matrix concatenation")
+                : items.Count == 1
+                ? items[0]
+                : items.Count > 2
+                ? typeof(Matrix).Call(period == 0 ? nameof(Matrix.HCat) : nameof(Matrix.VCat),
+                    typeof(Matrix).Make(items))
                 : typeof(Matrix).Call(period == 0 ? nameof(Matrix.HCat) : nameof(Matrix.VCat),
                     items[0], items[1]);
         else if (vectors > 0)
@@ -1467,6 +1473,7 @@ internal sealed partial class Parser
                 {
                     lexCursor = savePos;
                     id = qual;
+                    kind = Token.Id;
                 }
             }
             // Parse the expression that filters the sequence.
@@ -1561,6 +1568,8 @@ internal sealed partial class Parser
         return def.Expression;
     }
 
+    /// <summary>Translate an identifier into a variable reference.</summary>
+    /// <returns>An expression for the value of the variable.</returns>
     private Expression ParseVariable()
     {
         (int pos, string ident) = (start, id);
@@ -1572,9 +1581,11 @@ internal sealed partial class Parser
         if (scriptLocals.TryGetValue(ident, out ParameterExpression? local) ||
             locals.TryGetValue(ident, out local))
             return local.Type == typeof(DSequence)
-                ? Expression.Call(local, SeqClone)
+                ? Expression.Call(local, DSeqClone)
                 : local.Type == typeof(CSequence)
                 ? Expression.Call(local, CSeqClone)
+                : local.Type == typeof(NSequence)
+                ? Expression.Call(local, NSeqClone)
                 : local;
         // Check macro definitions.
         Definition? def = source.GetDefinition(ident);
@@ -1598,9 +1609,11 @@ internal sealed partial class Parser
         if (e != null)
         {
             return e.Type.IsAssignableTo(typeof(DSequence))
-                ? Expression.Call(Expression.Call(e, SeqClone), SeqReset)
+                ? Expression.Call(e, DSeqClone)
                 : e.Type.IsAssignableTo(typeof(CSequence))
-                ? Expression.Call(Expression.Call(e, CSeqClone), CSeqReset)
+                ? Expression.Call(e, CSeqClone)
+                : e.Type.IsAssignableTo(typeof(NSequence))
+                ? Expression.Call(e, NSeqClone)
                 : e;
         }
         if (TryParseMonthYear(ident, out Date d))

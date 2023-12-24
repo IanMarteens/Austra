@@ -163,7 +163,8 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <summary>Adds a sequence to this sequence.</summary>
     /// <param name="other">Sequence to add.</param>
     /// <returns>The component by component sum of the sequences.</returns>
-    protected virtual NSequence Add(NSequence other) => Zip(other, (x, y) => x + y);
+    protected virtual NSequence Add(NSequence other) =>
+        ReferenceEquals(this, other) ? Map(x => x + x) : Zip(other, (x, y) => x + y);
 
     /// <summary>Adds a scalar value to a sequence.</summary>
     /// <param name="s">Sequence operand.</param>
@@ -191,7 +192,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public static NSequence operator -(NSequence s1, NSequence s2)
     {
         if (!s1.HasStorage || !s2.HasStorage)
-            return s1.Zip(s2, (x, y) => x - y);
+            return ReferenceEquals(s1, s2) ? s1.Map(x => 0) : s1.Zip(s2, (x, y) => x - y);
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
         int[] r = GC.AllocateUninitializedArray<int>(Math.Min(a1.Length, a2.Length));
@@ -230,7 +231,9 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public static int operator *(NSequence s1, NSequence s2)
     {
         if (!s1.HasStorage || !s2.HasStorage)
-            return s1.Zip(s2, (x, y) => x * y).Sum();
+            return ReferenceEquals(s2, s2)
+                ? s1.Map(x => x * x).Sum() 
+                :  s1.Zip(s2, (x, y) => x * y).Sum();
         int[] a1 = s1.Materialize();
         int[] a2 = s2.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
@@ -269,7 +272,9 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public override NSequence PointwiseMultiply(NSequence other)
     {
         if (!HasStorage || !other.HasStorage)
-            return new Zipped(this, other, (x, y) => x * y);
+            return ReferenceEquals(this, other)
+                ? new Mapped(this, x => x * x)
+                : new Zipped(this, other, (x, y) => x * y);
         int[] a1 = Materialize();
         int[] a2 = other.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
@@ -282,7 +287,9 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public override NSequence PointwiseDivide(NSequence other)
     {
         if (!HasStorage || !other.HasStorage)
-            return new Zipped(this, other, (x, y) => x / y);
+            return ReferenceEquals(this, other)
+                ? new Mapped(this, x => 1)
+                : new Zipped(this, other, (x, y) => x / y);
         int[] a1 = Materialize();
         int[] a2 = other.Materialize();
         int size = Math.Min(a1.Length, a2.Length);
@@ -296,6 +303,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         Accumulator result = new();
         while (Next(out int value))
             result += value;
+        Reset();
         return result;
     }
 
@@ -308,6 +316,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         HashSet<int> set = HasLength ? new(Length()) : [];
         while (Next(out int d))
             set.Add(d);
+        Reset();
         return Create(new NVector([.. set]));
     }
 
@@ -319,6 +328,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
             throw new EmptySequenceException();
         while (Next(out int v))
             value = Math.Min(value, v);
+        Reset();
         return value;
     }
 
@@ -330,6 +340,7 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
             throw new EmptySequenceException();
         while (Next(out int v))
             value = Math.Max(value, v);
+        Reset();
         return value;
     }
 

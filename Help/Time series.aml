@@ -10,7 +10,7 @@
         <para>Since time series represents data from the real world, most of the times, time series come from persistent variables, that can be stored in an external file or database, and may be periodically updated, either by AUSTRA or by another process.</para>
       </content>
       <sections>
-        <section>
+        <section address="addInfo">
           <title>Additional information in series</title>
           <content>
             <para>Since one of the goals of AUSTRA is to deal with financial time series, there is a number of optional properties that can be stored in a series:</para>
@@ -43,7 +43,7 @@ and still, it could be interesting to mix them.</para>
 			</list>
           </content>
         </section>
-        <section>
+        <section address="seriesCtors">
           <title>Class methods</title>
           <content>
             <para>There is only one constructor for series:</para>
@@ -68,7 +68,7 @@ series([0.5, 0.1, 0.9], aapl, msft);
 			</code>
           </content>
         </section>
-        <section>
+        <section address="serieProperties">
           <title>Series properties</title>
           <content>
             <para>These properties are applied to instances of series:</para>
@@ -196,7 +196,7 @@ series([0.5, 0.1, 0.9], aapl, msft);
 			</table>
           </content>
         </section>
-        <section>
+        <section address="seriesMethods">
           <title>Series methods</title>
           <content>
             <para>These are the methods supported by time series:</para>
@@ -290,6 +290,38 @@ series([0.5, 0.1, 0.9], aapl, msft);
  		    	<entry><para>Combines two series using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Series.Zip(Austra.Library.Series,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>.</para></entry>
 		  	  </row>
 			</table>
+          </content>
+        </section>
+        <section address="seriesOps">
+          <title>Operators</title>
+          <content>
+            <para>These operators can be used with time series:</para>
+			  <table>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>+</codeInline></para></entry>
+ 		    	  <entry><para>Adds two series, or a series and a scalar.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>-</codeInline></para></entry>
+ 		    	  <entry><para>Subtracts two series, or a series and a scalar. Also works as the unary negation.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>*</codeInline></para></entry>
+ 		    	  <entry><para>Multiplies a series and a scalar for scaling values.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>/</codeInline></para></entry>
+ 		    	  <entry><para>Divides a series by a scalar.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>.*</codeInline></para></entry>
+ 		    	  <entry><para>Pointwise series multiplication.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>./</codeInline></para></entry>
+ 		    	  <entry><para>Pointwise series division.</para></entry>
+		  		</row>
+			  </table>
           </content>
         </section>
       </sections>
