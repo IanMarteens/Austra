@@ -572,6 +572,9 @@ public abstract partial class NSequence
     private sealed class Unfolder0(int length, int seed, Func<int, int> unfold) :
         CursorSequence(length)
     {
+        private readonly int seed = seed;
+        private int x = seed;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -579,12 +582,20 @@ public abstract partial class NSequence
         {
             if (current < length)
             {
-                seed = unfold(value = seed);
+                x = unfold(value = x);
                 current++;
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            x = seed;
+            return base.Reset();
         }
     }
 
@@ -595,6 +606,9 @@ public abstract partial class NSequence
     private sealed class Unfolder1(int length, int seed, Func<int, int, int> unfold) :
         CursorSequence(length)
     {
+        private readonly int seed = seed;
+        private int x = seed;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -602,11 +616,19 @@ public abstract partial class NSequence
         {
             if (current < length)
             {
-                seed = unfold(++current, value = seed);
+                x = unfold(++current, value = x);
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            x = seed;
+            return base.Reset();
         }
     }
 

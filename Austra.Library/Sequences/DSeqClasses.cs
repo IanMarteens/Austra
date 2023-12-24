@@ -1,4 +1,5 @@
-﻿using System.Runtime.ExceptionServices;
+﻿using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 
 namespace Austra.Library;
 
@@ -693,6 +694,9 @@ public abstract partial class DSequence : IFormattable
     private sealed class Unfolder0(int length, double seed, Func<double, double> unfold) :
         CursorSequence(length)
     {
+        private readonly double seed = seed;
+        private double x = seed;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -700,12 +704,20 @@ public abstract partial class DSequence : IFormattable
         {
             if (current < length)
             {
-                seed = unfold(value = seed);
+                x = unfold(value = x);
                 current++;
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            x = seed;
+            return base.Reset();
         }
     }
 
@@ -716,6 +728,9 @@ public abstract partial class DSequence : IFormattable
     private sealed class Unfolder1(int length, double seed, Func<int, double, double> unfold) :
         CursorSequence(length)
     {
+        private readonly double seed = seed;
+        private double x = seed;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -723,11 +738,19 @@ public abstract partial class DSequence : IFormattable
         {
             if (current < length)
             {
-                seed = unfold(++current, value = seed);
+                x = unfold(++current, value = x);
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            x = seed;
+            return base.Reset();
         }
     }
 

@@ -31,7 +31,7 @@ public abstract partial class CSequence
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public sealed override CSequence Reset()
+        public override CSequence Reset()
         {
             current = 0;
             return this;
@@ -452,6 +452,9 @@ public abstract partial class CSequence
     private sealed class Unfolder0(int length, Complex seed, Func<Complex, Complex> unfold) :
         CursorSequence(length)
     {
+        private readonly Complex seed = seed;
+        private Complex x = seed;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -459,12 +462,20 @@ public abstract partial class CSequence
         {
             if (current < length)
             {
-                seed = unfold(value = seed);
+                x = unfold(value = x);
                 current++;
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override CSequence Reset()
+        {
+            x = seed;
+            return base.Reset();
         }
     }
 
@@ -475,6 +486,9 @@ public abstract partial class CSequence
     private sealed class Unfolder1(int length, Complex seed, Func<int, Complex, Complex> unfold) :
         CursorSequence(length)
     {
+        private readonly Complex seed = seed;
+        private Complex x = seed;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -482,11 +496,19 @@ public abstract partial class CSequence
         {
             if (current < length)
             {
-                seed = unfold(++current, value = seed);
+                x = unfold(++current, value = x);
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override CSequence Reset()
+        {
+            x = seed;
+            return base.Reset();
         }
     }
 
@@ -498,6 +520,10 @@ public abstract partial class CSequence
     private sealed class Unfolder2(int length, Complex first, Complex second,
         Func<Complex, Complex, Complex> unfold) : CursorSequence(length)
     {
+        private readonly Complex first = first;
+        private readonly Complex second = second;
+        private Complex x = first, y = second;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -505,13 +531,21 @@ public abstract partial class CSequence
         {
             if (current < length)
             {
-                value = first;
-                second = unfold(value, first = second);
+                value = x;
+                y = unfold(value, x = y);
                 current++;
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override CSequence Reset()
+        {
+            (x, y) = (first, second);
+            return base.Reset();
         }
     }
 }
