@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Runtime.ExceptionServices;
+
+namespace Austra.Library;
 
 /// <summary>Represents any sequence returning double-precision values.</summary>
 public abstract partial class DSequence : IFormattable
@@ -31,7 +33,7 @@ public abstract partial class DSequence : IFormattable
 
         /// <summary>Resets the sequence by reseting the cursor.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public sealed override DSequence Reset()
+        public override DSequence Reset()
         {
             current = 0;
             return this;
@@ -737,6 +739,10 @@ public abstract partial class DSequence : IFormattable
     private sealed class Unfolder2(int length, double first, double second, 
         Func<double, double, double> unfold) : CursorSequence(length)
     {
+        private readonly double first = first;
+        private readonly double second = second;
+        private double x = first, y = second;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -744,13 +750,21 @@ public abstract partial class DSequence : IFormattable
         {
             if (current < length)
             {
-                value = first;
-                second = unfold(value, first = second);
+                value = x;
+                y = unfold(value, x = y);
                 current++;
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            (x, y) = (first, second);
+            return base.Reset();
         }
     }
 }

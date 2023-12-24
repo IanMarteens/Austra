@@ -36,7 +36,7 @@ public abstract partial class NSequence
 
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
-        public sealed override NSequence Reset()
+        public override NSequence Reset()
         {
             current = 0;
             return this;
@@ -618,6 +618,10 @@ public abstract partial class NSequence
     private sealed class Unfolder2(int length, int first, int second, Func<int, int, int> unfold) :
         CursorSequence(length)
     {
+        private readonly int first = first;
+        private readonly int second = second;
+        private int x = first, y = second;
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -625,13 +629,21 @@ public abstract partial class NSequence
         {
             if (current < length)
             {
-                value = first;
-                second = unfold(value, first = second);
+                value = x;
+                y = unfold(value, x = y);
                 current++;
                 return true;
             }
             value = default;
             return false;
+        }
+
+        /// <summary>Resets the sequence by reseting the cursor.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            (x, y) = (first, second);
+            return base.Reset();
         }
     }
 

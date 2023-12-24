@@ -253,6 +253,8 @@ public sealed partial class RootModel : Entity
             || type == typeof(DateSpline) || type == typeof(VectorSpline)
             || type == typeof(MvoModel)
         ? "Models"
+        : type?.IsAssignableTo(typeof(DSequence)) == true
+        ? "Sequences"
         : "Other";
 
     private VarNode? CreateVarNode(ClassNode cNode, string name, Type type, bool stored)
