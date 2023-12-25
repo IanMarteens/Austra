@@ -269,6 +269,26 @@ public static class Simd
             x, V4.Create(c1)),
             x, V4.Create(c0));
 
+    /// <summary>Calculates <c>x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <param name="x">The real variable used for evaluation.</param>
+    /// <param name="c0">The constant term.</param>
+    /// <param name="c1">The linear term.</param>
+    /// <param name="c2">The quadratic term.</param>
+    /// <param name="c3">The cubic term.</param>
+    /// <param name="c4">The quartic term.</param>
+    /// <remarks>It is assumed that the quintic term is one.</remarks>
+    /// <returns>The evaluation of the polynomial at the given point.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static V8d Poly5n(this V8d x,
+        double c0, double c1, double c2, double c3, double c4) =>
+        Avx512F.FusedMultiplyAdd(Avx512F.FusedMultiplyAdd(
+            Avx512F.FusedMultiplyAdd(Avx512F.FusedMultiplyAdd(
+            x + V8.Create(c4),
+            x, V8.Create(c3)),
+            x, V8.Create(c2)),
+            x, V8.Create(c1)),
+            x, V8.Create(c0));
+
     /// <summary>Calculates <c>c₅x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
     /// <param name="x">The real variable used for evaluation.</param>
     /// <param name="c0">The constant term.</param>
@@ -288,6 +308,27 @@ public static class Simd
             V4.Create(c2)), x,
             V4.Create(c1)), x,
             V4.Create(c0));
+
+    /// <summary>Calculates <c>c₅x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <param name="x">The real variable used for evaluation.</param>
+    /// <param name="c0">The constant term.</param>
+    /// <param name="c1">The linear term.</param>
+    /// <param name="c2">The quadratic term.</param>
+    /// <param name="c3">The cubic term.</param>
+    /// <param name="c4">The quartic term.</param>
+    /// <param name="c5">The quintic term.</param>
+    /// <returns>The evaluation of the polynomial at the given point.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static V8d Poly5(this V8d x,
+        double c0, double c1, double c2, double c3, double c4, double c5) =>
+        Avx512F.FusedMultiplyAdd(Avx512F.FusedMultiplyAdd(Avx512F.FusedMultiplyAdd(
+            Avx512F.FusedMultiplyAdd(Avx512F.FusedMultiplyAdd(
+            V8.Create(c5), x,
+            V8.Create(c4)), x,
+            V8.Create(c3)), x,
+            V8.Create(c2)), x,
+            V8.Create(c1)), x,
+            V8.Create(c0));
 
     /// <summary>Computes four logarithms at once.</summary>
     /// <remarks>Requires AVX/AVX2/FMA support.</remarks>
@@ -311,7 +352,7 @@ public static class Simd
         const double pow2_52 = 4503599627370496.0;   // 2^52
         const double bias = 1023.0;                  // bias in exponent
 
-        // Get the mantissa.
+        // Get the mantissa and the exponent.
         V4d m = Avx2.Or(Avx2.And(x.AsUInt64(),
             V4.Create(0x000FFFFFFFFFFFFFUL)),
             V4.Create(0x3FE0000000000000UL)).AsDouble();
@@ -327,6 +368,46 @@ public static class Simd
         return Fma.MultiplyAdd(e, V4.Create(ln2_hi), 
             Fma.MultiplyAdd(e, V4.Create(ln2_lo), re) +
             Fma.MultiplyAddNegated(x2, V4.Create(0.5), m));
+    }
+
+    /// <summary>Computes eight logarithms at once.</summary>
+    /// <remarks>Requires AVX512F support.</remarks>
+    /// <param name="x">An AVX vector of doubles.</param>
+    /// <returns>A vector with the respective logarithms.</returns>
+    public static V8d Log(this V8d x)
+    {
+        const double P0log = 7.70838733755885391666E0;
+        const double P1log = 1.79368678507819816313E1;
+        const double P2log = 1.44989225341610930846E1;
+        const double P3log = 4.70579119878881725854E0;
+        const double P4log = 4.97494994976747001425E-1;
+        const double P5log = 1.01875663804580931796E-4;
+        const double Q0log = 2.31251620126765340583E1;
+        const double Q1log = 7.11544750618563894466E1;
+        const double Q2log = 8.29875266912776603211E1;
+        const double Q3log = 4.52279145837532221105E1;
+        const double Q4log = 1.12873587189167450590E1;
+        const double ln2_hi = 0.693359375;
+        const double ln2_lo = -2.121944400546905827679E-4;
+
+        // Get the mantissa and the exponent.
+        V8d m = Avx512F.GetMantissa(x, 2);
+        V8d e = Avx512F.GetExponent(x);
+        V8d blend = Avx512F.CompareGreaterThan(m, V8.Create(SQRT2 * 0.5));
+        e += V8d.One & blend;
+        m += AndNot(blend, m) - V8d.One;
+        V8d x2 = m * m;
+        V8d re = m.Poly5(P0log, P1log, P2log, P3log, P4log, P5log) * m * x2
+            / m.Poly5n(Q0log, Q1log, Q2log, Q3log, Q4log);
+        // Add exponent.
+        return Avx512F.FusedMultiplyAdd(e, V8.Create(ln2_hi),
+            Avx512F.FusedMultiplyAdd(e, V8.Create(ln2_lo), re) +
+            Avx512F.FusedMultiplyAddNegated(x2, V8.Create(0.5), m));
+
+        static V8d AndNot(V8d x, V8d y) =>
+            V8.Create(
+                Avx.AndNot(x.GetLower(), y.GetLower()),
+                Avx.AndNot(x.GetUpper(), y.GetUpper()));
     }
 
     /// <summary>Computes four <see cref="Math.Atan2(double, double)"/> at once.</summary>

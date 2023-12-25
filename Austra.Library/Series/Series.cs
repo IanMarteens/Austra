@@ -117,21 +117,33 @@ public sealed class Series : Series<Date>,
 
     /// <summary>Creates a new series based in the logarithmic returns.</summary>
     /// <returns>A derived series with one less point.</returns>
-    public unsafe new Series AsLogReturns()
+    public new Series AsLogReturns()
     {
         double[] newValues = GC.AllocateUninitializedArray<double>(Count - 1);
-        fixed (double* p = values, q = newValues)
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double p1 = ref Unsafe.Add(ref p, 1);
+        ref double q = ref MM.GetArrayDataReference(newValues);
+        if (Avx512F.IsSupported && newValues.Length >= V8d.Count)
         {
-            int i = 0, size = newValues.Length;
-            if (Avx2.IsSupported && Fma.IsSupported)
-            {
-                for (int top = size & Simd.MASK4; i < top; i += 4)
-                    Avx.Store(q + i,
-                        (Avx.LoadVector256(p + i) / Avx.LoadVector256(p + i + 1)).Log());
-            }
-            for (; i < size; i++)
-                q[i] = Log(p[i] / p[i + 1]);
+            nuint t = (nuint)(newValues.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(
+                    (V8.LoadUnsafe(ref p, i) / V8.LoadUnsafe(ref p1, i)).Log(), ref q, i);
+            V8.StoreUnsafe(
+                (V8.LoadUnsafe(ref p, t) / V8.LoadUnsafe(ref p1, t)).Log(), ref q, t);
         }
+        else if (Avx2.IsSupported && Fma.IsSupported && newValues.Length >= V4d.Count)
+        {
+            nuint t = (nuint)(newValues.Length - V4d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(
+                    (V4.LoadUnsafe(ref p, i) / V4.LoadUnsafe(ref p1, i)).Log(), ref q, i);
+            V4.StoreUnsafe(
+                (V4.LoadUnsafe(ref p, t) / V4.LoadUnsafe(ref p1, t)).Log(), ref q, t);
+        }
+        else
+            for (int i = 0; i < newValues.Length; i++)
+                Unsafe.Add(ref q, i) = Log(Unsafe.Add(ref p, i) / Unsafe.Add(ref p1, i));
         return new(Name + ".LOGS", Ticker, args[0..^1], newValues, SeriesType.Logs, Freq);
     }
 
