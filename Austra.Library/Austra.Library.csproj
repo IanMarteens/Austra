@@ -10,7 +10,7 @@
 	  <PackageIcon>austra.png</PackageIcon>
 	  <PackageTags>linear algebra, matrix, vector, vmo, financial series</PackageTags>
 	  <ApplicationIcon>austra.ico</ApplicationIcon>
-	  <RepositoryUrl></RepositoryUrl>
+	  <RepositoryUrl>https://github.com/IanMarteens/Austra</RepositoryUrl>
 	  <PackageId>Austra.Library</PackageId>
 	  <Product>AUSTRA</Product>
 	  <Copyright>Copyright © 2020-2023, by Ian Marteens</Copyright>
@@ -25,6 +25,10 @@
 	  <PackageOutputPath>D:\Source\Packages</PackageOutputPath>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
 	  <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+	  <RepositoryType>git</RepositoryType>
+	  <PackageReleaseNotes>Supports sequences in the formula language.</PackageReleaseNotes>
+	  <NeutralLanguage>en-US</NeutralLanguage>
+	  <PackageProjectUrl>https://intsight.com</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
