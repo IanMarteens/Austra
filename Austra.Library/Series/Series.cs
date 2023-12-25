@@ -559,18 +559,11 @@ public sealed class Series : Series<Date>,
     public Series Prune(int count) =>
         Count <= count ? this : new(Name, Ticker, args[..count], values[..count], this);
 
-    /// <summary>
-    /// Creates a new series by transforming each item with the given function.
-    /// </summary>
+    /// <summary>Creates a new series by transforming each item with the given function.</summary>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new series with transformed content.</returns>
-    public Series Map(Func<double, double> mapper)
-    {
-        double[] newValues = new double[values.Length];
-        for (int i = 0; i < newValues.Length; i++)
-            newValues[i] = mapper(values[i]);
-        return new(Name + ".MAP", Ticker, newValues, this);
-    }
+    public Series Map(Func<double, double> mapper) =>
+        new(Name + ".MAP", Ticker, (double[])Values.Map(mapper), this);
 
     /// <summary>
     /// Creates a new series by transforming each item with the given function.
