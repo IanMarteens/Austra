@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Most common sampling sequences for time series.</summary>
 public enum Frequency
