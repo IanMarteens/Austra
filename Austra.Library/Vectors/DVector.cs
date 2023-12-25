@@ -1,7 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents a dense vector of double values, of arbitrary size.</summary>
 /// <remarks>
