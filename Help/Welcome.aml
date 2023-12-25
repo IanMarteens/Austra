@@ -109,6 +109,15 @@
         	<listItem>On the other hand, we did not want a complicated language with lazy evaluation and monads. I really like monads! Some of my best friends are monads! Jokes aside: I want Austra to be used by a wide base of professionals, instead of a selected group of freaks.</listItem>
         	<listItem>A problem with R and Matlab, which loosely fall in the same category as Austra, is the pollution of the global namespace. We wanted to avoid that. Instead of having a global <codeInline>product</codeInline> function that you could apply to a vector, we prefer a <codeInline>product</codeInline> method that is a feature of vectors.</listItem>
         </list>
+        <para>There is also an important non-goal:</para>
+        <list class="bullet">
+        	<listItem>We are not trying to substitute C# with Austra. AUSTRA, the language, is not supposed to be a Turing-complete programming language.</listItem>
+        </list>
+        <para>These are some consequences from the non-goal:</para>
+        <list class="bullet">
+        	<listItem>We do not intend writing the Austra library in AUSTRA. That may be the goal for a next step, and, indeed, we have already some ideas and plans to do it. It would require, for make any sense, automatic vectorization, for example.</listItem>
+        	<listItem>The type system of AUSTRA is very simple. There are no generic types. Type inference is primitive. Only a handful of classes from the library are fully exposed. And, in the current version, we still have no support for tuples.</listItem>
+        </list>
       </content>
     </section>
     <relatedTopics>
