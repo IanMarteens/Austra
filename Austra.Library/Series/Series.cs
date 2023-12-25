@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Drawing;
+
+namespace Austra.Library;
 
 /// <summary>Most common sampling sequences for time series.</summary>
 public enum Frequency
@@ -193,13 +195,16 @@ public sealed class Series : Series<Date>,
     /// Generates a normally distributed series using statistics from this series.
     /// </summary>
     /// <returns>A normally distributed time series.</returns>
-    public unsafe Series Random()
+    public Series Random()
     {
         NormalRandom rnd = new(Mean, StandardDeviation);
         double[] newValues = GC.AllocateUninitializedArray<double>(Count);
-        fixed (double* p = newValues)
-            for (int i = 0; i < newValues.Length; i++)
-                p[i] = rnd.NextDouble();
+        ref double p = ref MM.GetArrayDataReference(newValues);
+        int i = 0;
+        for (int t = newValues.Length & ~1; i < t; i += 2)
+            rnd.NextDoubles(ref Unsafe.Add(ref p, i));
+        if (i < newValues.Length)
+            Unsafe.Add(ref p, i) = rnd.NextDouble();
         return new(Name + ".RND", Ticker, newValues, this);
     }
 
@@ -593,16 +598,18 @@ public sealed class Series : Series<Date>,
     /// <param name="other">Second series to combine.</param>
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
-    public unsafe Series Zip(Series other, Func<double, double, double> zipper)
+    public Series Zip(Series other, Func<double, double, double> zipper)
     {
         if (Freq != other.Freq)
             throw new Exception("Cannot mix series with different frequencies");
         int len = Min(Count, other.Count);
         Date[] newArgs = Count == len ? args : other.args;
         double[] newValues = GC.AllocateUninitializedArray<double>(len);
-        fixed (double* pA = values, pB = other.values, pC = newValues)
-            for (int i = 0; i < len; i++)
-                pC[i] = zipper(pA[i], pB[i]);
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double q = ref MM.GetArrayDataReference(other.values);
+        ref double r = ref MM.GetArrayDataReference(newValues);
+        for (int i = 0; i < len; i++)
+            Unsafe.Add(ref r, i) = zipper(Unsafe.Add(ref p, i), Unsafe.Add(ref q, i));
         return new(
             "ZIP(" + Name + "," + other.Name + ")", Ticker,
             newArgs, newValues, Combine(Type, other.Type), Freq);
