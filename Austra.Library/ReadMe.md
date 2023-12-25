@@ -1,6 +1,8 @@
 # Austra.Library
 *Austra.Library* is a library for .NET Core 7 that provides classes for linear algebra, statistics, time series and transforms. All classes are totally implemented using managed code, but implementations are optimized by using low-level C# features such as pointers and hardware intrinsics.
 
+The online Austra help covers both the library and the language, and is available [here](https://marteens.com/austra/library).
+
 ## Linear Algebra
 Austra provides classes for dense vectors and matrices, for double-precision arithmetic. It also features an efficient `ComplexVector` class. Single-precision floats, complex and sparse matrices are planned for a future sprint. All operations takes advantage of C# operators when possible, so most of the operations are non-destructive.
 

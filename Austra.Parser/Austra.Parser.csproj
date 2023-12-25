@@ -19,10 +19,15 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Nullable>enable</Nullable>
 		<Description>Implements a compiler for the AUSTRA's formula language.</Description>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="..\.editorconfig" Link=".editorconfig" />
+		<None Include="..\LICENSE.txt">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -50,7 +55,7 @@
 		<Using Include="System.Text.RegularExpressions" />
 		<Using Include="Austra.Library.Stats.Accumulator" Alias="Acc" />
 		<Using Include="System.Numerics.Complex" Alias="Complex" />
-		<Using Include="System.Numerics.BitOperations" Static="true"/>
+		<Using Include="System.Numerics.BitOperations" Static="true" />
 	</ItemGroup>
 
 	<ItemGroup>

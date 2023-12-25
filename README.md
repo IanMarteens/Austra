@@ -38,9 +38,8 @@ Last, but not least, the main resource for AVX/AVX2 optimizations has been the e
 
 ## Documentation
 
-A PDF manual, covering the language, is available [here](https://marteens.com/austra/austra.pdf). An online help version of the same manual is [also available](https://marteens.com/austra/).
+The online Austra help covers both the library and the language, and is available [here](https://marteens.com/austra/library).
 
-We have plans to create a full online help for Visual Studio using Sandcastle soon.
 
 ## Last changes
 

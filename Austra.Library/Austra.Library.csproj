@@ -24,6 +24,7 @@
 	  <PackageReadmeFile>ReadMe.md</PackageReadmeFile>
 	  <PackageOutputPath>D:\Source\Packages</PackageOutputPath>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
+	  <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -40,6 +41,13 @@
 
   <ItemGroup>
     <Content Include="austra.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 	<ItemGroup>
