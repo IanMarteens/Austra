@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ApplicationIcon>ak.ico</ApplicationIcon>
-		<Version>2.0.3</Version>
+		<Version>2.0.5</Version>
 		<Authors>Ian Marteens</Authors>
 		<Company>Intuitive Sight</Company>
 		<Product>AUSTRA</Product>
