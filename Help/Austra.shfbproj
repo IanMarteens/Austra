@@ -87,6 +87,7 @@
   <ItemGroup>
     <None Include="Arithmetic.aml" />
     <None Include="Comprehensions.aml" />
+    <None Include="Splines.aml" />
     <None Include="Matrices.aml" />
     <None Include="Time series.aml" />
     <None Include="Vectors.aml" />

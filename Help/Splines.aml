@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="008dce7e-55cd-4c37-997b-b0463d7c24d0" revisionNumber="1">
+  <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>Splines are piecewise defined functions, using cubic polynomials, for interpolating or smoothing curves. Austra can create splines for time series, using dates as arguments, or for any pair of vectors containing abscissas and coordinates, respectively. There is also a shortcut for creating this second kind of splines given a grid on an interval and an arbitrary function.</para>
+    </introduction>
+    <section address="Section1">
+      <title>Creating splines</title>
+      <content>
+        <para>All spline kinds are created using overloaded variants of the same class method:</para>
+		<table>
+	  	  <row>
+	    	<entry><para><codeInline>spline::new</codeInline></para></entry>
+	    	<entry><para>Creates a spline either from a <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">series</link>, a couple of <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">vectors</link>, or a grid and a <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">lambda function</link>.</para></entry>
+	  	  </row>
+		</table>
+		<para>This example shows how to create and use a spline based on a time series:</para>
+		<code language="Austra">
+<markup><b>let</b></markup> s = spline(appl) <markup><b>in</b></markup>
+    s[appl.last.date - 15]
+		</code>
+		<para>The example creates a spline based on the series values, and then the spline is used to interpolate the value fifteen days before the last date stored in the series.</para>
+		<sections>
+		  <section address="splineMethods">
+		  	<title>Methods and properties</title>
+		  	<content>
+		  	  <para>All splines have a single property:</para>
+			  <table>
+	  	  		<row>
+	    		  <entry><para><codeInline>length</codeInline></para></entry>
+	    		  <entry><para>Gets the number of polynomials in the spline.</para></entry>
+	  	  		</row>
+			  </table>
+		  	</content>
+		  </section>
+		</sections>
+      </content>
+    </section>
+    <relatedTopics>
+      <codeEntityReference qualifyHint="false">T:Austra.Library.Spline`1</codeEntityReference>
+	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
+      <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
+      <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
+      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetic</link>
+      <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
+      <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
+      <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
+      <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49">Matrices</link>
+      <link xlink:href="95cad3a9-e319-4787-a66b-596e34e6ddd6">List comprehensions</link>
+    </relatedTopics>
+  </developerConceptualDocument>
+</topic>

@@ -69,7 +69,8 @@ public abstract class SplineViewModel<T, A> : Entity
     {
         try
         {
-            SelectedPoly = Coefficients[Node.Model.NearestArg(arg)];
+            int idx = Math.Min(Coefficients.Count - 1, Node.Model.NearestArg(arg));
+            SelectedPoly = Coefficients[idx];
             if (SelectedPoly != null)
                 AustraArg = SelectedPoly.From;
         }

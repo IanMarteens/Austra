@@ -936,7 +936,7 @@ internal sealed partial class Parser
             else if (fromEnd1)
                 throw Error("Relative indexes not supported for dates", pos);
             if (kind != Token.Range)
-                throw Error(": expected in slice");
+                throw Error(".. expected in slice");
         }
         Move();
         if (kind != Token.RBra)

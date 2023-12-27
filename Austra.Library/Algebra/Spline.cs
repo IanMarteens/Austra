@@ -117,7 +117,12 @@ public abstract class Spline<ARG> where ARG : struct
         {
             ref double rx = ref MM.GetArrayDataReference(xs);
             if (x < rx || x > Add(ref rx, xs.Length - 1))
-                throw new ArgumentOutOfRangeException(nameof(x));
+                if (Abs(x - xs[^1]) < 1e-14)
+                    x = xs[^1];
+                else if (Abs(x - rx) < 1e-14)
+                    x = rx;
+                else
+                    throw new ArgumentOutOfRangeException(nameof(x));
             if (x == Add(ref rx, xs.Length - 1))
                 return LastCoordinate;
             int i = Array.BinarySearch(xs, x);
@@ -139,7 +144,12 @@ public abstract class Spline<ARG> where ARG : struct
     {
         ref double rx = ref MM.GetArrayDataReference(xs);
         if (x < rx || x > Add(ref rx, xs.Length - 1))
-            throw new ArgumentOutOfRangeException(nameof(x));
+            if (Abs(x - xs[^1]) < 1e-14)
+                x = xs[^1];
+            else if (Abs(x - rx) < 1e-14)
+                x = rx;
+            else
+                throw new ArgumentOutOfRangeException(nameof(x));
         int i = Array.BinarySearch(xs, x);
         if (i < 0)
         {
@@ -147,6 +157,8 @@ public abstract class Spline<ARG> where ARG : struct
             double xi = Add(ref rx, i);
             return K[i].Derivative((x - xi) / (Add(ref rx, i + 1) - xi)) * scale;
         }
+        else if (i == K.Length)
+            return K[^1].Derivative(1) * scale;
         else
             return K[i].K1 * scale;
     }
