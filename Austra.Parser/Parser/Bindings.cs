@@ -1478,13 +1478,15 @@ internal readonly struct MethodData
     }
 
     public bool IsMatch(Type inputType, Type returnType) =>
-        Args.Length == 1 && Args[0] == inputType &&
-            mInfo is MethodInfo m && m.ReturnType == returnType;
+        Args.Length == 1 
+        && (Args[0] == inputType || Args[0] == typeof(double) && inputType == typeof(int))
+        && mInfo is MethodInfo m && m.ReturnType == returnType;
 
-    public LambdaExpression GetAsLambda()
+    public LambdaExpression GetAsLambda(Type inputType)
     {
-        ParameterExpression x = Expression.Parameter(Args[0], "x");
-        return Expression.Lambda(Expression.Call((MethodInfo)mInfo, x), x);
+        ParameterExpression x = Expression.Parameter(inputType, "x");
+        Expression arg = Args[0] == x.Type ? x : Expression.Convert(x, typeof(double));
+        return Expression.Lambda(Expression.Call((MethodInfo)mInfo, arg), x);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1097,7 +1097,7 @@ internal sealed partial class Parser
                         candidate = m;
             if (candidate == null)
                 throw Error("Invalid function name while expecting lambda.");
-            lambda = candidate.Value.GetAsLambda();
+            lambda = candidate.Value.GetAsLambda(t1);
             return true;
         }
     }

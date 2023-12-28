@@ -4,7 +4,7 @@
     <introduction>
       <para>Lambda functions are inline-defined anonymous functions that can be used as parameters in normal methods and class method calls.</para>
     </introduction>
-    <section address="Section1">
+    <section address="MonoLambda">
       <title>Lambda functions with one parameter</title>
       <content>
         <para>Series and vectors, for instance, has an <codeInline>all</codeInline> method to check if all their numeric values satisfies an arbitrary condition. The condition is the only parameter of the method, and must be passed as a lambda function. Let's say we have an <codeInline>aapl_prices</codeInline> persistent variable holding a series of prices. We can verify that all those prices are positive using this formula:</para>
@@ -17,9 +17,7 @@ given predicate. The way we state the predicate to be satisfied is using this sy
         <code language="Austra">
 x => x >= 0
         </code>
-		<para>This can be read as "given an arbitrary value x, check that it is non-negative". We
-can use all for any other purpose, such as checking that all values in a series lie
-inside the (0, 1) interval:</para>
+		<para>This can be read as "given an arbitrary value x, check that it is non-negative". We can use all for any other purpose, such as checking that all values in a series lie inside the (0, 1) interval:</para>
         <code language="Austra">
 prices.all(value => 0 &lt; value &lt; 1)
 		</code>
@@ -37,6 +35,29 @@ values from a series, so that no one is greater than 1000:</para>
 prices.map(x => min(x, 1000))
 		</code>
 		<para>In all cases, the type of the parameter of the lambda is determined by the method the lambda is passed, and so is the returned type. AUSTRA adds any required conversion, as when a double is required for the result and an integer expression is being returned. Regarding the name of the lambda's parameter, you can use any name you like, keeping in mind that it will shadow any predefined identifier inside the lambda function's body.</para>
+		<sections>
+		  <section address="pointfree">
+		  	<title>Function names as lambdas</title>
+		  	<content>
+		  	  <para>In many cases, you need a lambda that takes a single parameter in order to transform it in another value from the same type. For instance, the sine function can be approximated using a <link xlink:href="008dce7e-55cd-4c37-997b-b0463d7c24d0">spline</link> over a uniform grid like this:</para>
+		  	  <code language="Austra">
+<markup><b>let</b></markup> s = spline(0, 2*pi, 1024, x =&gt; sin(x)) <markup><b>in</b></markup>
+    s[pi/4]
+		  	  </code>
+		  	  <para>The above code can be shortened to this:</para>
+		  	  <code language="Austra">
+<markup><b>let</b></markup> s = spline(0, 2*pi, 1024, sin) <markup><b>in</b></markup>
+    s[pi/4];
+		  	  </code>
+		  	  <para>Or even this, if you need to qualify the function name for any reason:</para>
+		  	  <code language="Austra">
+<markup><b>let</b></markup> s = spline(0, 2*pi, 1024, <markup><b><font color="DarkCyan">math::</font></b></markup>sin) <markup><b>in</b></markup>
+    s[pi/4];
+		  	  </code>
+		  	  <para>Since <codeInline>sin</codeInline> is a monoparametric function and no parameters are supplied, the compiler understands that the function must be used to create a monoparametric lambda, returning a real value.</para>
+		  	</content>
+		  </section>
+		</sections>
       </content>
     </section>
     <section address="Section2">
