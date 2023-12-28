@@ -1034,28 +1034,24 @@ internal sealed partial class Parser
             parsingLambdaHeader = true;
             if (t2 == null)
             {
+                // Three possibilities: x => f(x), f, class::f.
+                string saveId = id;
+                Expression? lambda;
+                if (kind == Token.ClassName)
+                {
+                    Move(); Move();
+                    if (kind != Token.Id ||
+                        !GetLambdaFromFunctionName(saveId + "." + id, out lambda))
+                        throw Error("Function name expected");
+                    Move();
+                    return lambda;
+                }
                 if (kind != Token.Id)
                     throw Error("Lambda parameter name expected");
-                string saveId = id;
                 Move();
-                if (kind != Token.Arrow)
-                {
-                    // Looks fishy, but it may be a function name.
-                    if (bindings.TryGetClassMethod("math." + saveId, out MethodList info))
-                    {
-                        // Check signature.
-                        MethodData? candidate = null;
-                        foreach (MethodData m in info.Methods)
-                            if (m.IsMatch(t1, retType))
-                                if (candidate != null)
-                                    throw Error("Ambiguous function name");
-                                else
-                                    candidate = m;
-                        if (candidate == null)
-                            throw Error("Invalid function name while expecting lambda.");
-                        return candidate.Value.GetAsLambda();
-                    }
-                }
+                if (kind != Token.Arrow
+                    && GetLambdaFromFunctionName("math." + saveId, out lambda))
+                    return lambda;
                 lambdaBlock.Add(t1, saveId);
             }
             else
@@ -1080,6 +1076,29 @@ internal sealed partial class Parser
         {
             if (abortPosition == int.MaxValue)
                 parsingLambdaHeader = false;
+        }
+
+
+        bool GetLambdaFromFunctionName(string qualifiedName,
+            [NotNullWhen(true)] out Expression? lambda)
+        {
+            if (!bindings.TryGetClassMethod(qualifiedName, out MethodList info))
+            {
+                lambda = null;
+                return false;
+            }
+            // Check signature.
+            MethodData? candidate = null;
+            foreach (MethodData m in info.Methods)
+                if (m.IsMatch(t1, retType))
+                    if (candidate != null)
+                        throw Error("Ambiguous function name");
+                    else
+                        candidate = m;
+            if (candidate == null)
+                throw Error("Invalid function name while expecting lambda.");
+            lambda = candidate.Value.GetAsLambda();
+            return true;
         }
     }
 

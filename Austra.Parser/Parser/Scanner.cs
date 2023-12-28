@@ -594,9 +594,31 @@ internal sealed partial class Parser : IDisposable
     private static partial Regex LambdaHeader2();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool IsLambda() => kind == Token.Id
-        ? LambdaHeader1().IsMatch(text.AsSpan()[start..]) || bindings.TryGetClassMethod("math." + id, out _)
-        : LambdaHeader2().IsMatch(text.AsSpan()[start..]);
+    private bool IsLambda() => kind switch
+    {
+        Token.ClassName => IsQualifiedLambdaFunctor(),
+        Token.Id => LambdaHeader1().IsMatch(text.AsSpan()[start..])
+        || bindings.ContainsClassMethod("math." + id),
+        _ => LambdaHeader2().IsMatch(text.AsSpan()[start..]),
+    };
+
+    private bool IsQualifiedLambdaFunctor()
+    {
+        int saveCursor = lexCursor;
+        string saveClassName = id;
+        try
+        {
+            Move(); Move();
+            return kind == Token.Id && bindings.ContainsClassMethod(saveClassName + "." + id);
+        }
+        finally
+        {
+            // Backtrack to the original position.
+            lexCursor = saveCursor;
+            id = saveClassName;
+            kind = Token.ClassName;
+        }
+    }
 
     internal Exception Error(string message, int position) =>
         abortPosition == int.MaxValue

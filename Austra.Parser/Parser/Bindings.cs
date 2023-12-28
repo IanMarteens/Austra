@@ -1425,6 +1425,12 @@ internal sealed partial class Bindings
     public bool TryGetClassMethod(string identifier, out MethodList info) =>
         classMethods.TryGetValue(identifier, out info);
 
+    /// <summary>Checks if a class method exists.</summary>
+    /// <param name="identifier">Prefixed method name.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    public bool ContainsClassMethod(string identifier) =>
+        classMethods.ContainsKey(identifier);
+
     /// <summary>Gets a regex that matches a set statement.</summary>
     [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase)]
     private static partial Regex LetHeaderRegex();
