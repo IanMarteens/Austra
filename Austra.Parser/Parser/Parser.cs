@@ -1036,8 +1036,27 @@ internal sealed partial class Parser
             {
                 if (kind != Token.Id)
                     throw Error("Lambda parameter name expected");
-                lambdaBlock.Add(t1, id);
+                string saveId = id;
                 Move();
+                if (kind != Token.Arrow)
+                {
+                    // Looks fishy, but it may be a function name.
+                    if (bindings.TryGetClassMethod("math." + saveId, out MethodList info))
+                    {
+                        // Check signature.
+                        MethodData? candidate = null;
+                        foreach (MethodData m in info.Methods)
+                            if (m.IsMatch(t1, retType))
+                                if (candidate != null)
+                                    throw Error("Ambiguous function name");
+                                else
+                                    candidate = m;
+                        if (candidate == null)
+                            throw Error("Invalid function name while expecting lambda.");
+                        return candidate.Value.GetAsLambda();
+                    }
+                }
+                lambdaBlock.Add(t1, saveId);
             }
             else
             {

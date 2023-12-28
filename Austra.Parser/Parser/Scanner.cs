@@ -595,7 +595,7 @@ internal sealed partial class Parser : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsLambda() => kind == Token.Id
-        ? LambdaHeader1().IsMatch(text.AsSpan()[start..])
+        ? LambdaHeader1().IsMatch(text.AsSpan()[start..]) || bindings.TryGetClassMethod("math." + id, out _)
         : LambdaHeader2().IsMatch(text.AsSpan()[start..]);
 
     internal Exception Error(string message, int position) =>

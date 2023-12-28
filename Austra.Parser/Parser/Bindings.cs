@@ -1471,6 +1471,16 @@ internal readonly struct MethodData
         Args[^1] = t;
     }
 
+    public bool IsMatch(Type inputType, Type returnType) =>
+        Args.Length == 1 && Args[0] == inputType &&
+            mInfo is MethodInfo m && m.ReturnType == returnType;
+
+    public LambdaExpression GetAsLambda()
+    {
+        ParameterExpression x = Expression.Parameter(Args[0], "x");
+        return Expression.Lambda(Expression.Call((MethodInfo)mInfo, x), x);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint GetMask(int typeId) => (typeMask >> (typeId * 2)) & 3u;
 
