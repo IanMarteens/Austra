@@ -260,6 +260,11 @@ internal sealed partial class Bindings
                 new("addMonths(", "Adds a number of months to the date"),
                 new("addYears(", "Adds a number of years to the date"),
             ],
+            [typeof(DateSpline)] = [
+                new("length", "Gets the number of segments in the spline"),
+                new("derivative(", "Gets the derivative of the spline at the given date"),
+                new("poly(", "Retrieve the cubic polynomial at the given index"),
+            ],
             [typeof(double)] = [
                 new("toInt", "Converts this double value to integer"),
             ],
@@ -562,6 +567,11 @@ internal sealed partial class Bindings
                 new("first", "Gets the first point"),
                 new("last", "Gets the last point"),
                 new("values", "Gets the underlying vector of values"),
+            ],
+            [typeof(VectorSpline)] = [
+                new("length", "Gets the number of segments in the spline"),
+                new("derivative(", "Gets the derivative of the spline at the given point"),
+                new("poly(", "Retrieve the cubic polynomial at the given index"),
             ],
         }.ToFrozenDictionary();
 
