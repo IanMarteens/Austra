@@ -3,7 +3,9 @@
 /// <summary>Represents a set of splines for cubic interpolation.</summary>
 /// <typeparam name="ARG">The type of the abscissa.</typeparam>
 /// <remarks>
-/// Splines are implemented in AUSTRA using natural cubic splines.
+/// <para>Splines are implemented in AUSTRA using natural cubic splines.</para>
+/// <para>The common implementation uses double-precision values for the abscisas,
+/// but splines for series converts dates into real values for interpolation.</para>
 /// </remarks>
 public abstract class Spline<ARG> where ARG : struct
 {
@@ -173,6 +175,12 @@ public abstract class Spline<ARG> where ARG : struct
     /// <returns>The final argument of the segment.</returns>
     public abstract ARG To(int idx);
 
+    /// <summary>Gets the lower bound of the first segment.</summary>
+    public abstract ARG First { get; }
+
+    /// <summary>Gets the upper bound of the first segment.</summary>
+    public abstract ARG Last { get; }
+
     /// <summary>Gets the segment date nearest to a given argument.</summary>
     /// <param name="arg">A value to be searched.</param>
     /// <returns>The lesser or equal nearest segment.</returns>
@@ -247,6 +255,12 @@ public sealed class DateSpline(Series series) : Spline<Date>(
     /// <returns>The final date.</returns>
     public override Date To(int idx) => new((uint)xs[idx + 1]);
 
+    /// <summary>Gets the lower bound of the first segment.</summary>
+    public override Date First => new((uint)xs[0]);
+
+    /// <summary>Gets the upper bound of the last segment.</summary>
+    public override Date Last => new((uint)xs[^1]);
+
     /// <summary>Creates a string representation of an argument.</summary>
     /// <param name="x">A value from the abscissa of the spline.</param>
     /// <returns>The values formatted as a date.</returns>
@@ -296,6 +310,12 @@ public sealed class VectorSpline : Spline<double>
     /// <param name="idx">Segment index.</param>
     /// <returns>The final date.</returns>
     public override double To(int idx) => xs[idx + 1];
+
+    /// <summary>Gets the lower bound of the first segment.</summary>
+    public override double First => xs[0];
+
+    /// <summary>Gets the upper bound of the last segment.</summary>
+    public override double Last => xs[^1];
 
     /// <summary>Creates a string representation of an argument.</summary>
     /// <param name="x">A value from the abscissa of the spline.</param>

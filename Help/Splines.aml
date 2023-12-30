@@ -24,8 +24,16 @@
 		  <section address="splineMethods">
 		  	<title>Indexers, methods and properties</title>
 		  	<content>
-		  	  <para>All splines have a single property:</para>
+		  	  <para>All splines have three properties:</para>
 			  <table>
+	  	  		<row>
+	    		  <entry><para><codeInline>first</codeInline></para></entry>
+	    		  <entry><para>The lower bound for the abscissas. It is a date for splines based on series, and a double value, otherwise.</para></entry>
+	  	  		</row>
+	  	  		<row>
+	    		  <entry><para><codeInline>last</codeInline></para></entry>
+	    		  <entry><para>The upper bound for the abscissas. It is a date for splines based on series, and a double value, otherwise.</para></entry>
+	  	  		</row>
 	  	  		<row>
 	    		  <entry><para><codeInline>length</codeInline></para></entry>
 	    		  <entry><para>Gets the number of polynomials in the spline.</para></entry>
@@ -49,6 +57,8 @@
     </section>
     <relatedTopics>
       <codeEntityReference qualifyHint="false">T:Austra.Library.Spline`1</codeEntityReference>
+      <codeEntityReference qualifyHint="false">T:Austra.Library.DateSpline</codeEntityReference>
+      <codeEntityReference qualifyHint="false">T:Austra.Library.VectorSpline</codeEntityReference>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
       <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>

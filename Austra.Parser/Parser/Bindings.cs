@@ -261,6 +261,8 @@ internal sealed partial class Bindings
                 new("addYears(", "Adds a number of years to the date"),
             ],
             [typeof(DateSpline)] = [
+                new("first", "Gets the lower bound of the spline's interval"),
+                new("last", "Gets the upper bound of the spline's interval"),
                 new("length", "Gets the number of segments in the spline"),
                 new("derivative(", "Gets the derivative of the spline at the given date"),
                 new("poly(", "Retrieve the cubic polynomial at the given index"),
@@ -569,6 +571,8 @@ internal sealed partial class Bindings
                 new("values", "Gets the underlying vector of values"),
             ],
             [typeof(VectorSpline)] = [
+                new("first", "Gets the lower bound of the spline's interval"),
+                new("last", "Gets the upper bound of the spline's interval"),
                 new("length", "Gets the number of segments in the spline"),
                 new("derivative(", "Gets the derivative of the spline at the given point"),
                 new("poly(", "Retrieve the cubic polynomial at the given index"),
@@ -907,6 +911,8 @@ internal sealed partial class Bindings
             [new(typeof(Date), "month")] = typeof(Date).Prop(nameof(Date.Month)),
             [new(typeof(Date), "year")] = typeof(Date).Prop(nameof(Date.Year)),
 
+            [new(typeof(DateSpline), "first")] = typeof(DateSpline).Prop(nameof(DateSpline.First)),
+            [new(typeof(DateSpline), "last")] = typeof(DateSpline).Prop(nameof(DateSpline.Last)),
             [new(typeof(DateSpline), "length")] = typeof(DateSpline).Prop(nameof(DateSpline.Length)),
 
             [new(typeof(DSequence), "acf")] = typeof(DSequence).Get(nameof(DSequence.ACF)),
@@ -1134,7 +1140,9 @@ internal sealed partial class Bindings
             [new(typeof(Series<int>), "values")] = typeof(Series<int>).Prop(nameof(Series<int>.Values)),
             [new(typeof(Series<int>), "sum")] = typeof(Series<int>).Get(nameof(Series<int>.Sum)),
 
-            [new(typeof(VectorSpline), "length")] = typeof(DateSpline).Prop(nameof(DateSpline.Length)),
+            [new(typeof(VectorSpline), "first")] = typeof(VectorSpline).Prop(nameof(VectorSpline.First)),
+            [new(typeof(VectorSpline), "last")] = typeof(VectorSpline).Prop(nameof(VectorSpline.Last)),
+            [new(typeof(VectorSpline), "length")] = typeof(VectorSpline).Prop(nameof(VectorSpline.Length)),
         }.ToFrozenDictionary();
 
     /// <summary>Allowed instance methods.</summary>
