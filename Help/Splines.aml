@@ -4,7 +4,7 @@
     <introduction>
       <para>Splines are piecewise defined functions, using cubic polynomials, for interpolating or smoothing curves. Austra can create splines for time series, using dates as arguments, or for any pair of vectors containing abscissas and coordinates, respectively. There is also a shortcut for creating this second kind of splines given a grid on an interval and an arbitrary function.</para>
     </introduction>
-    <section address="Section1">
+    <section address="Splines">
       <title>Creating splines</title>
       <content>
         <para>All spline kinds are created using overloaded variants of the same class method:</para>
@@ -22,13 +22,24 @@
 		<para>The example creates a spline based on the series values, and then the spline is used to interpolate the value fifteen days before the last date stored in the series.</para>
 		<sections>
 		  <section address="splineMethods">
-		  	<title>Methods and properties</title>
+		  	<title>Indexers, methods and properties</title>
 		  	<content>
 		  	  <para>All splines have a single property:</para>
 			  <table>
 	  	  		<row>
 	    		  <entry><para><codeInline>length</codeInline></para></entry>
 	    		  <entry><para>Gets the number of polynomials in the spline.</para></entry>
+	  	  		</row>
+			  </table>
+		  	  <para>These are the methods implemented by splines:</para>
+			  <table>
+	  	  		<row>
+	    		  <entry><para><codeInline>derivative</codeInline></para></entry>
+	    		  <entry><para>Calculates the smoothed derivative at a given point of the spline range.</para></entry>
+	  	  		</row>
+	  	  		<row>
+	    		  <entry><para><codeInline>poly</codeInline></para></entry>
+	    		  <entry><para>Gets the cubic polynomial at a given index in the spline.</para></entry>
 	  	  		</row>
 			  </table>
 		  	</content>
