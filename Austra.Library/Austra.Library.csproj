@@ -8,7 +8,7 @@
 	  <Company>Intuitive Sight</Company>
 	  <Description>Supports operations with dense matrices, statistical functions, FFT, time series and a mean-variance optimizer following the Markowitz algorithm.</Description>
 	  <PackageIcon>austra.png</PackageIcon>
-	  <PackageTags>linear algebra, matrix, vector, vmo, financial series</PackageTags>
+	  <PackageTags>linear algebra, matrix, vector, vmo, financial series, splines</PackageTags>
 	  <ApplicationIcon>austra.ico</ApplicationIcon>
 	  <RepositoryUrl>https://github.com/IanMarteens/Austra</RepositoryUrl>
 	  <PackageId>Austra.Library</PackageId>
@@ -29,6 +29,8 @@
 	  <PackageReleaseNotes>Supports sequences in the formula language.</PackageReleaseNotes>
 	  <NeutralLanguage>en-US</NeutralLanguage>
 	  <PackageProjectUrl>https://intsight.com</PackageProjectUrl>
+	  <IncludeSymbols>True</IncludeSymbols>
+	  <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

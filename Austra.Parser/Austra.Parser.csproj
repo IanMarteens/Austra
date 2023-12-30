@@ -20,6 +20,14 @@
 		<Nullable>enable</Nullable>
 		<Description>Implements a compiler for the AUSTRA's formula language.</Description>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<Title>Austra.Parser</Title>
+		<PackageProjectUrl>https://intsight.com</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/IanMarteens/Austra</RepositoryUrl>
+		<PackageTags>linear algebra, matrix, vector, vmo, financial series, splines</PackageTags>
+		<PackageReleaseNotes>Supports list comprehensions.</PackageReleaseNotes>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<ItemGroup>
