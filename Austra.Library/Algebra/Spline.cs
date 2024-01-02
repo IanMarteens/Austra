@@ -10,7 +10,7 @@
 public abstract class Spline<ARG> where ARG : struct
 {
     /// <summary>Scale for calculating derivatives.</summary>
-    private readonly double scale;
+    protected readonly double scale;
     /// <summary>Keeps arguments for interpolating arbitrary values.</summary>
     protected readonly double[] xs;
 
@@ -301,6 +301,9 @@ public sealed class VectorSpline : Spline<double>
     /// <returns>The cubic approximation to the derivative.</returns>
     public new double Derivative(double x) => base.Derivative(x);
 
+    /// <summary>Gets the area below the spline in its validity interval.</summary>
+    public double Area => K.Sum(k => k.Area) / scale;
+
     /// <summary>Gets the lower bound of a segment.</summary>
     /// <param name="idx">Segment index.</param>
     /// <returns>The initial date.</returns>
@@ -344,6 +347,9 @@ public readonly record struct Polynomial(double K0, double K1, double K2, double
     /// <returns>The evaluation of the derivative.</returns>
     public double Derivative(double t) =>
         FusedMultiplyAdd(FusedMultiplyAdd(3 * K3, t, K2 + K2), t, K1);
+
+    /// <summary>Gets the unscaled area below the cubic polynomial.</summary>
+    public double Area => 0.25 * K3 + K2 / 3d + 0.5 * K1 + K0;
 
     /// <summary>Gets a textual representation of the cubic polynomial.</summary>
     /// <returns>The formatted equation defining the polynomial.</returns>

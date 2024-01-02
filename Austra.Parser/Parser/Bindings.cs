@@ -571,6 +571,7 @@ internal sealed partial class Bindings
                 new("values", "Gets the underlying vector of values"),
             ],
             [typeof(VectorSpline)] = [
+                new("area", "Gets the approximate area below the spline"),
                 new("first", "Gets the lower bound of the spline's interval"),
                 new("last", "Gets the upper bound of the spline's interval"),
                 new("length", "Gets the number of segments in the spline"),
@@ -1140,6 +1141,7 @@ internal sealed partial class Bindings
             [new(typeof(Series<int>), "values")] = typeof(Series<int>).Prop(nameof(Series<int>.Values)),
             [new(typeof(Series<int>), "sum")] = typeof(Series<int>).Get(nameof(Series<int>.Sum)),
 
+            [new(typeof(VectorSpline), "area")] = typeof(VectorSpline).Prop(nameof(VectorSpline.Area)),
             [new(typeof(VectorSpline), "first")] = typeof(VectorSpline).Prop(nameof(VectorSpline.First)),
             [new(typeof(VectorSpline), "last")] = typeof(VectorSpline).Prop(nameof(VectorSpline.Last)),
             [new(typeof(VectorSpline), "length")] = typeof(VectorSpline).Prop(nameof(VectorSpline.Length)),
