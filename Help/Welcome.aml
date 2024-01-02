@@ -118,6 +118,16 @@
         	<listItem>We do not intend writing the Austra library in AUSTRA. That may be the goal for a next step, and, indeed, we have already some ideas and plans to do it. It would require, for make any sense, automatic vectorization, for example.</listItem>
         	<listItem>The type system of AUSTRA is very simple. There are no generic types. Type inference is primitive. Only a handful of classes from the library are fully exposed. And, in the current version, we still have no support for tuples.</listItem>
         </list>
+        <para>In order to diminish the complexity of using the language, we also conceal some types as much as possible, to reduce the number of class names the programmer has to remember. The language defines a small set of classes on which class methods, i.e., constructors and static methods, can be called. These classes are:</para>
+        <list class="bullet">
+        	<listItem><codeInline>math</codeInline>, for grouping global functions and variables.</listItem>
+        	<listItem><codeInline>matrix</codeInline>, for dealing with all kinds of matrices.</listItem>
+        	<listItem><codeInline>vec</codeInline>, <codeInline>cvec</codeInline> and <codeInline>nvec</codeInline>, for real vectors, complex vectors and integer vectors.</listItem>
+        	<listItem><codeInline>seq</codeInline>, <codeInline>cseq</codeInline> and <codeInline>nseq</codeInline>, for real sequences, complex sequences and integer sequences.</listItem>
+        	<listItem><codeInline>series</codeInline>, for time series.</listItem>
+        	<listItem><codeInline>spline</codeInline>, for cubic splines.</listItem>
+        	<listItem><codeInline>model</codeInline>, for mathematical models and tools.</listItem>
+        </list>
       </content>
     </section>
     <relatedTopics>

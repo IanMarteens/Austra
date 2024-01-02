@@ -64,29 +64,42 @@ internal sealed partial class Parser : IDisposable
     private readonly Bindings bindings;
     /// <summary>Gets the outer scope for variables.</summary>
     private readonly IDataSource source;
+    /// <summary>Place holder for lambda arguments, if any.</summary>
+    private LambdaBlock lambdaBlock;
     /// <summary>The text being scanned.</summary>
     private readonly string text;
     /// <summary>Referenced definitions.</summary>
     private readonly HashSet<Definition> references = [];
-    /// <summary>All top-level locals, from LET clauses.</summary>
+
+    /// <summary>All top-level locals, from LET/IN clauses.</summary>
     private readonly List<ParameterExpression> letLocals = new(8);
+    /// <summary>All top-level locals, from LET; clauses (script-scoped).</summary>
     private readonly List<ParameterExpression> scriptLetLocals = new(8);
     /// <summary>Top-level local asignment expressions.</summary>
     private readonly List<Expression> letExpressions;
+    /// <summary>Top-level local asignment expressions (script-scoped).</summary>
+    private readonly List<Expression> scriptExpressions;
     /// <summary>Transient local variable definitions.</summary>
+    /// <remarks>
+    /// This data structure is redundant with respect to <see cref="letLocals"/>, but
+    /// it's faster to search, while <see cref="letLocals"/> is needed for code generation.
+    /// </remarks>
     private readonly Dictionary<string, ParameterExpression> locals =
         new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Transient local variable definitions (script-scoped).</summary>
+    /// <remarks>
+    /// This data structure is redundant with respect to <see cref="scriptLetLocals"/>.
+    /// </remarks>
     private readonly Dictionary<string, ParameterExpression> scriptLocals =
         new(StringComparer.OrdinalIgnoreCase);
+    
+    /// <summary>Top-level SET expressions.</summary>
     private readonly List<Expression> setExpressions;
-    private readonly List<Expression> scriptExpressions;
     /// <summary>New session variables that are not yet defined in the data source.</summary>
     private readonly Dictionary<string, Expression> pendingSets =
         new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Controls that only persisted values are used.</summary>
     private bool isParsingDefinition;
-    /// <summary>Place holder for lambda arguments, if any.</summary>
-    private LambdaBlock lambdaBlock;
     /// <summary>Are we parsing a lambda header?</summary>
     private bool parsingLambdaHeader;
 
@@ -96,7 +109,10 @@ internal sealed partial class Parser : IDisposable
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     private Token kind;
     /// <summary>Gets the start position of the current lexeme.</summary>
-    /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
+    /// <remarks>
+    /// <para>Updated by the <see cref="Move"/> method.</para>
+    /// <para><see cref="start"/> is always lesser than <see cref="lexCursor"/>.</para>
+    /// </remarks>
     private int start;
     /// <summary>Gets the string associated with the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
@@ -608,7 +624,7 @@ internal sealed partial class Parser : IDisposable
         string saveClassName = id;
         try
         {
-            Move(); Move();
+            SkipFunctor();
             return kind == Token.Id && bindings.ContainsClassMethod(saveClassName + "." + id);
         }
         finally

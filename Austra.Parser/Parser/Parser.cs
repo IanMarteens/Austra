@@ -1039,7 +1039,7 @@ internal sealed partial class Parser
                 Expression? lambda;
                 if (kind == Token.ClassName)
                 {
-                    Move(); Move();
+                    SkipFunctor();
                     if (kind != Token.Id ||
                         !GetLambdaFromFunctionName(saveId + "." + id, out lambda))
                         throw Error("Function name expected");
