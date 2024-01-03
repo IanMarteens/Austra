@@ -20,6 +20,19 @@
     s[appl.last.date - 15]
 		</code>
 		<para>The example creates a spline based on the series values, and then the spline is used to interpolate the value fifteen days before the last date stored in the series.</para>
+		<alert class="note">
+			<para>Interpolation for daily series does not have much sense from the AUSTRA language, since our <codeInline>date</codeInline> type does not include a time.</para>
+		</alert>
+		<para>Splines can also be used to interpolate existing data and functions:</para>
+		<code language="Austra">
+<markup><font color="DarkGreen">-- Use a function over a uniform grid.</font><br/>
+<b>let</b></markup> s1 = spline(0, τ, 1024, cos);
+s1[π/4] - sqrt(0.5);
+s1.derivative(π/4);
+<markup><font color="DarkGreen">-- Use two arbitrary vectors with the same length.</font><br/>
+<b>let</b></markup> s2 = spline([1, 3, 4, 5], [0, 1, 0.8, 0]);
+s2[2]
+		</code>
 		<sections>
 		  <section address="splineMethods">
 		  	<title>Indexers, methods and properties</title>
@@ -28,17 +41,31 @@
 			  <table>
 	  	  		<row>
 	    		  <entry><para><codeInline>first</codeInline></para></entry>
-	    		  <entry><para>The lower bound for the abscissas. It is a date for splines based on series, and a double value, otherwise.</para></entry>
+	    		  <entry><para>The lower bound for the abscissas. It is a date for splines based on series, and a double value, otherwise. See <codeEntityReference qualifyHint="false">P:Austra.Library.Spline`1.First</codeEntityReference>.</para></entry>
 	  	  		</row>
 	  	  		<row>
 	    		  <entry><para><codeInline>last</codeInline></para></entry>
-	    		  <entry><para>The upper bound for the abscissas. It is a date for splines based on series, and a double value, otherwise.</para></entry>
+	    		  <entry><para>The upper bound for the abscissas. It is a date for splines based on series, and a double value, otherwise. See <codeEntityReference qualifyHint="false">P:Austra.Library.Spline`1.Last</codeEntityReference>.</para></entry>
 	  	  		</row>
 	  	  		<row>
 	    		  <entry><para><codeInline>length</codeInline></para></entry>
-	    		  <entry><para>Gets the number of polynomials in the spline.</para></entry>
+	    		  <entry><para>Gets the number of polynomials in the spline. See <codeEntityReference qualifyHint="false">P:Austra.Library.Spline`1.Length</codeEntityReference>.</para></entry>
 	  	  		</row>
 			  </table>
+		  	  <para>The area below the spline can be calculated for <codeEntityReference qualifyHint="false" linkText="vector splines">T:Austra.Library.VectorSpline</codeEntityReference>:</para>
+			  <table>
+	  	  		<row>
+	    		  <entry><para><codeInline>area</codeInline></para></entry>
+	    		  <entry><para>The total area below the spline. See <codeEntityReference qualifyHint="false">P:Austra.Library.VectorSpline.Area</codeEntityReference>.</para></entry>
+	  	  		</row>
+			  </table>
+			  <para>For instance, we can use it to approximate the area below a normal distribution:</para>
+		<code language="Austra">
+<markup><font color="DarkGreen">-- The integral over a reasonable interval.</font></markup>
+spline(-10, 10, 10000, x => exp(-x²)).area;
+<markup><font color="DarkGreen">-- The expected result.</font></markup>
+sqrt(π)
+		</code>
 		  	  <para>These are the methods implemented by splines:</para>
 			  <table>
 	  	  		<row>
