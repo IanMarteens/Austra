@@ -210,22 +210,59 @@ internal sealed partial class Parser
                 do
                 {
                     Move();
-                    if (kind != Token.Id)
+                    if (kind != Token.Id && kind != Token.Functor)
                         throw Error("Identifier expected");
                     string localId = id;
                     Move();
-                    CheckAndMove(Token.Eq, "= expected");
-                    Expression init = ParseConditional();
-                    ParameterExpression le = Expression.Variable(init.Type, localId);
-                    letLocals.Add(le);
-                    letExpressions.Add(Expression.Assign(le, init));
-                    locals[localId] = le;
+                    if (kind == Token.LPar)
+                    {
+                        Move();
+                        if (kind != Token.Id)
+                            throw Error("Parameter name expected");
+                        string param1 = id;
+                        Move();
+                        CheckAndMove(Token.Colon, ": expected");
+                        if (kind != Token.Id)
+                            throw Error("Type name expected");
+                        Type? type1 = id.ToLower() switch
+                        {
+                            "int" => typeof(int),
+                            "real" => typeof(double),
+                            "complex" => typeof(Complex),
+                            "vec" => typeof(DVector),
+                            "cvec" => typeof(CVector),
+                            "nvec" => typeof(NVector),
+                            "matrix" => typeof(Matrix),
+                            _ => throw Error($"Invalid type name: {id}"),
+                        };
+                        Move();
+                        CheckAndMove(Token.RPar, ") expected");
+                        lambdaBlock.Add(type1, param1);
+                        CheckAndMove(Token.Eq, "= expected");
+                        Expression init = ParseConditional();
+                        init = lambdaBlock.Create(this, init, init.Type);
+                        ParameterExpression le = Expression.Variable(init.Type, localId);
+                        letLocals.Add(le);
+                        letExpressions.Add(Expression.Assign(le, init));
+                        localLambdas[localId] = le;
+                    }
+                    else
+                    {
+                        CheckAndMove(Token.Eq, "= expected");
+                        Expression init = ParseConditional();
+                        ParameterExpression le = Expression.Variable(init.Type, localId);
+                        letLocals.Add(le);
+                        letExpressions.Add(Expression.Assign(le, init));
+                        locals[localId] = le;
+                    }
                 }
                 while (kind == Token.Comma);
                 if (kind == Token.Semicolon)
                 {
                     foreach (var pair in locals)
                         scriptLocals[pair.Key] = pair.Value;
+                    foreach (var pair in localLambdas)
+                        scriptLambdas[pair.Key] = pair.Value;
                     scriptLetLocals.AddRange(letLocals);
                     scriptExpressions.AddRange(letExpressions);
                     return checkEof && kind != Token.Eof
@@ -248,6 +285,7 @@ internal sealed partial class Parser
         }
         finally
         {
+            localLambdas.Clear();
             locals.Clear();
             letLocals.Clear();
             letExpressions.Clear();
