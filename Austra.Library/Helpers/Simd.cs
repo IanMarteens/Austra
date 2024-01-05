@@ -18,7 +18,6 @@ public static class Simd
     /// <summary>PI over four.</summary>
     private const double PI_4 = PI / 4.0;
 
-
     /// <summary>Sums all the elements in a vector.</summary>
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The total value.</returns>
@@ -394,17 +393,17 @@ public static class Simd
     /// <returns>A vector with the respective logarithms.</returns>
     public static V8d Log(this V8d x)
     {
-        const double P0log = 7.70838733755885391666E0;
-        const double P1log = 1.79368678507819816313E1;
-        const double P2log = 1.44989225341610930846E1;
-        const double P3log = 4.70579119878881725854E0;
-        const double P4log = 4.97494994976747001425E-1;
-        const double P5log = 1.01875663804580931796E-4;
-        const double Q0log = 2.31251620126765340583E1;
-        const double Q1log = 7.11544750618563894466E1;
-        const double Q2log = 8.29875266912776603211E1;
-        const double Q3log = 4.52279145837532221105E1;
-        const double Q4log = 1.12873587189167450590E1;
+        const double P0 = 7.70838733755885391666E0;
+        const double P1 = 1.79368678507819816313E1;
+        const double P2 = 1.44989225341610930846E1;
+        const double P3 = 4.70579119878881725854E0;
+        const double P4 = 4.97494994976747001425E-1;
+        const double P5 = 1.01875663804580931796E-4;
+        const double Q0 = 2.31251620126765340583E1;
+        const double Q1 = 7.11544750618563894466E1;
+        const double Q2 = 8.29875266912776603211E1;
+        const double Q3 = 4.52279145837532221105E1;
+        const double Q4 = 1.12873587189167450590E1;
         const double ln2_hi = 0.693359375;
         const double ln2_lo = -2.121944400546905827679E-4;
 
@@ -415,8 +414,8 @@ public static class Simd
         e += V8d.One & blend;
         m += AndNot(blend, m) - V8d.One;
         V8d x2 = m * m;
-        V8d re = m.Poly5(P0log, P1log, P2log, P3log, P4log, P5log) * m * x2
-            / m.Poly5n(Q0log, Q1log, Q2log, Q3log, Q4log);
+        V8d re = m.Poly5(P0, P1, P2, P3, P4, P5) * m * x2
+            / m.Poly5n(Q0, Q1, Q2, Q3, Q4);
         // Add exponent.
         return Avx512F.FusedMultiplyAdd(e, V8.Create(ln2_hi),
             Avx512F.FusedMultiplyAdd(e, V8.Create(ln2_lo), re) +
@@ -451,20 +450,16 @@ public static class Simd
         V4d x2 = Avx.BlendVariable(x1, y1, swap);
         V4d y2 = Avx.BlendVariable(y1, x1, swap);
         V4d bothInfinite = IsInfinite(x) & IsInfinite(y);
-        if (HorizontalOr(bothInfinite))
+        if (Avx.MoveMask(Avx.CompareNotEqual(bothInfinite, V4d.Zero)) != 0)
         {
             x2 = Avx.BlendVariable(x2 & minusOne, x2, bothInfinite);
             y2 = Avx.BlendVariable(y2 & minusOne, y2, bothInfinite);
         }
         V4d t = y2 / x2;
-
         V4d notBig = Avx.CompareLessThanOrEqual(t, V4.Create(SQRT2 + 1.0));
         V4d notSmall = Avx.CompareGreaterThanOrEqual(t, V4.Create(0.66));
-        V4d s = 
-            (notSmall & Avx.BlendVariable(
-                V4.Create(PI_2), V4.Create(PI_4), notBig))
-            + (notSmall & Avx.BlendVariable(
-                V4.Create(MOREBITS), V4.Create(MOREBITSO2), notBig));
+        V4d s = (notSmall & Avx.BlendVariable(V4.Create(PI_2), V4.Create(PI_4), notBig)) +
+            (notSmall & Avx.BlendVariable(V4.Create(MOREBITS), V4.Create(MOREBITSO2), notBig));
 
         V4d z = ((notBig & t) + (notSmall & minusOne)) / ((notBig & V4d.One) + (notSmall & t));
         V4d zz = z * z;
@@ -479,10 +474,6 @@ public static class Simd
         static V4d IsInfinite(V4d x) =>
             Avx.CompareEqual(x, V4.Create(double.PositiveInfinity)) |
             Avx.CompareEqual(x, V4.Create(double.NegativeInfinity));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static bool HorizontalOr(V4d x) =>
-            Avx.MoveMask(Avx.CompareNotEqual(x, V4d.Zero)) != 0;
     }
 
     /// <summary>Computes eight <see cref="Math.Atan2(double, double)"/> at once.</summary>
@@ -519,7 +510,6 @@ public static class Simd
             y2 = Avx512F.BlendVariable(y2 & minusOne, y2, bothInfinite);
         }
         V8d t = y2 / x2;
-
         V8d notBig = Avx512F.CompareLessThanOrEqual(t, V8.Create(SQRT2 + 1.0));
         V8d notSmall = Avx512F.CompareGreaterThanOrEqual(t, V8.Create(0.66));
         V8d s =
@@ -531,8 +521,7 @@ public static class Simd
         V8d px = zz.Poly4(P0, P1, P2, P3, P4) / zz.Poly5n(Q0, Q1, Q2, Q3, Q4);
         V8d re = Avx512F.FusedMultiplyAdd(px, z * zz, z + s);
         re = Avx512F.BlendVariable(re, V8.Create(PI_2) - re, swap);
-        re = Avx512F.BlendVariable(re, V8d.Zero,
-            Avx512F.CompareEqual(x | y, V8d.Zero));
+        re = Avx512F.BlendVariable(re, V8d.Zero, Avx512F.CompareEqual(x | y, V8d.Zero));
         re = Avx512F.BlendVariable(re, V8.Create(PI) - re, x & signMask);
         return re ^ (y & signMask);
 

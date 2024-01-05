@@ -828,7 +828,18 @@ public readonly struct CVector :
         ref double p = ref MM.GetArrayDataReference(re);
         ref double q = ref MM.GetArrayDataReference(im);
         ref double r = ref MM.GetArrayDataReference(result);
-        if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
+        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
+        {
+            int t = result.Length - V8d.Count;
+            for (int i = 0; i < t; i += V8d.Count)
+                V8.StoreUnsafe(
+                    V8.LoadUnsafe(ref Add(ref q, i)).Atan2(V8.LoadUnsafe(ref Add(ref p, i))),
+                    ref Add(ref r, i));
+            V8.StoreUnsafe(
+                V8.LoadUnsafe(ref Add(ref q, t)).Atan2(V8.LoadUnsafe(ref Add(ref p, t))),
+                ref Add(ref r, t));
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
         {
             int t = result.Length - V4d.Count;
             for (int i = 0; i < t; i += V4d.Count)
