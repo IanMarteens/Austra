@@ -86,13 +86,19 @@ internal sealed partial class Parser : IDisposable
     /// </remarks>
     private readonly Dictionary<string, ParameterExpression> locals =
         new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>User-defined lambdas, indexed by name, statement level.</summary>
+    private readonly Dictionary<string, ParameterExpression> localLambdas =
+        new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Transient local variable definitions (script-scoped).</summary>
     /// <remarks>
     /// This data structure is redundant with respect to <see cref="scriptLetLocals"/>.
     /// </remarks>
     private readonly Dictionary<string, ParameterExpression> scriptLocals =
         new(StringComparer.OrdinalIgnoreCase);
-    
+    /// <summary>User-defined lambdas, indexed by name, script level.</summary>
+    private readonly Dictionary<string, ParameterExpression> scriptLambdas =
+        new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Top-level SET expressions.</summary>
     private readonly List<Expression> setExpressions;
     /// <summary>New session variables that are not yet defined in the data source.</summary>

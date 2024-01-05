@@ -13,6 +13,12 @@ public static class Simd
     /// <summary>The square root of two.</summary>
     public const double SQRT2 = 1.41421356237309504880;
 
+    /// <summary>PI over two.</summary>
+    private const double PI_2 = PI / 2.0;
+    /// <summary>PI over four.</summary>
+    private const double PI_4 = PI / 4.0;
+
+
     /// <summary>Sums all the elements in a vector.</summary>
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The total value.</returns>
@@ -250,6 +256,18 @@ public static class Simd
             V4.Create(c1)), x,
             V4.Create(c0));
 
+    /// <summary>Calculates <c>c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static V8d Poly4(this V8d x,
+        double c0, double c1, double c2, double c3, double c4) =>
+        Avx512F.FusedMultiplyAdd(Avx512F.FusedMultiplyAdd(
+            Avx512F.FusedMultiplyAdd(Avx512F.FusedMultiplyAdd(
+            V8.Create(c4), x,
+            V8.Create(c3)), x,
+            V8.Create(c2)), x,
+            V8.Create(c1)), x,
+            V8.Create(c0));
+
     /// <summary>Calculates <c>x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
     /// <param name="x">The real variable used for evaluation.</param>
     /// <param name="c0">The constant term.</param>
@@ -403,22 +421,15 @@ public static class Simd
         return Avx512F.FusedMultiplyAdd(e, V8.Create(ln2_hi),
             Avx512F.FusedMultiplyAdd(e, V8.Create(ln2_lo), re) +
             Avx512F.FusedMultiplyAddNegated(x2, V8.Create(0.5), m));
-
-        static V8d AndNot(V8d x, V8d y) =>
-            V8.Create(
-                Avx.AndNot(x.GetLower(), y.GetLower()),
-                Avx.AndNot(x.GetUpper(), y.GetUpper()));
     }
 
     /// <summary>Computes four <see cref="Math.Atan2(double, double)"/> at once.</summary>
     /// <remarks>Requires AVX/AVX2/FMA support.</remarks>
     /// <param name="y">AVX vector with ordinates.</param>
     /// <param name="x">AVX vector with abscissas.</param>
-    /// <returns>A vector with the respectives tangent inverses.</returns>
+    /// <returns>A vector with the respective tangent inverses.</returns>
     public static V4d Atan2(this V4d y, V4d x)
     {
-        const double PI_2 = PI / 2.0;
-        const double PI_4 = PI / 4.0;
         const double MOREBITS = 6.123233995736765886130E-17;
         const double MOREBITSO2 = MOREBITS * 0.5;
         const double P4 = -8.750608600031904122785E-1;
@@ -473,4 +484,67 @@ public static class Simd
         static bool HorizontalOr(V4d x) =>
             Avx.MoveMask(Avx.CompareNotEqual(x, V4d.Zero)) != 0;
     }
+
+    /// <summary>Computes eight <see cref="Math.Atan2(double, double)"/> at once.</summary>
+    /// <remarks>Requires AVX512F support.</remarks>
+    /// <param name="y">AVX vector with ordinates.</param>
+    /// <param name="x">AVX vector with abscissas.</param>
+    /// <returns>A vector with the respective tangent inverses.</returns>
+    public static V8d Atan2(this V8d y, V8d x)
+    {
+        const double MOREBITS = 6.123233995736765886130E-17;
+        const double MOREBITSO2 = MOREBITS * 0.5;
+        const double P4 = -8.750608600031904122785E-1;
+        const double P3 = -1.615753718733365076637E1;
+        const double P2 = -7.500855792314704667340E1;
+        const double P1 = -1.228866684490136173410E2;
+        const double P0 = -6.485021904942025371773E1;
+        const double Q4 = 2.485846490142306297962E1;
+        const double Q3 = 1.650270098316988542046E2;
+        const double Q2 = 4.328810604912902668951E2;
+        const double Q1 = 4.853903996359136964868E2;
+        const double Q0 = 1.945506571482613964425E2;
+
+        V8d signMask = V8.Create(-0.0);
+        V8d minusOne = V8.Create(-1d);
+        V8d x1 = AndNot(signMask, x);
+        V8d y1 = AndNot(signMask, y);
+        V8d swap = Avx512F.CompareGreaterThan(y1, x1);
+        V8d x2 = Avx512F.BlendVariable(x1, y1, swap);
+        V8d y2 = Avx512F.BlendVariable(y1, x1, swap);
+        V8d bothInfinite = IsInfinite(x) & IsInfinite(y);
+        if (!V8.EqualsAll(bothInfinite, V8d.Zero))
+        {
+            x2 = Avx512F.BlendVariable(x2 & minusOne, x2, bothInfinite);
+            y2 = Avx512F.BlendVariable(y2 & minusOne, y2, bothInfinite);
+        }
+        V8d t = y2 / x2;
+
+        V8d notBig = Avx512F.CompareLessThanOrEqual(t, V8.Create(SQRT2 + 1.0));
+        V8d notSmall = Avx512F.CompareGreaterThanOrEqual(t, V8.Create(0.66));
+        V8d s =
+            (notSmall & Avx512F.BlendVariable(V8.Create(PI_2), V8.Create(PI_4), notBig)) +
+            (notSmall & Avx512F.BlendVariable(V8.Create(MOREBITS), V8.Create(MOREBITSO2), notBig));
+
+        V8d z = ((notBig & t) + (notSmall & minusOne)) / ((notBig & V8d.One) + (notSmall & t));
+        V8d zz = z * z;
+        V8d px = zz.Poly4(P0, P1, P2, P3, P4) / zz.Poly5n(Q0, Q1, Q2, Q3, Q4);
+        V8d re = Avx512F.FusedMultiplyAdd(px, z * zz, z + s);
+        re = Avx512F.BlendVariable(re, V8.Create(PI_2) - re, swap);
+        re = Avx512F.BlendVariable(re, V8d.Zero,
+            Avx512F.CompareEqual(x | y, V8d.Zero));
+        re = Avx512F.BlendVariable(re, V8.Create(PI) - re, x & signMask);
+        return re ^ (y & signMask);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static V8d IsInfinite(V8d x) =>
+            Avx512F.CompareEqual(x, V8.Create(double.PositiveInfinity)) |
+            Avx512F.CompareEqual(x, V8.Create(double.NegativeInfinity));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static V8d AndNot(V8d x, V8d y) =>
+        V8.Create(
+            Avx.AndNot(x.GetLower(), y.GetLower()),
+            Avx.AndNot(x.GetUpper(), y.GetUpper()));
 }
