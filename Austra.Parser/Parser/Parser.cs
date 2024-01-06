@@ -1160,6 +1160,7 @@ internal sealed partial class Parser
     {
         (string function, int pos) = (id.ToLower(), start);
         SkipFunctor();
+        // Check for a local lambda in a LET clause.
         if (localLambdas.TryGetValue(function, out var lambda) ||
             scriptLambdas.TryGetValue(function, out lambda))
         {
