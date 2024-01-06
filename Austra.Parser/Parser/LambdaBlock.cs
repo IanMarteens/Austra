@@ -37,7 +37,7 @@ internal sealed class LambdaBlock()
     /// <param name="body">The body of the expression.</param>
     /// <param name="retType">Expected return type.</param>
     /// <returns>The corresponding lambda expression, compilable to a delegate.</returns>
-    public Expression Create(Parser parser, Expression body, Type retType) =>
+    public LambdaExpression Create(Parser parser, Expression body, Type retType) =>
         Create(parser, body, retType, false).expr;
 
     /// <summary>
@@ -48,7 +48,8 @@ internal sealed class LambdaBlock()
     /// <param name="retType">Expected return type.</param>
     /// <param name="upgradeReturn">When <see langword="true"/>, the return type can be made real.</param>
     /// <returns>The corresponding lambda expression, compilable to a delegate.</returns>
-    public (Expression expr, bool upgraded) Create(Parser parser, Expression body, Type retType, bool upgradeReturn)
+    public (LambdaExpression expr, bool upgraded) Create(
+        Parser parser, Expression body, Type retType, bool upgradeReturn)
     {
         try
         {

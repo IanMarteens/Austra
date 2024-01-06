@@ -1160,6 +1160,28 @@ internal sealed partial class Parser
     {
         (string function, int pos) = (id.ToLower(), start);
         SkipFunctor();
+        if (localLambdas.TryGetValue(function, out var lambda) ||
+            scriptLambdas.TryGetValue(function, out lambda))
+        {
+            Type[] types = lambda.Type.GenericTypeArguments;
+            List<Expression> args = source.Rent(types.Length);
+            try
+            {
+                for (int i = 0; i < types.Length - 1; i++)
+                {
+                    args.Add(ParseByType(types[i]));
+                    if (i < types.Length - 2)
+                        CheckAndMove(Token.Comma, "Comma expected");
+                }
+                Expression result = Expression.Invoke(lambda, args);
+                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+                return result;
+            }
+            finally
+            {
+                source.Return(args);
+            }
+        }
         if (bindings.TryGetClassMethod("math." + function, out MethodList info))
             return info.Methods.Length == 1
                 ? ParseClassSingleMethod(info.Methods[0])
@@ -1193,25 +1215,31 @@ internal sealed partial class Parser
     {
         Type[] types = method.Args;
         List<Expression> args = source.Rent(types.Length);
-        for (int i = 0; i < types.Length; i++, Move())
+        try
         {
-            args.Add(ParseByType(types[i]));
-            if (kind != Token.Comma)
+            for (int i = 0; i < types.Length; i++, Move())
             {
-                if (++i == types.Length - 1 && types[i] is Type t)
-                    if (t == typeof(Random) || t == typeof(NormalRandom))
-                        args.Add(t.New());
-                    else if (t == typeof(One))
-                        args.Add(Expression.Constant(1d));
-                    else
-                        throw Error($"Invalid number of arguments");
-                break;
+                args.Add(ParseByType(types[i]));
+                if (kind != Token.Comma)
+                {
+                    if (++i == types.Length - 1 && types[i] is Type t)
+                        if (t == typeof(Random) || t == typeof(NormalRandom))
+                            args.Add(t.New());
+                        else if (t == typeof(One))
+                            args.Add(Expression.Constant(1d));
+                        else
+                            throw Error($"Invalid number of arguments");
+                    break;
+                }
             }
+            Expression result = method.GetExpression(args);
+            CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+            return result;
         }
-        Expression result = method.GetExpression(args);
-        source.Return(args);
-        CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-        return result;
+        finally
+        {
+                source.Return(args);
+        }
     }
 
     private Expression ParseByType(Type expected)
