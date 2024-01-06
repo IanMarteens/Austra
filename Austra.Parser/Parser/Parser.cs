@@ -217,27 +217,16 @@ internal sealed partial class Parser
                     if (kind == Token.LPar)
                     {
                         Move();
-                        if (kind != Token.Id)
-                            throw Error("Parameter name expected");
-                        string param1 = id;
-                        Move();
-                        CheckAndMove(Token.Colon, ": expected");
-                        if (kind != Token.Id)
-                            throw Error("Type name expected");
-                        Type? type1 = id.ToLower() switch
+                        (string param1, Type type1) = ParseParam();
+                        if (kind == Token.Comma)
                         {
-                            "int" => typeof(int),
-                            "real" => typeof(double),
-                            "complex" => typeof(Complex),
-                            "vec" => typeof(DVector),
-                            "cvec" => typeof(CVector),
-                            "nvec" => typeof(NVector),
-                            "matrix" => typeof(Matrix),
-                            _ => throw Error($"Invalid type name: {id}"),
-                        };
-                        Move();
+                            Move();
+                            (string param2, Type type2) = ParseParam();
+                            lambdaBlock.Add(type1, param1, type2, param2);
+                        }
+                        else
+                            lambdaBlock.Add(type1, param1);
                         CheckAndMove(Token.RPar, ") expected");
-                        lambdaBlock.Add(type1, param1);
                         CheckAndMove(Token.Eq, "= expected");
                         Expression init = ParseConditional();
                         init = lambdaBlock.Create(this, init, init.Type);
@@ -282,6 +271,30 @@ internal sealed partial class Parser
                 : letLocals.Count == 0 && letExpressions.Count == 1
                 ? letExpressions[0]
                 : Expression.Block(letLocals, letExpressions);
+
+            (string paramName, Type paramType) ParseParam()
+            {
+               if (kind != Token.Id)
+                    throw Error("Parameter name expected");
+                string param1 = id;
+                Move();
+                CheckAndMove(Token.Colon, ": expected");
+                if (kind != Token.Id)
+                    throw Error("Type name expected");
+                Type type1 = id.ToLower() switch
+                {
+                    "int" => typeof(int),
+                    "real" => typeof(double),
+                    "complex" => typeof(Complex),
+                    "vec" => typeof(DVector),
+                    "cvec" => typeof(CVector),
+                    "nvec" => typeof(NVector),
+                    "matrix" => typeof(Matrix),
+                    _ => throw Error($"Invalid type name: {id}"),
+                };
+                Move();
+                return (param1, type1);
+            }
         }
         finally
         {
