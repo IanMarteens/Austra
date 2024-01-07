@@ -217,16 +217,12 @@ internal sealed partial class Parser
                     if (kind == Token.LPar)
                     {
                         Move();
-                        ParameterExpression p1 = ParseParam();
-                        if (kind == Token.Comma)
-                        {
-                            Move();
-                            ParameterExpression p2 = ParseParam();
-                            lambdaBlock.Add(p1, p2);
-                        }
-                        else
-                            lambdaBlock.Add(p1);
+                        lambdaBlock.Add(ParseParameters());
                         CheckAndMove(Token.RPar, ") expected");
+                        //if (kind == Token.Colon)
+                        //{
+                        //    Type retType = ParseType();
+                        //}
                         CheckAndMove(Token.Eq, "= expected");
                         Expression init = ParseConditional();
                         init = lambdaBlock.Create(this, init, init.Type);
@@ -272,28 +268,55 @@ internal sealed partial class Parser
                 ? letExpressions[0]
                 : Expression.Block(letLocals, letExpressions);
 
-            ParameterExpression ParseParam()
+            List<ParameterExpression> ParseParameters()
             {
-               if (kind != Token.Id)
-                    throw Error("Parameter name expected");
-                string param1 = id;
-                Move();
+                List<ParameterExpression> result = new(4);
+                List<string> names = new(4);
+                while (true)
+                {
+                    if (kind != Token.Id)
+                        throw Error("Parameter name expected");
+                    names.Add(id);
+                    Move();
+                    while (kind == Token.Comma)
+                    {
+                        Move();
+                        if (kind != Token.Id)
+                            throw Error("Parameter name expected");
+                        names.Add(id);
+                        Move();
+                    }
+                    Type type = ParseType();
+                    foreach (string param in names)
+                        result.Add(Expression.Parameter(type, param));
+                    if (kind != Token.Comma)
+                        break;
+                    Move();
+                }
+                return result;
+            }
+
+            Type ParseType()
+            {
                 CheckAndMove(Token.Colon, ": expected");
                 if (kind != Token.Id)
                     throw Error("Type name expected");
-                Type type1 = id.ToLower() switch
+                Type t = id.ToLower() switch
                 {
                     "int" => typeof(int),
                     "real" => typeof(double),
                     "complex" => typeof(Complex),
+                    "series" => typeof(Series),
+                    "bool" => typeof(bool),
                     "vec" => typeof(DVector),
                     "cvec" => typeof(CVector),
                     "nvec" => typeof(NVector),
                     "matrix" => typeof(Matrix),
+                    "date" => typeof(Date),
                     _ => throw Error($"Invalid type name: {id}"),
                 };
                 Move();
-                return Expression.Parameter(type1, param1);
+                return t;
             }
         }
         finally
@@ -1252,7 +1275,7 @@ internal sealed partial class Parser
         }
         finally
         {
-                source.Return(args);
+            source.Return(args);
         }
     }
 

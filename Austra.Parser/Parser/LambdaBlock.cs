@@ -35,9 +35,9 @@ internal sealed class LambdaBlock()
 
     /// <summary>Creates a new lambda level with a list of parameters.</summary>
     /// <param name="parameters">The list of parameters.</param>
-    public void Add(params ParameterExpression[] parameters)
+    public void Add(List<ParameterExpression> parameters)
     {
-        paramCounts.Add(parameters.Length);
+        paramCounts.Add(parameters.Count);
         this.parameters.AddRange(parameters);
     }
 
