@@ -106,6 +106,16 @@ public abstract class Sequence<T, TSelf>
     /// <returns>The combined sequence.</returns>
     public abstract TSelf Zip(TSelf other, Func<T, T, T> zipper);
 
+    /// <summary>Get the initial values of a sequence that satisfy a predicate.</summary>
+    /// <param name="predicate">The predicate to be satisfied.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public abstract TSelf While(Func<T, bool> predicate);
+
+    /// <summary>Get the initial values of a sequence until a predicate is satisfied.</summary>
+    /// <param name="predicate">The predicate to be satisfied.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public abstract TSelf Until(Func<T, bool> predicate);
+
     /// <summary>Gets the sum of all the values in the sequence.</summary>
     /// <returns>The sum of all the values in the sequence.</returns>
     public virtual T Sum()

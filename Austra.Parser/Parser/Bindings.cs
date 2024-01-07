@@ -249,6 +249,8 @@ internal sealed partial class Bindings
                 new("map(x => ", "Pointwise transformation of complex values"),
                 new("mapreal(x => ", "Transforms complex vector into a real one"),
                 new("reduce(", "Reduces a complex vector to a single value"),
+                new("until(x => ", "Gets a subsequence until a predicate is satisfied"),
+                new("while(x => ", "Gets a subsequence while a predicate is satisfied"),
                 new("zip(", "Combines two complex vectors"),
             ],
             [typeof(Date)] = [
@@ -295,6 +297,8 @@ internal sealed partial class Bindings
                 new("maModel(", "Creates an MA(q) model"),
                 new("map(x => ", "Transforms the sequence according to a mapping function"),
                 new("reduce(", "Combines all values in the sequence into a single value"),
+                new("until(x => ", "Gets a subsequence until a predicate is satisfied"),
+                new("while(x => ", "Gets a subsequence while a predicate is satisfied"),
                 new("zip(", "Combines two sequence using a lambda function"),
             ],
             [typeof(DVector)] = [
@@ -451,6 +455,8 @@ internal sealed partial class Bindings
                 new("map(x => ", "Transforms the sequence according to a mapping function"),
                 new("mapReal(x => ", "Transforms the sequence into a sequence of doubles"),
                 new("reduce(", "Combines all values in the sequence into a single value"),
+                new("until(x => ", "Gets a subsequence until a predicate is satisfied"),
+                new("while(x => ", "Gets a subsequence while a predicate is satisfied"),
                 new("zip(", "Combines two sequence using a lambda function"),
             ],
             [typeof(NVector)] = [
@@ -1158,6 +1164,8 @@ internal sealed partial class Bindings
             [new(typeof(CSequence), "mapr")] = typeof(CSequence).Get(nameof(CSequence.MapReal)),
             [new(typeof(CSequence), "mapreal")] = typeof(CSequence).Get(nameof(CSequence.MapReal)),
             [new(typeof(CSequence), "reduce")] = typeof(CSequence).Get(nameof(CSequence.Reduce)),
+            [new(typeof(CSequence), "until")] = typeof(CSequence).Get(nameof(CSequence.Until)),
+            [new(typeof(CSequence), "while")] = typeof(CSequence).Get(nameof(CSequence.While)),
             [new(typeof(CSequence), "zip")] = typeof(CSequence).Get(nameof(CSequence.Zip)),
 
             [new(typeof(CVector), "all")] = typeof(CVector).Get(nameof(CVector.All)),
@@ -1186,6 +1194,8 @@ internal sealed partial class Bindings
             [new(typeof(DSequence), "mamodel")] = typeof(DSequence).Get(nameof(DSequence.MAModel)),
             [new(typeof(DSequence), "map")] = typeof(DSequence).Get(nameof(DSequence.Map)),
             [new(typeof(DSequence), "reduce")] = typeof(DSequence).Get(nameof(DSequence.Reduce)),
+            [new(typeof(DSequence), "until")] = typeof(DSequence).Get(nameof(DSequence.Until)),
+            [new(typeof(DSequence), "while")] = typeof(DSequence).Get(nameof(DSequence.While)),
             [new(typeof(DSequence), "zip")] = typeof(DSequence).Get(nameof(DSequence.Zip)),
 
             [new(typeof(DVector), "all")] = typeof(DVector).Get(nameof(DVector.All)),
@@ -1216,6 +1226,8 @@ internal sealed partial class Bindings
             [new(typeof(NSequence), "mapr")] = typeof(NSequence).Get(nameof(NSequence.MapReal)),
             [new(typeof(NSequence), "mapreal")] = typeof(NSequence).Get(nameof(NSequence.MapReal)),
             [new(typeof(NSequence), "reduce")] = typeof(NSequence).Get(nameof(NSequence.Reduce)),
+            [new(typeof(NSequence), "until")] = typeof(NSequence).Get(nameof(NSequence.Until)),
+            [new(typeof(NSequence), "while")] = typeof(NSequence).Get(nameof(NSequence.While)),
             [new(typeof(NSequence), "zip")] = typeof(NSequence).Get(nameof(NSequence.Zip)),
 
             [new(typeof(NVector), "all")] = typeof(NVector).Get(nameof(NVector.All)),

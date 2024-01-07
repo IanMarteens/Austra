@@ -142,6 +142,18 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public override DSequence Zip(DSequence other, Func<double, double, double> zipper) =>
         new Zipped(this, other, zipper);
 
+    /// <summary>Get the initial values of a sequence that satisfy a predicate.</summary>
+    /// <param name="predicate">The predicate to be satisfied.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public override DSequence While(Func<double, bool> predicate) =>
+        new SeqWhile(this, predicate);
+
+    /// <summary>Get the initial values of a sequence until a predicate is satisfied.</summary>
+    /// <param name="predicate">The predicate to be satisfied.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public override DSequence Until(Func<double, bool> predicate) =>
+        new SeqUntil(this, predicate);
+
     /// <summary>Gets the value at the specified index.</summary>
     /// <param name="idx">A position inside the sequence.</param>
     /// <returns>The value at the given position.</returns>

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
@@ -287,6 +285,7 @@ internal sealed partial class Parser
                     2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
                     3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
                     4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                    5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
                     _ => throw Error("Unsupported number of arguments")
                 };
 

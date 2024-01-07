@@ -229,6 +229,62 @@ public abstract partial class CSequence
             HasLength ? Min(s1.Length(), s2.Length()) : base.Length();
     }
 
+    /// <summary>Returns a sequence while a condition is met.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="condition">The condition that must be met.</param>
+    private class SeqWhile(CSequence source, Func<Complex, bool> condition) : CSequence
+    {
+        /// <summary>Gets the next number in the computed sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Complex value)
+        {
+            if (source.Next(out value) && condition(value))
+                return true;
+            value = default;
+            return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override CSequence Reset()
+        {
+            source.Reset();
+            return this;
+        }
+    }
+
+    /// <summary>Returns a sequence until a condition is met.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="condition">The condition that must be met.</param>
+    private class SeqUntil(CSequence source, Func<Complex, bool> condition) : CSequence
+    {
+        private bool done;
+
+        /// <summary>Gets the next number in the computed sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Complex value)
+        {
+            if (!done && source.Next(out value))
+            {
+                done = condition(value);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override CSequence Reset()
+        {
+            done = false;
+            source.Reset();
+            return this;
+        }
+    }
+
     /// <summary>Implements a sequence of double values based in a grid.</summary>
     /// <remarks>Creates a double sequence from a grid.</remarks>
     /// <param name="lower">The first value in the sequence.</param>

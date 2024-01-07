@@ -235,6 +235,61 @@ public abstract partial class NSequence
             HasLength ? Math.Min(s1.Length(), s2.Length()) : base.Length();
     }
 
+    /// <summary>Returns a sequence while a condition is met.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="condition">The condition that must be met.</param>
+    private class SeqWhile(NSequence source, Func<int, bool> condition) : NSequence
+    {
+        /// <summary>Gets the next number in the computed sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out int value)
+        {
+            if (source.Next(out value) && condition(value))
+                return true;
+            value = default;
+            return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            source.Reset();
+            return this;
+        }
+    }
+
+    /// <summary>Returns a sequence until a condition is met.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="condition">The condition that must be met.</param>
+    private class SeqUntil(NSequence source, Func<int, bool> condition) : NSequence
+    {
+        private bool done;
+
+        /// <summary>Gets the next number in the computed sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out int value)
+        {
+            if (!done && source.Next(out value))
+            {   done = condition(value);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            done = false;
+            source.Reset();
+            return this;
+        }
+    }
+
     /// <summary>Implements a sequence of integers based in an range and a step.</summary>
     /// <remarks><c>first &lt;= last</c></remarks>
     /// <param name="first">First value in the sequence.</param>

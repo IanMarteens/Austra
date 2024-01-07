@@ -137,6 +137,18 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public override NSequence Zip(NSequence other, Func<int, int, int> zipper) =>
         new Zipped(this, other, zipper);
 
+    /// <summary>Get the initial values of a sequence that satisfy a predicate.</summary>
+    /// <param name="predicate">The predicate to be satisfied.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public override NSequence While(Func<int, bool> predicate) =>
+        new SeqWhile(this, predicate);
+
+    /// <summary>Get the initial values of a sequence until a predicate is satisfied.</summary>
+    /// <param name="predicate">The predicate to be satisfied.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public override NSequence Until(Func<int, bool> predicate) =>
+        new SeqUntil(this, predicate);
+
     /// <summary>Gets the value at the specified index.</summary>
     /// <param name="idx">A position inside the sequence.</param>
     /// <returns>The value at the given position.</returns>
