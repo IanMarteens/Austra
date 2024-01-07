@@ -217,15 +217,15 @@ internal sealed partial class Parser
                     if (kind == Token.LPar)
                     {
                         Move();
-                        (string param1, Type type1) = ParseParam();
+                        ParameterExpression p1 = ParseParam();
                         if (kind == Token.Comma)
                         {
                             Move();
-                            (string param2, Type type2) = ParseParam();
-                            lambdaBlock.Add(type1, param1, type2, param2);
+                            ParameterExpression p2 = ParseParam();
+                            lambdaBlock.Add(p1, p2);
                         }
                         else
-                            lambdaBlock.Add(type1, param1);
+                            lambdaBlock.Add(p1);
                         CheckAndMove(Token.RPar, ") expected");
                         CheckAndMove(Token.Eq, "= expected");
                         Expression init = ParseConditional();
@@ -272,7 +272,7 @@ internal sealed partial class Parser
                 ? letExpressions[0]
                 : Expression.Block(letLocals, letExpressions);
 
-            (string paramName, Type paramType) ParseParam()
+            ParameterExpression ParseParam()
             {
                if (kind != Token.Id)
                     throw Error("Parameter name expected");
@@ -293,7 +293,7 @@ internal sealed partial class Parser
                     _ => throw Error($"Invalid type name: {id}"),
                 };
                 Move();
-                return (param1, type1);
+                return Expression.Parameter(type1, param1);
             }
         }
         finally
@@ -1103,19 +1103,20 @@ internal sealed partial class Parser
                 if (kind != Token.Arrow
                     && GetLambdaFromFunctionName("math." + saveId, out lambda))
                     return lambda;
-                lambdaBlock.Add(t1, saveId);
+                lambdaBlock.Add(Expression.Parameter(t1, saveId));
             }
             else
             {
                 CheckAndMove(Token.LPar, "Lambda parameters expected");
                 if (kind != Token.Id)
                     throw Error("First lambda parameter name expected");
-                string id1 = id;
+                ParameterExpression p1 = Expression.Parameter(t1, id);
                 Move();
                 CheckAndMove(Token.Comma, "Comma expected");
                 if (kind != Token.Id)
                     throw Error("Second lambda parameter name expected");
-                lambdaBlock.Add(t1, id1, t2, id);
+                ParameterExpression p2 = Expression.Parameter(t2, id);
+                lambdaBlock.Add(p1, p2);
                 Move();
                 CheckAndMove(Token.RPar, ") expected in lambda header");
             }
@@ -1128,7 +1129,6 @@ internal sealed partial class Parser
             if (abortPosition == int.MaxValue)
                 parsingLambdaHeader = false;
         }
-
 
         bool GetLambdaFromFunctionName(string qualifiedName,
             [NotNullWhen(true)] out Expression? lambda)
@@ -1562,7 +1562,8 @@ internal sealed partial class Parser
         {
             bool backtrack = false;
             Move();
-            lambdaBlock.Add(eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName);
+            lambdaBlock.Add(Expression.Parameter(
+                eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName));
             string qual = id.ToLower();
             if (kind == Token.Id && (qual == "all" || qual == "any"))
             {
@@ -1579,7 +1580,8 @@ internal sealed partial class Parser
                         // Verify that the expression is a sequence and get its type.
                         (Type fType, Type ifType) = GetTypes(e);
                         CheckAndMove(Token.Colon, ": expected in qualified filter in list comprehension");
-                        lambdaBlock.Add(fType == typeof(Series) ? typeof(Point<Date>) : ifType, paramName1);
+                        lambdaBlock.Add(Expression.Parameter(
+                            fType == typeof(Series) ? typeof(Point<Date>) : ifType, paramName1));
                         filter = lambdaBlock.Create(this, ParseConditional(), typeof(bool));
                         filter = lambdaBlock.Create(this, Expression.Call(
                             f, qual == "all" ? "All" : "Any", Type.EmptyTypes, filter), typeof(bool));
@@ -1612,7 +1614,7 @@ internal sealed partial class Parser
         {
             Move();
             // Parse the expression that generates the result.
-            lambdaBlock.Add(iType, paramName);
+            lambdaBlock.Add(Expression.Parameter(iType, paramName));
             (mapper, upgraded) = lambdaBlock.Create(
                 this, ParseLightConditional(), iType, iType == typeof(int));
         }

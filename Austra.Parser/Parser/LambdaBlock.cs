@@ -3,31 +3,42 @@
 /// <summary>Controls the visibility of the lambda parameters.</summary>
 internal sealed class LambdaBlock()
 {
-    /// <summary>First lambda parameter for each lambda level.</summary>
-    private readonly ParameterExpression?[] parameters1 = new ParameterExpression?[8];
-    /// <summary>Second, optional, lambda parameter for each lambda level.</summary>
-    private readonly ParameterExpression?[] parameters2 = new ParameterExpression?[8];
-    /// <summary>Current lambda level.</summary>
-    private int stackTop = -1;
+    /// <summary>Lambda parameters for all lambda levels.</summary>
+    private readonly List<ParameterExpression> parameters = new(16);
+    /// <summary>Number of parameters in each lambda level.</summary>
+    private readonly List<int> paramCounts = new(16);
 
     /// <summary>Clears the lambda block for recycling.</summary>
     public void Clean()
     {
-        for (; stackTop >= 0; stackTop--)
-            parameters1[stackTop] = parameters2[stackTop] = null;
+        paramCounts.Clear();
+        parameters.Clear();
     }
 
-    public void Add(Type type, string name)
+    /// <summary>Creates a new lambda level with a single parameter.</summary>
+    /// <param name="parameter">The lambda parameter.</param>
+    public void Add(ParameterExpression parameter)
     {
-        stackTop++;
-        parameters1[stackTop] = Expression.Parameter(type, name);
+        paramCounts.Add(1);
+        parameters.Add(parameter);
     }
 
-    public void Add(Type type1, string name1, Type type2, string name2)
+    /// <summary>Creates a new lambda level with two parameters.</summary>
+    /// <param name="param1">The first lambda parameter.</param>
+    /// <param name="param2">The second lambda parameter.</param>
+    public void Add(ParameterExpression param1, ParameterExpression param2)
     {
-        stackTop++;
-        parameters1[stackTop] = Expression.Parameter(type1, name1);
-        parameters2[stackTop] = Expression.Parameter(type2, name2);
+        paramCounts.Add(2);
+        parameters.Add(param1);
+        parameters.Add(param2);
+    }
+
+    /// <summary>Creates a new lambda level with a list of parameters.</summary>
+    /// <param name="parameters">The list of parameters.</param>
+    public void Add(params ParameterExpression[] parameters)
+    {
+        paramCounts.Add(parameters.Length);
+        this.parameters.AddRange(parameters);
     }
 
     /// <summary>
@@ -51,6 +62,7 @@ internal sealed class LambdaBlock()
     public (LambdaExpression expr, bool upgraded) Create(
         Parser parser, Expression body, Type retType, bool upgradeReturn)
     {
+        int stackTop = paramCounts.LastOrDefault();
         try
         {
             bool upgraded = false;
@@ -63,19 +75,16 @@ internal sealed class LambdaBlock()
                         : retType == typeof(double) && body.Type == typeof(int)
                         ? IntToDouble(body)
                         : throw parser.Error($"Expected return type is {retType.Name}");
-            return (
-                parameters1[stackTop] is null
+            return (stackTop == 0
                 ? Expression.Lambda(body)
-                : parameters2[stackTop] is null
-                ? Expression.Lambda(body, parameters1[stackTop]!)
-                : Expression.Lambda(body, parameters1[stackTop]!, parameters2[stackTop]!),
+                : Expression.Lambda(body, parameters.GetRange(parameters.Count - stackTop, stackTop)),
                 upgraded);
         }
         finally
         {
             // Clean this lambda level.
-            parameters1[stackTop] = parameters2[stackTop] = null;
-            stackTop--;
+            parameters.RemoveRange(parameters.Count - stackTop, stackTop);
+            paramCounts.RemoveAt(paramCounts.Count - 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -90,13 +99,8 @@ internal sealed class LambdaBlock()
     /// <returns><see langword="true"/> when any parameters were found.</returns>
     public void GatherParameters(List<Member> members)
     {
-        for (int i = stackTop; i >= 0; i--)
-        {
-            if (parameters1[i] is not null)
-                members.Add(new(parameters1[i]!.Name!, "Lambda parameter"));
-            if (parameters2[i] is not null)
-                members.Add(new(parameters2[i]!.Name!, "Lambda parameter"));
-        }
+        for (int i = parameters.Count - 1; i >= 0; i--)
+            members.Add(new(parameters[i].Name!, "Lambda parameter"));
     }
 
     /// <summary>Symbol lookup for lambda parameters.</summary>
@@ -107,16 +111,11 @@ internal sealed class LambdaBlock()
         string identifier,
         [NotNullWhen(true)] out ParameterExpression? parameter)
     {
-        for (int i = stackTop; i >= 0; i--)
+        for (int i = parameters.Count - 1; i >= 0; i--)
         {
-            if (identifier.Equals(parameters1[i]?.Name ?? "", StringComparison.OrdinalIgnoreCase))
+            if (identifier.Equals(parameters[i].Name ?? "", StringComparison.OrdinalIgnoreCase))
             {
-                parameter = parameters1[i]!;
-                return true;
-            }
-            if (identifier.Equals(parameters2[i]?.Name ?? "", StringComparison.OrdinalIgnoreCase))
-            {
-                parameter = parameters2[i]!;
+                parameter = parameters[i];
                 return true;
             }
         }
