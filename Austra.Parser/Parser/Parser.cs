@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using System.Linq;
+
+namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
@@ -217,19 +219,30 @@ internal sealed partial class Parser
                     if (kind == Token.LPar)
                     {
                         Move();
-                        lambdaBlock.Add(ParseParameters());
+                        List<ParameterExpression> parameters = ParseParameters();
+                        lambdaBlock.Add(parameters);
                         CheckAndMove(Token.RPar, ") expected");
-                        //if (kind == Token.Colon)
-                        //{
-                        //    Type retType = ParseType();
-                        //}
-                        CheckAndMove(Token.Eq, "= expected");
-                        Expression init = ParseConditional();
-                        init = lambdaBlock.Create(this, init, init.Type);
-                        ParameterExpression le = Expression.Variable(init.Type, localId);
+                        ParameterExpression le;
+                        Expression init;
+                        if (kind == Token.Colon)
+                        {
+                            Type retType = ParseType();
+                            le = Expression.Variable(BindResultType(parameters, retType), localId);
+                            localLambdas[localId] = le;
+                            CheckAndMove(Token.Eq, "= expected");
+                            init = ParseConditional();
+                            init = lambdaBlock.Create(this, init, retType);
+                        }
+                        else
+                        {
+                            CheckAndMove(Token.Eq, "= expected");
+                            init = ParseConditional();
+                            init = lambdaBlock.Create(this, init, init.Type);
+                            le = Expression.Variable(init.Type, localId);
+                            localLambdas[localId] = le;
+                        }
                         letLocals.Add(le);
                         letExpressions.Add(Expression.Assign(le, init));
-                        localLambdas[localId] = le;
                     }
                     else
                     {
@@ -267,6 +280,17 @@ internal sealed partial class Parser
                 : letLocals.Count == 0 && letExpressions.Count == 1
                 ? letExpressions[0]
                 : Expression.Block(letLocals, letExpressions);
+
+            Type BindResultType(List<ParameterExpression> parameters, Type retType) =>
+                parameters.Count switch
+                {
+                    0 => typeof(Func<>).MakeGenericType(retType),
+                    1 => typeof(Func<,>).MakeGenericType(parameters[0].Type, retType),
+                    2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                    3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                    4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                    _ => throw Error("Unsupported number of arguments")
+                };
 
             List<ParameterExpression> ParseParameters()
             {
