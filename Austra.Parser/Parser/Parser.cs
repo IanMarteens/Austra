@@ -216,14 +216,14 @@ internal sealed partial class Parser
                         throw Error("Identifier expected");
                     string localId = id;
                     Move();
+                    ParameterExpression le;
+                    Expression init;
                     if (kind == Token.LPar)
                     {
                         Move();
                         List<ParameterExpression> parameters = ParseParameters();
                         lambdaBlock.Add(parameters);
                         CheckAndMove(Token.RPar, ") expected");
-                        ParameterExpression le;
-                        Expression init;
                         if (kind == Token.Colon)
                         {
                             Type retType = ParseType();
@@ -241,18 +241,16 @@ internal sealed partial class Parser
                             le = Expression.Variable(init.Type, localId);
                             localLambdas[localId] = le;
                         }
-                        letLocals.Add(le);
-                        letExpressions.Add(Expression.Assign(le, init));
                     }
                     else
                     {
                         CheckAndMove(Token.Eq, "= expected");
-                        Expression init = ParseConditional();
-                        ParameterExpression le = Expression.Variable(init.Type, localId);
-                        letLocals.Add(le);
-                        letExpressions.Add(Expression.Assign(le, init));
+                        init = ParseConditional();
+                        le = Expression.Variable(init.Type, localId);
                         locals[localId] = le;
                     }
+                    letLocals.Add(le);
+                    letExpressions.Add(Expression.Assign(le, init));
                 }
                 while (kind == Token.Comma);
                 if (kind == Token.Semicolon)
