@@ -127,6 +127,14 @@ seq(v1^v2);         <markup><font color="DarkGreen">-- A sequence from a matrix.
  		    <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
 		  </row>
  		  <row>
+ 		    <entry><para><codeInline>until</codeInline></para></entry>
+ 		    <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		  </row>
+ 		  <row>
+ 		    <entry><para><codeInline>while</codeInline></para></entry>
+ 		    <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		  </row>
+ 		  <row>
  		    <entry><para><codeInline>zip</codeInline></para></entry>
  		    <entry><para>Combines two sequences using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Zip(Austra.Library.DSequence,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>.</para></entry>
 		  </row>
@@ -323,6 +331,14 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 	 		      <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
+ 		    	  <entry><para><codeInline>until</codeInline></para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>while</codeInline></para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		  		</row>
+	 		    <row>
 	 		      <entry><para><codeInline>zip</codeInline></para></entry>
 	 		      <entry><para>Combines two sequences using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NSequence.Zip(Austra.Library.NSequence,System.Func{System.Int32,System.Int32,System.Int32})</codeEntityReference>.</para></entry>
 			    </row>
@@ -425,6 +441,14 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 	 		      <entry><para><codeInline>reduce</codeInline></para></entry>
 	 		      <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
 			    </row>
+	 		    <row>
+ 		    	  <entry><para><codeInline>until</codeInline></para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>while</codeInline></para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		  		</row>
 	 		    <row>
 	 		      <entry><para><codeInline>zip</codeInline></para></entry>
 	 		      <entry><para>Combines two sequences using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.CSequence.Zip(Austra.Library.CSequence,System.Func{System.Numerics.Complex,System.Numerics.Complex,System.Numerics.Complex})</codeEntityReference>.</para></entry>

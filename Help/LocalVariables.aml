@@ -51,6 +51,20 @@ m
 		</alert>
       </content>
     </section>
+    <section address="Section3">
+      <title>Local function definitions</title>
+      <content>
+        <para>Functions can be defined in LET clauses. For instance:</para>
+        <code language="Austra">
+<markup><b>let</b></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> = <markup><b>if</b></markup> a % b = 0 <markup><b>then</b></markup> b <markup><b>else</b></markup> mcd(b, a % b) <markup><b>in</b></markup>
+    mcd(80, 140)
+        </code>
+        <para>In the above example, the function is defined in a <codeInline>let</codeInline>/<codeInline>in</codeInline> clause, but it could also be defined as a script-scoped local function.</para>
+		<alert class="note">
+			<para>Since <codeInline>mcd</codeInline> is recursive, its return type must be declared in the function header.</para>
+		</alert>
+      </content>
+    </section>
     <relatedTopics>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
       <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
