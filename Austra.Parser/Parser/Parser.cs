@@ -30,7 +30,7 @@ internal sealed partial class Parser
             throw Error("Extra input after expression");
         return scriptExpressions.Count switch
         {
-            0 => Expression.Constant(null),
+            0 => NullExpr,
             1 when scriptLetLocals.Count == 0 => scriptExpressions[0],
             _ => Expression.Block(scriptLetLocals, scriptExpressions),
         };
@@ -172,7 +172,7 @@ internal sealed partial class Parser
             Move();
             if (kind == Token.Eof || kind == Token.Comma || kind == Token.Semicolon)
             {
-                setExpressions.Add(source.SetExpression(leftValue, Expression.Constant(null)));
+                setExpressions.Add(source.SetExpression(leftValue, NullExpr));
                 pendingSets.Remove(leftValue);
             }
             else
@@ -190,7 +190,7 @@ internal sealed partial class Parser
         while (kind == Token.Comma);
         return setExpressions.Count switch
         {
-            0 => Expression.Constant(null),
+            0 => NullExpr,
             1 => setExpressions[0],
             _ => Expression.Block(setExpressions)
         };
@@ -207,50 +207,7 @@ internal sealed partial class Parser
         {
             if (kind == Token.Let)
             {
-                do
-                {
-                    Move();
-                    if (kind != Token.Id && kind != Token.Functor)
-                        throw Error("Identifier expected");
-                    string localId = id;
-                    Move();
-                    ParameterExpression le;
-                    Expression init;
-                    if (kind == Token.LPar)
-                    {
-                        Move();
-                        List<ParameterExpression> parameters = ParseParameters();
-                        lambdaBlock.Add(parameters);
-                        CheckAndMove(Token.RPar, ") expected");
-                        if (kind == Token.Colon)
-                        {
-                            Type retType = ParseType();
-                            le = Expression.Variable(BindResultType(parameters, retType), localId);
-                            localLambdas[localId] = le;
-                            CheckAndMove(Token.Eq, "= expected");
-                            init = ParseConditional();
-                            init = lambdaBlock.Create(this, init, retType);
-                        }
-                        else
-                        {
-                            CheckAndMove(Token.Eq, "= expected");
-                            init = ParseConditional();
-                            init = lambdaBlock.Create(this, init, init.Type);
-                            le = Expression.Variable(init.Type, localId);
-                            localLambdas[localId] = le;
-                        }
-                    }
-                    else
-                    {
-                        CheckAndMove(Token.Eq, "= expected");
-                        init = ParseConditional();
-                        le = Expression.Variable(init.Type, localId);
-                        locals[localId] = le;
-                    }
-                    letLocals.Add(le);
-                    letExpressions.Add(Expression.Assign(le, init));
-                }
-                while (kind == Token.Comma);
+                ParseLetClause();
                 if (kind == Token.Semicolon)
                 {
                     foreach (var pair in locals)
@@ -261,7 +218,7 @@ internal sealed partial class Parser
                     scriptExpressions.AddRange(letExpressions);
                     return checkEof && kind != Token.Eof
                         ? throw Error("Extra input after expression")
-                        : Expression.Constant(null);
+                        : NullExpr;
                 }
                 CheckAndMove(Token.In, "IN expected");
             }
@@ -276,69 +233,6 @@ internal sealed partial class Parser
                 : letLocals.Count == 0 && letExpressions.Count == 1
                 ? letExpressions[0]
                 : Expression.Block(letLocals, letExpressions);
-
-            Type BindResultType(List<ParameterExpression> parameters, Type retType) =>
-                parameters.Count switch
-                {
-                    0 => typeof(Func<>).MakeGenericType(retType),
-                    1 => typeof(Func<,>).MakeGenericType(parameters[0].Type, retType),
-                    2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
-                    3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
-                    4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
-                    5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
-                    _ => throw Error("Unsupported number of arguments")
-                };
-
-            List<ParameterExpression> ParseParameters()
-            {
-                List<ParameterExpression> result = new(4);
-                List<string> names = new(4);
-                while (true)
-                {
-                    if (kind != Token.Id)
-                        throw Error("Parameter name expected");
-                    names.Add(id);
-                    Move();
-                    while (kind == Token.Comma)
-                    {
-                        Move();
-                        if (kind != Token.Id)
-                            throw Error("Parameter name expected");
-                        names.Add(id);
-                        Move();
-                    }
-                    Type type = ParseType();
-                    foreach (string param in names)
-                        result.Add(Expression.Parameter(type, param));
-                    if (kind != Token.Comma)
-                        break;
-                    Move();
-                }
-                return result;
-            }
-
-            Type ParseType()
-            {
-                CheckAndMove(Token.Colon, ": expected");
-                if (kind != Token.Id)
-                    throw Error("Type name expected");
-                Type t = id.ToLower() switch
-                {
-                    "int" => typeof(int),
-                    "real" => typeof(double),
-                    "complex" => typeof(Complex),
-                    "series" => typeof(Series),
-                    "bool" => typeof(bool),
-                    "vec" => typeof(DVector),
-                    "cvec" => typeof(CVector),
-                    "nvec" => typeof(NVector),
-                    "matrix" => typeof(Matrix),
-                    "date" => typeof(Date),
-                    _ => throw Error($"Invalid type name: {id}"),
-                };
-                Move();
-                return t;
-            }
         }
         finally
         {
@@ -346,6 +240,118 @@ internal sealed partial class Parser
             locals.Clear();
             letLocals.Clear();
             letExpressions.Clear();
+        }
+    }
+
+    /// <summary>Parses a LET clause, either a script-level one or a statement-level one.</summary>
+    private void ParseLetClause()
+    {
+        do
+        {
+            Move();
+            if (kind != Token.Id && kind != Token.Functor)
+                throw Error("Identifier expected");
+            string localId = id;
+            Move();
+            ParameterExpression le;
+            Expression init;
+            if (kind == Token.LPar)
+            {
+                Move();
+                List<ParameterExpression> parameters = ParseParameters();
+                lambdaBlock.Add(parameters);
+                CheckAndMove(Token.RPar, ") expected");
+                if (kind == Token.Colon)
+                {
+                    Type retType = ParseType();
+                    le = Expression.Variable(BindResultType(parameters, retType), localId);
+                    localLambdas[localId] = le;
+                    CheckAndMove(Token.Eq, "= expected");
+                    init = ParseConditional();
+                    init = lambdaBlock.Create(this, init, retType);
+                }
+                else
+                {
+                    CheckAndMove(Token.Eq, "= expected");
+                    init = ParseConditional();
+                    init = lambdaBlock.Create(this, init, init.Type);
+                    le = Expression.Variable(init.Type, localId);
+                    localLambdas[localId] = le;
+                }
+            }
+            else
+            {
+                CheckAndMove(Token.Eq, "= expected");
+                init = ParseConditional();
+                le = Expression.Variable(init.Type, localId);
+                locals[localId] = le;
+            }
+            letLocals.Add(le);
+            letExpressions.Add(Expression.Assign(le, init));
+        }
+        while (kind == Token.Comma);
+
+        Type BindResultType(List<ParameterExpression> parameters, Type retType) =>
+            parameters.Count switch
+            {
+                0 => typeof(Func<>).MakeGenericType(retType),
+                1 => typeof(Func<,>).MakeGenericType(parameters[0].Type, retType),
+                2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                _ => throw Error("Unsupported number of arguments")
+            };
+
+        List<ParameterExpression> ParseParameters()
+        {
+            List<ParameterExpression> result = new(4);
+            List<string> names = new(4);
+            while (true)
+            {
+                if (kind != Token.Id)
+                    throw Error("Parameter name expected");
+                names.Add(id);
+                Move();
+                while (kind == Token.Comma)
+                {
+                    Move();
+                    if (kind != Token.Id)
+                        throw Error("Parameter name expected");
+                    names.Add(id);
+                    Move();
+                }
+                Type type = ParseType();
+                foreach (string param in names)
+                    result.Add(Expression.Parameter(type, param));
+                if (kind != Token.Comma)
+                    break;
+                Move();
+            }
+            return result;
+        }
+
+        Type ParseType()
+        {
+            CheckAndMove(Token.Colon, ": expected");
+            if (kind != Token.Id)
+                throw Error("Type name expected");
+            Type t = id.ToLower() switch
+            {
+                "int" => typeof(int),
+                "real" => typeof(double),
+                "complex" => typeof(Complex),
+                "series" => typeof(Series),
+                "bool" => typeof(bool),
+                "vec" => typeof(DVector),
+                "cvec" => typeof(CVector),
+                "nvec" => typeof(NVector),
+                "matrix" => typeof(Matrix),
+                "date" => typeof(Date),
+                _ => throw Error($"Invalid type name: {id}"),
+            };
+            Move();
+            return t;
         }
     }
 
