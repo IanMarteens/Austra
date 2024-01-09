@@ -343,6 +343,12 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 	 		      <entry><para>Combines two sequences using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.NSequence.Zip(Austra.Library.NSequence,System.Func{System.Int32,System.Int32,System.Int32})</codeEntityReference>.</para></entry>
 			    </row>
 			  </table>
+			  <para>This example shows how to calculate the Collatz sequence using integer sequences:</para>
+			  <code language="Austra">
+<markup><b>let</b></markup> collatz(n: <markup><b>int</b></markup>) = <markup><b><font color="DarkCyan">iseq::</font></b></markup>unfold(1000000, n, x => iff(x % 2 = 0, x / 2, 3x + 1)).until(x => x = 1);
+collatz(137)
+			  </code>
+			  <para>Though the generator is created with a big enough upper limit, the sequence stops when a <codeInline>1</codeInline> is generated.</para>
             </content>
           </section>
         </sections>
