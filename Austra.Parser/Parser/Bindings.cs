@@ -48,7 +48,27 @@ internal sealed partial class Bindings
     /// <summary>Reusable lambda block for parsing lambda expressions.</summary>
     public LambdaBlock LambdaBlock { get; } = new();
 
-     /// <summary>Code completion descriptors for root classes.</summary>
+    private static readonly FrozenDictionary<string, Type> typeNames =
+        new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["int"] = typeof(int),
+
+            ["real"] = typeof(double),
+            ["double"] = typeof(double),
+            ["complex"] = typeof(Complex),
+            ["series"] = typeof(Series),
+            ["bool"] = typeof(bool),
+            ["vec"] = typeof(DVector),
+            ["cvec"] = typeof(CVector),
+            ["ivec"] = typeof(NVector),
+            ["seq"] = typeof(DSequence),
+            ["cseq"] = typeof(CSequence),
+            ["iseq"] = typeof(NSequence),
+            ["matrix"] = typeof(Matrix),
+            ["date"] = typeof(Date),
+        }.ToFrozenDictionary();
+
+    /// <summary>Code completion descriptors for root classes.</summary>
     private readonly Member[] rootClasses =
     [
         new("cseq::", "Allows access to complex sequence constructors"),
@@ -1358,9 +1378,9 @@ internal sealed partial class Bindings
 
         // Extracts an object path from an expression fragment.
         static ReadOnlySpan<char> ExtractObjectPath(string text)
-        {  
+        {
             int i = text.Length - 1;
-            for (ref char c = ref Unsafe.As<Str>(text).FirstChar; i >= 0; )
+            for (ref char c = ref Unsafe.As<Str>(text).FirstChar; i >= 0;)
             {
                 char ch = Unsafe.Add(ref c, i);
                 if (char.IsLetterOrDigit(ch) || ch is '_' or '.' or ':' or '=' or '\''
@@ -1457,6 +1477,13 @@ internal sealed partial class Bindings
     public bool TryGetClassMethod(string identifier, out MethodList info) =>
         classMethods.TryGetValue(identifier, out info);
 
+    /// <summary>Translate a type name to a <see cref="Type"/> object.</summary>
+    /// <param name="identifier">The name of the type.</param>
+    /// <param name="type">The corresponding type, when successful.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    public bool TryGetTypeName(string identifier, [MaybeNullWhen(false)] out Type type) =>
+        typeNames.TryGetValue(identifier, out type);
+
     /// <summary>Checks if a class method exists.</summary>
     /// <param name="identifier">Prefixed method name.</param>
     /// <returns><see langword="true"/> if successful.</returns>
@@ -1510,7 +1537,7 @@ internal readonly struct MethodData
     }
 
     public bool IsMatch(Type inputType, Type returnType) =>
-        Args.Length == 1 
+        Args.Length == 1
         && (Args[0] == inputType || Args[0] == typeof(double) && inputType == typeof(int))
         && mInfo is MethodInfo m && m.ReturnType == returnType;
 

@@ -17,22 +17,22 @@ internal sealed partial class Parser
                     if (e is not ConstantExpression { Value: null })
                     {
                         int to = kind == Token.Eof ? start + 1 : start;
-                        scriptExpressions.Add(source.GetEnqueueExpression(e));
+                        letExpressions.Add(source.GetEnqueueExpression(e));
                         source.Listener?.EnqueueRange(new Range(from, to));
                     }
                 }
                 else
-                    scriptExpressions.Add(ParseAssignment());
+                    letExpressions.Add(ParseAssignment());
             if (kind != Token.Semicolon)
                 break;
         }
         if (kind != Token.Eof)
             throw Error("Extra input after expression");
-        return scriptExpressions.Count switch
+        return letExpressions.Count switch
         {
             0 => NullExpr,
-            1 when scriptLetLocals.Count == 0 => scriptExpressions[0],
-            _ => Expression.Block(scriptLetLocals, scriptExpressions),
+            1 when letLocals.Count == 0 => letExpressions[0],
+            _ => Expression.Block(letLocals, letExpressions),
         };
     }
 
@@ -111,12 +111,9 @@ internal sealed partial class Parser
         catch { /* Ignore */ }
         if (parsingHeader = parsingLambdaHeader)
             return [];
-        List<Member> result = new(locals.Count + scriptLocals.Count + 2);
+        List<Member> result = new(locals.Count + 2);
         foreach (KeyValuePair<string, ParameterExpression> pair in locals)
             if (!pair.Key.StartsWith('$'))
-                result.Add(new(pair.Key, $"Local variable: {pair.Value.Type.Name}"));
-        foreach (KeyValuePair<string, ParameterExpression> pair in scriptLocals)
-            if (!locals.ContainsKey(pair.Key) && !pair.Key.StartsWith('$'))
                 result.Add(new(pair.Key, $"Local variable: {pair.Value.Type.Name}"));
         lambdaBlock.GatherParameters(result);
         return result;
@@ -200,28 +197,25 @@ internal sealed partial class Parser
     /// <param name="leftValue">When not empty, contains a variable name.</param>
     /// <param name="forceCast">Whether to force a cast to object.</param>
     /// <param name="checkEof">Whether to check for extra input.</param>
+    /// <param name="valueExpected">Is a value expected after the IN keyword?</param>
     /// <returns>A block expression.</returns>
-    private Expression ParseFormula(string leftValue, bool forceCast, bool checkEof = false)
+    private Expression ParseFormula(
+        string leftValue,
+        bool forceCast,
+        bool checkEof = false,
+        bool valueExpected = false)
     {
+        int llCount = letLocals.Count, leCount = letExpressions.Count;
+        if (kind == Token.Let)
+        {
+            ParseLetClause();
+            if (kind == Token.Semicolon && !valueExpected)
+                // LET variables remain in scope until the end of the script.
+                return NullExpr;
+            CheckAndMove(Token.In, "IN expected");
+        }
         try
         {
-            if (kind == Token.Let)
-            {
-                ParseLetClause();
-                if (kind == Token.Semicolon)
-                {
-                    foreach (var pair in locals)
-                        scriptLocals[pair.Key] = pair.Value;
-                    foreach (var pair in localLambdas)
-                        scriptLambdas[pair.Key] = pair.Value;
-                    scriptLetLocals.AddRange(letLocals);
-                    scriptExpressions.AddRange(letExpressions);
-                    return checkEof && kind != Token.Eof
-                        ? throw Error("Extra input after expression")
-                        : NullExpr;
-                }
-                CheckAndMove(Token.In, "IN expected");
-            }
             Expression rvalue = ParseConditional();
             if (forceCast)
                 rvalue = Expression.Convert(rvalue, typeof(object));
@@ -230,20 +224,28 @@ internal sealed partial class Parser
             letExpressions.Add(rvalue);
             return checkEof && kind != Token.Eof
                 ? throw Error("Extra input after expression")
-                : letLocals.Count == 0 && letExpressions.Count == 1
-                ? letExpressions[0]
-                : Expression.Block(letLocals, letExpressions);
+                : letLocals.Count == llCount && letExpressions.Count == leCount + 1
+                ? letExpressions[^1]
+                : Expression.Block(
+                    letLocals.GetRange(llCount, letLocals.Count - llCount),
+                    letExpressions.GetRange(leCount, letExpressions.Count - leCount));
         }
         finally
         {
-            localLambdas.Clear();
-            locals.Clear();
-            letLocals.Clear();
-            letExpressions.Clear();
+            while (llCount < letLocals.Count)
+            {
+                string name = letLocals[^1].Name!;
+                localLambdas.Remove(name);
+                locals.Remove(name);
+                letLocals.RemoveAt(letLocals.Count - 1);
+            }
+            while (leCount < letExpressions.Count)
+                letExpressions.RemoveAt(letExpressions.Count - 1);
         }
     }
 
     /// <summary>Parses a LET clause, either a script-level one or a statement-level one.</summary>
+    /// <returns>The number of local variables defined by this clause.</returns>
     private void ParseLetClause()
     {
         do
@@ -257,6 +259,7 @@ internal sealed partial class Parser
             Expression init;
             if (kind == Token.LPar)
             {
+                // A local function definition.
                 Move();
                 List<ParameterExpression> parameters = ParseParameters();
                 lambdaBlock.Add(parameters);
@@ -267,13 +270,13 @@ internal sealed partial class Parser
                     le = Expression.Variable(BindResultType(parameters, retType), localId);
                     localLambdas[localId] = le;
                     CheckAndMove(Token.Eq, "= expected");
-                    init = ParseConditional();
+                    init = ParseFormula("", false, false, true);
                     init = lambdaBlock.Create(this, init, retType);
                 }
                 else
                 {
                     CheckAndMove(Token.Eq, "= expected");
-                    init = ParseConditional();
+                    init = ParseFormula("", false, false, true);
                     init = lambdaBlock.Create(this, init, init.Type);
                     le = Expression.Variable(init.Type, localId);
                     localLambdas[localId] = le;
@@ -281,6 +284,7 @@ internal sealed partial class Parser
             }
             else
             {
+                // A local variable definition.
                 CheckAndMove(Token.Eq, "= expected");
                 init = ParseConditional();
                 le = Expression.Variable(init.Type, localId);
@@ -296,10 +300,14 @@ internal sealed partial class Parser
             {
                 0 => typeof(Func<>).MakeGenericType(retType),
                 1 => typeof(Func<,>).MakeGenericType(parameters[0].Type, retType),
-                2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
-                3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
-                4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
-                5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type).Concat([retType]).ToArray()),
+                2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type)
+                    .Concat([retType]).ToArray()),
+                3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type)
+                    .Concat([retType]).ToArray()),
+                4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type)
+                    .Concat([retType]).ToArray()),
+                5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type)
+                    .Concat([retType]).ToArray()),
                 _ => throw Error("Unsupported number of arguments")
             };
 
@@ -336,22 +344,10 @@ internal sealed partial class Parser
             CheckAndMove(Token.Colon, ": expected");
             if (kind != Token.Id)
                 throw Error("Type name expected");
-            Type t = id.ToLower() switch
-            {
-                "int" => typeof(int),
-                "real" => typeof(double),
-                "complex" => typeof(Complex),
-                "series" => typeof(Series),
-                "bool" => typeof(bool),
-                "vec" => typeof(DVector),
-                "cvec" => typeof(CVector),
-                "nvec" => typeof(NVector),
-                "matrix" => typeof(Matrix),
-                "date" => typeof(Date),
-                _ => throw Error($"Invalid type name: {id}"),
-            };
+            if (!bindings.TryGetTypeName(id, out Type? type))
+                throw Error($"Invalid type name: {id}");
             Move();
-            return t;
+            return type;
         }
     }
 
@@ -1224,8 +1220,7 @@ internal sealed partial class Parser
         (string function, int pos) = (id.ToLower(), start);
         SkipFunctor();
         // Check for a local lambda in a LET clause.
-        if (localLambdas.TryGetValue(function, out var lambda) ||
-            scriptLambdas.TryGetValue(function, out lambda))
+        if (localLambdas.TryGetValue(function, out ParameterExpression? lambda))
         {
             Type[] types = lambda.Type.GenericTypeArguments;
             List<Expression> args = source.Rent(types.Length);
@@ -1748,8 +1743,7 @@ internal sealed partial class Parser
         if (lambdaBlock.TryMatch(ident, out ParameterExpression? param))
             return param;
         // Check the local scope.
-        if (scriptLocals.TryGetValue(ident, out ParameterExpression? local) ||
-            locals.TryGetValue(ident, out local))
+        if (locals.TryGetValue(ident, out ParameterExpression? local))
             return local.Type == typeof(DSequence)
                 ? Expression.Call(local, DSeqClone)
                 : local.Type == typeof(CSequence)

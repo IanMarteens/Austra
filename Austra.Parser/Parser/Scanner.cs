@@ -73,14 +73,10 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Referenced definitions.</summary>
     private readonly HashSet<Definition> references = [];
 
-    /// <summary>All top-level locals, from LET/IN clauses.</summary>
+    /// <summary>All top-level locals, from LET clauses.</summary>
     private readonly List<ParameterExpression> letLocals = new(8);
-    /// <summary>All top-level locals, from LET; clauses (script-scoped).</summary>
-    private readonly List<ParameterExpression> scriptLetLocals = new(8);
     /// <summary>Top-level local asignment expressions.</summary>
     private readonly List<Expression> letExpressions;
-    /// <summary>Top-level local asignment expressions (script-scoped).</summary>
-    private readonly List<Expression> scriptExpressions;
     /// <summary>Transient local variable definitions.</summary>
     /// <remarks>
     /// This data structure is redundant with respect to <see cref="letLocals"/>, but
@@ -88,17 +84,8 @@ internal sealed partial class Parser : IDisposable
     /// </remarks>
     private readonly Dictionary<string, ParameterExpression> locals =
         new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>User-defined lambdas, indexed by name, statement level.</summary>
+    /// <summary>User-defined lambdas, indexed by name.</summary>
     private readonly Dictionary<string, ParameterExpression> localLambdas =
-        new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>Transient local variable definitions (script-scoped).</summary>
-    /// <remarks>
-    /// This data structure is redundant with respect to <see cref="scriptLetLocals"/>.
-    /// </remarks>
-    private readonly Dictionary<string, ParameterExpression> scriptLocals =
-        new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>User-defined lambdas, indexed by name, script level.</summary>
-    private readonly Dictionary<string, ParameterExpression> scriptLambdas =
         new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Top-level SET expressions.</summary>
@@ -145,9 +132,9 @@ internal sealed partial class Parser : IDisposable
     public Parser(Bindings bindings, IDataSource source, string text)
     {
         (this.bindings, this.source, this.text, lambdaBlock,
-            letExpressions, setExpressions, scriptExpressions)
+            letExpressions, setExpressions)
             = (bindings, source, text, bindings.LambdaBlock,
-                source.Rent(8), source.Rent(8), source.Rent(8));
+                source.Rent(8), source.Rent(8));
         Move();
     }
 
@@ -155,7 +142,6 @@ internal sealed partial class Parser : IDisposable
     public void Dispose()
     {
         lambdaBlock.Clean();
-        source.Return(scriptExpressions);
         source.Return(setExpressions);
         source.Return(letExpressions);
     }

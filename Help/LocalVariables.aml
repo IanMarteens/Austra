@@ -54,7 +54,7 @@ m
     <section address="Section3">
       <title>Local function definitions</title>
       <content>
-        <para>Functions can be defined in LET clauses. For instance:</para>
+        <para>Functions can be defined in <codeInline>let</codeInline> clauses. For instance:</para>
         <code language="Austra">
 <markup><b>let</b></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> = <markup><b>if</b></markup> a % b = 0 <markup><b>then</b></markup> b <markup><b>else</b></markup> mcd(b, a % b) <markup><b>in</b></markup>
     mcd(80, 140)
