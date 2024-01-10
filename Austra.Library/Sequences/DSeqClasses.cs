@@ -251,6 +251,37 @@ public abstract partial class DSequence : IFormattable
         }
     }
 
+    /// <summary>Returns a sequence until a condition is met.</summary>
+    /// <param name="source">The original sequence.</param>
+    /// <param name="sentinel">The value to stop iterating.</param>
+    private class SeqUntilValue(DSequence source, double sentinel) : DSequence
+    {
+        private bool done;
+
+        /// <summary>Gets the next number in the computed sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (!done && source.Next(out value))
+            {
+                done = value == sentinel;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            done = false;
+            source.Reset();
+            return this;
+        }
+    }
+
     /// <summary>Implements a sequence of double values based in an integer range.</summary>
     /// <remarks>Creates a double sequence from an integer range.</remarks>
     /// <param name="first">The first value in the sequence.</param>

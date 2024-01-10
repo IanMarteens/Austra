@@ -256,6 +256,37 @@ public abstract partial class CSequence
 
     /// <summary>Returns a sequence until a condition is met.</summary>
     /// <param name="source">The original sequence.</param>
+    /// <param name="sentinel">The value to stop iterating.</param>
+    private class SeqUntilValue(CSequence source, Complex sentinel) : CSequence
+    {
+        private bool done;
+
+        /// <summary>Gets the next number in the computed sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Complex value)
+        {
+            if (!done && source.Next(out value))
+            {
+                done = value == sentinel;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override CSequence Reset()
+        {
+            done = false;
+            source.Reset();
+            return this;
+        }
+    }
+
+    /// <summary>Returns a sequence until a condition is met.</summary>
+    /// <param name="source">The original sequence.</param>
     /// <param name="condition">The condition that must be met.</param>
     private class SeqUntil(CSequence source, Func<Complex, bool> condition) : CSequence
     {

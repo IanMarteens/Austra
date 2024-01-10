@@ -112,6 +112,12 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public override CSequence Until(Func<Complex, bool> predicate) =>
         new SeqUntil(this, predicate);
 
+    /// <summary>Get the initial values of a sequence until a value is found.</summary>
+    /// <param name="value">The value that will be the end of the new sequence.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public override CSequence Until(Complex value) =>
+        new SeqUntilValue(this, value);
+
     /// <summary>Gets the value at the specified index.</summary>
     /// <param name="idx">A position inside the sequence.</param>
     /// <returns>The value at the given position.</returns>

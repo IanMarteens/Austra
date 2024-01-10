@@ -149,6 +149,12 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public override NSequence Until(Func<int, bool> predicate) =>
         new SeqUntil(this, predicate);
 
+    /// <summary>Get the initial values of a sequence until a value is found.</summary>
+    /// <param name="value">The value that will be the end of the new sequence.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public override NSequence Until(int value) =>
+        new SeqUntilValue(this, value);
+
     /// <summary>Gets the value at the specified index.</summary>
     /// <param name="idx">A position inside the sequence.</param>
     /// <returns>The value at the given position.</returns>

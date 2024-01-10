@@ -1184,7 +1184,6 @@ internal sealed partial class Bindings
             [new(typeof(CSequence), "mapr")] = typeof(CSequence).Get(nameof(CSequence.MapReal)),
             [new(typeof(CSequence), "mapreal")] = typeof(CSequence).Get(nameof(CSequence.MapReal)),
             [new(typeof(CSequence), "reduce")] = typeof(CSequence).Get(nameof(CSequence.Reduce)),
-            [new(typeof(CSequence), "until")] = typeof(CSequence).Get(nameof(CSequence.Until)),
             [new(typeof(CSequence), "while")] = typeof(CSequence).Get(nameof(CSequence.While)),
             [new(typeof(CSequence), "zip")] = typeof(CSequence).Get(nameof(CSequence.Zip)),
 
@@ -1214,7 +1213,6 @@ internal sealed partial class Bindings
             [new(typeof(DSequence), "mamodel")] = typeof(DSequence).Get(nameof(DSequence.MAModel)),
             [new(typeof(DSequence), "map")] = typeof(DSequence).Get(nameof(DSequence.Map)),
             [new(typeof(DSequence), "reduce")] = typeof(DSequence).Get(nameof(DSequence.Reduce)),
-            [new(typeof(DSequence), "until")] = typeof(DSequence).Get(nameof(DSequence.Until)),
             [new(typeof(DSequence), "while")] = typeof(DSequence).Get(nameof(DSequence.While)),
             [new(typeof(DSequence), "zip")] = typeof(DSequence).Get(nameof(DSequence.Zip)),
 
@@ -1246,7 +1244,6 @@ internal sealed partial class Bindings
             [new(typeof(NSequence), "mapr")] = typeof(NSequence).Get(nameof(NSequence.MapReal)),
             [new(typeof(NSequence), "mapreal")] = typeof(NSequence).Get(nameof(NSequence.MapReal)),
             [new(typeof(NSequence), "reduce")] = typeof(NSequence).Get(nameof(NSequence.Reduce)),
-            [new(typeof(NSequence), "until")] = typeof(NSequence).Get(nameof(NSequence.Until)),
             [new(typeof(NSequence), "while")] = typeof(NSequence).Get(nameof(NSequence.While)),
             [new(typeof(NSequence), "zip")] = typeof(NSequence).Get(nameof(NSequence.Zip)),
 
@@ -1297,21 +1294,31 @@ internal sealed partial class Bindings
     private static readonly FrozenDictionary<TypeId, MethodList> methodOverloads =
         new Dictionary<TypeId, MethodList>()
         {
+            [new(typeof(CSequence), "until")] = new(
+                typeof(CSequence).MD(nameof(CSequence.Until), typeof(Func<Complex, bool>)),
+                typeof(CSequence).MD(nameof(CSequence.Until), CArg)),
             [new(typeof(CVector), "find")] = new(
                 typeof(CVector).MD(nameof(CVector.Find), CArg),
                 typeof(CVector).MD(nameof(CVector.Find), typeof(Func<Complex, bool>))),
             [new(typeof(CVector), "indexof")] = new(
                 typeof(CVector).MD(nameof(CVector.IndexOf), CArg),
                 typeof(CVector).MD(nameof(CVector.IndexOf), typeof(Complex), typeof(int))),
+            [new(typeof(DSequence), "until")] = new(
+                typeof(DSequence).MD(nameof(DSequence.Until), typeof(Func<double, bool>)),
+                typeof(DSequence).MD(nameof(DSequence.Until), DArg)),
             [new(typeof(DVector), "find")] = new(
                 typeof(DVector).MD(nameof(DVector.Find), DArg),
                 typeof(DVector).MD(nameof(DVector.Find), typeof(Func<double, bool>))),
             [new(typeof(DVector), "indexof")] = new(
                 typeof(DVector).MD(nameof(DVector.IndexOf), DArg),
                 typeof(DVector).MD(nameof(DVector.IndexOf), typeof(double), typeof(int))),
+            [new(typeof(NSequence), "until")] = new(
+                typeof(NSequence).MD(nameof(NSequence.Until), typeof(Func<int, bool>)),
+                typeof(NSequence).MD(nameof(NSequence.Until), NArg)),
             [new(typeof(NVector), "indexof")] = new(
                 typeof(NVector).MD(nameof(NVector.IndexOf), NArg),
                 typeof(NVector).MD(nameof(NVector.IndexOf), NNArg)),
+
         }.ToFrozenDictionary();
 
     /// <summary>Get root expressions for code completion.</summary>

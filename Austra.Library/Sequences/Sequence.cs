@@ -116,6 +116,11 @@ public abstract class Sequence<T, TSelf>
     /// <returns>A prefix of the original sequence.</returns>
     public abstract TSelf Until(Func<T, bool> predicate);
 
+    /// <summary>Get the initial values of a sequence until a value is found.</summary>
+    /// <param name="value">The value that will be the end of the new sequence.</param>
+    /// <returns>A prefix of the original sequence.</returns>
+    public abstract TSelf Until(T value);
+
     /// <summary>Gets the sum of all the values in the sequence.</summary>
     /// <returns>The sum of all the values in the sequence.</returns>
     public virtual T Sum()
