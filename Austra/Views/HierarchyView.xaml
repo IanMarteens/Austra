@@ -83,6 +83,10 @@
                                             <Setter Property="Visibility" Value="Visible"/>
                                             <Setter Property="Source" Value="/images/mvo.png"/>
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding TypeName}" Value="Function">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Source" Value="/images/function.png"/>
+                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Image.Style>
