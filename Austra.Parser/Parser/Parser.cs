@@ -46,14 +46,29 @@ internal sealed partial class Parser
         if (kind == Token.Def)
         {
             Move();
-            CheckAndMove(Token.Id, "Definition name expected");
+            if (kind != Token.Id && kind != Token.Functor)
+                throw Error("Definition name expected");
+            Move();
             if (kind == Token.Colon)
             {
                 Move();
                 CheckAndMove(Token.Str, "Definition description expected");
             }
-            CheckAndMove(Token.Eq, "= expected");
-            Expression e = ParseFormula("", false);
+            Expression e;
+            if (kind == Token.LPar)
+            {
+                List<ParameterExpression> parameters = ParseParameters();
+                CheckAndMove(Token.Eq, "= expected");
+                isParsingDefinition = true;
+                e = ParseFormula("", false, false, true);
+                e = lambdaBlock.Create(this, e, e.Type);
+            }
+            else
+            {
+                CheckAndMove(Token.Eq, "= expected");
+                isParsingDefinition = true;
+                e = ParseFormula("", false);
+            }
             return kind != Token.Eof
                 ? throw Error("Extra input after expression")
                 : ([e.Type]);
@@ -149,10 +164,7 @@ internal sealed partial class Parser
         {
             int s0 = start;
             // A local function definition.
-            Move();
             List<ParameterExpression> parameters = ParseParameters();
-            lambdaBlock.Add(parameters);
-            CheckAndMove(Token.RPar, ") expected");
             paramText = text[s0..start];
             CheckAndMove(Token.Eq, "= expected");
             first = start;
@@ -167,6 +179,8 @@ internal sealed partial class Parser
             isParsingDefinition = true;
             e = ParseFormula("", false);
         }
+        if (kind == Token.Semicolon)
+            Move();
         if (kind != Token.Eof)
             throw Error("Extra input after expression");
         if (e.Type == typeof(Series))
@@ -283,10 +297,7 @@ internal sealed partial class Parser
             if (kind == Token.LPar)
             {
                 // A local function definition.
-                Move();
                 List<ParameterExpression> parameters = ParseParameters();
-                lambdaBlock.Add(parameters);
-                CheckAndMove(Token.RPar, ") expected");
                 if (kind == Token.Colon)
                 {
                     Type retType = ParseTypeRef();
@@ -337,6 +348,8 @@ internal sealed partial class Parser
 
     private List<ParameterExpression> ParseParameters()
     {
+        parsingLambdaHeader = true;
+        Move();
         List<ParameterExpression> result = new(4);
         List<string> names = new(4);
         while (true)
@@ -360,6 +373,9 @@ internal sealed partial class Parser
                 break;
             Move();
         }
+        lambdaBlock.Add(result);
+        CheckAndMove(Token.RPar, ") expected");
+        parsingLambdaHeader = false;
         return result;
     }
 
