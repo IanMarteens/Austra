@@ -2,7 +2,7 @@
 <topic id="90cb2899-abcf-4ebe-b96a-8cfac1b2809f" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>Code definitions are formulas saved for future use. They are saved and loaded from any persistent storage used by AUSTRA. In this version, parameterized definitions are not yet allowed, but they are planned for the next version of the language.</para>
+      <para>Code definitions are formulas saved for future use. They are saved and loaded from any persistent storage used by AUSTRA. You can define either parameterless definitions, that act like macros, or parametric definitions, which are the equivalent of user-defined functions.</para>
     </introduction>
     <section address="Section1">
       <title>Creating definitions</title>
@@ -90,6 +90,15 @@ extProduct = extProduct;
 extProduct = extProduct!;
 <markup><font color="DarkGreen">-- This expression also returns <b>false</b>.</font></markup>
 extProduct! = extProduct
+      	  </code>
+      	  </content>
+      	</section>
+      	<section address="functions">
+      	  <title>Function definitions</title>
+      	  <content>
+      	    <para>Function definitions can also have parameters. For instance:</para>
+      	  <code language="Austra">
+<markup><b>def</b></markup> f(n: int) = iff(n &lt;= 1, 1, [2..n].prod)
       	  </code>
       	  </content>
       	</section>
