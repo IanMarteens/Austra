@@ -1558,7 +1558,15 @@ internal sealed partial class Parser
         {
             Expression e = ParseLightConditional();
             if (IsArithmetic(e))
-                items.Add(ToDouble(e));
+                if (items.Count == 0 && kind == Token.Range)
+                {
+                    Move();
+                    e = ParseGenerator(e);
+                    CheckAndMove(Token.RBra, "] expected in sequence generator");
+                    return e;
+                }
+                else
+                    items.Add(ToDouble(e));
             else if (e.Type == typeof(DVector))
             {
                 if (period != 0 && matrices == 0)
@@ -1739,6 +1747,11 @@ internal sealed partial class Parser
             return first;
         // It may be a range expression.
         CheckAndMove(Token.Range, "Expected range in list comprehension");
+        return ParseGenerator(first);
+    }
+
+    private Expression ParseGenerator(Expression first)
+    {
         Expression? middle = ParseLightConditional();
         Expression? last = null;
         if (kind == Token.Range)
