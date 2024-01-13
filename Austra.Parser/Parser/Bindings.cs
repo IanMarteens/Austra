@@ -52,7 +52,6 @@ internal sealed partial class Bindings
         new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
         {
             ["int"] = typeof(int),
-
             ["real"] = typeof(double),
             ["double"] = typeof(double),
             ["complex"] = typeof(Complex),

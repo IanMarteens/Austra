@@ -302,9 +302,10 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>DTO for serializing a definition.</summary>
     /// <param name="Name">The name of the definition.</param>
+    /// <param name="Parameters">The parameter list of the definition.</param>
     /// <param name="Text">The formula of the definition.</param>
     /// <param name="Description">A textual description.</param>
-    protected sealed record DataDef(string Name, string Text, string Description);
+    protected sealed record DataDef(string Name, string Parameters, string Text, string Description);
 
     /// <summary>DTO for serializing a series.</summary>
     /// <param name="Name">A name for the series.</param>
@@ -336,7 +337,9 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>An UTF-8 representation of series and definitions.</returns>
     public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes(
         new DataObject(
-            Source.AllDefinitions.Select(d => new DataDef(d.Name, d.Text, d.Description)).ToList(),
+            Source.AllDefinitions
+                .Select(d => new DataDef(d.Name, d.Parameters, d.Text, d.Description))
+                .ToList(),
             Source.Series.Select(s =>
                 new DataSeries(s.Name, s.Ticker, (int)s.Type, (int)s.Freq, s.Args.ToArray(),
                     s.EnumValues.ToArray())).ToList()));
@@ -358,17 +361,17 @@ public partial class AustraEngine : IAustraEngine
                 try
                 {
                     if (string.IsNullOrWhiteSpace(d.Description))
-                        ParseDefinition($"def {d.Name} = {d.Text}");
+                        ParseDefinition($"def {d.Name}{d.Parameters} = {d.Text}");
                     else
                     {
                         string description = d.Description.Replace("\"", "\"\"");
-                        ParseDefinition($"def {d.Name}:\"{description}\" = {d.Text}");
+                        ParseDefinition($"def {d.Name}:\"{description}\"{d.Parameters} = {d.Text}");
                     }
                 }
                 catch
                 {
                     Source.TroubledDefinitions.Add(
-                        new(d.Name, d.Text, d.Description, Expression.Constant(0)));
+                        new(d.Name, d.Parameters, d.Text, d.Description, Expression.Constant(0)));
                 }
         }
     }

@@ -5,16 +5,19 @@ public sealed class Definition
 {
     /// <summary>Creates a new definition.</summary>
     /// <param name="name">The symbolic name for the definition.</param>
+    /// <param name="parameters">The parameter list for the definition.</param>
     /// <param name="text">The body of the definition.</param>
     /// <param name="descr">An optional description.</param>
     /// <param name="expression">The LINQ expression for the definition.</param>
-    public Definition(string name, string text, string descr, Expression expression) =>
-        (Name, Text, Description, Expression, Type) =
-        (name, text, !string.IsNullOrWhiteSpace(descr) ? descr : name, 
+    public Definition(string name, string parameters, string text, string descr, Expression expression) =>
+        (Name, Parameters, Text, Description, Expression, Type) =
+        (name, parameters, text, !string.IsNullOrWhiteSpace(descr) ? descr : name, 
          expression, expression.Type);
 
     /// <summary>Gets the symbolic name for the definition.</summary>
     public string Name { get; }
+    /// <summary>Gets the parameter list for the definition.</summary>
+    public string Parameters { get; }
     /// <summary>Gets the definition's body.</summary>
     public string Text { get; }
     /// <summary>Gets the definition's type.</summary>

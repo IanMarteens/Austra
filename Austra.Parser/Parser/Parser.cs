@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using System.Collections.Generic;
+
+namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
@@ -124,7 +126,7 @@ internal sealed partial class Parser
     public Definition ParseDefinition()
     {
         CheckAndMove(Token.Def, "DEF expected");
-        if (kind != Token.Id)
+        if (kind != Token.Id && kind != Token.Functor)
             throw Error("Definition name expected");
         string defName = id;
         if (source.GetDefinition(defName) != null ||
@@ -140,15 +142,36 @@ internal sealed partial class Parser
             description = id;
             Move();
         }
-        CheckAndMove(Token.Eq, "= expected");
-        int first = start;
-        isParsingDefinition = true;
-        Expression e = ParseFormula("", false);
+        Expression e;
+        int first;
+        string paramText = "";
+        if (kind == Token.LPar)
+        {
+            int s0 = start;
+            // A local function definition.
+            Move();
+            List<ParameterExpression> parameters = ParseParameters();
+            lambdaBlock.Add(parameters);
+            CheckAndMove(Token.RPar, ") expected");
+            paramText = text[s0..start];
+            CheckAndMove(Token.Eq, "= expected");
+            first = start;
+            isParsingDefinition = true;
+            e = ParseFormula("", false, false, true);
+            e = lambdaBlock.Create(this, e, e.Type);
+        }
+        else
+        {
+            CheckAndMove(Token.Eq, "= expected");
+            first = start;
+            isParsingDefinition = true;
+            e = ParseFormula("", false);
+        }
         if (kind != Token.Eof)
             throw Error("Extra input after expression");
         if (e.Type == typeof(Series))
             e = typeof(Series).Call(e, nameof(Series.SetName), Expression.Constant(defName));
-        Definition def = new(defName, text[first..], description, e);
+        Definition def = new(defName, paramText, text[first..], description, e);
         foreach (Definition referenced in references)
             referenced.Children.Add(def);
         return def;
@@ -266,7 +289,7 @@ internal sealed partial class Parser
                 CheckAndMove(Token.RPar, ") expected");
                 if (kind == Token.Colon)
                 {
-                    Type retType = ParseType();
+                    Type retType = ParseTypeRef();
                     le = Expression.Variable(BindResultType(parameters, retType), localId);
                     localLambdas[localId] = le;
                     CheckAndMove(Token.Eq, "= expected");
@@ -310,45 +333,45 @@ internal sealed partial class Parser
                     .Concat([retType]).ToArray()),
                 _ => throw Error("Unsupported number of arguments")
             };
+    }
 
-        List<ParameterExpression> ParseParameters()
+    private List<ParameterExpression> ParseParameters()
+    {
+        List<ParameterExpression> result = new(4);
+        List<string> names = new(4);
+        while (true)
         {
-            List<ParameterExpression> result = new(4);
-            List<string> names = new(4);
-            while (true)
+            if (kind != Token.Id)
+                throw Error("Parameter name expected");
+            names.Add(id);
+            Move();
+            while (kind == Token.Comma)
             {
+                Move();
                 if (kind != Token.Id)
                     throw Error("Parameter name expected");
                 names.Add(id);
                 Move();
-                while (kind == Token.Comma)
-                {
-                    Move();
-                    if (kind != Token.Id)
-                        throw Error("Parameter name expected");
-                    names.Add(id);
-                    Move();
-                }
-                Type type = ParseType();
-                foreach (string param in names)
-                    result.Add(Expression.Parameter(type, param));
-                if (kind != Token.Comma)
-                    break;
-                Move();
             }
-            return result;
-        }
-
-        Type ParseType()
-        {
-            CheckAndMove(Token.Colon, ": expected");
-            if (kind != Token.Id)
-                throw Error("Type name expected");
-            if (!bindings.TryGetTypeName(id, out Type? type))
-                throw Error($"Invalid type name: {id}");
+            Type type = ParseTypeRef();
+            foreach (string param in names)
+                result.Add(Expression.Parameter(type, param));
+            if (kind != Token.Comma)
+                break;
             Move();
-            return type;
         }
+        return result;
+    }
+
+    private Type ParseTypeRef()
+    {
+        CheckAndMove(Token.Colon, ": expected");
+        if (kind != Token.Id)
+            throw Error("Type name expected");
+        if (!bindings.TryGetTypeName(id, out Type? type))
+            throw Error($"Invalid type name: {id}");
+        Move();
+        return type;
     }
 
     /// <summary>Compiles a ternary conditional expression.</summary>
@@ -1233,6 +1256,31 @@ internal sealed partial class Parser
                         CheckAndMove(Token.Comma, "Comma expected");
                 }
                 Expression result = Expression.Invoke(lambda, args);
+                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+                return result;
+            }
+            finally
+            {
+                source.Return(args);
+            }
+        }
+        // Check macro definitions.
+        Definition? def = source.GetDefinition(function);
+        if (def != null && def.Type.IsAssignableTo(typeof(Delegate)))
+        {
+            if (isParsingDefinition)
+                references.Add(def);
+            Type[] types = def.Type.GenericTypeArguments;
+            List<Expression> args = source.Rent(types.Length);
+            try
+            {
+                for (int i = 0; i < types.Length - 1; i++)
+                {
+                    args.Add(ParseByType(types[i]));
+                    if (i < types.Length - 2)
+                        CheckAndMove(Token.Comma, "Comma expected");
+                }
+                Expression result = Expression.Invoke(def.Expression, args);
                 CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
                 return result;
             }
