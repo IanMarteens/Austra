@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
@@ -165,12 +163,28 @@ internal sealed partial class Parser
             int s0 = start;
             // A local function definition.
             List<ParameterExpression> parameters = ParseParameters();
-            paramText = text[s0..start];
-            CheckAndMove(Token.Eq, "= expected");
-            first = start;
-            isParsingDefinition = true;
-            e = ParseFormula("", false, false, true);
-            e = lambdaBlock.Create(this, e, e.Type);
+            if (kind == Token.Colon)
+            {
+                Type retType = ParseTypeRef();
+                currentDefinition = defName;
+                currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), "$$");
+                paramText = text[s0..start];
+                CheckAndMove(Token.Eq, "= expected");
+                first = start;
+                isParsingDefinition = true;
+                e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
+                e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
+                e = Expression.Lambda(Expression.Invoke(e, parameters), parameters);
+            }
+            else
+            {
+                paramText = text[s0..start];
+                CheckAndMove(Token.Eq, "= expected");
+                first = start;
+                isParsingDefinition = true;
+                e = ParseFormula("", false, false, true);
+                e = lambdaBlock.Create(this, e, e.Type);
+            }
         }
         else
         {
@@ -328,22 +342,6 @@ internal sealed partial class Parser
             letExpressions.Add(Expression.Assign(le, init));
         }
         while (kind == Token.Comma);
-
-        Type BindResultType(List<ParameterExpression> parameters, Type retType) =>
-            parameters.Count switch
-            {
-                0 => typeof(Func<>).MakeGenericType(retType),
-                1 => typeof(Func<,>).MakeGenericType(parameters[0].Type, retType),
-                2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type)
-                    .Concat([retType]).ToArray()),
-                3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                    .Concat([retType]).ToArray()),
-                4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                    .Concat([retType]).ToArray()),
-                5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                    .Concat([retType]).ToArray()),
-                _ => throw Error("Unsupported number of arguments")
-            };
     }
 
     private List<ParameterExpression> ParseParameters()
@@ -1259,9 +1257,9 @@ internal sealed partial class Parser
         (string function, int pos) = (id.ToLower(), start);
         SkipFunctor();
         // Check for a local lambda in a LET clause.
-        if (localLambdas.TryGetValue(function, out ParameterExpression? lambda))
+        if (TryGetLambda(function, out ParameterExpression? lambda))
         {
-            Type[] types = lambda.Type.GenericTypeArguments;
+            Type[] types = lambda!.Type.GenericTypeArguments;
             List<Expression> args = source.Rent(types.Length);
             try
             {
@@ -1322,6 +1320,20 @@ internal sealed partial class Parser
             throw Error("Second and third arguments must have the same type");
         CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
         return Expression.Condition(a0, a1, a2);
+
+    }
+
+    private bool TryGetLambda(string functionName, [MaybeNullWhen(false)] out ParameterExpression? lambda)
+    {
+        if (localLambdas.TryGetValue(functionName, out lambda))
+            return true;
+        if (functionName.Equals(currentDefinition, StringComparison.OrdinalIgnoreCase))
+        {
+            lambda = currentDefinitionLambda;
+            return true;
+        }
+        lambda = null;
+        return false;
     }
 
     private Expression ParseClassMethod(string className, string methodName)

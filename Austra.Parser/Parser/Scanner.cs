@@ -124,6 +124,8 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Position where the parsing should be aborted.</summary>
     /// <remarks>This is checked by the scanner.</remarks>
     private int abortPosition = int.MaxValue;
+    private string currentDefinition = "";
+    private ParameterExpression? currentDefinitionLambda;
 
     /// <summary>Initializes a parsing context.</summary>
     /// <param name="bindings">Predefined classes and methods.</param>
@@ -629,6 +631,22 @@ internal sealed partial class Parser : IDisposable
             kind = Token.ClassName;
         }
     }
+
+    public Type BindResultType(List<ParameterExpression> parameters, Type retType) =>
+        parameters.Count switch
+        {
+            0 => typeof(Func<>).MakeGenericType(retType),
+            1 => typeof(Func<,>).MakeGenericType(parameters[0].Type, retType),
+            2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type)
+                .Concat([retType]).ToArray()),
+            3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type)
+                .Concat([retType]).ToArray()),
+            4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type)
+                .Concat([retType]).ToArray()),
+            5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type)
+                .Concat([retType]).ToArray()),
+            _ => throw Error("Unsupported number of arguments")
+        };
 
     internal Exception Error(string message, int position) =>
         abortPosition == int.MaxValue
