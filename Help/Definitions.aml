@@ -112,7 +112,7 @@ extProduct! = extProduct
             </code>
       	    <para>And you can also define auxiliary functions inside a function definition:</para>
             <code language="Austra">
-<markup><b>let</b></markup> fact(n: <markup><b>int</b></markup>) =
+<markup><b>def</b></markup> fact(n: <markup><b>int</b></markup>) =
     <markup><b>let</b></markup> f(n, acc: <markup><b>int</b></markup>): <markup><b>int</b></markup> = iff(n &lt;= 1, acc, f(n - 1, n * acc)) <markup><b>in</b></markup>
         f(n, 1)
             </code>

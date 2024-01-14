@@ -3,7 +3,7 @@
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
       <para>Sequences provides most of the operations from real and complex vectors, but avoiding the storage. Sequences are similar to enumerable types in C# with LINQ, and are a requisite for any functional language.</para>
-      <para>AUSTRA supports three kinds of sequences: <codeInline>seq</codeInline>, for real valued sequences, <codeInline>cvec</codeInline> for complex ones, and <codeInline>iseq</codeInline>, for integer sequences.</para>
+      <para>AUSTRA supports three kinds of sequences: <codeInline>seq</codeInline>, for real valued sequences, <codeInline>cseq</codeInline> for complex ones, and <codeInline>iseq</codeInline>, for integer sequences.</para>
     </introduction>
     <section address="seqs">
       <title>Double-valued sequences as light vectors</title>
