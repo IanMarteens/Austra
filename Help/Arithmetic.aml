@@ -93,6 +93,10 @@ integer and it is immediately followed by an identifier:</para>
 		        <entry><para><codeInline>&gt;=</codeInline></para></entry>
 		        <entry><para>Greater than or equal to.</para></entry>
 		      </row>
+		      <row>
+		        <entry><para><codeInline>in</codeInline></para></entry>
+		        <entry><para>Belongs to. Right side must be a vector or a sequence.</para></entry>
+		      </row>
 		    </table>
 		    <para>Comparisons can be fused for numeric operands using the following syntax:</para>
 		    <code language="Austra">
