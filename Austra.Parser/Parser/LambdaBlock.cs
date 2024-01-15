@@ -77,7 +77,7 @@ internal sealed class LambdaBlock()
                         : throw parser.Error($"Expected return type is {retType.Name}");
             return (stackTop == 0
                 ? Expression.Lambda(body)
-                : Expression.Lambda(body, parameters.GetRange(parameters.Count - stackTop, stackTop)),
+                : Expression.Lambda(body, true, parameters.GetRange(parameters.Count - stackTop, stackTop)),
                 upgraded);
         }
         finally

@@ -113,6 +113,8 @@ public enum Token
     MultVarI,
     /// <summary>Identifier plus bang, for avoiding memoization.</summary>
     IdBang,
+    /// <summary>The ∈ operator.</summary>
+    Element,
     /// <summary>An unrecognized token.</summary>
     Error,
     /// <summary>End of input.</summary>

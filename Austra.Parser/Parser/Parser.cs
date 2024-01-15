@@ -66,8 +66,11 @@ internal sealed partial class Parser
                     CheckAndMove(Token.Eq, "= expected");
                     isParsingDefinition = true;
                     e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
-                    e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
-                    e = Expression.Lambda(Expression.Invoke(e, parameters), parameters);
+                    if (isDefRecursive)
+                    {
+                        e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
+                        e = Expression.Lambda(Expression.Invoke(e, parameters), parameters);
+                    }
                 }
                 else
                 {
@@ -188,8 +191,11 @@ internal sealed partial class Parser
                 first = start;
                 isParsingDefinition = true;
                 e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
-                e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
-                e = Expression.Lambda(Expression.Invoke(e, parameters), parameters);
+                if (isDefRecursive)
+                {
+                    e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
+                    e = Expression.Lambda(Expression.Invoke(e, parameters), true, parameters);
+                }
             }
             else
             {
@@ -478,7 +484,7 @@ internal sealed partial class Parser
                         : Expression.NotEqual(e1, e2);
                 }
 
-            case Token.In:
+            case Token.Element:
                 {
                     Move();
                     Expression e2 = ParseAdditiveMultiplicative();
@@ -502,7 +508,7 @@ internal sealed partial class Parser
                             ? throw Error("Left side of IN must be numeric", pos)
                             : Expression.Call(e2, e2.Type.Get(nameof(CSequence.Contains)), e1);
                     }
-                    throw Error("Invalid IN operation");
+                    throw Error("Invalid ∈ operation");
                 }
 
             case Token.Lt:
@@ -1373,6 +1379,7 @@ internal sealed partial class Parser
             functionName.Equals(currentDefinitionLambda.Name, StringComparison.OrdinalIgnoreCase))
         {
             lambda = currentDefinitionLambda;
+            isDefRecursive = true;
             return true;
         }
         lambda = null;

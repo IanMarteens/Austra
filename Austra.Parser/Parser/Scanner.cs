@@ -97,6 +97,8 @@ internal sealed partial class Parser : IDisposable
     private bool isParsingDefinition;
     /// <summary>Are we parsing a lambda header?</summary>
     private bool parsingLambdaHeader;
+    /// <summary>Is the current definition a recursive function?</summary>
+    private bool isDefRecursive;
 
     /// <summary>Used by the scanner to build string literals.</summary>
     private StringBuilder? sb;
@@ -302,6 +304,7 @@ internal sealed partial class Parser : IDisposable
                 case '^': kind = Token.Caret; return;
                 case '²': kind = Token.Caret2; return;
                 case '\'': kind = Token.Transpose; return;
+                case '∈': kind = Token.Element; return;
                 case '-':
                     if (Add(ref c, lexCursor) == '-')
                     {
