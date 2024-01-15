@@ -374,6 +374,12 @@ public abstract partial class NSequence
             }
         }
 
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(int value) =>
+            value <= max && value >= first && (value - first) % step == 0;
+
         /// <summary>Checks if the sequence contains a zero value.</summary>
         protected override bool ContainsZero => first < 0 && max >= 0 && (-first) % step == 0;
 
@@ -473,6 +479,12 @@ public abstract partial class NSequence
         /// </exception>
         public override int this[int index] =>
             (uint)index < length ? first - index * step : throw new IndexOutOfRangeException();
+
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(int value) =>
+            value >= min && value <= first && (value - min) % step == 0;
 
         /// <summary>Gets a range from the sequence.</summary>
         /// <param name="range">A range inside the sequence.</param>
