@@ -189,6 +189,12 @@ public sealed class Series : Series<Date>,
     public Accumulator GetSliceStats(Date d) =>
         GetSliceStats(d.TruncateDay(), d.AddMonths(1).TruncateDay());
 
+    /// <summary>Checks if the series contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(Date value) => args.Contains(value);
+
     /// <summary>
     /// Generates a normally distributed series using statistics from this series.
     /// </summary>

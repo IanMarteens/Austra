@@ -492,12 +492,17 @@ internal sealed partial class Parser
                         return e1.Type != typeof(int)
                             ? throw Error("Left side of IN must be an integer", pos)
                             : Expression.Call(e2, e2.Type.Get(nameof(NSequence.Contains)), e1);
-                    if (e2.Type == typeof(DVector) || e2.Type.IsAssignableTo(typeof(DSequence)))
+                    if (e1.Type == typeof(Date) && e2.Type == typeof(Series))
+                        return Expression.Call(e2,
+                            e2.Type.GetMethod(nameof(Series.Contains), [typeof(Date)])!, e1);
+                    if (e2.Type == typeof(DVector) || e2.Type == typeof(Series) ||
+                        e2.Type.IsAssignableTo(typeof(DSequence)))
                     {
                         e1 = ToDouble(e1);
                         return e1.Type != typeof(double)
                             ? throw Error("Left side of IN must be numeric", pos)
-                            : Expression.Call(e2, e2.Type.Get(nameof(NSequence.Contains)), e1);
+                            : Expression.Call(e2, 
+                                e2.Type.GetMethod(nameof(NSequence.Contains), [typeof(double)])!, e1);
                     }
                     if (e2.Type == typeof(CVector) || e2.Type.IsAssignableTo(typeof(CSequence)))
                     {
