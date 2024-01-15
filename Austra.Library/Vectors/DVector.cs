@@ -1331,6 +1331,12 @@ public readonly struct DVector :
     /// <returns>The spectrum.</returns>
     public FftRModel Fft() => new(FFT.Transform(values));
 
+    /// <summary>Checks if the vector contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(double value) => IndexOf(value) != -1;
+
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>

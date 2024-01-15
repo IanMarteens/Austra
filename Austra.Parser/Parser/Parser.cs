@@ -62,8 +62,7 @@ internal sealed partial class Parser
                 if (kind == Token.Colon)
                 {
                     Type retType = ParseTypeRef();
-                    currentDefinition = defName;
-                    currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), "$$");
+                    currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), defName);
                     CheckAndMove(Token.Eq, "= expected");
                     isParsingDefinition = true;
                     e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
@@ -183,8 +182,7 @@ internal sealed partial class Parser
             if (kind == Token.Colon)
             {
                 Type retType = ParseTypeRef();
-                currentDefinition = defName;
-                currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), "$$");
+                currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), defName);
                 paramText = text[s0..start];
                 CheckAndMove(Token.Eq, "= expected");
                 first = start;
@@ -478,6 +476,33 @@ internal sealed partial class Parser
                         ? throw Error("Equality operands are not compatible", pos)
                         : opKind == Token.Eq ? Expression.Equal(e1, e2)
                         : Expression.NotEqual(e1, e2);
+                }
+
+            case Token.In:
+                {
+                    Move();
+                    Expression e2 = ParseAdditiveMultiplicative();
+                    if (IsIntVecOrSeq(e2))
+                        return e1.Type != typeof(int)
+                            ? throw Error("Left side of IN must be an integer", pos)
+                            : Expression.Call(e2, e2.Type.Get(nameof(NSequence.Contains)), e1);
+                    if (e2.Type == typeof(DVector) || e2.Type.IsAssignableTo(typeof(DSequence)))
+                    {
+                        e1 = ToDouble(e1);
+                        return e1.Type != typeof(double)
+                            ? throw Error("Left side of IN must be numeric", pos)
+                            : Expression.Call(e2, e2.Type.Get(nameof(NSequence.Contains)), e1);
+                    }
+                    if (e2.Type == typeof(CVector) || e2.Type.IsAssignableTo(typeof(CSequence)))
+                    {
+                        if (e1.Type != typeof(Complex))
+                            if (IsArithmetic(e1))
+                                e1 = Expression.Convert(e1, typeof(Complex));
+                        return e1.Type != typeof(Complex)
+                            ? throw Error("Left side of IN must be numeric", pos)
+                            : Expression.Call(e2, e2.Type.Get(nameof(CSequence.Contains)), e1);
+                    }
+                    throw Error("Invalid IN operation");
                 }
 
             case Token.Lt:
@@ -1344,7 +1369,8 @@ internal sealed partial class Parser
     {
         if (localLambdas.TryGetValue(functionName, out lambda))
             return true;
-        if (functionName.Equals(currentDefinition, StringComparison.OrdinalIgnoreCase))
+        if (currentDefinitionLambda is not null &&
+            functionName.Equals(currentDefinitionLambda.Name, StringComparison.OrdinalIgnoreCase))
         {
             lambda = currentDefinitionLambda;
             return true;

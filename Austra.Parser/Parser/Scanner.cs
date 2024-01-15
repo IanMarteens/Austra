@@ -124,7 +124,6 @@ internal sealed partial class Parser : IDisposable
     /// <summary>Position where the parsing should be aborted.</summary>
     /// <remarks>This is checked by the scanner.</remarks>
     private int abortPosition = int.MaxValue;
-    private string currentDefinition = "";
     private ParameterExpression? currentDefinitionLambda;
 
     /// <summary>Initializes a parsing context.</summary>

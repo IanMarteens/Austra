@@ -869,6 +869,12 @@ public readonly struct CVector :
         return Phases(Length);
     }
 
+    /// <summary>Checks if the vector contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(Complex value) => IndexOf(value) != -1;
+
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>

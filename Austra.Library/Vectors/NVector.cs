@@ -582,6 +582,11 @@ public readonly struct NVector :
         return j == 0 ? new NVector(0) : j == Length ? this : newValues[..j];
     }
 
+    /// <summary>Checks if the vector contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    public bool Contains(int value) => IndexOf(value) != -1;
+
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>

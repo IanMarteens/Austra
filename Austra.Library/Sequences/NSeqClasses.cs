@@ -583,6 +583,11 @@ public abstract partial class NSequence
         /// <returns>The sequence for the given range.</returns>
         public override NSequence this[Range range] => new VectorSequence(source[range]);
 
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(int value) => source.Contains(value);
+
         /// <summary>Gets all statistics from the values in the secuence.</summary>
         /// <returns>Simple statistics of all the values in the sequence.</returns>
         public override Accumulator Stats() => source.Stats();

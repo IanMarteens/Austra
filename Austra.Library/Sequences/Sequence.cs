@@ -86,6 +86,21 @@ public abstract class Sequence<T, TSelf>
         return false;
     }
 
+    /// <summary>Checks if the sequence contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    public virtual bool Contains(T value)
+    {
+        while (Next(out T v))
+            if (v.Equals(value))
+            {
+                Reset();
+                return true;
+            }
+        Reset();
+        return false;
+    }
+
     /// <summary>Gets only the unique values in this sequence.</summary>
     /// <returns>A sequence with unique values.</returns>
     public abstract TSelf Distinct();

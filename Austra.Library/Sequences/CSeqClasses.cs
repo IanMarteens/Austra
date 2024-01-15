@@ -456,6 +456,11 @@ public abstract partial class CSequence
         /// <returns>The sequence for the given range.</returns>
         public override CSequence this[Range range] => new VectorSequence(source[range]);
 
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(Complex value) => source.Contains(value);
+
         /// <summary>Gets the first value in the sequence.</summary>
         /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
         public override Complex First() => source[0];
