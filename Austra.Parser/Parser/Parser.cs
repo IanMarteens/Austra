@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using System.Collections.Generic;
+
+namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser
@@ -46,6 +48,7 @@ internal sealed partial class Parser
             Move();
             if (kind != Token.Id && kind != Token.Functor)
                 throw Error("Definition name expected");
+            string defName = id;
             Move();
             if (kind == Token.Colon)
             {
@@ -56,10 +59,24 @@ internal sealed partial class Parser
             if (kind == Token.LPar)
             {
                 List<ParameterExpression> parameters = ParseParameters();
-                CheckAndMove(Token.Eq, "= expected");
-                isParsingDefinition = true;
-                e = ParseFormula("", false, false, true);
-                e = lambdaBlock.Create(this, e, e.Type);
+                if (kind == Token.Colon)
+                {
+                    Type retType = ParseTypeRef();
+                    currentDefinition = defName;
+                    currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), "$$");
+                    CheckAndMove(Token.Eq, "= expected");
+                    isParsingDefinition = true;
+                    e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
+                    e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
+                    e = Expression.Lambda(Expression.Invoke(e, parameters), parameters);
+                }
+                else
+                {
+                    CheckAndMove(Token.Eq, "= expected");
+                    isParsingDefinition = true;
+                    e = ParseFormula("", false, false, true);
+                    e = lambdaBlock.Create(this, e, e.Type);
+                }
             }
             else
             {
