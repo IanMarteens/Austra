@@ -1311,50 +1311,14 @@ internal sealed partial class Parser
         SkipFunctor();
         // Check for a local lambda in a LET clause.
         if (TryGetLambda(function, out ParameterExpression? lambda))
-        {
-            Type[] types = lambda!.Type.GenericTypeArguments;
-            List<Expression> args = source.Rent(types.Length);
-            try
-            {
-                for (int i = 0; i < types.Length - 1; i++)
-                {
-                    args.Add(ParseByType(types[i]));
-                    if (i < types.Length - 2)
-                        CheckAndMove(Token.Comma, "Comma expected");
-                }
-                Expression result = Expression.Invoke(lambda, args);
-                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-                return result;
-            }
-            finally
-            {
-                source.Return(args);
-            }
-        }
+            return ParseArgumentsAndBind(lambda);
         // Check macro definitions.
         Definition? def = source.GetDefinition(function);
         if (def != null && def.Type.IsAssignableTo(typeof(Delegate)))
         {
             if (isParsingDefinition)
                 references.Add(def);
-            Type[] types = def.Type.GenericTypeArguments;
-            List<Expression> args = source.Rent(types.Length);
-            try
-            {
-                for (int i = 0; i < types.Length - 1; i++)
-                {
-                    args.Add(ParseByType(types[i]));
-                    if (i < types.Length - 2)
-                        CheckAndMove(Token.Comma, "Comma expected");
-                }
-                Expression result = Expression.Invoke(def.Expression, args);
-                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
-                return result;
-            }
-            finally
-            {
-                source.Return(args);
-            }
+            return ParseArgumentsAndBind(def.Expression);
         }
         if (bindings.TryGetClassMethod("math." + function, out MethodList info))
             return info.Methods.Length == 1
@@ -1374,9 +1338,31 @@ internal sealed partial class Parser
         CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
         return Expression.Condition(a0, a1, a2);
 
+        Expression ParseArgumentsAndBind(Expression expression)
+        {
+            Type[] types = expression.Type.GenericTypeArguments;
+            List<Expression> args = source.Rent(types.Length);
+            try
+            {
+                for (int i = 0; i < types.Length - 1; i++)
+                {
+                    args.Add(ParseByType(types[i]));
+                    if (i < types.Length - 2)
+                        CheckAndMove(Token.Comma, "Comma expected");
+                }
+                CheckAndMove(Token.RPar, "Right parenthesis expected after function call");
+                Expression result = Expression.Invoke(expression, args);
+                return result;
+            }
+            finally
+            {
+                source.Return(args);
+            }
+
+        }
     }
 
-    private bool TryGetLambda(string functionName, [MaybeNullWhen(false)] out ParameterExpression? lambda)
+    private bool TryGetLambda(string functionName, [NotNullWhen(true)] out ParameterExpression? lambda)
     {
         if (localLambdas.TryGetValue(functionName, out lambda))
             return true;
