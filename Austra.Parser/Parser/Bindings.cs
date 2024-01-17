@@ -937,6 +937,7 @@ internal sealed partial class Bindings
             [new(typeof(Date), "month")] = typeof(Date).Prop(nameof(Date.Month)),
             [new(typeof(Date), "year")] = typeof(Date).Prop(nameof(Date.Year)),
 
+            [new(typeof(DateSpline), "area")] = typeof(DateSpline).Prop(nameof(DateSpline.Area)),
             [new(typeof(DateSpline), "first")] = typeof(DateSpline).Prop(nameof(DateSpline.First)),
             [new(typeof(DateSpline), "last")] = typeof(DateSpline).Prop(nameof(DateSpline.Last)),
             [new(typeof(DateSpline), "length")] = typeof(DateSpline).Prop(nameof(DateSpline.Length)),

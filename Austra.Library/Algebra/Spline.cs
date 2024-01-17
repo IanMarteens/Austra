@@ -9,8 +9,6 @@
 /// </remarks>
 public abstract class Spline<ARG> where ARG : struct
 {
-    /// <summary>Scale for calculating derivatives.</summary>
-    protected readonly double scale;
     /// <summary>Keeps arguments for interpolating arbitrary values.</summary>
     protected readonly double[] xs;
 
@@ -28,7 +26,6 @@ public abstract class Spline<ARG> where ARG : struct
         this.xs = xs;
         LastCoordinate = ys[^1];
         K = new Polynomial[xs.Length - 1];
-        scale = K.Length / (xs[^1] - xs[0]);
         CalculateSplines(xs, ys);
     }
 
@@ -52,7 +49,6 @@ public abstract class Spline<ARG> where ARG : struct
         xs[^1] = x1;
         LastCoordinate = ys[^1] = f(x1);
         K = new Polynomial[segments];
-        scale = K.Length / (xs[^1] - xs[0]);
         CalculateSplines(xs, ys);
     }
 
@@ -156,13 +152,32 @@ public abstract class Spline<ARG> where ARG : struct
         if (i < 0)
         {
             i = ~i - 1;
-            double xi = Add(ref rx, i);
-            return K[i].Derivative((x - xi) / (Add(ref rx, i + 1) - xi)) * scale;
+            double xi = Add(ref rx, i), xi1 = Add(ref rx, i + 1) - xi;
+            return K[i].Derivative((x - xi) / xi1) / xi1;
         }
         else if (i == K.Length)
-            return K[^1].Derivative(1) * scale;
+            return K[^1].Derivative(1) / (Add(ref rx, i) - Add(ref rx, i - 1));
         else
-            return K[i].K1 * scale;
+            return K[i].K1 / (Add(ref rx, i + 1) - Add(ref rx, i));
+    }
+
+    /// <summary>Gets the area below the spline in its validity interval.</summary>
+    public double Area
+    {
+        get
+        {
+            double area = 0d;
+            ref double rx = ref MM.GetArrayDataReference(xs);
+            double xi = rx;
+            for (int i = 0; i < K.Length; i++)
+            {
+                rx = ref Add(ref rx, 1);
+                double xi1 = rx;
+                area += K[i].Area * (xi1 - xi);
+                xi = xi1;
+            }
+            return area;
+        }
     }
 
     /// <summary>Gets the lower bound of a segment.</summary>
@@ -300,9 +315,6 @@ public sealed class VectorSpline : Spline<double>
     /// <param name="x">The new argument.</param>
     /// <returns>The cubic approximation to the derivative.</returns>
     public new double Derivative(double x) => base.Derivative(x);
-
-    /// <summary>Gets the area below the spline in its validity interval.</summary>
-    public double Area => K.Sum(k => k.Area) / scale;
 
     /// <summary>Gets the lower bound of a segment.</summary>
     /// <param name="idx">Segment index.</param>
