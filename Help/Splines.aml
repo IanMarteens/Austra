@@ -37,8 +37,12 @@ s2[2]
 		  <section address="splineMethods">
 		  	<title>Indexers, methods and properties</title>
 		  	<content>
-		  	  <para>All splines have three properties:</para>
+		  	  <para>All splines have these four properties:</para>
 			  <table>
+	  	  		<row>
+	    		  <entry><para><codeInline>area</codeInline></para></entry>
+	    		  <entry><para>The total area below the spline. See <codeEntityReference qualifyHint="false">P:Austra.Library.Spline`1.Area</codeEntityReference>.</para></entry>
+	  	  		</row>
 	  	  		<row>
 	    		  <entry><para><codeInline>first</codeInline></para></entry>
 	    		  <entry><para>The lower bound for the abscissas. It is a date for splines based on series, and a double value, otherwise. See <codeEntityReference qualifyHint="false">P:Austra.Library.Spline`1.First</codeEntityReference>.</para></entry>
@@ -52,13 +56,6 @@ s2[2]
 	    		  <entry><para>Gets the number of polynomials in the spline. See <codeEntityReference qualifyHint="false">P:Austra.Library.Spline`1.Length</codeEntityReference>.</para></entry>
 	  	  		</row>
 			  </table>
-		  	  <para>The area below the spline can be calculated for <codeEntityReference qualifyHint="false" linkText="vector splines">T:Austra.Library.VectorSpline</codeEntityReference>:</para>
-			  <table>
-	  	  		<row>
-	    		  <entry><para><codeInline>area</codeInline></para></entry>
-	    		  <entry><para>The total area below the spline. See <codeEntityReference qualifyHint="false">P:Austra.Library.VectorSpline.Area</codeEntityReference>.</para></entry>
-	  	  		</row>
-			  </table>
 			  <para>For instance, we can use it to approximate the area below a normal distribution:</para>
 		<code language="Austra">
 <markup><font color="DarkGreen">-- The integral over a reasonable interval.</font></markup>
@@ -66,6 +63,9 @@ spline(-10, 10, 10000, x => exp(-x²)).area;
 <markup><font color="DarkGreen">-- The expected result.</font></markup>
 sqrt(π)
 		</code>
+	  		  <alert class="note">
+				<para>When <codeInline>area</codeInline> is used on a series-based spline, dates are automatically interpreted as real values, so a day equals the unit value.</para>
+	  		  </alert>
 		  	  <para>These are the methods implemented by splines:</para>
 			  <table>
 	  	  		<row>
