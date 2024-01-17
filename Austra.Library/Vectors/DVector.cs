@@ -60,22 +60,50 @@ public readonly struct DVector :
     /// <param name="rnd">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public DVector(int size, Random rnd, double offset, double width)
+    public DVector(int size, Random? rnd, double offset, double width)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        for (int i = 0; i < values.Length; i++)
-            values[i] = FusedMultiplyAdd(rnd.NextDouble(), width, offset);
+        if (Avx512F.IsSupported && size >= V8d.Count && rnd is null)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(size - V8d.Count);
+            V8d vOff = V8.Create(offset);
+            V8d vWidth = V8.Create(width);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, t);
+        }
+        else
+        {
+            rnd ??= Random.Shared;
+            for (int i = 0; i < values.Length; i++)
+                values[i] = FusedMultiplyAdd(rnd.NextDouble(), width, offset);
+        }
     }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DVector(int size, Random rnd)
+    public DVector(int size, Random? rnd)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        for (int i = 0; i < values.Length; i++)
-            values[i] = rnd.NextDouble();
+        if (Avx512F.IsSupported && size >= V8d.Count && rnd is null)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(size - V8d.Count);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(rnd512.NextDouble(), ref a, i);
+            V8.StoreUnsafe(rnd512.NextDouble(), ref a, t);
+        }
+        else
+        {
+            rnd ??= Random.Shared;
+            for (int i = 0; i < values.Length; i++)
+                values[i] = rnd.NextDouble();
+        }
     }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>

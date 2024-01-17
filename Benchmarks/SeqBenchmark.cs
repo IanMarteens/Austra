@@ -3,14 +3,15 @@
 public class SeqBenchmark: BenchmarkControl
 {
     private readonly DVector v1;
+    private readonly int size;
 
     public SeqBenchmark()
     {
-        Configure();
+        size = Configure();
         v1 = new DVector(1024, new Random(133));
     }
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraSeqSum()
     {
         DSequence seq = v1;
@@ -19,4 +20,8 @@ public class SeqBenchmark: BenchmarkControl
             total += value;
         return total;
     }
+
+    [Benchmark]
+    public DVector AustraRandom() =>
+        DSequence.Random(size).ToVector();
 }

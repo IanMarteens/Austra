@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Runtime.ExceptionServices;
 
 namespace Austra.Library;
@@ -27,7 +28,7 @@ public abstract partial class DSequence : IFormattable
 
     /// <summary>A fixed length sequence with an integer cursor.</summary>
     /// <param name="length">Number of items in the sequence.</param>
-    private abstract class CursorSequence(int length): FixLengthSequence(length)
+    private abstract class CursorSequence(int length) : FixLengthSequence(length)
     {
         /// <summary>The current cursor/index in the sequence.</summary>
         protected int current;
@@ -123,7 +124,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="filter">The filtering lambda.</param>
     /// <param name="mapper">The mapping function.</param>
     private sealed class FilteredMapped(
-        DSequence source, 
+        DSequence source,
         Func<double, bool> filter,
         Func<double, double> mapper) : DSequence
     {
@@ -307,7 +308,7 @@ public abstract partial class DSequence : IFormattable
         /// <summary>Gets the value at the specified index.</summary>
         /// <param name="idx">A position inside the sequence.</param>
         /// <returns>The value at the given position.</returns>
-        public override double this[Index idx] => idx.IsFromEnd 
+        public override double this[Index idx] => idx.IsFromEnd
             ? new RangeSequenceDesc(last, first)[idx.Value - 1]
             : this[idx.Value];
 
@@ -684,6 +685,23 @@ public abstract partial class DSequence : IFormattable
             value = default;
             return false;
         }
+
+        /// <summary>Creates an array with all values from the sequence.</summary>
+        /// <returns>The values as an array.</returns>
+        protected override double[] Materialize()
+        {
+            if (!Avx512F.IsSupported || length < V8d.Count)
+                return base.Materialize();
+            double[] data = GC.AllocateUninitializedArray<double>(length);
+            ref double a = ref MM.GetArrayDataReference(data);
+            nuint t = (nuint)(data.Length - V8d.Count);
+            Random512 rnd = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(rnd.NextDouble(), ref a, i);
+            V8.StoreUnsafe(rnd.NextDouble(), ref a, t);
+            Reset();
+            return data;
+        }
     }
 
     /// <summary>Implements a sequence using normal random values.</summary>
@@ -851,7 +869,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="first">First value in the sequence.</param>
     /// <param name="second">Second value in the sequence.</param>
     /// <param name="unfold">The generator function.</param>
-    private sealed class Unfolder2(int length, double first, double second, 
+    private sealed class Unfolder2(int length, double first, double second,
         Func<double, double, double> unfold) : CursorSequence(length)
     {
         private readonly double first = first;

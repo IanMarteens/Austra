@@ -6,6 +6,6 @@ WriteLine("Benchmarks for AUSTRA");
 //BenchmarkRunner.Run<CVectorBenchmark>();
 //BenchmarkRunner.Run<SplineBenchmark>();
 //BenchmarkRunner.Run<FunctionsBenchmark>();
-//BenchmarkRunner.Run<ParserBenchmark>();
+//BenchmarkRunner.Run<VectorBenchmark>();
 
 

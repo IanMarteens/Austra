@@ -20,7 +20,7 @@ public class VectorBenchmark : BenchmarkControl
         nv1 = new NVector(size, 100, rnd);
     }
 
-    //[Benchmark]
+    [Benchmark]
     public DVector AustraVectorSum() => cv4 + cv5;
 
     [Benchmark]
