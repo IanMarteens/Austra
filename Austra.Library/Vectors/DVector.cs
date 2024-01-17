@@ -60,10 +60,10 @@ public readonly struct DVector :
     /// <param name="rnd">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public DVector(int size, Random? rnd, double offset, double width)
+    public DVector(int size, Random rnd, double offset, double width)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        if (Avx512F.IsSupported && size >= V8d.Count && rnd is null)
+        if (Avx512F.IsSupported && size >= V8d.Count && rnd == Random.Shared)
         {
             ref double a = ref MM.GetArrayDataReference(values);
             nuint t = (nuint)(size - V8d.Count);
@@ -75,21 +75,18 @@ public readonly struct DVector :
             V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, t);
         }
         else
-        {
-            rnd ??= Random.Shared;
             for (int i = 0; i < values.Length; i++)
                 values[i] = FusedMultiplyAdd(rnd.NextDouble(), width, offset);
-        }
     }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DVector(int size, Random? rnd)
+    public DVector(int size, Random rnd)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        if (Avx512F.IsSupported && size >= V8d.Count && rnd is null)
+        if (Avx512F.IsSupported && size >= V8d.Count && rnd == Random.Shared)
         {
             ref double a = ref MM.GetArrayDataReference(values);
             nuint t = (nuint)(size - V8d.Count);
@@ -99,11 +96,8 @@ public readonly struct DVector :
             V8.StoreUnsafe(rnd512.NextDouble(), ref a, t);
         }
         else
-        {
-            rnd ??= Random.Shared;
             for (int i = 0; i < values.Length; i++)
                 values[i] = rnd.NextDouble();
-        }
     }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>

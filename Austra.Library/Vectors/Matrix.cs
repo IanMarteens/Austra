@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Drawing;
+
+namespace Austra.Library;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
@@ -121,8 +123,20 @@ public readonly struct Matrix :
         double offset = 0.0, double width = 1.0)
     {
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
-        for (int i = 0; i < values.Length; i++)
-            values[i] = FusedMultiplyAdd(random.NextDouble(), width, offset);
+        if (Avx512F.IsSupported && values.Length >= V8d.Count && random == Random.Shared)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(values.Length - V8d.Count);
+            V8d vOff = V8.Create(offset);
+            V8d vWidth = V8.Create(width);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, t);
+        }
+        else
+            for (int i = 0; i < values.Length; i++)
+                values[i] = FusedMultiplyAdd(random.NextDouble(), width, offset);
     }
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
@@ -132,8 +146,18 @@ public readonly struct Matrix :
     public Matrix(int rows, int cols, Random random)
     {
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
-        for (int i = 0; i < values.Length; i++)
-            values[i] = random.NextDouble();
+        if (Avx512F.IsSupported && values.Length >= V8d.Count && random == Random.Shared)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(values.Length - V8d.Count);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(rnd512.NextDouble(), ref a, i);
+            V8.StoreUnsafe(rnd512.NextDouble(), ref a, t);
+        }
+        else
+            for (int i = 0; i < values.Length; i++)
+                values[i] = random.NextDouble();
     }
 
     /// <summary>
@@ -214,7 +238,7 @@ public readonly struct Matrix :
             {
                 Array.Copy(m[i].values, row * m[i].Cols, newValues, offset, m[i].Cols);
                 offset += m[i].Cols;
-            }   
+            }
         return new(w, c, newValues);
     }
 

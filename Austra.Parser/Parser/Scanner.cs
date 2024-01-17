@@ -29,6 +29,9 @@ internal sealed partial class Parser : IDisposable
     private static readonly ConstantExpression PiExpr = Expression.Constant(Math.PI);
     /// <summary>The <see cref="Expression"/> for <see langword="null"/>.</summary>
     private static readonly ConstantExpression NullExpr = Expression.Constant(null);
+    /// <summary>Reference to the <see cref="Random.Shared"/> property.</summary>
+    private static readonly Expression RandomExpr =
+        Expression.Property(null, typeof(Random), nameof(Random.Shared));
     /// <summary>Method for multiplying by a transposed matrix.</summary>
     private static readonly MethodInfo MatrixMultiplyTranspose =
         typeof(Matrix).GetMethod(nameof(Matrix.MultiplyTranspose), [typeof(Matrix)])!;

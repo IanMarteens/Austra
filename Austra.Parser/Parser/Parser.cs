@@ -501,7 +501,7 @@ internal sealed partial class Parser
                         e1 = ToDouble(e1);
                         return e1.Type != typeof(double)
                             ? throw Error("Left side of IN must be numeric", pos)
-                            : Expression.Call(e2, 
+                            : Expression.Call(e2,
                                 e2.Type.GetMethod(nameof(NSequence.Contains), [typeof(double)])!, e1);
                     }
                     if (e2.Type == typeof(CVector) || e2.Type.IsAssignableTo(typeof(CSequence)))
@@ -1399,7 +1399,9 @@ internal sealed partial class Parser
                 if (kind != Token.Comma)
                 {
                     if (++i == types.Length - 1 && types[i] is Type t)
-                        if (t == typeof(Random) || t == typeof(NormalRandom))
+                        if (t == typeof(Random))
+                            args.Add(RandomExpr);
+                        else if (t == typeof(NormalRandom))
                             args.Add(t.New());
                         else if (t == typeof(One))
                             args.Add(Expression.Constant(1d));
@@ -1539,8 +1541,11 @@ internal sealed partial class Parser
         // Get selected method overload and check conversions.
         MethodData mth = info.Methods[Log2((uint)mask)];
         if (mth.ExpectedArgs < mth.Args.Length && mth.Args[^1] is Type t)
-            args.Add(t == typeof(Random) || t == typeof(NormalRandom)
-                ? t.New() : Expression.Constant(t == typeof(One) ? 1d : 0d));
+            args.Add(t == typeof(Random)
+                ? RandomExpr
+                : t == typeof(NormalRandom)
+                ? t.New()
+                : Expression.Constant(t == typeof(One) ? 1d : 0d));
         if (mth.ExpectedArgs != int.MaxValue && args.Count < mth.ExpectedArgs)
             throw Error("No method accepts this argument list.");
         for (int i = 0; i < mth.ExpectedArgs; i++)

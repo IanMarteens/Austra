@@ -45,7 +45,7 @@ public class SimdTests
     [Test]
     public void TestRandom()
     {
-        Accumulator acc = new((double[])new DVector(1024));
+        Accumulator acc = new((double[])new DVector(1024, Random.Shared));
         Assert.Multiple(() =>
         {
             Assert.That(acc.Minimum, Is.GreaterThanOrEqualTo(0.0));

@@ -101,9 +101,9 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public DVector AustraGetDiagonal() => cm1.Diagonal();
 
-    [Benchmark]
+    //[Benchmark]
     public LMatrix AustraRMatrixTranspose() => rm2.Transpose();
 
-    [Benchmark]
+    //[Benchmark]
     public RMatrix AustraLMatrixTranspose() => lm2.Transpose();
 }
