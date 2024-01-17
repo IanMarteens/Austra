@@ -41,4 +41,15 @@ public class SimdTests
         var diff = Vector512.Sum(d);
         Assert.That(Math.Abs(diff), Is.LessThan(1E-12));
     }
+
+    [Test]
+    public void TestRandom()
+    {
+        Accumulator acc = new((double[])new DVector(1024));
+        Assert.Multiple(() =>
+        {
+            Assert.That(acc.Minimum, Is.GreaterThanOrEqualTo(0.0));
+            Assert.That(acc.Maximum, Is.LessThan(1.0));
+        });
+    }
 }
