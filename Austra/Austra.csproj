@@ -32,6 +32,7 @@
 		<None Remove="Images\info.png" />
 		<None Remove="Images\linear.png" />
 		<None Remove="Images\matrix.png" />
+		<None Remove="Images\mod.png" />
 		<None Remove="Images\model.png" />
 		<None Remove="Images\mvo.png" />
 		<None Remove="Images\new.png" />
@@ -65,6 +66,7 @@
 	  <Resource Include="Images\help.png" />
 	  <Resource Include="Images\histDown.png" />
 	  <Resource Include="Images\histUp.png" />
+	  <Resource Include="Images\mod.png" />
 	  <Resource Include="Images\paste.png" />
 	</ItemGroup>
 
