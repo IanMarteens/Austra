@@ -124,8 +124,15 @@ internal sealed partial class Parser : IDisposable
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     private int lexCursor;
     /// <summary>Position where the parsing should be aborted.</summary>
-    /// <remarks>This is checked by the scanner.</remarks>
+    /// <remarks>
+    /// This is checked by the scanner to throw an <see cref="AbortException"/>
+    /// when the position is reached.
+    /// When this field's value is different from <see cref="int.MaxValue"/>,
+    /// the <see cref="Error(string)"/> helper creates also an <see cref="AbortException"/>
+    /// instead of an <see cref="AstException"/>, that can be easily dismissed when debugging.
+    /// </remarks>
     private int abortPosition = int.MaxValue;
+    /// <summary>Used for recursive definitions.</summary>
     private ParameterExpression? currentDefinitionLambda;
 
     /// <summary>Initializes a parsing context.</summary>

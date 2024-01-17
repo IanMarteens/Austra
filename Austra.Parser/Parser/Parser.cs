@@ -40,8 +40,9 @@ internal sealed partial class Parser
 
     /// <summary>Parses a block expression without generating code.</summary>
     /// <returns>The type of the block expression.</returns>
-    public Type[] ParseType()
+    public Type[] ParseType(int abortPosition = int.MaxValue)
     {
+        this.abortPosition = abortPosition;
         // Check first for a definition header and parse it.
         if (kind == Token.Def)
         {
@@ -137,10 +138,9 @@ internal sealed partial class Parser
     /// <returns>The list of LET variables and any possible active lambda parameter.</returns>
     public List<Member> ParseContext(int position, out bool parsingHeader)
     {
-        abortPosition = position;
         try
         {
-            ParseType();
+            ParseType(abortPosition);
         }
         catch { /* Ignore */ }
         if (parsingHeader = parsingLambdaHeader)

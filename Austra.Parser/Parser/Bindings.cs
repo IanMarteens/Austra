@@ -1376,7 +1376,9 @@ internal sealed partial class Bindings
         IList<Member> ExtractType(string text)
         {
             using Parser parser = new(this, source, text);
-            return parser.ParseType() is Type[] types
+            // The abort position of the parser is set to the end of the text, so that
+            // any error results in an AbortException instead of the regular AstException.
+            return parser.ParseType(text.Length + 1) is Type[] types
                 && types.Length > 0 && types[0] is not null
                 && members.TryGetValue(types[0], out Member[]? list)
                 ? list
