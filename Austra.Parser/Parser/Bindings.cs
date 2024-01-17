@@ -380,6 +380,10 @@ internal sealed partial class Bindings
                 new("phases", "Gets the phases of the FFT"),
                 new("values", "Gets the full spectrum as a complex vector"),
             ],
+            [typeof(int)] = [
+                new("even", "Checks if the integer is an even number"),
+                new("odd", "Checks if the integer is an odd number"),
+            ],
             [typeof(LinearSModel)] = [
                 new("original", "Gets the series to be explained"),
                 new("prediction", "Gets the predicted series"),

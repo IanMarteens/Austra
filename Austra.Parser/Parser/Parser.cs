@@ -1292,13 +1292,30 @@ internal sealed partial class Parser
     private Expression ParseProperty(Expression e)
     {
         if (!bindings.TryGetProperty(e.Type, id, out MethodInfo? mInfo))
-            if (e.Type == typeof(double) && id.Equals("toint", StringComparison.OrdinalIgnoreCase))
+        {
+            if (e.Type == typeof(double))
             {
-                Move();
-                return Expression.Convert(e, typeof(int));
+                if (id.Equals("toint", StringComparison.OrdinalIgnoreCase))
+                {
+                    Move();
+                    return Expression.Convert(e, typeof(int));
+                }
             }
-            else
-                throw Error($"Invalid property: {id}");
+            else if (e.Type == typeof(int))
+            {
+                if (id.Equals("even", StringComparison.OrdinalIgnoreCase))
+                {
+                    Move();
+                    return Expression.Equal(Expression.Modulo(e, Expression.Constant(2)), ZeroExpr);
+                }
+                else if (id.Equals("odd", StringComparison.OrdinalIgnoreCase))
+                {
+                    Move();
+                    return Expression.NotEqual(Expression.Modulo(e, Expression.Constant(2)), ZeroExpr);
+                }
+            }
+            throw Error($"Invalid property: {id}");
+        }
         Move();
         return Expression.Call(e, mInfo);
     }
