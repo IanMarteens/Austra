@@ -353,6 +353,7 @@ internal sealed partial class Parser : IDisposable
                     {
                         '=' => (Token.Le, lexCursor++ - 1),
                         '>' => (Token.Ne, lexCursor++ - 1),
+                        '-' => (Token.Element, lexCursor++ - 1),
                         _ => (Token.Lt, start),
                     };
                     return;

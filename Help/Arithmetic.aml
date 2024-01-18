@@ -94,8 +94,12 @@ integer and it is immediately followed by an identifier:</para>
 		        <entry><para>Greater than or equal to.</para></entry>
 		      </row>
 		      <row>
-		        <entry><para><codeInline>∈</codeInline></para></entry>
+		        <entry><para><codeInline>&lt;-</codeInline></para></entry>
 		        <entry><para>Belongs to. Right side must be a vector or a sequence.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>∈</codeInline></para></entry>
+		        <entry><para>A fancy synonym for the membership operator (<codeInline>&lt;-</codeInline>).</para></entry>
 		      </row>
 		    </table>
 		    <para>Comparisons can be fused for numeric operands using the following syntax:</para>

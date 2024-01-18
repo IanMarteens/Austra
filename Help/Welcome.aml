@@ -11,7 +11,7 @@
         <para>Austra contains three main components:</para>
         <list class="ordered">
         <listItem>The <codeEntityReference qualifyHint="false" linkText="Austra library">N:Austra.Library</codeEntityReference>, written in C# and .NET Core 8.</listItem>
-        <listItem><link xlink:href="04ea4168-169f-488a-9250-41bdab54e5e6">The Austra language</link>: a simple formula oriented language for testing and exploring the library.</listItem>
+        <listItem>The <link xlink:href="04ea4168-169f-488a-9250-41bdab54e5e6">Austra language</link>: a simple formula oriented language for testing and exploring the library.</listItem>
         <listItem>The Austra application: a desktop application, written in WPF for Windows, providing a code editor with syntax highlighting and code completion, for trying the language.</listItem>
         </list>
 			</entry>
