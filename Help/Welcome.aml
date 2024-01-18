@@ -6,11 +6,11 @@
 			<row>
 			<entry>
               <para>AUSTRA is an efficient mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models.</para>
-              <para>Both, library and language, also support vectors, matrices, transforms and the most frequently used operations from linear algebra, statistics, and probability.</para>
+              <para>Both library and language, also support vectors, matrices, transforms, and the most frequently used operations from linear algebra, statistics, and probability.</para>
               <para>The library code is hardware-accelerated, using all resources provided by the CPU. The language compiler is also an optimizing compiler, detecting common expression patterns and substituting them by more efficient method calls, whenever possible.</para>
         <para>Austra contains three main components:</para>
         <list class="ordered">
-        <listItem>The <codeEntityReference qualifyHint="false">N:Austra.Library</codeEntityReference>, written in C# and .NET Core 7/8.</listItem>
+        <listItem>The <codeEntityReference qualifyHint="false" linkText="Austra library">N:Austra.Library</codeEntityReference>, written in C# and .NET Core 8.</listItem>
         <listItem><link xlink:href="04ea4168-169f-488a-9250-41bdab54e5e6">The Austra language</link>: a simple formula oriented language for testing and exploring the library.</listItem>
         <listItem>The Austra application: a desktop application, written in WPF for Windows, providing a code editor with syntax highlighting and code completion, for trying the language.</listItem>
         </list>
@@ -24,7 +24,7 @@
 	<section address="Design">
       <title>The design of the library</title>
       <content>
-		<para>The library has been designed as a set of mostly inmmutable types, for facilitating their concurrent use. Most of the methods are hardware-accelerated, either using managed references, SIMD operations or both. Memory pinning, and raw pointers, have been reduced to the minimum, in order to ease the garbage collector's work.</para>
+		<para>The library has been designed as a set of mostly inmmutable types, for facilitating their concurrent use. Most of the methods are hardware-accelerated, either using managed references, SIMD operations or both. Memory pinning, and raw pointers, have been reduced to the minimum, to ease the garbage collector's work.</para>
 		<para>Using immutable vectors, series and matrices has one drawback, and it is more stress for the garbage collector. For that reason, we offer combined operations, like other libraries do, to fuse several linear operations into one, when possible. The AUSTRA parser detects most of these cases for optimizing them.</para>
         <sections>
 		  <section address="vectorization">
@@ -34,7 +34,7 @@
 			  <quote>Library code should make as much use as possible of hardware vectorization, and only when this way is exhausted, you should turn to task concurrency if it makes sense.</quote>
 			  <para>My points:</para>
 			  <list class="bullet">
-			    <listItem>Library methods use to be short. For instance, <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Map(System.Func{System.Double,System.Double})</codeEntityReference> is embarrasingly parallel, but even a vector with 2048 items takes around a microsecond to be mapped. That is a very short span to attempt parallelization using tasks: the overhead of starting and waiting for finalization trumps any gains of task parallelism.</listItem>
+			    <listItem>Library methods are usually short. For instance, <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Map(System.Func{System.Double,System.Double})</codeEntityReference> is embarrassingly parallel, but even a vector with 2048 items takes around a microsecond to be mapped. That is a very short span to attempt parallelization using tasks: the overhead of starting and waiting for finalization trumps any gains of task parallelism.</listItem>
 			    <listItem>Neither vectorization nor parallelization plays nice with modularity.</listItem>
 			    <listItem>We have chosen, for Austra, applying all possible vectorizations at the lowest level, and leaving task parallelism to higher level abstractions designed by the consumers of the class.</listItem>
 			  </list>
@@ -44,16 +44,16 @@
 		  <section address="algebra">
 			<title>Linear Algebra</title>
 			<content>
-			  <para>Austra provides classes for dense vectors and matrices, for double-precision arithmetic. It also features an efficient <codeEntityReference qualifyHint="false">T:Austra.Library.CVector</codeEntityReference> type. Single-precision floats, complex and sparse matrices are planned for a future sprint. All operations takes advantage of C# operators when possible, so most of the operations are non-destructive.</para>
+			  <para>Austra provides classes for dense vectors and matrices, for double-precision arithmetic. It also features an efficient <codeEntityReference qualifyHint="false" linkText="complex vector">T:Austra.Library.CVector</codeEntityReference> type. Single-precision floats, complex and sparse matrices are planned for a future sprint. All operations takes advantage of C# operators when possible, so most of the operations are non-destructive.</para>
 			  <para>There are three classes for representing matrices:</para>
 			  <list class="bullet">
 				<listItem><codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference> is the general type that you will use most of the time.</listItem>
 				<listItem>Lower triangular matrices are represented by the <codeEntityReference qualifyHint="false">T:Austra.Library.LMatrix</codeEntityReference> type.</listItem>
 				<listItem>Upper triangular matrices are represented by the <codeEntityReference qualifyHint="false">T:Austra.Library.RMatrix</codeEntityReference> type.</listItem>
 			  </list>
-			  <para>The point with this two additional types is not to save space, since the underlying data structure is the same, but to provide a more efficient implementation of several methods and operators. There's also some logical advantages, regarding type safety, since some decompositions returns triangular matrices.</para>
+			  <para>The point with this two additional types is not to save space, since the underlying data structure is the same, but to provide a more efficient implementation of several methods and operators. There's also some logical advantages, regarding type safety since some decompositions returns triangular matrices.</para>
 			  <para>As usual, matrix multiplication has been fully optimized using loop reordering and unrolling, blocking and hardware intrinsics, including fused multiply and add. There are variants for multiplying a matrix by another matrix transposed on-the-fly, for multiplying a vector by a transposed matrix and for accelerating linear combinations of vectors.</para>
-			  <para>All of these types are actually readonly structures, acting as a thin layer above C#'s arrays. Even the storage for a matrix is a one-dimensional array, since multidimensional arrays in .NET are less optimized for bound-checkings, getting a managed reference and other low-level operations.</para>
+			  <para>All of these types are readonly structures, acting as a thin layer above C#'s arrays. Even the storage for a matrix is a one-dimensional array, since multidimensional arrays in .NET are less optimized for bound checking, getting a managed reference and other low-level operations.</para>
 			</content>
 		  </section>
 		  <section address="matFact">
@@ -87,13 +87,13 @@
 			<content>
 			  <para>The <see cref="T:Austra.Library.Polynomials" /> static class provides methods for polynomial evaluation and root finding. The <see cref="T:Austra.Library.Solver" /> class implements a simple variant of the Newton-Raphson method for root finding.</para>
 			  <para>There's also a <see cref="M:Austra.Library.Polynomials.PolyEval(System.Numerics.Complex,Austra.Library.DVector)" /> for evaluating polynomials using the Horner's method, and a <see cref="M:Austra.Library.Polynomials.PolySolve(Austra.Library.DVector)" /> for analytically finding roots whenever possible, and using eigenvalues of the Frobenius matrix in the general case. There's even a <see cref="M:Austra.Library.Polynomials.PolyDerivative(System.Numerics.Complex,Austra.Library.DVector)" /> for computing the derivative of a polynomial at a given abscissa.</para>
-			  <para>Natural cubic splines has also been implemented, both for series and for functions, using a grid. You can even calculate the derivative of a spline at any point in the supported range.</para>
+			  <para>Natural cubic splines have also been implemented, both for series and for functions, using a grid. You can even calculate the derivative of a spline at any point in the supported range.</para>
 			</content>
 		  </section>
 		  <section address="fft">
 			<title>Fast Fourier Transform</title>
 			<content>
-			  <para>Austra implements a pretty decent FFT algorithm, compared to most popular managed implementations. It uses the Cooley-Tukey algorithm, and it's optimized for small sizes. Small primes are handled either with Bluestein's or Rader's algorithm, depending on the size.</para>
+			  <para>Austra implements a decent FFT algorithm, compared to most popular managed implementations. It uses the Cooley-Tukey algorithm, and it's optimized for small sizes. Small primes are handled either with Bluestein's or Rader's algorithm, depending on the size.</para>
 			  <para>In any case, there is still room for improvement, and it's planned to be optimized in the future. AVX prefers structs of arrays over arrays of structures, and this preference obviously applies to complex arithmetic: it's more efficient to represent the real and the imaginary parts of a list of complex numbers in separate arrays.</para>
 			</content>
 		  </section>
@@ -103,7 +103,7 @@
 	<section address="LangDesign">
       <title>Language goals and design</title>
       <content>
-        <para>One of the motivations for creating Austra was having an easy to use language for testing and exploring functionality.</para>
+        <para>One of the motivations for creating Austra was having an easy-to-use language for testing and exploring functionality.</para>
         <list class="bullet">
         	<listItem>The language should be mostly a functional one. Functional languages are expression-oriented, concise and discourages mutability. These features match very well the characteristics of the library.</listItem>
         	<listItem>On the other hand, we did not want a complicated language with lazy evaluation and monads. I really like monads! Some of my best friends are monads! Jokes aside: I want Austra to be used by a wide base of professionals, instead of a selected group of freaks.</listItem>
@@ -118,7 +118,7 @@
         	<listItem>We do not intend writing the Austra library in AUSTRA. That may be the goal for a next step, and, indeed, we have already some ideas and plans to do it. It would require, for make any sense, automatic vectorization, for example.</listItem>
         	<listItem>The type system of AUSTRA is very simple. There are no generic types. Type inference is primitive. Only a handful of classes from the library are fully exposed. And, in the current version, we still have no support for tuples.</listItem>
         </list>
-        <para>In order to diminish the complexity of using the language, we also conceal some types as much as possible, to reduce the number of class names the programmer has to remember. The language defines a small set of classes on which class methods, i.e., constructors and static methods, can be called. These classes are:</para>
+        <para>To diminish the complexity of using the language, we also conceal some types as much as possible, to reduce the number of class names the programmer has to remember. The language defines a small set of classes on which class methods, i.e., constructors and static methods, can be called. These classes are:</para>
         <list class="bullet">
         	<listItem><codeInline>math</codeInline>, for grouping global functions and variables.</listItem>
         	<listItem><codeInline>matrix</codeInline>, for dealing with all kinds of matrices.</listItem>
