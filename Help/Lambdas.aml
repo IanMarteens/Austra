@@ -7,11 +7,11 @@
     <section address="MonoLambda">
       <title>Lambda functions with one parameter</title>
       <content>
-        <para>Series and vectors, for instance, has an <codeInline>all</codeInline> method to check if all their numeric values satisfies an arbitrary condition. The condition is the only parameter of the method, and must be passed as a lambda function. Let's say we have an <codeInline>aapl_prices</codeInline> persistent variable holding a series of prices. We can verify that all those prices are positive using this formula:</para>
+        <para>Series and vectors, for instance, has an <codeInline>all</codeInline> method to check if all their numeric values satisfy an arbitrary condition. The condition is the only parameter of the method and must be passed as a lambda function. Let's say we have an <codeInline>aapl_prices</codeInline> persistent variable holding a series of prices. We can verify that all those prices are positive using this formula:</para>
         <code language="Austra">
         aapl_prices.all(x => x >= 0)   <markup><font color="DarkGreen">-- It should return <strong>true</strong>.</font></markup>
         </code>
-        <para>The above formula checks whether all values in the prices series are non-negative.
+        <para>The above formula checks whether all values in the price series are non-negative.
 That's the role of the all method, which checks that all values in a series satisfies a
 given predicate. The way we state the predicate to be satisfied is using this syntax:</para>
         <code language="Austra">
@@ -39,7 +39,7 @@ prices.map(x => min(x, 1000))
 		  <section address="pointfree">
 		  	<title>Function names as lambdas</title>
 		  	<content>
-		  	  <para>In many cases, you need a lambda that takes a single parameter in order to transform it in another value from the same type. For instance, the sine function can be approximated using a <link xlink:href="008dce7e-55cd-4c37-997b-b0463d7c24d0">spline</link> over a uniform grid like this:</para>
+		  	  <para>In many cases, you need a lambda that takes a single parameter to transform it into another value from the same type. For instance, the sine function can be approximated using a <link xlink:href="008dce7e-55cd-4c37-997b-b0463d7c24d0">spline</link> over a uniform grid like this:</para>
 		  	  <code language="Austra">
 <markup><b>let</b></markup> s = spline(0, 2*pi, 1024, x =&gt; sin(x)) <markup><b>in</b></markup>
     s[pi/4]
@@ -49,12 +49,12 @@ prices.map(x => min(x, 1000))
 <markup><b>let</b></markup> s = spline(0, 2*pi, 1024, sin) <markup><b>in</b></markup>
     s[pi/4];
 		  	  </code>
-		  	  <para>Or even this, if you need to qualify the function name for any reason:</para>
+		  	  <para>Or even this if you need to qualify the function name for any reason:</para>
 		  	  <code language="Austra">
 <markup><b>let</b></markup> s = spline(0, 2*pi, 1024, <markup><b><font color="DarkCyan">math::</font></b></markup>sin) <markup><b>in</b></markup>
     s[pi/4];
 		  	  </code>
-		  	  <para>Since <codeInline>sin</codeInline> is a monoparametric function and no parameters are supplied, the compiler understands that the function must be used to create a monoparametric lambda, returning a real value.</para>
+		  	  <para>Since <codeInline>sin</codeInline> is a mono-parametric function and no parameters are supplied, the compiler understands that the function must be used to create a mono-parametric lambda, returning a real value.</para>
 		  	</content>
 		  </section>
 		</sections>
@@ -64,7 +64,7 @@ prices.map(x => min(x, 1000))
       <title>Lambda functions with two parameters</title>
       <content>
         <para>Some methods require lambda arguments with more than one parameter. When a lambda requires two or more parameters, their names must be enclosed inside parenthesis, and must be separated by commas.</para>
-        <para>That is the case of the <codeInline>zip</codeInline> method, from <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">series</link>, <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">vectors</link>, and <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">sequences</link>, that combines two data samples into a single one:</para>
+        <para>That is the case of the <codeInline>zip</codeInline> method, from <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">series</link>, <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">vectors</link>, and <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">sequences</link>, that combines two data samples into one:</para>
         <code language="Austra">
         aapl_prices.zip((x, y) => max(x, y))
         </code>
@@ -78,7 +78,7 @@ prices.map(x => min(x, 1000))
 position in the normal distribution implicitly defined by the series. By definition, it
 is a value between 0 and 1. Even better, <codeInline>ncdf()</codeInline> is monotonic: if <math>x &lt; y</math>, then
 <math>s.ncdf(x) &lt; s.ncdf(y)</math>. All this means that this method is a nice way to compress an
-arbitrary series so all their values lie between 0 and 1, while preserving the shape of the series.</para>
+arbitrary series, so all their values lie between 0 and 1, while preserving the shape of the series.</para>
 		<para>This formula does the trick:</para>
         <code language="Austra">
 aapl.map(x => aapl.ncdf(x))
@@ -107,7 +107,7 @@ aapl.rets.map(x => aapl.rets.ncdf(x))
 <para>Though <codeInline>a</codeInline> is a local variable defined in the main body of the formula, we still can
 reference it from our nested lambda function. This way, we avoid recalculating the returns of the series in the lambda's body.</para>
 		<alert class="note">
-			<para>The <codeInline>series.ncdf(x)</codeInline> method assumes that values in the serie can be described by a normal distribution. This is almost never true.</para>
+			<para>The <codeInline>series.ncdf(x)</codeInline> method assumes that values in the series can be described by a normal distribution. This is almost never true.</para>
 			<para>A most useful related method is <codeInline>series.movingNcdf(points)</codeInline>, which calculates the <codeInline>ncdf</codeInline> for each value in the series, but calculates the two parameters that defines a normal distribution from a configurable interval of points preceding each calculation.</para>
 		</alert>
       </content>

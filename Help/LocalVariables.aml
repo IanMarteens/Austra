@@ -35,7 +35,7 @@ matrix difference.</para>
 <markup><font color="DarkGreen">-- The next statement cannot use "m".</font></markup>
 m
         </code>
-        <para>If you need a local variable to be available for all statements that follow in a script, you must use a variant of <codeInline>let</codeInline> which does not terminates with an <codeInline>in</codeInline> keyword, but with a semicolon:</para>
+        <para>If you need a local variable to be available for all statements that follow in a script, you must use a variant of <codeInline>let</codeInline> which does not terminate with an <codeInline>in</codeInline> keyword, but with a semicolon:</para>
         <code language="Austra">
 <markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>lrandom(5);
 <markup><font color="DarkGreen">-- Now, "m" is available for the rest of the script.</font><br/></markup>

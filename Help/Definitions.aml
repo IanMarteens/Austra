@@ -2,7 +2,7 @@
 <topic id="90cb2899-abcf-4ebe-b96a-8cfac1b2809f" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>Code definitions are formulas saved for future use. They are saved and loaded from any persistent storage used by AUSTRA. You can define either parameterless definitions, that act like macros, or parametric definitions, which are the equivalent of user-defined functions.</para>
+      <para>Code definitions are formulas saved for future use. They are saved and loaded from any persistent storage used by AUSTRA. You can define either parameter-less definitions, that act like macros, or parametric definitions, which are the equivalent of user-defined functions.</para>
     </introduction>
     <section address="Section1">
       <title>Creating definitions</title>
@@ -19,7 +19,7 @@
         <code language="Austra">
 		<markup><b>undef</b></markup> cxMvo
         </code>
-        <para>In the AUSTRA desktop application, definitions appears in the <legacyBold>Variables</legacyBold> panel, inside a <legacyBold>Definitions</legacyBold> node:</para>
+        <para>In the AUSTRA desktop application, definitions appear in the <legacyBold>Variables</legacyBold> panel, inside a <legacyBold>Definitions</legacyBold> node:</para>
         <mediaLink>
 			<image placement="near" xlink:href="d001"/>
 		</mediaLink>
@@ -55,7 +55,7 @@
       	  <code language="Austra">
 <markup><b>def</b></markup> extProduct = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(4) ^ <markup><b><font color="DarkCyan">vec::</font></b></markup>random(4)
       	  </code>
-      	  <para>This definition calls twice a class method that creates a random vector. The caret operator, <codeInline>^</codeInline>, combines those two vectors in a 4x4 matrix. Executing this definitions two times in a row gives, as expected, different results:</para>
+      	  <para>This definition calls twice a class method that creates a random vector. The caret operator, <codeInline>^</codeInline>, combines those two vectors in a 4x4 matrix. Executing these definitions two times in a row gives, as expected, different results:</para>
       	  <code language="Austra">
 &gt; extProduct
 ans ∊ ℝ(4⨯4)
@@ -71,18 +71,18 @@ ans ∊ ℝ(4⨯4)
 0.0555746  0.0403725   0.100035   0.0206275
 0.0256057  0.0186015  0.0460906  0.00950403
       	  </code>
-      	  <para>That is the expected behavior. However, this could be inconvenient to test properties of the result. For instance, we could want to check the determinant of the product, or that a double transpose works fine:</para>
+      	  <para>That is the expected behaviour. However, this could be inconvenient to test properties of the result. For instance, we could want to check the determinant of the product, or that a double transpose works fine:</para>
       	  <code language="Austra">
 extProduct = expProduct''; <markup><font color="DarkGreen">-- Double transpose.</font></markup>
 (extProduct * extProduct).det - extProduct.det^2
       	  </code>
-      	  <para>AUSTRA assumes that, inside a formula, all parameterless definitions call must return the same value. For that purpose, the two above formulas are internally rewritten as:</para>
+      	  <para>AUSTRA assumes that, inside a formula, all parameter-less definitions call must return the same value. For that purpose, the two above formulas are internally rewritten as:</para>
       	  <code language="Austra">
 <markup><b>let</b></markup> x = extProduct <markup><b>in</b></markup> x = x'';
 <markup><b>let</b></markup> x = extProduct <markup><b>in</b></markup> (x * x).det - x.det ^ 2
       	  </code>
           <para>A <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">local variable</link> is created under the hood for evaluating the definition just once inside the current formula.</para>
-      	  <para>This automatic caching only takes place for parameterless definitions. If you want to disable this behavior, just add an exclamation sign right after the definition identifier, when using the definition:</para>
+      	  <para>This automatic caching only takes place for parameterless definitions. If you want to disable this behaviour, just add an exclamation sign right after the definition identifier, when using the definition:</para>
       	  <code language="Austra">
 <markup><font color="DarkGreen">-- This first expression returns <b>true</b>.</font></markup>
 extProduct = extProduct;

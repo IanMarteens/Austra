@@ -53,7 +53,7 @@
       	<section>
       		<title>String literals</title>
       		<content>
-      		  <para>String literals are enclosed by double quotes, and cannot cross line boundaries.</para>
+      		  <para>String literals are enclosed by double quotes and cannot cross line boundaries.</para>
 			  <code language="Austra">
 			  "A simple string literal";
 			  "A string literal with a quote: ""Wow!"". That was the quote."
@@ -102,7 +102,7 @@
 		<section address="SubSection1">
 		  <title>Global variables</title>
 		  <content>
-			<para>Global variables come in two flavors: persistent variables and session variables. Persistent variables come mostly from an external source, like a JSON file, a database or an external service. In this AUSTRA version, those persisted variables are always time series, because they have a predictable serialization format. This design decision, of course, may change at some point of the evolution of the library.</para>
+			<para>Global variables come in two flavours: persistent variables and session variables. Persistent variables come mostly from an external source, like a JSON file, a database or an external service. In this AUSTRA version, those persisted variables are always time series, because they have a predictable serialization format. This design decision, of course, may change at some point of the evolution of the library.</para>
 			<para>For instance, when I open the AUSTRA application in my system, it automatically loads a set of series and definitions that are stored in a subfolder <newTerm>Austra</newTerm> of my <newTerm>Documents</newTerm> folder, in a file named <newTerm>data.austra</newTerm>, and its main windows looks something like this:</para>
 			<mediaLink><image placement="near" xlink:href="w001"/></mediaLink>
 			<para>Persistent series are shown below a <newTerm>Series</newTerm> node. I can type the name of any of these variables in the Code Editor:</para>
@@ -116,7 +116,7 @@
 		<section address="SessionVars">
           <title>Session variables</title>
           <content>
-			<para>Session variables, as the name indicates, are defined inside a user session and die with the session. They are defined and removed using the <codeInline>set</codeInline> statement:</para>
+			<para>Session variables, as the name indicates, are defined inside a user session, and die with the session. They are defined and removed using the <codeInline>set</codeInline> statement:</para>
             <code language="Austra">
 <markup><b>set</b></markup> v1 = [1, 2, 3, 4, 5];
 <markup><b>set</b></markup> v2 = v1.map(x =&gt; 1 / x);
@@ -152,12 +152,12 @@ i = <markup><b><font color="DarkCyan">math::</font></b></markup>i;
 e = <markup><b><font color="DarkCyan">math::</font></b></markup>e;
 pi = <markup><b><font color="DarkCyan">math::</font></b></markup>pi <markup><b>and</b></markup> pi = <markup><b><font color="DarkCyan">math::</font></b></markup>π
             </code>
-            <para>Actually, the same equivalence is valid for what we normally would consider "global functions":</para>
+            <para>The same equivalence is valid for what we normally would consider "global functions":</para>
             <code language="Austra">
 exp(π*i);
 <markup><b><font color="DarkCyan">math::</font></b></markup>exp(<markup><b><font color="DarkCyan">math::</font></b></markup>pi * <markup><b><font color="DarkCyan">math::</font></b></markup>i)
             </code>
-			<para>Those global functions and constants are considered as belonging to the <codeInline>math</codeInline> for avoiding problems if any of these simbols is redefined as a persistent or session variable.</para>
+			<para>Those global functions and constants are considered as belonging to the <codeInline>math</codeInline> for avoiding problems if any of these symbols is redefined as a persistent or session variable.</para>
 			<para>Of course, there are more classes than <codeInline>math</codeInline>, and we can use their class methods for creating new objects:</para>
 			<code language="Austra">
 <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
