@@ -1621,7 +1621,7 @@ internal sealed partial class Parser
             string saveId = id;
             int saveCursor = lexCursor;
             Move();
-            if (kind == Token.In)
+            if (kind == Token.In || kind == Token.Element)
             {
                 id = saveId;
                 lexCursor = saveCursor;
@@ -1631,7 +1631,7 @@ internal sealed partial class Parser
             {
                 string qual = saveId.ToLower();
                 Move();
-                if ((qual == "all" || qual == "any") && kind == Token.In)
+                if ((qual == "all" || qual == "any") && (kind == Token.In || kind == Token.Element))
                 {
                     id = saveId;
                     lexCursor = saveCursor;
