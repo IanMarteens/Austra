@@ -102,6 +102,16 @@ integer and it is immediately followed by an identifier:</para>
 		        <entry><para>A fancy synonym for the membership operator (<codeInline>&lt;-</codeInline>).</para></entry>
 		      </row>
 		    </table>
+		    <para>The membership operator can be used with sequences and vectors and even series:</para>
+		    <code language="Austra">
+34 &lt;- [1..100];
+0 &lt;- <markup><b><font color="DarkCyan">vec::</font></b></markup>random(1024)
+            </code>
+		    <para>When the right side of the membership operator is a time series, the left operand may be either a real or a date:</para>
+		    <code language="Austra">
+0.0 &lt; appl.rets;
+1@jan2020 &lt; appl
+            </code>
 		    <para>Comparisons can be fused for numeric operands using the following syntax:</para>
 		    <code language="Austra">
 sqrt(pi) &lt;= pi &lt;= pi²
@@ -145,6 +155,15 @@ and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInli
 		      </row>
 		    </table>
 		    <para>The <codeInline>'</codeInline> operator is also used for <codeEntityReference qualifyHint="false" autoUpgrade="true" linkText="transposing">M:Austra.Library.Matrix.Transpose</codeEntityReference> a <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49#MatrixOperators">matrix</link>.</para>
+		    </content>
+		  </section>
+		  <section address="Section2B">
+		    <title>Integer properties</title>
+		    <content>
+		    <para>Integer values support the <codeInline>even</codeInline> and <codeInline>odd</codeInline> properties for easy testing of parity:</para>
+		    <code language="Austra">
+iff(e.toInt.even, "Truncated to 2", "Rounded to 3")		    
+			</code>
 		    </content>
 		  </section>
 		</sections>
@@ -389,6 +408,56 @@ Newton-Raphson algorithm.</para>
 		</sections>
       </content>
      </section>
+    <section address="Section4">
+      <title>Dates</title>
+      <content>
+      	<para>Dates in Austra are represented by the <codeInline>date</codeInline> type and stores the number of days since Jan 1st, 1900. Dates support these properties:</para>
+	    <table>
+      	  <row>
+		    <entry><para><codeInline>day</codeInline></para></entry>
+		    <entry><para>Gets the day of month, starting by 1.</para></entry>
+		  </row>
+      	  <row>
+		    <entry><para><codeInline>dow</codeInline></para></entry>
+		    <entry><para>Gets the day of the week.</para></entry>
+		  </row>
+      	  <row>
+		    <entry><para><codeInline>isLeap</codeInline></para></entry>
+		    <entry><para>Is the year from the date a leap one?</para></entry>
+		  </row>
+      	  <row>
+		    <entry><para><codeInline>month</codeInline></para></entry>
+		    <entry><para>Gets the month of the date, starting with 1.</para></entry>
+		  </row>
+      	  <row>
+		    <entry><para><codeInline>year</codeInline></para></entry>
+		    <entry><para>Gets the year of the date.</para></entry>
+		  </row>
+	    </table>
+	    <para>These two methods allow adding either a positive or a negative number of months or years to a date:</para>
+	    <table>
+      	  <row>
+		    <entry><para><codeInline>addMonths</codeInline></para></entry>
+		    <entry><para>Adds a positive or negative number of months to a date.</para></entry>
+		  </row>
+      	  <row>
+		    <entry><para><codeInline>addYears</codeInline></para></entry>
+		    <entry><para>Adds a positive or negative number of years to a date.</para></entry>
+		  </row>
+	    </table>
+	    <para>Adding or subtracting days from a date is achieved with these operators:</para>
+	    <table>
+      	  <row>
+		    <entry><para><codeInline>+</codeInline></para></entry>
+		    <entry><para>Adds a number of days to a date. The left operand must be a date.</para></entry>
+		  </row>
+      	  <row>
+		    <entry><para><codeInline>-</codeInline></para></entry>
+		    <entry><para>Subtracts a number of days from a date. The left operand must be a date. It can also be used to find the difference in days between two dates.</para></entry>
+		  </row>
+	    </table>
+      </content>
+    </section>
     <relatedTopics>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>

@@ -668,16 +668,6 @@ internal sealed partial class Bindings
                 typeof(NVector).MD(typeof(int), typeof(Random)),
                 typeof(NVector).MD(typeof(int), typeof(int), typeof(Random)),
                 typeof(NVector).MD(typeof(int), typeof(int), typeof(int), typeof(Random))),
-            ["math.polysolve"] = new(
-                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VArg),
-                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
-            ["math.polyeval"] = new(
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), DVArg),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(DVector)),
-                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
-            ["math.polyderivative"] = PolyDerivative,
-            ["math.polyderiv"] = PolyDerivative,
             ["math.abs"] = new(
                 typeof(Math).MD(nameof(Math.Abs), NArg),
                 typeof(Math).MD(nameof(Math.Abs), DArg),
@@ -696,6 +686,9 @@ internal sealed partial class Bindings
                 typeof(Functions).MD(nameof(Functions.Beta), DDArg)),
             ["math.cbrt"] = new(
                 typeof(Math).MD(nameof(Math.Cbrt), DArg)),
+            ["math.complex"] = new(
+                typeof(Complex).MD(DDArg),
+                typeof(Complex).MD(typeof(double), typeof(Zero))),
             ["math.cos"] = new(
                 typeof(Math).MD(nameof(Math.Cos), DArg),
                 typeof(Complex).MD(nameof(Complex.Cos), CArg)),
@@ -717,8 +710,30 @@ internal sealed partial class Bindings
             ["math.log10"] = new(
                 typeof(Math).MD(nameof(Math.Log10), DArg),
                 typeof(Complex).MD(nameof(Complex.Log10), CArg)),
+            ["math.min"] = new(
+                typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
+                typeof(Math).MD(nameof(Math.Min), NNArg),
+               typeof(Math).MD(nameof(Math.Min), DDArg)),
+            ["math.max"] = new(
+                typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
+                typeof(Math).MD(nameof(Math.Max), NNArg),
+                typeof(Math).MD(nameof(Math.Max), DDArg)),
             ["math.ncdf"] = new(
                 typeof(Functions).MD(nameof(Functions.NCdf), DArg)),
+            ["math.plot"] = ModelPlot,
+            ["math.polar"] = new(
+                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), DDArg),
+                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
+            ["math.polyderiv"] = PolyDerivative,
+            ["math.polyderivative"] = PolyDerivative,
+            ["math.polyeval"] = new(
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), DVArg),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(DVector)),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
+            ["math.polysolve"] = new(
+                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), VArg),
+                typeof(Polynomials).MD(nameof(Polynomials.PolySolve), typeof(double[]))),
             ["math.probit"] = new(
                 typeof(Functions).MD(nameof(Functions.Probit), DArg)),
             ["math.sign"] = new(
@@ -730,6 +745,15 @@ internal sealed partial class Bindings
             ["math.sinh"] = new(
                 typeof(Math).MD(nameof(Math.Sinh), DArg),
                 typeof(Complex).MD(nameof(Complex.Sinh), CArg)),
+            ["math.solve"] = new(
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double)),
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
+                    typeof(double)),
+                typeof(Solver).MD(nameof(Solver.Solve),
+                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
+                    typeof(double), typeof(int))),
             ["math.tan"] = new(
                 typeof(Math).MD(nameof(Math.Tan), DArg),
                 typeof(Complex).MD(nameof(Complex.Tan), CArg)),
@@ -744,30 +768,6 @@ internal sealed partial class Bindings
             ["math.round"] = new(
                 typeof(Math).MD(nameof(Math.Round), DArg),
                 typeof(Math).MD(nameof(Math.Round), typeof(double), typeof(int))),
-            ["math.plot"] = ModelPlot,
-            ["math.complex"] = new(
-                typeof(Complex).MD(DDArg),
-                typeof(Complex).MD(typeof(double), typeof(Zero))),
-            ["math.polar"] = new(
-                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), DDArg),
-                typeof(Complex).MD(nameof(Complex.FromPolarCoordinates), typeof(double), typeof(Zero))),
-            ["math.min"] = new(
-                typeof(Date).MD(nameof(Date.Min), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Min), NNArg),
-               typeof(Math).MD(nameof(Math.Min), DDArg)),
-            ["math.max"] = new(
-                typeof(Date).MD(nameof(Date.Max), typeof(Date), typeof(Date)),
-                typeof(Math).MD(nameof(Math.Max), NNArg),
-                typeof(Math).MD(nameof(Math.Max), DDArg)),
-            ["math.solve"] = new(
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double)),
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
-                    typeof(double)),
-                typeof(Solver).MD(nameof(Solver.Solve),
-                    typeof(Func<double, double>), typeof(Func<double, double>), typeof(double),
-                    typeof(double), typeof(int))),
             ["matrix.new"] = new(
                 typeof(Matrix).MD(NArg),
                 typeof(Matrix).MD(NNArg),
