@@ -1,5 +1,5 @@
 <SyntaxDefinition name="Austra" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
-	<Color name="Digits" foreground="DarkBlue" exampleText="3.14" />
+	<Color name="Digits" foreground="Blue" exampleText="3.14" />
 	<Color name="Comment" foreground="DarkGreen" exampleText="-- This is a comment!" />
 	<Color name="String" foreground="DarkRed" />
 	<RuleSet ignoreCase="true">
@@ -9,7 +9,7 @@
 			<End>"</End>
 		</Span>
 
-		<Keywords fontWeight="bold" foreground="Blue">
+		<Keywords fontWeight="bold" foreground="RoyalBlue">
 			<Word>def</Word>
 			<Word>undef</Word>
 			<Word>let</Word>
@@ -20,6 +20,7 @@
 			<Word>in</Word>
 			<Word>if</Word>
             <Word>then</Word>
+			<Word>elif</Word>
             <Word>else</Word>
             <Word>true</Word>
             <Word>false</Word>
@@ -29,11 +30,11 @@
 			\b(math|matrix|vec|cvec|ivec|seq|cseq|iseq|series|model|spline)(?=\:\:)\b
 		</Rule>
 
-		<Rule fontWeight="bold" foreground="Blue">
-			(?:(\[|\:)\s*)(any|all)(?=\s+\p{L}\w*\s+in\b)
+		<Rule fontWeight="bold" foreground="RoyalBlue">
+			(?:(\[|\:)\s*)(any|all)(?=\s+\p{L}\w*\s+(&lt;\-|∈))
 		</Rule>
 
-		<Rule foreground="MediumBlue">
+		<Rule foreground="Blue">
 			\b0[xX][0-9a-fA-F]+  # hex number
 			|    \b
 			(    \d+(\.[0-9]+)?   #number with optional floating point

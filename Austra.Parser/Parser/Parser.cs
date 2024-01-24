@@ -420,11 +420,57 @@ internal sealed partial class Parser
             throw Error("Condition must be boolean");
         CheckAndMove(Token.Then, "THEN expected");
         Expression e1 = ParseConditional();
-        CheckAndMove(Token.Else, "ELSE expected");
-        Expression e2 = ParseConditional();
-        return DifferentTypes(ref e1, ref e2)
-            ? throw Error("Conditional operands are not compatible")
-            : Expression.Condition(c, e1, e2);
+        if (kind == Token.Else)
+        {
+            // Quick path.
+            Move();
+            Expression e3 = ParseConditional();
+            return DifferentTypes(ref e1, ref e3)
+                ? throw Error("Conditional operands are not compatible")
+                : Expression.Condition(c, e1, e3);
+        }
+        List<Expression> expressions = source.Rent(8);
+        try
+        {
+            expressions.Add(c);
+            expressions.Add(e1);
+            while (kind == Token.Elif)
+            {
+                Move();
+                c = ParseDisjunctionConjunction();
+                if (c.Type != typeof(bool))
+                    throw Error("Condition must be boolean");
+                expressions.Add(c);
+                CheckAndMove(Token.Then, "THEN expected");
+                expressions.Add(ParseConditional());
+            }
+            CheckAndMove(Token.Else, "ELSE expected");
+            Expression last = ParseConditional();
+            for (int i = 1; i < expressions.Count; i += 2)
+            {
+                Expression e = expressions[i];
+                if (e.Type != last.Type)
+                    if (last.Type == typeof(Complex) && IsArithmetic(e))
+                        expressions[i] = Expression.Convert(e, typeof(Complex));
+                    else if (e.Type == typeof(Complex) && IsArithmetic(last))
+                        expressions[^1] = last = Expression.Convert(last, typeof(Complex));
+                    else if (IsArithmetic(last) && IsArithmetic(e))
+                    {
+                        expressions[i] = ToDouble(expressions[i]);
+                        expressions[^1] = last = ToDouble(last);
+                    }
+                    else
+                        throw Error("Conditional operands are not compatible");
+            }
+            last = Expression.Condition(expressions[^2], expressions[^1], last);
+            for (int i = expressions.Count - 3; i > 0; i -= 2)
+                last = Expression.Condition(expressions[i - 1], expressions[i], last);
+            return last;
+        }
+        finally
+        {
+            source.Return(expressions);
+        }
     }
 
     /// <summary>Compiles a ternary conditional expression not returning a boolean.</summary>
@@ -495,7 +541,7 @@ internal sealed partial class Parser
                     if (e1.Type == typeof(Date) && e2.Type == typeof(Series))
                         return Expression.Call(e2,
                             e2.Type.GetMethod(nameof(Series.Contains), [typeof(Date)])!, e1);
-                    if (e2.Type == typeof(DVector) || e2.Type == typeof(Series) || 
+                    if (e2.Type == typeof(DVector) || e2.Type == typeof(Series) ||
                         e2.Type.IsAssignableTo(typeof(IMatrix)) ||
                         e2.Type.IsAssignableTo(typeof(DSequence)))
                     {
