@@ -109,8 +109,8 @@ integer and it is immediately followed by an identifier:</para>
             </code>
 		    <para>When the right side of the membership operator is a time series, the left operand may be either a real or a date:</para>
 		    <code language="Austra">
-0.0 &lt; appl.rets;
-1@jan2020 &lt; appl
+0.0 &lt;- appl.rets;
+1@jan2020 &lt;- appl
             </code>
 		    <para>Comparisons can be fused for numeric operands using the following syntax:</para>
 		    <code language="Austra">
@@ -456,6 +456,45 @@ Newton-Raphson algorithm.</para>
 		    <entry><para>Subtracts a number of days from a date. The left operand must be a date. It can also be used to find the difference in days between two dates.</para></entry>
 		  </row>
 	    </table>
+      </content>
+    </section>
+    <section address="Section5">
+      <title>Logical values</title>
+      <content>
+        <para>Logical values are represented by the <codeInline>bool</codeInline> data type. Variables and parameters from this type hold one of these two constants: either <codeInline>false</codeInline> or <codeInline>true</codeInline>.</para>
+        <para>Operators acting on logical values resembles more the good-old Pascal operators than the C/C++/C# one. It's a matter of personal preference, of course, but also of readability:</para>
+        <table>
+      	  <row>
+		    <entry><para><codeInline>not</codeInline></para></entry>
+		    <entry><para>Logical negation.</para></entry>
+		  </row>
+      	  <row>
+		    <entry><para><codeInline>and</codeInline></para></entry>
+		    <entry><para>Logical conjunction.</para></entry>
+		  </row>
+      	  <row>
+		    <entry><para><codeInline>or</codeInline></para></entry>
+		    <entry><para>Logical disjunction.</para></entry>
+		  </row>
+        </table>
+        <sections>
+          <section address="Section5A">
+            <title>Conditional expressions</title>
+            <content>
+              <para>Since AUSTRA is a functional language, it doesn't have "statements". However, it
+provides an <codeInline>if/then/else</codeInline> ternary operator, equivalent to the also included 
+<codeInline>iff()</codeInline> function:</para>
+		    <code language="Austra">
+<markup><b>if</b></markup> aapl.mean &lt; msft.mean <markup><b>then</b></markup> aapl.mean <markup><b>else</b></markup> msft.mean
+			</code>
+			<para>Of course, the above expression is just a pedantic way to write <codeInline>min(aapl.mean, msft.mean)</codeInline>. It can be also be expressed using <codeInline>iff()</codeInline> this way:</para>
+		    <code language="Austra">
+iff(aapl.mean &lt; msft.mean, aapl.mean, msft.mean)
+			</code>
+			<para>Most of the times, the more verbose ternary operator is easier to read.</para>
+            </content>
+          </section>
+        </sections>
       </content>
     </section>
     <relatedTopics>
