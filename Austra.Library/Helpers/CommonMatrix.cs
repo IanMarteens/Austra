@@ -990,6 +990,81 @@ public static class CommonMatrix
         return true;
     }
 
+    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <param name="values">The span to search.</param>
+    /// <param name="value">The value to locate.</param>
+    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
+    public static int IndexOf(this ReadOnlySpan<double> values, double value)
+    {
+        ref double p = ref MM.GetReference(values);
+        nuint size = (nuint)values.Length;
+        if (V8.IsHardwareAccelerated && size >= (nuint)V8d.Count)
+        {
+            V8d v = V8.Create(value);
+            nuint t = size - (nuint)V8d.Count;
+            ulong mask;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+            {
+                mask = V8.ExtractMostSignificantBits(Avx512F.CompareEqual(V8.LoadUnsafe(ref p, i), v));
+                if (mask != 0)
+                    return (int)i + BitOperations.TrailingZeroCount(mask);
+            }
+            mask = V8.ExtractMostSignificantBits(Avx512F.CompareEqual(V8.LoadUnsafe(ref p, t), v));
+            if (mask != 0)
+                return (int)t + BitOperations.TrailingZeroCount(mask);
+        }
+        else if (V4.IsHardwareAccelerated && size >= (nuint)V4d.Count)
+        {
+            V4d v = V4.Create(value);
+            nuint t = size - (nuint)V4d.Count;
+            int mask;
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+            {
+                mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p, i), v));
+                if (mask != 0)
+                    return (int)i + BitOperations.TrailingZeroCount(mask);
+            }
+            mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p, t), v));
+            if (mask != 0)
+                return (int)t + BitOperations.TrailingZeroCount(mask);
+        }
+        else
+            for (nuint i = 0; i < size; i++)
+                if (Unsafe.Add(ref p, i) == value)
+                    return (int)i;
+        return -1;
+    }
+
+    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <param name="values">The span to search.</param>
+    /// <param name="value">The value to locate.</param>
+    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
+    public static int IndexOf(this ReadOnlySpan<int> values, int value)
+    {
+        ref int p = ref MM.GetReference(values);
+        nuint size = (nuint)values.Length;
+        if (V8.IsHardwareAccelerated && size >= (nuint)V8i.Count)
+        {
+            V8i v = V8.Create(value);
+            nuint t = size - (nuint)V8i.Count;
+            ulong mask;
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+            {
+                mask = V8.ExtractMostSignificantBits(Avx512F.CompareEqual(V8.LoadUnsafe(ref p, i), v));
+                if (mask != 0)
+                    return (int)i + BitOperations.TrailingZeroCount(mask);
+            }
+            mask = V8.ExtractMostSignificantBits(Avx512F.CompareEqual(V8.LoadUnsafe(ref p, t), v));
+            if (mask != 0)
+                return (int)t + BitOperations.TrailingZeroCount(mask);
+        }
+        else
+            for (nuint i = 0; i < size; i++)
+                if (Unsafe.Add(ref p, i) == value)
+                    return (int)i;
+        return -1;
+    }
+
     /// <summary>Checks two arrays for equality.</summary>
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>

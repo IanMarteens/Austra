@@ -1301,6 +1301,16 @@ public readonly struct Matrix :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Accumulator Stats() => new(values);
 
+    /// <summary>Checks if the matrix contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(double value)
+    {
+        Contract.Requires(IsInitialized);
+        return new ReadOnlySpan<double>(values).IndexOf(value) != -1;
+    }
+
     /// <summary>Computes the maximum difference between cells.</summary>
     /// <param name="m">The reference matrix.</param>
     /// <returns>The max-norm of the matrix difference.</returns>

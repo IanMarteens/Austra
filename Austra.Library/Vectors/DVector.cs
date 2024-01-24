@@ -1375,28 +1375,8 @@ public readonly struct DVector :
         Contract.Requires(from >= 0 && from < Length);
         Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
 
-        ref double p = ref Add(ref MM.GetArrayDataReference(values), from);
-        nuint size = (nuint)(Length - from);
-        if (V4.IsHardwareAccelerated && size >= (nuint)V4d.Count)
-        {
-            V4d v = V4.Create(value);
-            nuint t = size - (nuint)V4d.Count;
-            int mask;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-            {
-                mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p, i), v));
-                if (mask != 0)
-                    return (int)i + BitOperations.TrailingZeroCount(mask) + from;
-            }
-            mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p, t), v));
-            if (mask != 0)
-                return (int)t + BitOperations.TrailingZeroCount(mask) + from;
-        }
-        else
-            for (nuint i = 0; i < size; i++)
-                if (Add(ref p, i) == value)
-                    return (int)i + from;
-        return -1;
+        int result = new ReadOnlySpan<double>(values, from, Length - from).IndexOf(value);
+        return result >= 0 ? result + from : -1;
     }
 
     /// <summary>Returns all indexes containing ocurrences of a value.</summary>

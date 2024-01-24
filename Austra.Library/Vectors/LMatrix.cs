@@ -731,6 +731,16 @@ public readonly struct LMatrix :
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => values.Det(Rows, Cols);
 
+    /// <summary>Checks if the matrix contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(double value)
+    {
+        Contract.Requires(IsInitialized);
+        return new ReadOnlySpan<double>(values).IndexOf(value) != -1;
+    }
+
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a matrix with the same values.</returns>

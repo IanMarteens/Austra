@@ -102,7 +102,7 @@ integer and it is immediately followed by an identifier:</para>
 		        <entry><para>A fancy synonym for the membership operator (<codeInline>&lt;-</codeInline>).</para></entry>
 		      </row>
 		    </table>
-		    <para>The membership operator can be used with sequences and vectors and even series:</para>
+		    <para>The membership operator can be used with sequences, vectors, matrices, and series:</para>
 		    <code language="Austra">
 34 &lt;- [1..100];
 0 &lt;- <markup><b><font color="DarkCyan">vec::</font></b></markup>random(1024)

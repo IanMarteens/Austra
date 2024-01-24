@@ -495,7 +495,8 @@ internal sealed partial class Parser
                     if (e1.Type == typeof(Date) && e2.Type == typeof(Series))
                         return Expression.Call(e2,
                             e2.Type.GetMethod(nameof(Series.Contains), [typeof(Date)])!, e1);
-                    if (e2.Type == typeof(DVector) || e2.Type == typeof(Series) ||
+                    if (e2.Type == typeof(DVector) || e2.Type == typeof(Series) || 
+                        e2.Type.IsAssignableTo(typeof(IMatrix)) ||
                         e2.Type.IsAssignableTo(typeof(DSequence)))
                     {
                         e1 = ToDouble(e1);

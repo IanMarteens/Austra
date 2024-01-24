@@ -100,4 +100,7 @@ public class VectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public Accumulator AustraVectorAccumulator() => nv1.Stats();
+
+    [Benchmark]
+    public int AustraNIndexOfLast() => nv1.IndexOf(nv1[^1]);
 }

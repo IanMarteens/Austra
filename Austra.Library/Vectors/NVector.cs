@@ -603,12 +603,8 @@ public readonly struct NVector :
         Contract.Requires(from >= 0 && from < Length);
         Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
 
-        ref int p = ref Add(ref MM.GetArrayDataReference(values), from);
-        nuint size = (nuint)(Length - from);
-        for (nuint i = 0; i < size; i++)
-            if (Add(ref p, i) == value)
-                return (int)i + from;
-        return -1;
+        int result = new ReadOnlySpan<int>(values, from, Length - from).IndexOf(value);
+        return result >= 0 ? result + from : -1;
     }
 
     /// <summary>
