@@ -491,7 +491,14 @@ provides an <codeInline>if/then/else</codeInline> ternary operator, equivalent t
 		    <code language="Austra">
 iff(aapl.mean &lt; msft.mean, aapl.mean, msft.mean)
 			</code>
-			<para>Most of the times, the more verbose ternary operator is easier to read.</para>
+			<para>Most of the times, the more verbose ternary operator is easier to read. The ternary operator has another advantage: you can chain several conditions and responses using the <codeInline>elif</codeInline> keyword.</para>
+		    <code language="Austra">
+<markup><b>let</b></markup> x = random;
+<markup><b>if</b></markup> x &lt; 0.1 <markup><b>then</b></markup> "Too low!"
+<markup><b>elif</b></markup> x &lt; 0.5 <markup><b>then</b></markup> "A little low"
+<markup><b>elif</b></markup> x &lt; 0.9 <markup><b>then</b></markup> "A little high"
+<markup><b>else</b></markup> "Too high!"
+			</code>			
             </content>
           </section>
         </sections>
