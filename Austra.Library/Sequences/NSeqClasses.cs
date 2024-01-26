@@ -618,7 +618,7 @@ public abstract partial class NSequence
         /// Of course, a zero could be anywhere in the sequence.
         /// </remarks>
         protected override bool ContainsZero =>
-            Length() > 1 && (source[0] == 0 || source[^1] == 0);
+            length > 1 && (source.UnsafeThis(0) == 0 || source.UnsafeThis(length - 1) == 0);
 
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>
@@ -828,7 +828,7 @@ public abstract partial class NSequence
         {
             if (current >= 0)
                 for (; current < vector.Length; current++)
-                    if (condition(vector[current]))
+                    if (condition(vector.UnsafeThis(current)))
                     {
                         value = current;
                         current++;

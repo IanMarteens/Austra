@@ -56,11 +56,12 @@ public abstract class LinearModel<T>: IFormattable
         const double ε = 1E-15;
         StringBuilder sb = new(1024);
         sb.Append("Original = ");
-        if (Abs(Weights[0]) > ε)
-            sb.Append(Weights[0].ToString(format, provider));
+        double w0 = Weights.UnsafeThis(0);
+        if (Abs(w0) > ε)
+            sb.Append(w0.ToString(format, provider));
         for (int i = 0; i < Variables.Count; i++)
         {
-            double w = Weights[i + 1], aw = Abs(w);
+            double w = Weights.UnsafeThis(i + 1), aw = Abs(w);
             if (aw <= ε)
                 continue;
             if (sb.Length > 0)
@@ -111,7 +112,7 @@ public sealed class LinearSModel : LinearModel<Series>
         Matrix olsVariance = s2 * chol.Solve(Matrix.Identity(predictors.Length + 1));
         double[] tStats = new double[Weights.Length];
         for (int i = 0; i < Weights.Length; i++)
-            tStats[i] = Weights[i] / Sqrt(olsVariance[i, i]);
+            tStats[i] = Weights.UnsafeThis(i) / Sqrt(olsVariance[i, i]);
         TStats = tStats;
     }
 }
@@ -141,7 +142,7 @@ public sealed class LinearVModel : LinearModel<DVector>
         Matrix olsVariance = s2 * chol.Solve(Matrix.Identity(predictors.Length + 1));
         double[] tStats = new double[Weights.Length];
         for (int i = 0; i < Weights.Length; i++)
-            tStats[i] = Weights[i] / Sqrt(olsVariance[i, i]);
+            tStats[i] = Weights.UnsafeThis(i) / Sqrt(olsVariance[i, i]);
         TStats = tStats;
     }
 }

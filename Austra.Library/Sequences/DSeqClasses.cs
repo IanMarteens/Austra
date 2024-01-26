@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Runtime.ExceptionServices;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning double-precision values.</summary>
 public abstract partial class DSequence : IFormattable
@@ -640,7 +636,7 @@ public abstract partial class DSequence : IFormattable
         /// Of course, a zero could be anywhere in the sequence.
         /// </remarks>
         protected override bool ContainsZero =>
-            Length() > 1 && (source[0] == 0d || source[^1] == 0d);
+            length > 1 && (source.UnsafeThis(0) == 0d || source.UnsafeThis(length - 1) == 0d);
 
         /// <summary>Gets the minimum value from the sequence.</summary>
         /// <returns>The minimum value.</returns>

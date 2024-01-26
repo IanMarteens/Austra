@@ -140,7 +140,7 @@ internal sealed partial class Parser
     {
         try
         {
-            ParseType(abortPosition);
+            ParseType(position);
         }
         catch { /* Ignore */ }
         if (parsingHeader = parsingLambdaHeader)

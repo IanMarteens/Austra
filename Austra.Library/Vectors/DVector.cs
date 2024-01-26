@@ -1399,7 +1399,7 @@ public readonly struct DVector :
         if (v1.Length != v2.Length)
             return false;
         for (int i = 0; i < v1.Length; i++)
-            if (Math.Abs(v1[i] - v2[i]) > epsilon)
+            if (Math.Abs(v1.UnsafeThis(i) - v2.UnsafeThis(i)) > epsilon)
                 return false;
         return true;
     }

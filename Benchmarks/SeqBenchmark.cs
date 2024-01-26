@@ -4,24 +4,26 @@ public class SeqBenchmark: BenchmarkControl
 {
     private readonly DVector v1;
     private readonly int size;
+    private readonly DSequence mseq;
+    private readonly DSequence rseq;
 
     public SeqBenchmark()
     {
         size = Configure();
         v1 = new DVector(1024, new Random(133));
-    }
-
-    //[Benchmark]
-    public double AustraSeqSum()
-    {
-        DSequence seq = v1;
-        double total = 0.0;
-        while (seq.Next(out double value))
-            total += value;
-        return total;
+        mseq = DSequence.Create(0, 1023, Math.Tau).Map(Math.Sin);
+        rseq = DSequence.Random(1024);
     }
 
     [Benchmark]
-    public DVector AustraRandom() =>
-        DSequence.Random(size).ToVector();
+    public double AustraVSeqSum() => ((DSequence)v1).Sum();
+
+    [Benchmark]
+    public double AustraMSeqSum() => mseq.Sum();
+
+    [Benchmark]
+    public double AustraRSeqSum() => rseq.Sum();
+
+    [Benchmark]
+    public DVector AustraRandom() => DSequence.Random(size).ToVector();
 }

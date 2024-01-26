@@ -256,7 +256,7 @@ public readonly struct Matrix :
         {
             Array.Copy(left.values, row * c1, newValues, offset, c1);
             offset += c1;
-            newValues[offset++] = newColumn[row];
+            newValues[offset++] = newColumn.UnsafeThis(row);
         }
         return new(w, c, newValues);
     }
@@ -273,7 +273,7 @@ public readonly struct Matrix :
         double[] newValues = GC.AllocateUninitializedArray<double>(w * c);
         for (int row = 0, offset = 0; row < w; row++)
         {
-            newValues[offset++] = newColumn[row];
+            newValues[offset++] = newColumn.UnsafeThis(row);
             Array.Copy(right.values, row * c1, newValues, offset, c1);
             offset += c1;
         }

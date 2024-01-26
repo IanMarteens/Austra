@@ -95,7 +95,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     public static DSequence MA(int size, double variance, DVector coefficients) =>
         coefficients.Length == 0
         ? throw new VectorLengthException()
-        : new MaSequence(size, variance, coefficients[0], coefficients[1..]);
+        : new MaSequence(size, variance, coefficients.UnsafeThis(0), coefficients[1..]);
 
     /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
     /// <param name="size">The size of the sequence.</param>

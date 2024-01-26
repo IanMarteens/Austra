@@ -94,7 +94,8 @@ public sealed class InterpolatedPortfolio : Portfolio
         double g = 1 - interpolationFactor;
         double[] weights = new double[highP.Weights.Length];
         for (int i = 0; i < weights.Length; i++)
-            weights[i] = g * highP.Weights[i] + interpolationFactor * lowP.Weights[i];
+            weights[i] = g * highP.Weights.UnsafeThis(i) +
+                interpolationFactor * lowP.Weights.UnsafeThis(i);
         return new(
             weights: weights,
             mean: g * highP.Mean + interpolationFactor * lowP.Mean,

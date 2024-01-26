@@ -43,12 +43,12 @@ public abstract class MAModel<T>
     {
         double[] newValues = new double[oldValues.Length];
         for (int i = 0; i < Degrees; i++)
-            newValues[i] = oldValues[i];
+            newValues[i] = oldValues.UnsafeThis(i);
         for (int i = Degrees; i < newValues.Length; ++i)
         {
             double tmpAR = Mean;
             for (int j = 0; j < Degrees; ++j)
-                tmpAR += Coefficients.UnsafeThis(j) * residuals[i - j - 1];
+                tmpAR += Coefficients.UnsafeThis(j) * residuals.UnsafeThis(i - j - 1);
             newValues[i] = tmpAR;
         }
         return newValues;
