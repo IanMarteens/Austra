@@ -623,8 +623,16 @@ public abstract partial class CSequence
         {
             if (current < length)
             {
-                value = x;
-                y = unfold(value, x = y);
+                if (current == 0)
+                    value = x;
+                else if (current == 1)
+                    value = y;
+                else
+                {
+                    value = unfold(x, y);
+                    x = y;
+                    y = value;
+                }
                 current++;
                 return true;
             }
