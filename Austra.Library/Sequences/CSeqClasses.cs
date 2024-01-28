@@ -554,7 +554,13 @@ public abstract partial class CSequence
         {
             if (current < length)
             {
-                x = unfold(value = x);
+                if (current == 0)
+                    value = x;
+                else
+                {
+                    value = unfold(x);
+                    x = value;
+                }
                 current++;
                 return true;
             }
@@ -588,7 +594,14 @@ public abstract partial class CSequence
         {
             if (current < length)
             {
-                x = unfold(++current, value = x);
+                if (current == 0)
+                    value = x;
+                else
+                {
+                    value = unfold(current, x);
+                    x = value;
+                }
+                current++;
                 return true;
             }
             value = default;
