@@ -62,6 +62,12 @@ seq(v1^v2);         <markup><font color="DarkGreen">-- A sequence from a matrix.
 <b><font color="DarkCyan">seq::</font></b></markup>nrandom(10),   <markup><font color="DarkGreen">-- A sequence with 10 Gaussian random values.</font><br/>
 <b><font color="DarkCyan">seq::</font></b></markup>nrandom(10, 2) <markup><font color="DarkGreen">-- Ten normal samples with variance = 2.</font></markup>
 				  </code>
+				  <para>Real sequences created with just a lower and an upper bound are always based on integer bounds. For instance, these two expressions represent the same real sequence:</para>
+		          <code language="Austra">
+seq(1, 10);         <markup><font color="DarkGreen">-- Numbers from 1 to 10.</font></markup>
+seq(1.5, 10.6);     <markup><font color="DarkGreen">-- Numbers from 1 to 10, too.</font></markup>
+		          </code>
+				  <para>The reason for this rule is that these sequences have always one unit as their step. It is easier to reason about their behaviour knowing that their boundaries always are integer values.</para>
 				  <para>There are two additional class methods for generating <codeEntityReference qualifyHint="false" autoUpgrade="true" linkText="autoregressive">M:Austra.Library.DSequence.AR(System.Int32,System.Double,Austra.Library.DVector)</codeEntityReference>, AR(p), and <codeEntityReference qualifyHint="false" autoUpgrade="true" linkText="moving average">M:Austra.Library.DSequence.MA(System.Int32,System.Double,Austra.Library.DVector)</codeEntityReference>, MA(q), sequences:</para>
 		          <code language="Austra">
 <markup><font color="DarkGreen">-- An autoregressive (AR) process of order three.</font><br/>
@@ -70,6 +76,15 @@ seq(v1^v2);         <markup><font color="DarkGreen">-- A sequence from a matrix.
 -- The first term in the vector is the model's mean.</font><br/>
 <b><font color="DarkCyan">seq::</font></b></markup>ma(1000, 1, [0, 0.1, 0.05, 0.01])
 				  </code>
+				  <para>You can materialize the content of a sequence as a vector using the <codeInline>toVector</codeInline> property:</para>
+		          <code language="Austra">
+<markup><b><font color="DarkCyan">seq::</font></b></markup>random(10).toVector
+				  </code>
+              </content>
+		    </section>
+            <section address="seqUnfold">
+              <title>The unfold sequence generator</title>
+              <content>
 				  <para>Another class method for creating sequences is <codeInline>seq::unfold</codeInline> (see <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Unfold(System.Int32,System.Double,System.Double,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>), which has three variants:</para>
 		          <code language="Austra">
 <markup><font color="DarkGreen">-- Powers of 2, from 2 to 1024.</font><br/>
@@ -79,10 +94,33 @@ seq(v1^v2);         <markup><font color="DarkGreen">-- A sequence from a matrix.
 <markup><font color="DarkGreen">-- Real-valued Fibonacci sequence.</font><br/>
 <b><font color="DarkCyan">seq::</font></b></markup>unfold(50, 1, 1, (x, y) =&gt; x + y);
 				  </code>
-				  <para>You can materialize the content of a sequence as a vector using the <codeInline>toVector</codeInline> property:</para>
+				  <para>The unfold sequence generator is important for the language since it can express iterative behaviour in a language with no explicit loops and conditionals. The alternative to iteration is recursion, which is also provided by AUSTRA, but a recursive function is almost always more expensive, even in the presence of tail optimizations.</para>
+				  <para>Let us consider, for instance, how we would write a function for the greatest common divisor. When learning about function definitions, we saw that we could define a recursive function for this task:</para>
 		          <code language="Austra">
-<markup><b><font color="DarkCyan">seq::</font></b></markup>random(10).toVector
+<markup><font color="DarkGreen">-- The recursive version</font><br/>
+<b>def</b></markup> gcd1:<markup><font color="DarkRed">"Recursive GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
+    <markup><b>let</b></markup> rm = a % b <markup><b>in</b></markup>
+        iff(rm = 0, b, mcd(b, rm))
 				  </code>
+				  <para>This is a fine recursive definition that even is amenable to tail recursion optimization. Now compare with the iterative alternative:</para>
+		          <code language="Austra">
+<markup><font color="DarkGreen">-- -- The iterative version</font><br/>
+<b>def</b></markup> gcd2:<markup><font color="DarkRed">"Iterative GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
+    <markup><font color="DarkCyan">iseq::</font></markup>unfold(10000, a, b, (x, y) => x%y).while(x => x > 0).last
+				  </code>
+				  <para>Even though it looks more verbose, the second definition is almost twice faster than the recursive definition. Note, however, that we have used the class iseq instead of seq, so the property last directly returned an integer value. We could have kept seq by simply adding <codeInline>toInt</codeInline> after calling last:</para>
+		          <code language="Austra">
+<markup><b>def</b></markup> gcd3:<markup><font color="DarkRed">"Iterative GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
+    <markup><font color="DarkCyan">seq::</font></markup>unfold(10000, a, b, (x, y) => x%y).while(x => x > 0).last.toInt
+				  </code>
+				  <para>Still, the advantage of the iterative definition will be huge compared to the recursive definition.</para>
+				  <alert class="note">
+				  <para>Two things to have into account:</para>
+				  <list class="bullet">
+				  <listItem>Have we not included the <codeInline>while</codeInline> method, every call to that <codeInline>unfold</codeInline> sequence would end with failure as soon as the algorithm would have tried to divide by zero. The <codeInline>while</codeInline> method avoids that problem and gives as the value we need.</listItem>
+				  <listItem>The <codeInline>unfold</codeInline> generator requires a first parameter stating how many values to create. We could have devised a variant of unfold for creating infinite length sequence. I have preferred, however, to put the burden of picking a high enough value on your shoulders. It is security against convenience.</listItem>
+				  </list>
+				  </alert>
               </content>
           </section>
           <section address="seqMethods">
@@ -139,6 +177,7 @@ seq(v1^v2);         <markup><font color="DarkGreen">-- A sequence from a matrix.
  		    <entry><para>Combines two sequences using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Zip(Austra.Library.DSequence,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>.</para></entry>
 		  </row>
 		</table>
+		<para>As seen before, the <codeInline>while</codeInline> method excludes from its returning sequence the first value satisfying its predicate. On the contrary, <codeInline>until</codeInline> includes that very value in the returning sequence.</para>
 		<para>Properties are methods without parameters, that can be called without parentheses. These are the supported properties:</para>
 		<table>
  		  <row>
