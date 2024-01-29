@@ -134,7 +134,16 @@
             <title>Arrays in AUSTRA</title>
             <content>
               <para>One example about how AUSTRA tries to hide complexity from the user is how arrays are handled by the language. Arrays pervades the library. You need an array of reals to create a vector, an array of vectors to create a matrix, and another array of series to create a covariance matrix. But arrays do not match well with a functional programming style.</para>
-              <para>What AUSTRA does is accepting a variable number of parameters wherever a method needs an array parameter.</para>
+              <para>What AUSTRA does is accepting a variable number of parameters wherever a method needs an array parameter. This is, for instance, how AUSTRA creates a covariance matrix from a list of series:</para>
+              <code language="Austra">
+<markup><b><font color="DarkCyan">matrix::</font></b></markup>cov(aaa, aab, aac);
+<markup><b><font color="DarkCyan">matrix::</font></b></markup>cov(aaa, aab, aac, aad);
+              </code>
+              <para>And this is how we efficiently create a linear combination of three series, including an "intercept", that is, a constant additional term in the linear combination:</para>
+              <code language="Austra">
+<markup><b><font color="DarkCyan">series::</font></b></markup>new([0.1, 0.2, 0.3, 0.4], aaa, aab, aac);
+              </code>
+              <para>In both cases, the implementing code receives an array of series as its last parameter, and AUSTRA automatically gathers all series at the end of the method call in a single array.</para>
             </content>
           </section>
         </sections>

@@ -165,6 +165,7 @@ exp(π*i);
 vec(10)
             </code>
             <para>As the last example shows, when you call a <codeInline>new</codeInline> method on a class, you can omit the <codeInline>::new</codeInline> part and use just the class name as synonym.</para>
+            <para>This convention applies to every data type handled by AUSTRA.</para>
           </content>
         </section>
       </sections>

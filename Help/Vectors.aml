@@ -300,9 +300,9 @@ ans ∊ ℝ(3⨯3)
       <content>
 		<para>There's no special syntax for complex vector literals, but complex vectors can be easily created using the <codeInline>cvec::new</codeInline> class method and one or two vector constructors:</para>
         <code language="Austra">
-<markup><b><font color="DarkCyan">cvec::</font></b></markup>new([1 2 3 4], [4 3 2 1]);
+<markup><b><font color="DarkCyan">cvec::</font></b></markup>new([1, 2, 3, 4], [4, 3, 2, 1]);
 <markup><font color="DarkGreen">-- ::new can be omitted.</font></markup>
-cvec([1 2 3 4], [4 3 2 1])
+cvec([1, 2, 3, 4], [4, 3, 2, 1])
 		</code>
 		<para>These class methods are available for creating complex vectors:</para>
 		<table>
