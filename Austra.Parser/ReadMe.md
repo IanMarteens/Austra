@@ -1,6 +1,12 @@
 # Austra.Parser
 *Austra.Parser* is a layer above *Austra.Library* that implements a simple functional language for accessing the library. We will also call the language _Austra_ for simplicity.
 
+## How to use this package
+
+The best and shorter example about using this package is the [Austra REPL console](https://github.com/IanMarteens/Austra/tree/master/Austra.Repl), available at the Github repository for Austra. It's a very simple console application that reads a command and tries to evaluate it as a formula from the AUSTRA language. When succeeds, the returning values are displayed using their predefined `ToString` methods.
+
+The Austra REPL also allows to define variables and functions, and to load and save them to a JSON file. The JSON file is a simple dictionary that maps variable names to their values. The values are stored as strings, so they can be easily edited by hand.
+
 ## Some examples
 
 This fragment demonstrates how to create a random lower triangular matrix, how to multiply it by its transpose and how to compute its Cholesky decomposition. We also compute the maximum absolute difference between the original matrix and the product of the Cholesky decomposition with its transpose, to check the accuracy of the involved algorithms:
