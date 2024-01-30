@@ -7,6 +7,8 @@ The best and shorter example about using this package is the [Austra REPL consol
 
 The Austra REPL also allows to define variables and functions, and to load and save them to a JSON file. The JSON file is a simple dictionary that maps variable names to their values. The values are stored as strings, so they can be easily edited by hand.
 
+A more sophisticated WPF application it's also available at the [repository](https://github.com/IanMarteens/Austra/tree/master/Austra), but I suspect most the use cases for the parser will have to do with embedding a formula evaluator with steroids inside another desktop or web application.
+
 ## Some examples
 
 This fragment demonstrates how to create a random lower triangular matrix, how to multiply it by its transpose and how to compute its Cholesky decomposition. We also compute the maximum absolute difference between the original matrix and the product of the Cholesky decomposition with its transpose, to check the accuracy of the involved algorithms:
