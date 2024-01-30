@@ -278,6 +278,36 @@ e.values;
 <markup><font color="DarkGreen">-- An alternative representation of eigenvalues, using a real matrix.</font></markup>
 e.d
 		</code>
+		<para>A real matrix can have both real and complex eigenvalues, and that is why the values property of the decomposition is a complex vector. When there exists a complex eigenvalue, its complex conjugate is also an eigenvalue of the matrix. Aside from values, the eigenvalues are also returned in a d property, which is a real block diagonal matrix. Each real eigenvalue is placed in the main diagonal, and complex eigenvalues are represented as 2x2 blocks in the diagonal.</para>
+		<para>The best way to visualize how evd returns eigenvalues is to show an example. These are the eigenvalues of a 4x4 random matrix:</para>
+		<code language="Austra">
+> e.values
+ans ∊ ℂ(4)
+  &lt;2.02631; 0>
+  &lt;-0.229546; 0.093745>
+  &lt;-0.229546; -0.093745>
+  &lt;0.364586; 0>
+
+> e.d
+ans ∊ ℝ(4⨯4)
+  2.02631          0          0         0
+        0  -0.229546   0.093745         0
+        0  -0.093745  -0.229546         0
+        0          0          0  0.364586
+		</code>
+		<para>The second and third eigenvalues are a conjugated pair of complex numbers. See how they are represented in the block diagonal matrix, using four cells.</para>
+		<para>When <math>m</math> is a square matrix, the following mathematical equivalence must hold:</para>
+		<code language="Austra">
+m * m.evd.vectors = m.evd.vectors * m.evd.d
+		</code>
+		<para>In practice, however, we must take the lost of precision into account. For verifying an EVD, you can use this formula in AUSTRA:</para>
+		<code language="Austra">
+<markup><b>let</b></markup> m = matrix::random(32), e = m.evd <markup><b>in</b></markup>
+  (m * e.vectors - e.vectors * e.d).amax &lt;= 1e-12;
+<markup><b>let</b></markup> lm = matrix::lrandom(32), m = lm * lm', e = m.evd <markup><b>in</b></markup>
+  (m * e.vectors - e.vectors * e.d).amax &lt;= 1e-12;
+		</code>
+		<para>Symmetric matrices, as the one generated for the second example above, are decomposed using a more efficient algorithm, so Austra checks symmetry first, before applying any of these algorithms.</para>
       </content>
     </section>
     <relatedTopics>
