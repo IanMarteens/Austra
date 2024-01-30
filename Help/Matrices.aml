@@ -261,6 +261,25 @@ mat[^1, 1..^1]
 		</code>
       </content>
     </section>
+    <section address="evd">
+      <title>Eigenvalues Decomposition</title>
+      <content>
+		<para>An eigenvalue <codeInline>λ</codeInline> and its associated eigenvector <codeInline>ν</codeInline> are any pair of values that satisfy this equation for a square matrix <codeInline>M</codeInline>:</para>
+		<para><math>Mν=λv</math></para>
+		<para>It means that, when the matrix transforms an eigenvector, the result is the same vector, except for a scale factor.</para>
+		<para>The Eigenvalue Decomposition of a matrix is an algorithm that identifies all the pairs of eigenvalues and eigenvector for a given square matrix. You can efficiently find eigenvalues and eigenvectors in AUSTRA applying the <codeInline>evd</codeInline> method on a matrix:</para>
+		<code language="Austra">
+<markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
+<markup><b>let</b></markup> e = mat.evd;
+<markup><font color="DarkGreen">-- This is a matrix with all eigenvectors as columns.</font></markup>
+e.vectors;
+<markup><font color="DarkGreen">-- This is a complex vectors with all eigenvalues.</font></markup>
+e.values;
+<markup><font color="DarkGreen">-- An alternative representation of eigenvalues, using a real matrix.</font></markup>
+e.d
+		</code>
+      </content>
+    </section>
     <relatedTopics>
 	  <codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>

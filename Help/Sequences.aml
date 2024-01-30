@@ -126,117 +126,117 @@ seq(1.5, 10.6);     <markup><font color="DarkGreen">-- Numbers from 1 to 10, too
           <section address="seqMethods">
               <title>Methods and properties</title>
               <content>
-                  <para>These are the methods that can be used with a sequence:</para>
-		<table>
- 		  <row>
- 		    <entry><para><codeInline>all</codeInline></para></entry>
- 		    <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>any</codeInline></para></entry>
- 		    <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>ar</codeInline></para></entry>
- 		    <entry><para>Estimates coefficients for an AR(p) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.AutoRegression(System.Int32)</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>arModel</codeInline></para></entry>
- 		    <entry><para>Creates a full AR(p) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.ARModel(System.Int32)</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>filter</codeInline></para></entry>
- 		    <entry><para>Returns items of the original sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Filter(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>ma</codeInline></para></entry>
- 		    <entry><para>Estimates coefficients for an MA(q) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.MovingAverage(System.Int32)</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>maModel</codeInline></para></entry>
- 		    <entry><para>Creates a full MA(q) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.MAModel(System.Int32)</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>map</codeInline></para></entry>
- 		    <entry><para>Transforms items with the help of a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Map(System.Func{System.Double,System.Double})</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>reduce</codeInline></para></entry>
- 		    <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>until</codeInline></para></entry>
- 		    <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>while</codeInline></para></entry>
- 		    <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>zip</codeInline></para></entry>
- 		    <entry><para>Combines two sequences using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Zip(Austra.Library.DSequence,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>.</para></entry>
-		  </row>
-		</table>
-		<para>As seen before, the <codeInline>while</codeInline> method excludes from its returning sequence the first value satisfying its predicate. On the contrary, <codeInline>until</codeInline> includes that very value in the returning sequence.</para>
-		<para>Properties are methods without parameters, that can be called without parentheses. These are the supported properties:</para>
-		<table>
- 		  <row>
- 		    <entry><para><codeInline>distinct</codeInline></para></entry>
- 		    <entry><para>Select unique values in the sequence, with no predefined order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Distinct</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>fft</codeInline></para></entry>
- 		    <entry><para>Calculates a Fast Fourier Transform. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Fft</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>first</codeInline></para></entry>
- 		    <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.First</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>last</codeInline></para></entry>
- 		    <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Last</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>length</codeInline></para></entry>
- 		    <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Length</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>max</codeInline></para></entry>
- 		    <entry><para>Get the maximum value in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Max</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>min</codeInline></para></entry>
- 		    <entry><para>Get the minimum value in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Min</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>plot</codeInline></para></entry>
- 		    <entry><para>Plots the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Plot</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>prod</codeInline></para></entry>
- 		    <entry><para>Multiplies all values in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Product</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>sort</codeInline></para></entry>
- 		    <entry><para>Sorts values in ascending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Sort</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>sortDesc</codeInline></para></entry>
- 		    <entry><para>Sorts values in descending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.SortDescending</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>stats</codeInline></para></entry>
- 		    <entry><para>Gets all statistic moments of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Stats</codeEntityReference>.</para></entry>
-		  </row>		  
- 		  <row>
- 		    <entry><para><codeInline>sum</codeInline></para></entry>
- 		    <entry><para>Sums all values in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Sum</codeEntityReference>.</para></entry>
-		  </row>
- 		  <row>
- 		    <entry><para><codeInline>toVector</codeInline></para></entry>
- 		    <entry><para>Materializes the sequence into a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.ToVector</codeEntityReference>.</para></entry>
-		  </row>
-		</table>
+				<para>These are the properties supported by sequences of real values:</para>
+				<table>
+		 		  <row>
+		 		    <entry><para><codeInline>distinct</codeInline></para></entry>
+	 			    <entry><para>Select unique values in the sequence, with no predefined order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Distinct</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+	 			    <entry><para><codeInline>fft</codeInline></para></entry>
+	 			    <entry><para>Calculates a Fast Fourier Transform. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Fft</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+	 			    <entry><para><codeInline>first</codeInline></para></entry>
+	 		    	<entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.First</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+	 			    <entry><para><codeInline>last</codeInline></para></entry>
+			    	<entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Last</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+	 			    <entry><para><codeInline>length</codeInline></para></entry>
+	 			    <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Length</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+	 			    <entry><para><codeInline>max</codeInline></para></entry>
+	 		    	<entry><para>Get the maximum value in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Max</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+	 			    <entry><para><codeInline>min</codeInline></para></entry>
+	 		    	<entry><para>Get the minimum value in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Min</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+	 			    <entry><para><codeInline>plot</codeInline></para></entry>
+	 		    	<entry><para>Plots the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Plot</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+	 			    <entry><para><codeInline>prod</codeInline></para></entry>
+	 		    	<entry><para>Multiplies all values in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Product</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+	 			    <entry><para><codeInline>sort</codeInline></para></entry>
+		 		    <entry><para>Sorts values in ascending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Sort</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+		 		    <entry><para><codeInline>sortDesc</codeInline></para></entry>
+	 			    <entry><para>Sorts values in descending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.SortDescending</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+	 			    <entry><para><codeInline>stats</codeInline></para></entry>
+	 			    <entry><para>Gets all statistic moments of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Stats</codeEntityReference>.</para></entry>
+				  </row>		  
+	 			  <row>
+	 			    <entry><para><codeInline>sum</codeInline></para></entry>
+	 		    	<entry><para>Sums all values in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Sum</codeEntityReference>.</para></entry>
+				  </row>
+	 			  <row>
+	 			    <entry><para><codeInline>toVector</codeInline></para></entry>
+	 		    	<entry><para>Materializes the sequence into a vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.ToVector</codeEntityReference>.</para></entry>
+				  </row>
+				</table>
+                <para>These are the methods that can be used with a sequence of real values:</para>
+				<table>
+		 		  <row>
+		 		    <entry><para><codeInline>all</codeInline></para></entry>
+		 		    <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>any</codeInline></para></entry>
+		 		    <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>ar</codeInline></para></entry>
+		 		    <entry><para>Estimates coefficients for an AR(p) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.AutoRegression(System.Int32)</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>arModel</codeInline></para></entry>
+		 		    <entry><para>Creates a full AR(p) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.ARModel(System.Int32)</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>filter</codeInline></para></entry>
+		 		    <entry><para>Returns items of the original sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Filter(System.Func{System.Double,System.Boolean})</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>ma</codeInline></para></entry>
+		 		    <entry><para>Estimates coefficients for an MA(q) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.MovingAverage(System.Int32)</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>maModel</codeInline></para></entry>
+		 		    <entry><para>Creates a full MA(q) model. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.MAModel(System.Int32)</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>map</codeInline></para></entry>
+		 		    <entry><para>Transforms items with the help of a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Map(System.Func{System.Double,System.Double})</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>reduce</codeInline></para></entry>
+		 		    <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>until</codeInline></para></entry>
+		 		    <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>while</codeInline></para></entry>
+		 		    <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>zip</codeInline></para></entry>
+		 		    <entry><para>Combines two sequences using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Zip(Austra.Library.DSequence,System.Func{System.Double,System.Double,System.Double})</codeEntityReference>.</para></entry>
+				  </row>
+				</table>
+				<para>As seen before, the <codeInline>while</codeInline> method excludes from its returning sequence the first value satisfying its predicate. On the contrary, <codeInline>until</codeInline> includes that very value in the returning sequence.</para>
               </content>
           </section>
           <section address="seqOps">
