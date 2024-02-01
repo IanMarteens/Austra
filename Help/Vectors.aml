@@ -637,6 +637,19 @@ vec[^5..^2].length = 3
 		</code>
       </content>
     </section>
+    <section address="vecfft">
+      <title>The Fast Fourier Transform</title>
+      <content>
+		<para>AUSTRA provides a Discrete Fourier Transform for real and complex vectors, sequences, and series. The core result of the transformation, which is implemented by the <codeInline>fft</codeInline> property is a complex vector, but this vector is commonly wrapped inside a <codeInline>FftModel</codeInline> class instance, which provides additional helping methods and properties and, among them, a method for inverting the transform and getting back the original samples.</para>
+		<para>The other function of <codeInline>FftModel</codeInline> is to act a semantic marker on behalf of any application that is using the AUSTRA parser. When you execute something like <codeInline>aaa.fft</codeInline> in the Austra Desktop application, where <codeInline>aaa</codeInline> is a time series, you get a special view for the Fast Fourier Transform based on the returned <codeInline>FftModel</codeInline>:</para>
+        <mediaLink>
+			<image placement="near" xlink:href="fft1"/>
+		</mediaLink>
+		<para>The first line tells us we are seeing a Fast Fourier Transform that has transformed 583 real samples into a complex spectrum containing 291 complex values. Since there is not a pretty and effective way to draw those complex values, the chart that follows shows the amplitudes of those values, and gives us the option to also see their phases.</para>
+		<para>If we immediately type and execute <codeInline>ans.inverse</codeInline>, we would get not the original series, because the date arguments has been discarded by the FFT, but a vector with the original values or coordinates of the time series. The key in the recon-struction is that the <codeInline>FftModel</codeInline> keeps track of the fact that the FFT was created from a vector of reals instead of from a vector of complex numbers.</para>
+
+      </content>
+    </section>
     <relatedTopics>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
