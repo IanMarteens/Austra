@@ -103,6 +103,10 @@
       <ImageId>d001</ImageId>
       <AlternateText>d 001</AlternateText>
     </Image>
+    <Image Include="fft2.png">
+      <ImageId>fft2</ImageId>
+      <AlternateText>fft 2</AlternateText>
+    </Image>
     <Image Include="fft1.png">
       <ImageId>fft1</ImageId>
       <AlternateText>fft 1</AlternateText>

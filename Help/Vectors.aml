@@ -647,7 +647,46 @@ vec[^5..^2].length = 3
 		</mediaLink>
 		<para>The first line tells us we are seeing a Fast Fourier Transform that has transformed 583 real samples into a complex spectrum containing 291 complex values. Since there is not a pretty and effective way to draw those complex values, the chart that follows shows the amplitudes of those values, and gives us the option to also see their phases.</para>
 		<para>If we immediately type and execute <codeInline>ans.inverse</codeInline>, we would get not the original series, because the date arguments has been discarded by the FFT, but a vector with the original values or coordinates of the time series. The key in the recon-struction is that the <codeInline>FftModel</codeInline> keeps track of the fact that the FFT was created from a vector of reals instead of from a vector of complex numbers.</para>
-
+		<para>Let us check now how our FFT handles a complex vector. For making things a little more interesting this time, we are going to start with this formula:</para>
+		<code language="Austra">
+(<markup><b><font color="DarkCyan">cvec::</font></b></markup>nrandom(1024) + cvec(1024, i => 0.6*sin(i*0.2))).fft
+		</code>
+		<para>There is a noisy component, based on a normal distribution, and then we add a shameless periodic function, affecting just the real part of the complex vector. The first thing we can predict is that the FFT will not have a big zero component: the zero component of any Discrete Fourier Transform is known as the DC, or Direct Current component, in electronic jargon, because it represents the mean of the samples. Our new mean will be insignificant, because the normal distribution generates both positive and negative terms, and the corresponding plot confirms our suspicions:</para>
+        <mediaLink>
+			<image placement="near" xlink:href="fft2"/>
+		</mediaLink>
+		<para>This time, the number of samples in the transform is the same number of original samples. It is immediately obvious that there is a periodic component in the samples, which shows as two symmetric peaks at the beginning and end of the spectrum. And, if we immediately execute <codeInline>ans.inverse</codeInline>, we get back the original complex vector, with all its samples.</para>
+		<sections>
+		  <section address="fftProps">
+		    <title>FFT properties and indexer</title>
+		    <content>
+		    <para>For the sake of clarity, let us group all properties available for FFT models:</para>
+			<table>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>amplitudes</codeInline></para></entry>
+ 		    	<entry>Gets the amplitudes, or magnitudes, of the transformation numbers.</entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>inverse</codeInline></para></entry>
+ 		    	<entry>Performs the inverse transformation for the full spectrum. The algorithm used depends on the kind of source of the transformation.</entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>length</codeInline></para></entry>
+ 		    	<entry>Number of samples in the transformation result.</entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>phases</codeInline></para></entry>
+ 		    	<entry>Gets the phases of the transformation numbers.</entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>values</codeInline></para></entry>
+ 		    	<entry>The full spectrum of the transformation, as a complex vector.</entry>
+		  	  </row>
+			</table>
+			<para>The <codeInline>FftModel</codeInline> class also implements an indexer and allows the use of slices and relative indexes.</para>
+		    </content>
+		  </section>
+		</sections>
       </content>
     </section>
     <relatedTopics>
