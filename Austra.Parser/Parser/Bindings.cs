@@ -1393,13 +1393,10 @@ internal sealed partial class Bindings
         static ReadOnlySpan<char> ExtractObjectPath(string text)
         {
             int i = text.Length - 1;
-            for (ref char c = ref Unsafe.As<Str>(text).FirstChar; i >= 0;)
+            for (ref char c = ref Unsafe.As<Str>(text).FirstChar; i >= 0; i--)
             {
                 char ch = Unsafe.Add(ref c, i);
-                if (char.IsLetterOrDigit(ch) || ch is '_' or '.' or ':' or '=' or '\''
-                    || char.IsWhiteSpace(ch))
-                    i--;
-                else if (ch is '(' or '[')
+                if (ch is '(' or '[')
                     return text.AsSpan()[(i + 1)..];
                 else if (ch == ')')
                 {
@@ -1411,7 +1408,6 @@ internal sealed partial class Bindings
                             break;
                     if (count > 0)
                         return [];
-                    i--;
                 }
                 else if (ch == ']')
                 {
@@ -1423,9 +1419,9 @@ internal sealed partial class Bindings
                             break;
                     if (count > 0)
                         return [];
-                    i--;
                 }
-                else
+                else if (!char.IsLetterOrDigit(ch) && ch is not '_' or '.' or ':' or '='
+                    && !char.IsWhiteSpace(ch))
                     break;
             }
             return text.AsSpan()[(i + 1)..].Trim();

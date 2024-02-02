@@ -3,129 +3,35 @@ using static System.Runtime.CompilerServices.Unsafe;
 
 namespace Austra.Parser;
 
-/// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
-internal sealed partial class Parser : IDisposable
+/// <summary>The part of <see cref="Parser"/> that deals with lexical analysis.</summary>
+internal class Scanner
 {
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] VectorVectorArg = [typeof(DVector), typeof(DVector)];
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] DoubleVectorArg = [typeof(double), typeof(DVector)];
-
-    /// <summary>Constructor for <see cref="Index"/>.</summary>
-    private static readonly ConstructorInfo IndexCtor =
-        typeof(Index).GetConstructor([typeof(int), typeof(bool)])!;
-    /// <summary>Constructor for <see cref="Range"/>.</summary>
-    private static readonly ConstructorInfo RangeCtor =
-        typeof(Range).GetConstructor([typeof(Index), typeof(Index)])!;
-    /// <summary>The <see cref="Expression"/> for <see langword="false"/>.</summary>
-    private static readonly ConstantExpression FalseExpr = Expression.Constant(false);
-    /// <summary>The <see cref="Expression"/> for <see langword="true"/>.</summary>
-    private static readonly ConstantExpression TrueExpr = Expression.Constant(true);
-    /// <summary>The <see cref="Expression"/> for <c>0</c>.</summary>
-    private static readonly ConstantExpression ZeroExpr = Expression.Constant(0);
-    /// <summary>The <see cref="Expression"/> for <see cref="Complex.ImaginaryOne"/>.</summary>
-    private static readonly ConstantExpression ImExpr = Expression.Constant(Complex.ImaginaryOne);
-    /// <summary>The <see cref="Expression"/> for <see cref="Math.PI"/>.</summary>
-    private static readonly ConstantExpression PiExpr = Expression.Constant(Math.PI);
-    /// <summary>The <see cref="Expression"/> for <see langword="null"/>.</summary>
-    private static readonly ConstantExpression NullExpr = Expression.Constant(null);
-    /// <summary>Reference to the <see cref="Random.Shared"/> property.</summary>
-    private static readonly Expression RandomExpr =
-        Expression.Property(null, typeof(Random), nameof(Random.Shared));
-    /// <summary>Method for multiplying by a transposed matrix.</summary>
-    private static readonly MethodInfo MatrixMultiplyTranspose =
-        typeof(Matrix).GetMethod(nameof(Matrix.MultiplyTranspose), [typeof(Matrix)])!;
-    /// <summary>Method for multiplying a vector by a transposed matrix.</summary>
-    private static readonly MethodInfo MatrixTransposeMultiply =
-        typeof(Matrix).Get(nameof(Matrix.TransposeMultiply));
-    /// <summary>Method for linear vector combinations.</summary>
-    private static readonly MethodInfo VectorCombine2 =
-        typeof(DVector).GetMethod(nameof(DVector.Combine2),
-            [typeof(double), typeof(double), typeof(DVector), typeof(DVector)])!;
-    /// <summary>Method for linear vector combinations.</summary>
-    private static readonly MethodInfo MatrixCombine =
-        typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
-            [typeof(DVector), typeof(double), typeof(DVector)])!;
-    /// <summary>Method for squaring a matrix.</summary>
-    private static readonly MethodInfo MatrixSquare =
-        typeof(Matrix).GetMethod(nameof(Matrix.Square))!;
-    /// <summary>Method for squaring a lower-triangular matrix.</summary>
-    private static readonly MethodInfo LMatrixSquare =
-        typeof(LMatrix).GetMethod(nameof(LMatrix.Square))!;
-    /// <summary>Method for squaring an upper-triangular matrix.</summary>
-    private static readonly MethodInfo RMatrixSquare =
-        typeof(RMatrix).GetMethod(nameof(RMatrix.Square))!;
-    /// <summary>Method for cloning complex sequences.</summary>
-    private static readonly MethodInfo CSeqClone =
-        typeof(CSequence).GetMethod(nameof(CSequence.Clone))!;
-    /// <summary>Method for cloning real sequences.</summary>
-    private static readonly MethodInfo DSeqClone =
-        typeof(DSequence).GetMethod(nameof(DSequence.Clone))!;
-    /// <summary>Method for cloning integer sequences.</summary>
-    private static readonly MethodInfo NSeqClone =
-        typeof(NSequence).GetMethod(nameof(NSequence.Clone))!;
-
-    /// <summary>Predefined classes and methods.</summary>
-    private readonly Bindings bindings;
-    /// <summary>Gets the outer scope for variables.</summary>
-    private readonly IDataSource source;
-    /// <summary>Place holder for lambda arguments, if any.</summary>
-    private LambdaBlock lambdaBlock;
-    /// <summary>The text being scanned.</summary>
-    private readonly string text;
-    /// <summary>Referenced definitions.</summary>
-    private readonly HashSet<Definition> references = [];
-
-    /// <summary>All top-level locals, from LET clauses.</summary>
-    private readonly List<ParameterExpression> letLocals = new(8);
-    /// <summary>Top-level local asignment expressions.</summary>
-    private readonly List<Expression> letExpressions;
-    /// <summary>Transient local variable definitions.</summary>
-    /// <remarks>
-    /// This data structure is redundant with respect to <see cref="letLocals"/>, but
-    /// it's faster to search, while <see cref="letLocals"/> is needed for code generation.
-    /// </remarks>
-    private readonly Dictionary<string, ParameterExpression> locals =
-        new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>User-defined lambdas, indexed by name.</summary>
-    private readonly Dictionary<string, ParameterExpression> localLambdas =
-        new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>Top-level SET expressions.</summary>
-    private readonly List<Expression> setExpressions;
-    /// <summary>New session variables that are not yet defined in the data source.</summary>
-    private readonly Dictionary<string, Expression> pendingSets =
-        new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>Controls that only persisted values are used.</summary>
-    private bool isParsingDefinition;
-    /// <summary>Are we parsing a lambda header?</summary>
-    private bool parsingLambdaHeader;
-    /// <summary>Is the current definition a recursive function?</summary>
-    private bool isDefRecursive;
-
     /// <summary>Used by the scanner to build string literals.</summary>
     private StringBuilder? sb;
+
+    /// <summary>The text being scanned.</summary>
+    protected readonly string text;
     /// <summary>Gets the type of the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    private Token kind;
+    protected Token kind;
     /// <summary>Gets the start position of the current lexeme.</summary>
     /// <remarks>
     /// <para>Updated by the <see cref="Move"/> method.</para>
     /// <para><see cref="start"/> is always lesser than <see cref="lexCursor"/>.</para>
     /// </remarks>
-    private int start;
+    protected int start;
     /// <summary>Gets the string associated with the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    private string id = "";
+    protected string id = "";
     /// <summary>Value of the current lexeme as a real number.</summary>
-    private double asReal;
+    protected double asReal;
     /// <summary>Value of the lexeme as an integer.</summary>
-    private int asInt;
+    protected int asInt;
     /// <summary>Value of the lexeme as a date literal.</summary>
-    private Date asDate;
+    protected Date asDate;
     /// <summary>Current position in the text.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
-    private int lexCursor;
+    protected int lexCursor;
     /// <summary>Position where the parsing should be aborted.</summary>
     /// <remarks>
     /// This is checked by the scanner to throw an <see cref="AbortException"/>
@@ -134,33 +40,18 @@ internal sealed partial class Parser : IDisposable
     /// the <see cref="Error(string)"/> helper creates also an <see cref="AbortException"/>
     /// instead of an <see cref="AstException"/>, that can be easily dismissed when debugging.
     /// </remarks>
-    private int abortPosition = int.MaxValue;
-    /// <summary>Used for recursive definitions.</summary>
-    private ParameterExpression? currentDefinitionLambda;
+    protected int abortPosition = int.MaxValue;
 
-    /// <summary>Initializes a parsing context.</summary>
-    /// <param name="bindings">Predefined classes and methods.</param>
-    /// <param name="source">Environment variables.</param>
-    /// <param name="text">Text of the formula.</param>
-    public Parser(Bindings bindings, IDataSource source, string text)
+    /// <summary>Initializes a scanning context with the given text.</summary>
+    /// <param name="text">Text to scan or parse.</param>
+    public Scanner(string text)
     {
-        (this.bindings, this.source, this.text, lambdaBlock,
-            letExpressions, setExpressions)
-            = (bindings, source, text, bindings.LambdaBlock,
-                source.Rent(8), source.Rent(8));
+        this.text = text;
         Move();
     }
 
-    /// <summary>Returns allocated resources to the pool, in the data source.</summary>
-    public void Dispose()
-    {
-        lambdaBlock.Clean();
-        source.Return(setExpressions);
-        source.Return(letExpressions);
-    }
-
     /// <summary>Skips two tokens with a single call.</summary>
-    private void SkipFunctor()
+    protected void SkipFunctor()
     {
         if (kind == Token.Functor) lexCursor++; else lexCursor += 2;
         Move();
@@ -173,7 +64,7 @@ internal sealed partial class Parser : IDisposable
     /// <param name="errorMessage">Error message to use in the exception.</param>
     /// <exception cref="AstException">Thrown when the token doesn't match.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void CheckAndMove(Token kind, string errorMessage)
+    protected void CheckAndMove(Token kind, string errorMessage)
     {
         if (this.kind != kind)
             throw Error(errorMessage);
@@ -181,7 +72,7 @@ internal sealed partial class Parser : IDisposable
     }
 
     /// <summary>Advances the lexical analyzer one token.</summary>
-    private void Move()
+    protected void Move()
     {
         if (lexCursor >= abortPosition)
             throw new AbortException("Aborted by the scanner");
@@ -501,7 +392,7 @@ internal sealed partial class Parser : IDisposable
     /// <param name="text">Text span to analyze.</param>
     /// <param name="date">When succeeds, returns the first date of the month.</param>
     /// <returns><see langword="true"/> if succeeds.</returns>
-    private static bool TryParseMonthYear(ReadOnlySpan<char> text, out Date date)
+    protected static bool TryParseMonthYear(ReadOnlySpan<char> text, out Date date)
     {
         if (text.Length >= 5)
         {
@@ -561,111 +452,18 @@ internal sealed partial class Parser : IDisposable
             : throw new AstException("Invalid day of month", position);
     }
 
-    /// <summary>Checks if the expression's type is either a double or an integer.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsArithmetic(Expression e) =>
-        e.Type == typeof(int) || e.Type == typeof(double);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsMatrix(Expression e) =>
-        e.Type.IsAssignableTo(typeof(IMatrix));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsVector(Expression e) =>
-        e.Type.IsAssignableTo(typeof(IVector));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsIntVecOrSeq(Expression e) =>
-        e.Type == typeof(NVector) || e.Type == typeof(NSequence);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Expression ToDouble(Expression e) =>
-        e.Type != typeof(int)
-        ? e
-        : e is ConstantExpression constExpr
-        ? Expression.Constant((double)(int)constExpr.Value!)
-        : Expression.Convert(e, typeof(double));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Expression IntToDouble(Expression e) =>
-        e is ConstantExpression constExpr
-        ? Expression.Constant((double)(int)constExpr.Value!)
-        : Expression.Convert(e, typeof(double));
-
-    private static bool DifferentTypes(ref Expression e1, ref Expression e2)
-    {
-        if (e1.Type != e2.Type)
-        {
-            if (e1.Type == typeof(Complex) && IsArithmetic(e2))
-                e2 = Expression.Convert(e2, typeof(Complex));
-            else if (e2.Type == typeof(Complex) && IsArithmetic(e1))
-                e1 = Expression.Convert(e1, typeof(Complex));
-            else
-            {
-                if (!IsArithmetic(e1) || !IsArithmetic(e2))
-                    return true;
-                (e1, e2) = (ToDouble(e1), ToDouble(e2));
-            }
-        }
-        return false;
-    }
-
-    /// <summary>Gets a regex that matches a lambda header with one parameter.</summary>
-    [GeneratedRegex(@"^\w+\s*\=\>")]
-    private static partial Regex LambdaHeader1();
-
-    /// <summary>Gets a regex that matches a lambda header with two parameters.</summary>
-    [GeneratedRegex(@"^\(\s*\w+\s*\,\s*\w+\s*\)\s*\=\>")]
-    private static partial Regex LambdaHeader2();
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool IsLambda() => kind switch
-    {
-        Token.ClassName => IsQualifiedLambdaFunctor(),
-        Token.Id => LambdaHeader1().IsMatch(text.AsSpan()[start..])
-        || bindings.ContainsClassMethod("math." + id),
-        _ => LambdaHeader2().IsMatch(text.AsSpan()[start..]),
-    };
-
-    private bool IsQualifiedLambdaFunctor()
-    {
-        int saveCursor = lexCursor;
-        string saveClassName = id;
-        try
-        {
-            SkipFunctor();
-            return kind == Token.Id && bindings.ContainsClassMethod(saveClassName + "." + id);
-        }
-        finally
-        {
-            // Backtrack to the original position.
-            lexCursor = saveCursor;
-            id = saveClassName;
-            kind = Token.ClassName;
-        }
-    }
-
-    public Type BindResultType(List<ParameterExpression> parameters, Type retType) =>
-        parameters.Count switch
-        {
-            0 => typeof(Func<>).MakeGenericType(retType),
-            1 => typeof(Func<,>).MakeGenericType(parameters[0].Type, retType),
-            2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type)
-                .Concat([retType]).ToArray()),
-            3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                .Concat([retType]).ToArray()),
-            4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                .Concat([retType]).ToArray()),
-            5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                .Concat([retType]).ToArray()),
-            _ => throw Error("Unsupported number of arguments")
-        };
-
+    /// <summary>Creates an exception pointing to a given position in the text.</summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="position">The position in the text.</param>
+    /// <returns>The resulting exception.</returns>
     internal Exception Error(string message, int position) =>
         abortPosition == int.MaxValue
         ? new AstException(message, position)
         : new AbortException(message);
 
+    /// <summary>Creates an exception pointing to the current position in the text.</summary>
+    /// <param name="message">The error message.</param>
+    /// <returns>The resulting exception.</returns>
     internal Exception Error(string message) =>
         abortPosition == int.MaxValue
         ? new AstException(message, start)
