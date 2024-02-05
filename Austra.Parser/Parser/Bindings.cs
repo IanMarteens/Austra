@@ -412,6 +412,13 @@ internal sealed class Bindings
                 new("rows", "Gets the number of rows"),
                 new("trace", "Gets the sum of the main diagonal"),
             ],
+            [typeof(LU)] = [
+                new("det", "Gets the determinant of the decomposed matrix"),
+                new("lower", "Gets the lower triangular matrix of the LU decomposition"),
+                new("size", "Dimensions of the LU decomposition"),
+                new("upper", "Gets the upper triangular matrix of the LU decomposition"),
+                new("solve(", "Solves a linear equation involving a vector or a matrix"),
+            ],
             [typeof(MASModel)] = [
                 new("coefficients", "Gets the autoregression coefficients"),
                 new("mean", "Gets the independent term of the model"),
@@ -431,6 +438,7 @@ internal sealed class Bindings
                 new("diag", "Extracts the diagonal as a vector"),
                 new("evd", "Calculates the EigenValues Decomposition"),
                 new("inverse", "Calculates the inverse of a square matrix"),
+                new("lu", "Calculates the LU Decomposition of a square matrix"),
                 new("max", "Gets the maximum value"),
                 new("min", "Gets the minimum absolute value"),
                 new("rows", "Gets the number of rows"),
@@ -1035,6 +1043,13 @@ internal sealed class Bindings
             [new(typeof(LMatrix), "rows")] = typeof(LMatrix).Prop(nameof(LMatrix.Rows)),
             [new(typeof(LMatrix), "trace")] = typeof(LMatrix).Get(nameof(LMatrix.Trace)),
 
+            [new(typeof(LU), "det")] = typeof(LU).Get(nameof(LU.Determinant)),
+            [new(typeof(LU), "l")] = typeof(LU).Prop(nameof(LU.L)),
+            [new(typeof(LU), "lower")] = typeof(LU).Prop(nameof(LU.L)),
+            [new(typeof(LU), "size")] = typeof(LU).Prop(nameof(LU.Size)),
+            [new(typeof(LU), "u")] = typeof(LU).Prop(nameof(LU.U)),
+            [new(typeof(LU), "upper")] = typeof(LU).Prop(nameof(LU.U)),
+
             [new(typeof(MASModel), "coeff")] = typeof(MASModel).Prop(nameof(MASModel.Coefficients)),
             [new(typeof(MASModel), "coefficients")] = typeof(MASModel).Prop(nameof(MASModel.Coefficients)),
             [new(typeof(MASModel), "mean")] = typeof(MASModel).Prop(nameof(MASModel.Mean)),
@@ -1055,6 +1070,7 @@ internal sealed class Bindings
             [new(typeof(Matrix), "inverse")] = typeof(Matrix).Get(nameof(Matrix.Inverse)),
             [new(typeof(Matrix), "issym")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
             [new(typeof(Matrix), "issymmetric")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
+            [new(typeof(Matrix), "lu")] = typeof(Matrix).Get(nameof(Matrix.LU)),
             [new(typeof(Matrix), "max")] = typeof(Matrix).Get(nameof(Matrix.Maximum)),
             [new(typeof(Matrix), "min")] = typeof(Matrix).Get(nameof(Matrix.Minimum)),
             [new(typeof(Matrix), "rows")] = typeof(Matrix).Prop(nameof(Matrix.Rows)),
@@ -1318,6 +1334,9 @@ internal sealed class Bindings
             [new(typeof(DVector), "indexof")] = new(
                 typeof(DVector).MD(nameof(DVector.IndexOf), DArg),
                 typeof(DVector).MD(nameof(DVector.IndexOf), typeof(double), typeof(int))),
+            [new(typeof(LU), "solve")] = new(
+                typeof(LU).MD(nameof(LU.Solve), typeof(DVector)),
+                typeof(LU).MD(nameof(LU.Solve), typeof(Matrix))),
             [new(typeof(NSequence), "until")] = new(
                 typeof(NSequence).MD(nameof(NSequence.Until), typeof(Func<int, bool>)),
                 typeof(NSequence).MD(nameof(NSequence.Until), NArg)),
@@ -1374,7 +1393,7 @@ internal sealed class Bindings
                     scanner.Move();
                 if (scanner.Kind == Token.In)
                     continue;
-                newText.Append(text[from..(semicolons[i] - from + 2)]);
+                newText.Append(text[from..(semicolons[i] + 1)]);
             }
             else if (scanner.Kind == Token.Set)
             {

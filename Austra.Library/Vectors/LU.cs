@@ -376,13 +376,15 @@ public readonly struct LU : IFormattable
 
     /// <summary>Gets a textual representation of this decomposition.</summary>
     /// <returns>One line for each row, with space separated columns.</returns>
-    public override string ToString() =>
-        values.ToString(Rows, Cols, v => v.ToString("G6"), 0);
+    public override string ToString() => ToString("G6", null);
 
     /// <summary>Gets a textual representation of this matrix.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
-        values.ToString(Rows, Cols, v => v.ToString(format, provider), 0);
+        $"Lower ∊ ℝ({Size}⨯{Size}):" + Environment.NewLine +
+        ((double[])L).ToString(Rows, Cols, v => v.ToString(format, provider), -1) +
+        Environment.NewLine + $"Upper ∊ ℝ({Size}⨯{Size}):" + Environment.NewLine +
+        ((double[])(Matrix)U).ToString(Rows, Cols, v => v.ToString(format, provider), +1);
 }
