@@ -20,9 +20,17 @@
     s[appl.last.date - 15]
 		</code>
 		<para>The example creates a spline based on the series values, and then the spline is used to interpolate the value fifteen days before the last date stored in the series.</para>
-		<alert class="note">
-			<para>Interpolation for daily series does not have much sense from the AUSTRA language, since our <codeInline>date</codeInline> type does not include a time.</para>
-		</alert>
+		<para>At a first glance, it may seem than interpolating a daily series does not make sense, since AUSTRA dates do not include a time fraction. Nevertheless:</para>
+		<list class="bullet">
+		<listItem>Even daily series have gaps corresponding to holidays.</listItem>
+		<listItem>You can still use a real value for interpolating a spline with date arguments.</listItem>
+		</list>
+		<para>The following formula, for example, finds what would be the value at a middle time between two consecutive dates:</para>
+		<code language="Austra">
+<markup><b>let</b></markup> s = spline(appl) <markup><b>let</b></markup>
+    s[4@jul20.toInt + 0.5]
+        </code>
+		<para>We are adding half of a day, i.e., twelve hours, to the numerical equivalent of a date, if the stored values in the time series corresponds to each day’s midnight.</para>
 		<para>Splines can also be used to interpolate existing data and functions:</para>
 		<code language="Austra">
 <markup><font color="DarkGreen">-- Use a function over a uniform grid.</font><br/>
@@ -77,6 +85,7 @@ sqrt(π)
 	    		  <entry><para>Gets the cubic polynomial at a given index in the spline.</para></entry>
 	  	  		</row>
 			  </table>
+			  <para>Polynomials retrieved with the poly method accepts values in the closed interval <codeInline>[0,1]</codeInline>. The spline interpolator must find the polynomial, subtract the initial argument for the corresponding segment and scale the remaining offset according to the length covered by the segment.</para>
 		  	</content>
 		  </section>
 		</sections>
