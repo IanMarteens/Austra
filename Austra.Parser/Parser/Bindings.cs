@@ -415,6 +415,7 @@ internal sealed class Bindings
             [typeof(LU)] = [
                 new("det", "Gets the determinant of the decomposed matrix"),
                 new("lower", "Gets the lower triangular matrix of the LU decomposition"),
+                new("perm", "Gets the permutation vector"),
                 new("size", "Dimensions of the LU decomposition"),
                 new("upper", "Gets the upper triangular matrix of the LU decomposition"),
                 new("solve(", "Solves a linear equation involving a vector or a matrix"),
@@ -1046,6 +1047,7 @@ internal sealed class Bindings
             [new(typeof(LU), "det")] = typeof(LU).Get(nameof(LU.Determinant)),
             [new(typeof(LU), "l")] = typeof(LU).Prop(nameof(LU.L)),
             [new(typeof(LU), "lower")] = typeof(LU).Prop(nameof(LU.L)),
+            [new(typeof(LU), "perm")] = typeof(LU).Prop(nameof(LU.Perm)),
             [new(typeof(LU), "size")] = typeof(LU).Prop(nameof(LU.Size)),
             [new(typeof(LU), "u")] = typeof(LU).Prop(nameof(LU.U)),
             [new(typeof(LU), "upper")] = typeof(LU).Prop(nameof(LU.U)),

@@ -310,6 +310,55 @@ m * m.evd.vectors = m.evd.vectors * m.evd.d
 		<para>Symmetric matrices, as the one generated for the second example above, are decomposed using a more efficient algorithm, so Austra checks symmetry first, before applying any of these algorithms.</para>
       </content>
     </section>
+    <section address="lu">
+      <title>The LU Factorization</title>
+      <content>
+		<para>The LU (lower-upper) factorization algorithm takes a square matrix and generates a lower-triangular matrix L and an upper-triangular U that, when multiplied, regenerates the original matrix. The algorithm may also reorder rows for the sake of numerical stability.</para>
+		<para>The <codeInline>lu</codeInline> property, when applied to a square matrix, returns an <codeInline>LU</codeInline> structure from the Austra library that provides these properties:</para>
+		<table>
+		  <row>
+		    <entry><para><codeInline>det</codeInline></para></entry>
+		    <entry><para>Gets the determinant of the original matrix.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><codeInline>lower</codeInline></para></entry>
+		    <entry><para>Gets the lower-triangular matrix from the factorization.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><codeInline>perm</codeInline></para></entry>
+		    <entry><para>Gets an integer vector with the permutations.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><codeInline>size</codeInline></para></entry>
+		    <entry><para>Gets the number of rows and columns from the original matrix.</para></entry>
+		  </row>
+		  <row>
+		    <entry><para><codeInline>upper</codeInline></para></entry>
+		    <entry><para>Gets the upper-triangular matrix from the factorization.</para></entry>
+		  </row>
+		</table>
+		<para>More relevant for us are the two overloads of the solve method of this structure:</para>
+		<table>
+		  <row>
+		    <entry><para><codeInline>solve(vec)<br/>solve(matrix)</codeInline></para></entry>
+		    <entry><para>Solves the equations <codeInline>Mx=v</codeInline> or <codeInline>Mx=m</codeInline>, where <codeInline>M</codeInline> is the factorised matrix, <codeInline>v</codeInline> is a vector and <codeInline>m</codeInline> is another matrix.</para></entry>
+		  </row>
+		</table>
+		<para>The <codeInline>solve</codeInline> method from the original matrix does the same work, but it delegates the solution to a LU factorization created on the fly. If we need to solve more than one equation involving the same matrix at the left side, it is more efficient to perform the LU factorisation once, and reuse the result for each linear system, as this code show:</para>
+		<code language="Austra">
+<markup><font color="DarkGreen">-- This a matrix whose LU factorisation will be reused.</font><br/>
+<b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
+<markup><font color="DarkGreen">-- The LU factorisation is computed here.</font><br/>
+<b>let</b></markup> lu = m.lu;
+<markup><font color="DarkGreen">-- Now we generate a vector and a matrix for the right sides.</font><br/>
+<b>let</b></markup> n = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(m.rows), v = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(m.rows);
+<markup><font color="DarkGreen">-- Solve m*x=n and m*y=v, and check the accuracy of the results.</font></markup>
+(m * lu.solve(n) - n).amax;
+(m * lu.solve(v) - v).amax;
+		</code>
+		<para>The accuracy, for the above example, is near <codeInline>1e-16</codeInline> or <codeInline>1e-15</codeInline>.</para>
+      </content>
+    </section>
     <relatedTopics>
 	  <codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>

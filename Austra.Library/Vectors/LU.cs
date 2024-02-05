@@ -197,6 +197,9 @@ public readonly struct LU : IFormattable
     /// <summary>Gets the U part of the decomposition.</summary>
     public RMatrix U => upperMatrix.Value;
 
+    /// <summary>Gets the permutation vector.</summary>
+    public NVector Perm => new(pivots);
+
     /// <summary>Solves the equation Ax = b for x.</summary>
     /// <param name="v">The right side of the equation.</param>
     /// <returns>The solving vector.</returns>
@@ -383,8 +386,10 @@ public readonly struct LU : IFormattable
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>One line for each row, with space separated columns.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
-        $"Lower ∊ ℝ({Size}⨯{Size}):" + Environment.NewLine +
+        $"Perm ∊ ℤ({Size}) =" + Environment.NewLine +
+        ((int[])Perm).ToString(v => v.ToString(format, provider)) +
+        Environment.NewLine + $"Lower ∊ ℝ({Size}⨯{Size}) =" + Environment.NewLine +
         ((double[])L).ToString(Rows, Cols, v => v.ToString(format, provider), -1) +
-        Environment.NewLine + $"Upper ∊ ℝ({Size}⨯{Size}):" + Environment.NewLine +
+        Environment.NewLine + $"Upper ∊ ℝ({Size}⨯{Size}) =" + Environment.NewLine +
         ((double[])(Matrix)U).ToString(Rows, Cols, v => v.ToString(format, provider), +1);
 }
