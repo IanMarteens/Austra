@@ -9,16 +9,17 @@
       <content>
         <para>Suppose you need to write a formula like this one:</para>
         <code language="Austra">
-seq(1, 100).filter(x =&gt; x % 2 = 1).map(x =&gt; x^2)
+seq(1, 100).filter(x =&gt; x.odd).map(x =&gt; x^2)
         </code>
-        <para>It is not a candidate for the Turing Award: it takes the squares of all even numbers between 0 and 100. You had to type two lambda functions, including arrows and lambda parameters, and you also had to explicitly mention the <codeInline>filter</codeInline> and the <codeInline>map</codeInline> methods, including the parentheses enclosing their arguments.</para>
+        <para>It is not a candidate for the Turing Award: it takes the squares of all odd numbers between 0 and 100. You had to type two lambda functions, including arrows and lambda parameters, and you also had to explicitly mention the <codeInline>filter</codeInline> and the <codeInline>map</codeInline> methods, including the parentheses enclosing their arguments.</para>
         <para>This alternative expression does the same, is shorter to type and easier to read:</para>
         <code language="Austra">
-[x &lt;- seq(1, 100) : x % 2 = 1 =&gt; x^2]
+[x &lt;- seq(1, 100) : x.odd =&gt; x^2]
         </code>
-        <para>Since the source of all numbers is a range sequence, you could also use a simpler expression for the range:</para>
+        <para>With this trick, we have avoided repeating the declaration of the parameter <codeInline>x</codeInline> in the two lambda definitions used in the expression.</para>
+        <para>In this example, since the source of all numbers is a range sequence, you could also use a simpler expression for the range:</para>
         <code language="Austra">
-[x &lt;- 1..100 : x % 2 = 1 =&gt; x^2]
+[x &lt;- 1..100 : x.odd =&gt; x^2]
         </code>
         <para>The syntax for this construct can be summarized like this:</para>
         <code language="Austra">

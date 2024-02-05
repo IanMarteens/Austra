@@ -430,6 +430,10 @@ Newton-Raphson algorithm.</para>
 		    <entry><para>Gets the month of the date, starting with 1.</para></entry>
 		  </row>
       	  <row>
+		    <entry><para><codeInline>toInt</codeInline></para></entry>
+		    <entry><para>Converts the date to a signed integer.</para></entry>
+		  </row>
+      	  <row>
 		    <entry><para><codeInline>year</codeInline></para></entry>
 		    <entry><para>Gets the year of the date.</para></entry>
 		  </row>

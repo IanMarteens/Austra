@@ -109,7 +109,7 @@ public abstract class Spline<ARG> where ARG : struct
     /// <summary>Gets the interpolated value at a given argument.</summary>
     /// <param name="x">The new argument.</param>
     /// <returns>The interpolated value.</returns>
-    protected double this[double x]
+    public double this[double x]
     {
         get
         {
@@ -305,11 +305,6 @@ public sealed class VectorSpline : Spline<double>
 
     /// <summary>Original series.</summary>
     public Series<double> Original { get; }
-
-    /// <summary>Gets the interpolated value at a given argument.</summary>
-    /// <param name="x">The new argument.</param>
-    /// <returns>The interpolated value.</returns>
-    public new double this[double x] => base[x];
 
     /// <summary>Gets the interpolated derivative at a given argument.</summary>
     /// <param name="x">The new argument.</param>

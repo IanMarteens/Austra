@@ -97,6 +97,8 @@ internal sealed partial class Parser : Scanner, IDisposable
     private bool parsingLambdaHeader;
     /// <summary>Is the current definition a recursive function?</summary>
     private bool isDefRecursive;
+    /// <summary>Are we just trying to identify data types?</summary>
+    private bool parsingTypes;
 
     /// <summary>Used for recursive definitions.</summary>
     private ParameterExpression? currentDefinitionLambda;
@@ -155,6 +157,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     public Type[] ParseType(int abortPosition = int.MaxValue)
     {
         this.abortPosition = abortPosition;
+        parsingTypes = true;
         // Check first for a definition header and parse it.
         if (kind == Token.Def)
         {
@@ -226,6 +229,8 @@ internal sealed partial class Parser : Scanner, IDisposable
                         {
                             CheckAndMove(Token.Eq, "= expected");
                             Expression e = ParseFormula(leftValue, true);
+                            if (e is BlockExpression bl && bl.Expressions.Count > 0)
+                                e = bl.Expressions[^1];
                             if (e is BinaryExpression { NodeType: ExpressionType.Assign } be
                                 && be.Right is UnaryExpression { NodeType: ExpressionType.Convert } ue)
                             {
@@ -354,7 +359,8 @@ internal sealed partial class Parser : Scanner, IDisposable
             if (kind == Token.Eof || kind == Token.Comma || kind == Token.Semicolon)
             {
                 setExpressions.Add(source.SetExpression(leftValue, NullExpr));
-                pendingSets.Remove(leftValue);
+                if (!parsingTypes)
+                    pendingSets.Remove(leftValue);
             }
             else
             {
@@ -1003,7 +1009,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
             case Token.Date:
                 {
-                    Date value = asDate;
+                    Date value = new((uint)asInt);
                     Move();
                     e = Expression.Constant(value);
                     break;
@@ -1164,6 +1170,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         Expression e1 = ParseLightConditional();
         CheckAndMove(Token.RBra, "] expected in indexer");
         return e1.Type != expected && (expected != typeof(double) || e1.Type != typeof(int))
+            && (expected != typeof(Date) || !IsArithmetic(e1))
             ? throw Error("Invalid index type")
             : Expression.Property(e, "Item", ToDouble(e1));
     }

@@ -7,14 +7,16 @@ namespace Austra.Parser;
 internal class Scanner
 {
     /// <summary>Used by the scanner to build string literals.</summary>
+    /// <remarks>After the string literal is identified and assembled,
+    /// the result is moved into the <see cref="id"/> field.</remarks>
     private StringBuilder? sb;
 
     /// <summary>The text being scanned.</summary>
     protected readonly string text;
-    /// <summary>Gets the type of the current lexeme.</summary>
+    /// <summary>The type of the current lexeme.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     protected Token kind;
-    /// <summary>Gets the start position of the current lexeme.</summary>
+    /// <summary>The start position of the current lexeme.</summary>
     /// <remarks>
     /// <para>Updated by the <see cref="Move"/> method.</para>
     /// <para><see cref="start"/> is always lesser than <see cref="lexCursor"/>.</para>
@@ -25,10 +27,8 @@ internal class Scanner
     protected string id = "";
     /// <summary>Value of the current lexeme as a real number.</summary>
     protected double asReal;
-    /// <summary>Value of the lexeme as an integer.</summary>
+    /// <summary>Value of the current lexeme as an integer or as a date.</summary>
     protected int asInt;
-    /// <summary>Value of the lexeme as a date literal.</summary>
-    protected Date asDate;
     /// <summary>Current position in the text.</summary>
     /// <remarks>Updated by the <see cref="Move"/> method.</remarks>
     protected int lexCursor;
@@ -42,18 +42,28 @@ internal class Scanner
     /// </remarks>
     protected int abortPosition = int.MaxValue;
 
+    /// <summary>Gets the start position of the current lexeme.</summary>
+    public int Start => start;
+    /// <summary>Gets the Current position in the text.</summary>
+    public int LexCursor {  get => lexCursor; internal set => lexCursor = value; }
+    /// <summary>Gets the type of the current lexeme.</summary>
+    public Token Kind => kind;
+
     /// <summary>Initializes a scanning context with the given text.</summary>
     /// <param name="text">Text to scan or parse.</param>
     public Scanner(string text)
     {
         this.text = text;
+        // Identify the first token on advance.
         Move();
     }
 
     /// <summary>Skips two tokens with a single call.</summary>
     protected void SkipFunctor()
     {
+        // With a functor, we skip a left parenthesis. With a class name, we skip two colons.
         if (kind == Token.Functor) lexCursor++; else lexCursor += 2;
+        // We still need to identify the next token.
         Move();
     }
 
@@ -72,7 +82,7 @@ internal class Scanner
     }
 
     /// <summary>Advances the lexical analyzer one token.</summary>
-    protected void Move()
+    public void Move()
     {
         if (lexCursor >= abortPosition)
             throw new AbortException("Aborted by the scanner");
@@ -126,7 +136,7 @@ internal class Scanner
                 do lexCursor++;
                 while (char.IsLetterOrDigit(Add(ref c, lexCursor)));
                 kind = Token.Date;
-                asDate = ParseDateLiteral(text.AsSpan()[start..lexCursor], start);
+                asInt = ParseDateLiteral(text.AsSpan()[start..lexCursor], start).ToInt;
             }
             else if (ch == '.' && Add(ref c, lexCursor + 1) != '.')
             {
@@ -298,6 +308,10 @@ internal class Scanner
     }
 
     /// <summary>Check AUSTRA keywords.</summary>
+    /// <remarks>
+    /// This variant assumes the little-endian storage of Intel.
+    /// We only use this method when the AVX instruction set is supported.
+    /// </remarks>
     /// <param name="c">Reference to first character.</param>
     /// <param name="len">Length of the identifier.</param>
     /// <returns>Token.Id, if not a keyword; otherwise, the corresponding keyword.</returns>
@@ -440,6 +454,11 @@ internal class Scanner
         return false;
     }
 
+    /// <summary>Parse a whole date literal, including day, month and year.</summary>
+    /// <param name="text">The text span containing the date literal.</param>
+    /// <param name="position">The position to report if there's any error.</param>
+    /// <returns>The translated date.</returns>
+    /// <exception cref="AstException">When any of the components is not valid.</exception>
     private static Date ParseDateLiteral(ReadOnlySpan<char> text, int position)
     {
         int i = text.IndexOf('@');

@@ -124,7 +124,9 @@ v2.plot;
 <markup><font color="DarkGreen">-- <em>v1</em> is removed now:</font><br/>
 <b>set</b></markup> v1;
 <markup><font color="DarkGreen">-- <em>v2</em>, however, persist for the rest of the session.</font></markup>
-v2.plot
+v2.plot;
+<markup><font color="DarkGreen">-- More than one variable can be assigned in a single statement.</font><br/>
+<b>set</b></markup> pi2 = 2 * pi, pi3 = 3 * pi 
             </code>
             <para>Only the value of the variable is stored, but not the formula that was used to calculate that value. This means, for example, that every use of the session variable will return the same value, even if the value was created using a random number generator:</para>
             <code language="Austra">

@@ -183,6 +183,9 @@ public readonly struct Date :
         }
     }
 
+    /// <summary>Gets the number of days since Jan 1st, 1, as an signed integer.</summary>
+    public int ToInt => (int)date;
+
     /// <summary>Adds a number of months to this date.</summary>
     /// <param name="months">Number of months to be added.</param>
     /// <returns>A new date several months ahead or before.</returns>

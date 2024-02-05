@@ -5,7 +5,7 @@
 /// This class is instantiated from <see cref="AustraEngine"/> and acts
 /// like a singleton for all the lifetime of the session.
 /// </remarks>
-internal sealed partial class Bindings
+internal sealed class Bindings
 {
     /// <summary>The argument is a complex.</summary>
     private static readonly Type[] CArg = [typeof(Complex)];
@@ -278,6 +278,7 @@ internal sealed partial class Bindings
                 new("isleap", "Checks if the date belong to a leap year"),
                 new("month", "Gets the month of the date"),
                 new("year", "Gets the year of the date"),
+                new("toInt", "Converts the date to an integer"),
                 new("addMonths(", "Adds a number of months to the date"),
                 new("addYears(", "Adds a number of years to the date"),
             ],
@@ -939,6 +940,7 @@ internal sealed partial class Bindings
             [new(typeof(Date), "dow")] = typeof(Date).Prop(nameof(Date.DayOfWeek)),
             [new(typeof(Date), "isleap")] = typeof(Date).Get(nameof(Date.IsLeap)),
             [new(typeof(Date), "month")] = typeof(Date).Prop(nameof(Date.Month)),
+            [new(typeof(Date), "toint")] = typeof(Date).Prop(nameof(Date.ToInt)),
             [new(typeof(Date), "year")] = typeof(Date).Prop(nameof(Date.Year)),
 
             [new(typeof(DateSpline), "area")] = typeof(DateSpline).Prop(nameof(DateSpline.Area)),
@@ -1346,33 +1348,97 @@ internal sealed partial class Bindings
     /// <returns>A list of pairs member name/description.</returns>
     public IList<Member> GetMembers(IDataSource source, string text, out Type? type)
     {
-        ReadOnlySpan<char> trimmedText = ExtractObjectPath(text);
-        if (!trimmedText.IsEmpty)
-            try
+        // Creating a scanner is a light task: we can afford it as many times as required.
+        Scanner scanner = new(text);
+        // Divide the whole text according to semicolons.
+        List<int> semicolons = new(8);
+        int lastIn = -1;
+        for (; scanner.Kind is not Token.Error and not Token.Eof; scanner.Move())
+        {
+            if (scanner.Kind is Token.Semicolon)
+                semicolons.Add(scanner.Start);
+            else if (scanner.Kind is Token.In)
+                lastIn = scanner.Start;
+        }
+        // Save fragments that are set statements or script-scoped variables.
+        StringBuilder newText = new(text.Length);
+        for (int i = 0; i < semicolons.Count; i++)
+        {
+            int from = i == 0 ? 0 : semicolons[i - 1] + 1;
+            scanner.LexCursor = from;
+            scanner.Move();
+            if (scanner.Kind == Token.Let)
             {
-                return ExtractType(trimmedText.ToString());
+                // Only script-scoped variables are allowed to survive.
+                while (scanner.Kind != Token.Semicolon && scanner.Kind != Token.In)
+                    scanner.Move();
+                if (scanner.Kind == Token.In)
+                    continue;
+                newText.Append(text[from..(semicolons[i] - from + 2)]);
             }
-            catch
+            else if (scanner.Kind == Token.Set)
             {
-                // Give it a second chance, if a let clause was not included.
-                Match m = LetHeaderRegex().Match(text);
-                if (m.Success && !LetHeaderRegex().IsMatch(trimmedText))
-                    try
-                    {
-                        return ExtractType(m.Groups["header"] + trimmedText.ToString());
-                    }
-                    catch { }
-                else
+                // Set statements are allowed to survive.
+                newText.Append(text[from..(semicolons[i] + 1)]);
+            }
+        }
+        // Now, we have to deal with the last fragment.
+        scanner.LexCursor = semicolons.Count == 0 ? 0 : semicolons[^1] + 1;
+        text = text[scanner.LexCursor..];
+        scanner.Move();
+        if (scanner.Kind is Token.Let or Token.Set)
+            if (lastIn > scanner.Start)
+            {
+                newText.Append(text[..(lastIn + 2)]).Append(' ');
+                text = text[(lastIn + 2)..];
+            }
+            else
+            {
+                // Locate the last sequence ","-identifier-"=".
+                // We will use a four-state automaton to do that.
+                int state = 0, saveUpTo = -1, confirmedSaveUpTo = -1;
+                scanner = new(text);
+                for (; scanner.Kind is not Token.Eof and not Token.Error ; scanner.Move())
                 {
-                    m = LetScopedHeaderRegex().Match(text);
-                    if (m.Success && !LetHeaderRegex().IsMatch(trimmedText))
-                        try
-                        {
-                            return ExtractType(m.Groups["header"] + trimmedText.ToString());
-                        }
-                        catch { }
+                    if (scanner.Kind == Token.Comma)
+                        saveUpTo = scanner.Start;
+                    switch (state)
+                    {
+                        case 0:
+                            if (scanner.Kind == Token.Comma)
+                                state = 1;
+                            break;
+                        case 1:
+                            if (scanner.Kind == Token.Id)
+                                state = 2;
+                            else if (scanner.Kind != Token.Comma)
+                                state = 0;
+                            break;
+                        case 2:
+                            if (scanner.Kind == Token.Comma)
+                                state = 1;
+                            else
+                            {
+                                if (scanner.Kind == Token.Eq)
+                                    confirmedSaveUpTo = saveUpTo;
+                                state = 0;
+                            }
+                            break;
+                    }
+                }
+                if (confirmedSaveUpTo >= 0)
+                {
+                    newText.Append(text[..confirmedSaveUpTo]).Append(';');
+                    text = text[(confirmedSaveUpTo + 1)..];
                 }
             }
+
+        ReadOnlySpan<char> trimmedText = newText.Length == 0
+            ? ExtractObjectPath(text)
+            : (newText.ToString() + ExtractObjectPath(text).ToString());
+        if (!trimmedText.IsEmpty)
+            try { return ExtractType(trimmedText.ToString()); }
+            catch { }
         type = null;
         return [];
 
@@ -1383,8 +1449,8 @@ internal sealed partial class Bindings
             // The abort position of the parser is set to the end of the text, so that
             // any error results in an AbortException instead of the regular AstException.
             return parser.ParseType(text.Length + 1) is Type[] types
-                && types.Length > 0 && types[0] is not null
-                && members.TryGetValue(types[0], out Member[]? list)
+                && types.Length > 0 && types[^1] is not null
+                && members.TryGetValue(types[^1], out Member[]? list)
                 ? list
                 : [];
         }
@@ -1420,7 +1486,7 @@ internal sealed partial class Bindings
                     if (count > 0)
                         return [];
                 }
-                else if (!char.IsLetterOrDigit(ch) && ch is not '_' or '.' or ':' or '='
+                else if (!char.IsLetterOrDigit(ch) && ch is not '_' and not '.' and not ':'
                     && !char.IsWhiteSpace(ch))
                     break;
             }
@@ -1498,14 +1564,6 @@ internal sealed partial class Bindings
     /// <returns><see langword="true"/> if successful.</returns>
     public bool ContainsClassMethod(string identifier) =>
         classMethods.ContainsKey(identifier);
-
-    /// <summary>Gets a regex that matches a set statement.</summary>
-    [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s+in\\s+)", RegexOptions.IgnoreCase)]
-    private static partial Regex LetHeaderRegex();
-
-    /// <summary>Gets a regex that matches a scoped set statement.</summary>
-    [GeneratedRegex("^\\s*(?'header'let\\s+.+\\s*\\;)", RegexOptions.IgnoreCase)]
-    private static partial Regex LetScopedHeaderRegex();
 
     /// <summary>Represents a dictionary key with a type and a string identifier.</summary>
     /// <param name="Type">The type.</param>
