@@ -348,6 +348,43 @@ aapl[1..aapl.count - 1].count = aapl[1..^1].count
 		</code>
       </content>
     </section>
+    <section address="seriesFit">
+      <title>Linear fitting</title>
+      <content>
+		<para>When you face a time series for the first time, the first thing you want is to decompose the series in all its identifiable components. The series may be the sum of a linear or quadratic process, it may have seasonal variations or any kind of period-ic variation, it may show signs of a stochastic process such as an autoregressive or moving average process and, of course, there will be almost always a random noise in the raw data.</para>
+		<para>The most easily identifiable component is perhaps a linear trend in the data. Look at the chart of this raw series with monthly sampling:</para>
+		<mediaLink><image placement="near" xlink:href="s003"/></mediaLink>
+		<para>If you apply the <codeInline>fit</codeInline> method to this series, the answer will be two numbers in a real vector:</para>
+		<code language="Austra">
+aaa.fit
+<markup><font color="DarkGreen">-- This is the answer:</font><br/>
+<font color="#404040">ans ∊ ℝ(2)<br/>
+0.134716  -97404.4</font></markup>
+		</code>
+		<para>The first number in the vector is the slope, and the second number is the intercept, that is, the value when the argument of the corresponding line is zero. If you wanted to look at the inferred line, you could execute the <codeInline>linearFit</codeInline> property on <codeInline>aaa</codeInline>, which creates a series with the same date, but with values from the fitted line. You can also subtract <codeInline>aaa.linearFit</codeInline> from <codeInline>aaa</codeInline>, to see the part of the data that cannot be explained by a simple line model:</para>
+		<mediaLink><image placement="near" xlink:href="s004"/></mediaLink>
+		<para>Austra uses Ordinary Least Squares (OLS) to find the coefficients of the fitting line.</para>
+      </content>
+    </section>
+    <section address="seriesLinear">
+      <title>Linear models</title>
+      <content>
+		<para>If your data cannot be easily explained using a simple line, you could try another approach: explaining a series as a linear combination of other existing series. Let us say that we want to explain the <codeInline>aaa</codeInline> series using three other series. This is the formula we need:</para>
+		<code language="Austra">
+aaa.linearModel(aab, aac, aad)
+		</code>
+		<para>An instance of the <codeInline>LinearModel</codeInline> class is created, and this is how the Austra Desktop application shows it:</para>
+		<mediaLink><image placement="near" xlink:href="s005"/></mediaLink>
+		<para>The most important data is contained in the first line of the answer:</para>
+		<code language="Austra">
+aaa=-803.12+0.858*aab+1875.52*aac+0.308*aad
+		</code>
+		<para>That is how the series to be explained can be approximated with the other three predicting series. Coefficients are calculated to minimize the OLS of the difference between the prediction and the original.</para>
+		<para>The second line give us the <legacyItalic>t-statistics</legacyItalic> for the relevance of each coefficient. Note, for example, that the most relevant coefficient is the one corresponding to the <codeInline>aab</codeInline> series, even though the coefficient for <codeInline>aac</codeInline> is greater. The reason is that values from <codeInline>aac</codeInline> are smaller than values from <codeInline>aab</codeInline>. The next line gives us the <codeInline>R2</codeInline> statistics, also known as <legacyItalic>goodness of fit</legacyItalic>, which is the quotient between the explained variance and total variance. The closer <codeInline>R2</codeInline> is to one, the better the explanation is.</para>
+		<para>Finally, the application shows a chart including the original and the predicted series.</para>
+		<para>In case you only need the coefficients of the model, you can call the <codeInline>linear</codeInline> method on <codeInline>aaa</codeInline>, using the same parameters as before. <codeInline>linear</codeInline> just returns a vector with the coefficients used in the model.</para>
+      </content>
+    </section>
     <relatedTopics>
       <codeEntityReference qualifyHint="false">T:Austra.Library.Series</codeEntityReference>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>

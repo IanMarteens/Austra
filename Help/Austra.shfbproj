@@ -27,9 +27,9 @@
       <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net8.0\Austra.Parser.xml" />
       <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net8.0\Austra.Parser.dll" />
     </DocumentationSources>
-    <HelpFileFormat>HtmlHelp1</HelpFileFormat>
+    <HelpFileFormat>Website</HelpFileFormat>
     <SyntaxFilters>C#</SyntaxFilters>
-    <PresentationStyle>VS2013</PresentationStyle>
+    <PresentationStyle>Default2022</PresentationStyle>
     <CleanIntermediates>True</CleanIntermediates>
     <KeepLogFile>True</KeepLogFile>
     <DisableCodeBlockComponent>False</DisableCodeBlockComponent>
@@ -102,6 +102,18 @@
     <Image Include="d001.png">
       <ImageId>d001</ImageId>
       <AlternateText>d 001</AlternateText>
+    </Image>
+    <Image Include="s005.png">
+      <ImageId>s005</ImageId>
+      <AlternateText>s 005</AlternateText>
+    </Image>
+    <Image Include="s004.png">
+      <ImageId>s004</ImageId>
+      <AlternateText>s 004</AlternateText>
+    </Image>
+    <Image Include="s003.png">
+      <ImageId>s003</ImageId>
+      <AlternateText>s 003</AlternateText>
     </Image>
     <Image Include="fft2.png">
       <ImageId>fft2</ImageId>
