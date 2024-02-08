@@ -40,7 +40,7 @@ public readonly struct DVector :
 
     /// <summary>Creates a vector of a given size.</summary>
     /// <param name="size">Vector length.</param>
-    public DVector(int size) => values = new double[size];
+    public DVector(int size) => values = size == 0 ? [] : new double[size];
 
     /// <summary>Initializes a vector from an array.</summary>
     /// <param name="values">The components of the vector.</param>
@@ -1009,9 +1009,7 @@ public readonly struct DVector :
         return false;
     }
 
-    /// <summary>
-    /// Creates a new vector by filtering the items with the given predicate.
-    /// </summary>
+    /// <summary>Creates a new vector by filtering items with the given predicate.</summary>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new vector with the filtered items.</returns>
     public DVector Filter(Func<double, bool> predicate)
@@ -1025,7 +1023,7 @@ public readonly struct DVector :
     }
 
     /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
-    /// <remarks>This method can save an intermediate buffer.</remarks>
+    /// <remarks>This method can save an intermediate buffer and one iteration.</remarks>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new vector with the filtered items.</returns>
@@ -1036,7 +1034,7 @@ public readonly struct DVector :
         foreach (double value in values)
             if (predicate(value))
                 newValues[j++] = mapper(value);
-        return j == 0 ? [] : j == Length ? this : newValues[..j];
+        return j == 0 ? new(0) : j == Length ? this : newValues[..j];
     }
 
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>

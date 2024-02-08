@@ -1335,11 +1335,13 @@ internal sealed partial class Parser : Scanner, IDisposable
     private Expression ParseMethod(Expression e)
     {
         (string method, int pos) = (id, start);
-        // Skip method name and left parenthesis.
-        SkipFunctor();
         if (bindings.TryGetMethod(e.Type, method, out MethodInfo? mInfo))
         {
             ParameterInfo[] paramInfo = mInfo.GetParameters();
+            if (paramInfo.Length == 1 && paramInfo[0].ParameterType.IsAssignableTo(typeof(Delegate)))
+                parsingLambdaHeader = true;
+            // Skip method name and left parenthesis.
+            SkipFunctor();
             List<Expression> args = source.Rent(paramInfo.Length);
             for (int i = 0; i < paramInfo.Length; i++, Move())
             {
@@ -1355,7 +1357,11 @@ internal sealed partial class Parser : Scanner, IDisposable
             return result;
         }
         if (bindings.TryGetOverloads(e.Type, method, out MethodList info))
+        {
+            // Skip method name and left parenthesis.
+            SkipFunctor();
             return ParseClassMultiMethod(info, e);
+        }
         throw Error($"Invalid method: {method}", pos);
     }
 
@@ -1979,7 +1985,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         // Check and skip a right bracket.
         CheckAndMove(Token.RBra, "] expected in list comprehension");
         if (filter != null)
-            if (e.Type == typeof(DVector) && mapper != null)
+            if (IsVector(e) && mapper != null && !upgraded)
                 return Expression.Call(e, "FilterMap", Type.EmptyTypes, filter, mapper);
             else
                 e = Expression.Call(e, "Filter", Type.EmptyTypes, filter);

@@ -534,6 +534,7 @@ internal sealed class Bindings
                 new("value", "Gets the numerical value of the point"),
             ],
             [typeof(Polynomial)] = [
+                new("area", "Gets the definite integral of the polynomial over the interval [0, 1]"),
                 new("derivative", "Gets the derivative at a point between 0 and 1"),
                 new("eval", "Evaluates the polynomial at a point between 0 and 1"),
             ],
@@ -1127,6 +1128,8 @@ internal sealed class Bindings
             [new(typeof(NVector), "stats")] = typeof(NVector).Get(nameof(NVector.Stats)),
             [new(typeof(NVector), "sum")] = typeof(NVector).Get(nameof(NVector.Sum)),
             [new(typeof(NVector), "tovector")] = typeof(NVector).Get(nameof(NVector.ToVector)),
+
+            [new(typeof(Polynomial), "area")] = typeof(Polynomial).Prop(nameof(Polynomial.Area)),
 
             [new(typeof(Point<Date>), "date")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Arg)),
             [new(typeof(Point<Date>), "value")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Value)),

@@ -952,9 +952,7 @@ public readonly struct CVector :
         return false;
     }
 
-    /// <summary>
-    /// Creates a new complex vector by filtering this vector's items with the given predicate.
-    /// </summary>
+    /// <summary>Creates a new vector by filtering items with the given predicate.</summary>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new vector with the filtered items.</returns>
     public CVector Filter(Func<Complex, bool> predicate)
@@ -968,8 +966,28 @@ public readonly struct CVector :
                 (newRe[j], newIm[j]) = value;
                 j++;
             }
-        return j == Length ? this : new(newRe[..j], newIm[..j]);
+        return j == 0 ? new([], []) : j == Length ? this : new(newRe[..j], newIm[..j]);
     }
+
+    /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
+    /// <remarks>This method can save an intermediate buffer and one iteration.</remarks>
+    /// <param name="predicate">The predicate to evaluate.</param>
+    /// <param name="mapper">The mapping function.</param>
+    /// <returns>A new vector with the filtered items.</returns>
+    public CVector FilterMap(Func<Complex, bool> predicate, Func<Complex, Complex> mapper)
+    {
+        double[] newRe = GC.AllocateUninitializedArray<double>(Length);
+        double[] newIm = GC.AllocateUninitializedArray<double>(Length);
+        int j = 0;
+        foreach (Complex value in this)
+            if (predicate(value))
+            {
+                (newRe[j], newIm[j]) = mapper(value);
+                j++;
+            }
+        return j == 0 ? new([], []) : j == Length ? this : new(newRe[..j], newIm[..j]);
+    }
+
 
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
     /// <param name="seed">The initial value.</param>
