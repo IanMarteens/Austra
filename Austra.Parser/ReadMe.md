@@ -40,7 +40,7 @@ wave.derivative(pi / 4)     -- First derivative.
 
 ## The language
 
-Formulas are parsed and executed in a context defined by a `IDataSource` instance. This context contains variables and definitions than can be initially loaded from a persistent source, such as a database or a JSON file. The current implementation does not support parameterized functions, but they may be included in the future.
+Formulas are parsed and executed in a context defined by a `IDataSource` instance. This context contains variables and definitions than can be initially loaded from a persistent source, such as a database or a JSON file. The current implementation also allows parameterized definitions, that is, real functions. Recursive functions are supported too.
 
 The data source stores two layers of variables. The first one is the session layer, which is volatile and is lost when the session ends. The second one is the persistent layer, which is stored in the data source and is available in future sessions. The persistent layer is read-only, but the session layer can be modified at any time.
 
