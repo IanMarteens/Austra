@@ -1165,11 +1165,32 @@ public readonly struct DVector :
     public Series<int> ACF() => Correlogram(Length - 2);
 
     /// <summary>Computes the partial autocorrelation for all lags.</summary>
-    /// <returns>Pairs lags/partial autocorrelation.</returns>
-    public Series<int> PACF()
+    /// <remarks>Based on the Levinson-Durbin method.</remarks>
+    /// <returns>All the partial autocorrelations in an array.</returns>
+    public double[] PACFRaw()
     {
-        return Series.Create("PACF", null, []);
+        double[] acf = CorrelogramRaw(Length - 2);
+        double[] last = new double[acf.Length];
+        double[] prev = new double[acf.Length];
+        for (int k = 0; k < acf.Length; k++)
+        {
+            double num = acf[k], den = 1d;
+            for (int j = 0; j < k - 2; j++)
+            {
+                num -= prev[j] * acf[k - j];
+                den -= prev[j] * acf[j];
+            }
+            last[k] = den <= 0.0 ? 0.0 : num / den;
+            for (int j = 0; j < k - 1; j++)
+                last[j] = prev[j] - last[k] * prev[k - j];
+            (last, prev) = (prev, last);
+        }
+        return last;
     }
+
+    /// <summary>Computes the partial autocorrelation for all lags.</summary>
+    /// <returns>Pairs lags/partial autocorrelation.</returns>
+    public Series<int> PACF() => Series.Create("PACF", null, PACFRaw());
 
     /// <summary>Multilinear regression based in Ordinary Least Squares.</summary>
     /// <param name="predictors">Predicting series.</param>

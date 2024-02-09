@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Drawing;
+
+namespace Austra.Library;
 
 /// <summary>Simple taxonomy for series.</summary>
 public enum SeriesType
@@ -446,7 +448,8 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
 
     /// <summary>Computes the partial autocorrelation for all lags.</summary>
     /// <returns>Pairs lags/partial autocorrelation.</returns>
-    public Series<int> PACF() => Correlogram(Count - 2);
+    public Series<int> PACF() =>
+        Create("PACF(" + Name + ")", Ticker, new DVector(values).PACFRaw(), Type);
 
     /// <summary>Computes the real discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>
