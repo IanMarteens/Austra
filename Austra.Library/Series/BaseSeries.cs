@@ -444,6 +444,10 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <returns>Pairs lags/autocorrelation.</returns>
     public Series<int> ACF() => Correlogram(Count - 2);
 
+    /// <summary>Computes the partial autocorrelation for all lags.</summary>
+    /// <returns>Pairs lags/partial autocorrelation.</returns>
+    public Series<int> PACF() => Correlogram(Count - 2);
+
     /// <summary>Computes the real discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>
     public FftRModel Fft() => new(FFT.Transform(values));

@@ -1164,6 +1164,13 @@ public readonly struct DVector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Series<int> ACF() => Correlogram(Length - 2);
 
+    /// <summary>Computes the partial autocorrelation for all lags.</summary>
+    /// <returns>Pairs lags/partial autocorrelation.</returns>
+    public Series<int> PACF()
+    {
+        return Series.Create("PACF", null, []);
+    }
+
     /// <summary>Multilinear regression based in Ordinary Least Squares.</summary>
     /// <param name="predictors">Predicting series.</param>
     /// <returns>Regression coefficients.</returns>

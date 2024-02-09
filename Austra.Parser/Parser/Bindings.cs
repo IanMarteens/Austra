@@ -217,6 +217,10 @@ internal sealed class Bindings
                 new("rss", "Gets the Residual Sum of Squares"),
                 new("tss", "Gets the Total Sum of Squares"),
             ],
+            [typeof(Cholesky)] = [
+                new("lower", "Gets the lower-triangular matrix from the decomposition"),
+                new("solve(", "Solves a linear system involving the original matrix"),
+            ],
             [typeof(Complex)] = [
                 new("imag", "Gets the imaginary part of the complex number"),
                 new("mag", "Gets the magnitude of the complex number"),
@@ -433,7 +437,8 @@ internal sealed class Bindings
             [typeof(Matrix)] = [
                 new("amax", "Gets the maximum absolute value"),
                 new("amin", "Gets the minimum absolute value"),
-                new("chol", "Calculates the Cholesky Decomposition"),
+                new("chol", "Gets the lower-triangular matrix of a Cholesky Decomposition"),
+                new("cholesky", "Calculates the Cholesky Decomposition"),
                 new("cols", "Gets the number of columns"),
                 new("det", "Calculates the determinant"),
                 new("diag", "Extracts the diagonal as a vector"),
@@ -899,6 +904,9 @@ internal sealed class Bindings
             [new(typeof(ARVModel), "rss")] = typeof(ARVModel).Prop(nameof(ARVModel.ResidualSumSquares)),
             [new(typeof(ARVModel), "tss")] = typeof(ARVModel).Prop(nameof(ARVModel.TotalSumSquares)),
 
+            [new(typeof(Cholesky), "l")] = typeof(Cholesky).Prop(nameof(Cholesky.L)),
+            [new(typeof(Cholesky), "lower")] = typeof(Cholesky).Prop(nameof(Cholesky.L)),
+
             [new(typeof(Complex), "real")] = typeof(Complex).Prop(nameof(Complex.Real)),
             [new(typeof(Complex), "re")] = typeof(Complex).Prop(nameof(Complex.Real)),
             [new(typeof(Complex), "imaginary")] = typeof(Complex).Prop(nameof(Complex.Imaginary)),
@@ -1066,6 +1074,7 @@ internal sealed class Bindings
             [new(typeof(Matrix), "amax")] = typeof(Matrix).Get(nameof(Matrix.AMax)),
             [new(typeof(Matrix), "amin")] = typeof(Matrix).Get(nameof(Matrix.AMin)),
             [new(typeof(Matrix), "chol")] = typeof(Matrix).Get(nameof(Matrix.CholeskyMatrix)),
+            [new(typeof(Matrix), "cholesky")] = typeof(Matrix).Get(nameof(Matrix.Cholesky)),
             [new(typeof(Matrix), "cols")] = typeof(Matrix).Prop(nameof(Matrix.Cols)),
             [new(typeof(Matrix), "det")] = typeof(Matrix).Get(nameof(Matrix.Determinant)),
             [new(typeof(Matrix), "diag")] = typeof(Matrix).Get(nameof(Matrix.Diagonal)),
@@ -1321,6 +1330,9 @@ internal sealed class Bindings
     private static readonly FrozenDictionary<TypeId, MethodList> methodOverloads =
         new Dictionary<TypeId, MethodList>()
         {
+            [new(typeof(Cholesky), "solve")] = new(
+                typeof(Cholesky).MD(nameof(Cholesky.Solve), typeof(DVector)),
+                typeof(Cholesky).MD(nameof(Cholesky.Solve), typeof(Matrix))),
             [new(typeof(CSequence), "until")] = new(
                 typeof(CSequence).MD(nameof(CSequence.Until), typeof(Func<Complex, bool>)),
                 typeof(CSequence).MD(nameof(CSequence.Until), CArg)),
