@@ -442,6 +442,11 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Series<int> ACF() => ToVector().ACF();
 
+    /// <summary>Computes the partial autocorrelation for all lags.</summary>
+    /// <returns>Pairs lags/partial autocorrelation.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Series<int> PACF() => ToVector().PACF();
+
     /// <summary>Calculate coefficients for an autoregressive model.</summary>
     /// <param name="degree">Number of degrees in the model.</param>
     /// <returns>The coefficients of the AR(degree) model.</returns>

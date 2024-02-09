@@ -1170,6 +1170,7 @@ public readonly struct DVector :
     public double[] PACFRaw()
     {
         double[] acf = CorrelogramRaw(Length - 2);
+        double[] pacf = new double[acf.Length];
         double[] last = new double[acf.Length];
         double[] prev = new double[acf.Length];
         for (int k = 0; k < acf.Length; k++)
@@ -1180,12 +1181,12 @@ public readonly struct DVector :
                 num -= prev[j] * acf[k - j];
                 den -= prev[j] * acf[j];
             }
-            last[k] = den <= 0.0 ? 0.0 : num / den;
-            for (int j = 0; j < k - 1; j++)
+            pacf[k] = last[k] = den <= 0.0 ? 0.0 : num / den;
+            for (int j = 0; j < k; j++)
                 last[j] = prev[j] - last[k] * prev[k - j];
             (last, prev) = (prev, last);
         }
-        return last;
+        return pacf;
     }
 
     /// <summary>Computes the partial autocorrelation for all lags.</summary>
