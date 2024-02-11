@@ -135,6 +135,10 @@ scalar1 * vector1 + scalar2 * vector2;
  		    	<entry><para></para>Gets the Pythagorean norm of the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Norm</codeEntityReference>.</entry>
 		  	  </row>
  		  	  <row>
+ 		    	<entry><para><codeInline>pacf</codeInline></para></entry>
+ 		    	<entry><para>The Partial AutoCorrelation Function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.PACF</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
  		    	<entry><para><codeInline>plot</codeInline></para></entry>
  		    	<entry><para>Shows the vector in a chart. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Plot</codeEntityReference>.</para></entry>
 		  	  </row>
@@ -151,7 +155,7 @@ scalar1 * vector1 + scalar2 * vector2;
  		    	<entry><para>Gets a new vector with its items sorted. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.Sort</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>
- 		    	<entry><para><codeInline>sortDescending</codeInline></para></entry>
+ 		    	<entry><para><codeInline>sortDesc</codeInline></para></entry>
  		    	<entry><para>Gets a new vector with its items sorted in descending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DVector.SortDescending</codeEntityReference>.</para></entry>
 		  	  </row>
  		  	  <row>

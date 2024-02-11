@@ -1176,14 +1176,15 @@ public readonly struct DVector :
         for (int k = 0; k < acf.Length; k++)
         {
             double num = acf[k], den = 1d;
-            for (int j = 0; j < k - 2; j++)
+            for (int j = 1; j < k; j++)
             {
-                num -= prev[j] * acf[k - j];
-                den -= prev[j] * acf[j];
+                double p = prev[j];
+                num -= p * acf[k - j];
+                den -= p * acf[j];
             }
-            pacf[k] = last[k] = den <= 0.0 ? 0.0 : num / den;
+            pacf[k] = last[k] = num = den <= 0.0 ? 0.0 : num / den;
             for (int j = 0; j < k; j++)
-                last[j] = prev[j] - last[k] * prev[k - j];
+                last[j] = prev[j] - num * prev[k - j];
             (last, prev) = (prev, last);
         }
         return pacf;

@@ -129,6 +129,10 @@ seq(1.5, 10.6);     <markup><font color="DarkGreen">-- Numbers from 1 to 10, too
 				<para>These are the properties supported by sequences of real values:</para>
 				<table>
 		 		  <row>
+		 		    <entry><para><codeInline>acf</codeInline></para></entry>
+	 			    <entry><para>The Autocorrelation function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.ACF</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
 		 		    <entry><para><codeInline>distinct</codeInline></para></entry>
 	 			    <entry><para>Select unique values in the sequence, with no predefined order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Distinct</codeEntityReference>.</para></entry>
 				  </row>
@@ -155,6 +159,10 @@ seq(1.5, 10.6);     <markup><font color="DarkGreen">-- Numbers from 1 to 10, too
 	 			  <row>
 	 			    <entry><para><codeInline>min</codeInline></para></entry>
 	 		    	<entry><para>Get the minimum value in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.Min</codeEntityReference>.</para></entry>
+				  </row>
+		 		  <row>
+		 		    <entry><para><codeInline>pacf</codeInline></para></entry>
+	 			    <entry><para>The Partial Autocorrelation function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DSequence.PACF</codeEntityReference>.</para></entry>
 				  </row>
 	 			  <row>
 	 			    <entry><para><codeInline>plot</codeInline></para></entry>
