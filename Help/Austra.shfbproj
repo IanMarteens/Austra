@@ -103,6 +103,10 @@
       <ImageId>d001</ImageId>
       <AlternateText>d 001</AlternateText>
     </Image>
+    <Image Include="acc001.png">
+      <ImageId>acc001</ImageId>
+      <AlternateText>acc 001</AlternateText>
+    </Image>
     <Image Include="s005.png">
       <ImageId>s005</ImageId>
       <AlternateText>s 005</AlternateText>

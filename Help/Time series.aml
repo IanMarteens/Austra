@@ -389,6 +389,93 @@ aaa=-803.12+0.858*aab+1875.52*aac+0.308*aad
 		<para>In case you only need the coefficients of the model, you can call the <codeInline>linear</codeInline> method on <codeInline>aaa</codeInline>, using the same parameters as before. <codeInline>linear</codeInline> just returns a vector with the coefficients used in the model.</para>
       </content>
     </section>
+    <section address="stats">
+      <title>Statistics on time series</title>
+      <content>
+		<para>A fair share of the properties and methods implemented by series has to do with statistics, either of the whole series or of partial samples from the series. Most of these properties and methods are shared with real vectors and sequences, for obvious reasons.</para>
+		<para>The next few sections deal with time series features that computes statistics for a time series.</para>
+      <sections>
+        <section address="statsAccum">
+          <title>Accumulators</title>
+          <content>
+			<para>The <codeInline>stats</codeInline> property returns an object from the C#’s <codeEntityReference qualifyHint="false">T:Austra.Library.Stats.Accumulator</codeEntityReference> class that holds statistics on all samples from the series.</para>
+			<para>The <codeEntityReference qualifyHint="false">T:Austra.Library.Stats.Accumulator</codeEntityReference> class defined by the Austra library, implements a running accumulator that calculates and updates the most important statistics estimators as we keep adding values from a dataset, using the well-known Welford algorithm. Our implementation of Welford’s algorithm takes advantage of SIMD instructions from the CPU, when available. Since it is a fast implementation, the result returned by the <codeInline>stat</codeInline> property from a series is always computed when the time series is created. Persistent series are created when the Austra Desktop application starts up, or when a series is retrieved the first time from an external service or database. This way, you can always call <codeInline>stats</codeInline> without concerns about efficiency, and the same is valid on any property derived from the running accumulator.</para>
+			<para>Most of the properties of stats are also available as direct properties of the series, for convenience. They are:</para>
+			<table>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>count</codeInline></para></entry>
+ 		    	<entry><para>Gets the number of values in the series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.Count</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>kurt</codeInline></para></entry>
+ 		    	<entry><para>Get the kurtosis. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.Kurtosis</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>kurtp</codeInline></para></entry>
+ 		    	<entry><para>Get the kurtosis of the population. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.PopulationKurtosis</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>max</codeInline></para></entry>
+ 		    	<entry><para>Get the maximum value from the series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.Maximum</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>mean</codeInline></para></entry>
+ 		    	<entry><para>Gets the average of the values. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.Mean</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>min</codeInline></para></entry>
+ 		    	<entry><para>Get the minimum value from the series. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.Minimum</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>skew</codeInline></para></entry>
+ 		    	<entry><para>Gets the skewness. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.Skewness</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>skewp</codeInline></para></entry>
+ 		    	<entry><para>Gets the skewness of the population. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.PopulationSkewness</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>std</codeInline></para></entry>
+ 		    	<entry><para>Gets the standard deviation. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.StandardDeviation</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>stdp</codeInline></para></entry>
+ 		    	<entry><para>Gets the standard deviation of the population. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.PopulationStandardDeviation</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>var</codeInline></para></entry>
+ 		    	<entry><para>Gets the variance. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.Variance</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>varp</codeInline></para></entry>
+ 		    	<entry><para>Gets the variance of the population. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.Stats.Accumulator.PopulationVariance</codeEntityReference>.</para></entry>
+		  	  </row>
+			</table>
+			<para>Remember that most of all these properties are just estimators, and that their accuracy depends on the number of samples. Skewness and kurtosis, for example, needs more than a thousand samples for an approximate ballpark estimation, at least, according to my own experience.</para>
+			<mediaLink><image placement="near" xlink:href="acc001"/></mediaLink>
+			<para>One nice property about running accumulators is that you can combine two of them easily and efficiently using the plus operator:</para>
+			<code language="Austra">
+aaa.stats + aab.stats
+			</code>
+			<para>A <codeInline>stats</codeInline> property is also implemented by real and integer <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">vectors</link> and <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">sequences</link>.</para>
+          </content>
+        </section>
+        <section address="statsAcf">
+          <title>Autocorrelation and partial autocorrelation</title>
+          <content>
+			<para>There are two important diagnostic functions on series: the autocorrelation function, also known by the acronym ACF, and the partial autocorrelation function, also known as PACF.</para>
+			<para>The ACF is defined as the Pearson correlation between a signal and a delayed copy of the signal. The argument of the function is the delay between the samples and, since we are dealing with discrete signals, the type of the argument is an integer value.</para>
+			<para>There are formulas that work better with stationary series, that is, series with uniform statistical properties, widely speaking. Most financial series are not stationary, when the sampling time is long enough, as we will see soon. Our algorithm does not assume stationarity and is based on the <externalLink>
+<linkText>Wiener-Khinchin theorem</linkText>
+<linkUri>https://mathworld.wolfram.com/Wiener-KhinchinTheorem.html</linkUri>
+<linkTarget>_blank</linkTarget>
+</externalLink>, that relates the autocorrelation function with the power spectral density via the Fourier Transform. Internally, Austra calculates a Fast Fourier Transform on a padded version of the series, using the next available power of two size for speed.</para>
+			<para>The Partial Autocorrelation Function, or PACF, is closely related but must not be confused with the ACF. The PACF measures the direct correlation between two lags, without accounting for the transitive effect of any intermediate lags. Our PACF implementation calculates the ACF as a prerequisite, and then performs the Levinson-Durbin algorithm on the ACF to remove those spurious effects from the lags in-between.</para>
+          </content>
+        </section>
+      </sections>
+      </content>
+    </section>
     <relatedTopics>
       <codeEntityReference qualifyHint="false">T:Austra.Library.Series</codeEntityReference>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
