@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using System.Net;
+
+namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser : Scanner, IDisposable
@@ -268,6 +270,16 @@ internal sealed partial class Parser : Scanner, IDisposable
                 result.Add(new(pair.Key, $"Local variable: {pair.Value.Type.Name}"));
         lambdaBlock.GatherParameters(result);
         return result;
+    }
+
+    public List<ParameterExpression> ParseLambdaContext(int position)
+    {
+        try
+        {
+            ParseType(position);
+        }
+        catch { /* Ignore */ }
+        return parsingLambdaHeader ? ([]) : lambdaBlock.GatherParameters();
     }
 
     /// <summary>Parses a definition and adds it to the source.</summary>

@@ -103,6 +103,10 @@ internal sealed class LambdaBlock()
             members.Add(new(parameters[i].Name!, "Lambda parameter"));
     }
 
+    /// <summary>Retrieve alive parameters for Code Completion.</summary>
+    /// <returns>The list of active lambda parameters including their types.</returns>
+    public List<ParameterExpression> GatherParameters() => parameters;
+
     /// <summary>Symbol lookup for lambda parameters.</summary>
     /// <param name="identifier">Symbol to identify.</param>
     /// <param name="parameter">When <see langword="true"/>, the matching parameter.</param>

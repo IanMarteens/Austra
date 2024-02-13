@@ -48,7 +48,7 @@ internal sealed class Bindings
     /// <summary>Reusable lambda block for parsing lambda expressions.</summary>
     public LambdaBlock LambdaBlock { get; } = new();
 
-    private static readonly FrozenDictionary<string, Type> typeNames =
+    private readonly FrozenDictionary<string, Type> typeNames =
         new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
         {
             ["int"] = typeof(int),
@@ -875,7 +875,7 @@ internal sealed class Bindings
         }.ToFrozenDictionary();
 
     /// <summary>Allowed properties and their implementations.</summary>
-    private static readonly FrozenDictionary<TypeId, MethodInfo> allProps =
+    private readonly FrozenDictionary<TypeId, MethodInfo> allProps =
         new Dictionary<TypeId, MethodInfo>()
         {
             [new(typeof(Acc), "count")] = typeof(Acc).Prop(nameof(Acc.Count)),
@@ -1216,7 +1216,7 @@ internal sealed class Bindings
         }.ToFrozenDictionary();
 
     /// <summary>Allowed instance methods.</summary>
-    private static readonly FrozenDictionary<TypeId, MethodInfo> methods =
+    private readonly FrozenDictionary<TypeId, MethodInfo> methods =
         new Dictionary<TypeId, MethodInfo>()
         {
             [new(typeof(CSequence), "all")] = typeof(CSequence).Get(nameof(CSequence.All)),
@@ -1333,7 +1333,7 @@ internal sealed class Bindings
         }.ToFrozenDictionary();
 
     /// <summary>Overloaded instance methods.</summary>
-    private static readonly FrozenDictionary<TypeId, MethodList> methodOverloads =
+    private readonly FrozenDictionary<TypeId, MethodList> methodOverloads =
         new Dictionary<TypeId, MethodList>()
         {
             [new(typeof(Cholesky), "solve")] = new(
@@ -1440,7 +1440,7 @@ internal sealed class Bindings
                 // We will use a four-state automaton to do that.
                 int state = 0, saveUpTo = -1, confirmedSaveUpTo = -1;
                 scanner = new(text);
-                for (; scanner.Kind is not Token.Eof and not Token.Error ; scanner.Move())
+                for (; scanner.Kind is not Token.Eof and not Token.Error; scanner.Move())
                 {
                     if (scanner.Kind == Token.Comma)
                         saveUpTo = scanner.Start;
@@ -1479,8 +1479,25 @@ internal sealed class Bindings
             ? ExtractObjectPath(text)
             : (newText.ToString() + ExtractObjectPath(text).ToString());
         if (!trimmedText.IsEmpty)
-            try { return ExtractType(trimmedText.ToString()); }
-            catch { }
+            try
+            {
+                return ExtractType(trimmedText.ToString());
+            }
+            catch
+            {
+                if (text.Contains("=>"))
+                {
+                    string id = trimmedText.ToString();
+                    ParameterExpression? pe = new Parser(this, source, text)
+                        .ParseLambdaContext(text.Length)
+                        .FirstOrDefault(p => id.Equals(p.Name, StringComparison.OrdinalIgnoreCase));
+                    if (pe is not null && members.TryGetValue(pe.Type, out Member[]? list))
+                    {
+                        type = pe.Type;
+                        return list;
+                    }
+                }
+            }
         type = null;
         return [];
 
