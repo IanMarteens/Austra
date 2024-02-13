@@ -258,6 +258,7 @@ public sealed class CorrelogramNode : VarNode<Series<int>>
     override public void Show() =>
         RootModel.Instance.AppendControl(Formula, Model.ToString(),
             CreateOxyModel().CreateStepSeries(Model.Values).CreateView());
+            //CreateOxyModel(xAxis: new OxyPlot.Axes.CategoryAxis(), new OxyPlot.Axes.LinearAxis()).CreateBarSeries(Model.Values).CreateView());
 
     public override string Hint => Model.ToString() + Environment.NewLine + Model.Stats.Hint;
 

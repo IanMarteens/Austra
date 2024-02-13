@@ -236,6 +236,23 @@ internal static class OxyExts
         return model;
     }
 
+    public static OxyPlot.PlotModel CreateBarSeries(
+        this OxyPlot.PlotModel model, DVector vector, string? title = null, bool hidden = false)
+    {
+        OxyPlot.Series.BarSeries barSeries = new()
+        {
+            TrackerFormatString = "{1}: {2:0.####}\n{3}: {4:0.####}",
+            BarWidth = 0.1,
+            IsVisible = !hidden,
+        };
+        if (!string.IsNullOrEmpty(title))
+            barSeries.Title = title;
+        for (int i = 0; i < vector.Length; i++)
+            barSeries.Items.Add(new(vector[i], -1));
+        model.Series.Add(barSeries);
+        return model;
+    }
+
     public static void UpdateLine(this OxyPlot.PlotModel model, double value)
     {
         if (model.Annotations.Count > 0)
