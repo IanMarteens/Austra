@@ -115,6 +115,22 @@
       <ImageId>ar002</ImageId>
       <AlternateText>ar 002</AlternateText>
     </Image>
+    <Image Include="acf001.png">
+      <ImageId>acf001</ImageId>
+      <AlternateText>acf 001</AlternateText>
+    </Image>
+    <Image Include="s006.png">
+      <ImageId>s006</ImageId>
+      <AlternateText>s 006</AlternateText>
+    </Image>
+    <Image Include="ma002.png">
+      <ImageId>ma002</ImageId>
+      <AlternateText>ma 002</AlternateText>
+    </Image>
+    <Image Include="ma001.png">
+      <ImageId>ma001</ImageId>
+      <AlternateText>ma 001</AlternateText>
+    </Image>
     <Image Include="pacf2.png">
       <ImageId>pacf2</ImageId>
       <AlternateText>pacf 2</AlternateText>

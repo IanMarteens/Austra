@@ -499,8 +499,33 @@ aaa.arModel(1)
 			<mediaLink><image placement="near" xlink:href="ar001"/></mediaLink>
 			<para>As we already suspected, the coefficient is greater than unity. The <codeInline>r2</codeInline> property of the model is the same <legacyItalic>goodness of fit</legacyItalic> we have already seen with linear models. It is the quotient of the explained variance over the total variance, and it is high enough for the model to be considered a good one.</para>
 			<para>The chart plots both the original series and the “predicted” one. As a word of caution, don’t be fooled by the word “prediction”: what we are forecasting is just one step forward, assuming the historically attested levels. It would be impossible, as it stands to reason, to generate the whole series from an initial level and the autoregressive law.</para>
+	  		<alert class="note">
+			  <para>Austra estimates coefficients for AR models using the so-called Yule-Walker equations.</para>
+	  		</alert>
           </content>
         </section>
+        <section address="statsMa">
+          <title>Moving Average models</title>
+          <content>
+            <para>Another common process that generates a time series is the algorithm known as Moving Average. A Moving Average process of order <math>q</math>, often referred as <math>MA(q)</math>, is defined by the following formula:</para>
+			<mediaLink><image placement="near" xlink:href="ma001"/></mediaLink>
+			<para>This is a very different beast that the autoregressive models we have already seen. All the <math>ε(i)</math> terms still refer to random variables centred around zero. We also have a new term, <math>μ</math>, which is interpreted as the mean of the series. What makes different an MA model from an AR one is that what is propagated to successive steps is not the actual value at a past time, but the error term introduced in a previous step.</para>
+			<para>Pure Moving Average series are stationary series. Since I do not have a good real candidate at hand, I will use a transformed series as the source of the MA example. I have an <codeInline>aac</codeInline> series, and I will take its linear returns as my original samples. Even then, the resulting series is not a stationary one, so the match will not be perfect. This is how I get the linear returns from a time series:</para>
+			<code language="Austra">
+aac.rets
+			</code>
+			<para>And this is the corresponding chart:</para>
+			<mediaLink><image placement="near" xlink:href="s006"/></mediaLink>
+			<para>For MA series, we must use the ACF instead of the PACF. These are the fifty first lags of the ACF:</para>
+			<mediaLink><image placement="near" xlink:href="acf001"/></mediaLink>
+			<para>This time, the cutoff is not as clear as before. Let us start by trying an MA(2) model:</para>
+			<mediaLink><image placement="near" xlink:href="ma002"/></mediaLink>
+			<para>It could have been worse. The <codeInline>r2</codeInline> statistics is nothing to write home about. Note that, this time, we also have the <math>μ</math> parameter for the mean of the series. We could keep rising the number of the degrees of the model for a better match, but we would soon meet diminished returns. Remember that the original series was not a stationary one.</para>
+	  		<alert class="note">
+			  <para>MA models are way harder to estimate than the simpler AR model. The depend on past “errors”, which are not directly observable, but must be inferred from the samples.</para>
+	  		</alert>
+		  </content>
+        </section>>
       </sections>
       </content>
     </section>
