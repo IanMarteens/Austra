@@ -224,6 +224,37 @@ The vector is handled as a row vector.</font></markup>
 <markup><b><font color="DarkCyan">matrix::</font></b></markup>eye(5) / m - m.inverse
 		</code>
 		<para>Internally, the LU factorization of the matrix is used for equation solving, for the general case. When the matrix at the left is a triangular matrix, a most efficient algorithm is used.</para>
+		<sections>
+		  <section address="MatrixOperatorsOpt">
+		    <title>Optimisations</title>
+		    <content>
+		      <para>The compiler performs some optimisations for matrix operations. For instance, these two expressions yield the same result, but the second one avoids one matrix transpose:</para>
+			  <code language="Austra">
+<markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10), v = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<markup><font color="DarkGreen">-- Transpose a matrix and then transform a vector:</font></markup>
+m' * v;
+<markup><font color="DarkGreen">-- Changing the order of operands avoids a transpose:</font></markup>
+v * m;
+			  </code>
+			  <para>The compiler also detects when the second matrix in a matrix multiplication is being transposed:</para>
+			  <code language="Austra">
+<markup><b>let</b></markup> m1 = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10), m2 = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10) <markup><b>in</b></markup>
+    m1 * m2'
+			  </code>
+			  <para>This pattern is handled by the <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.MultiplyTranspose(Austra.Library.Matrix)</codeEntityReference> method, which not only saves the time spent in the transpose but also avoids a temporal memory allocation.</para>
+			  <para>These two operation patterns are also detected and implemented with a single method call:</para>
+			  <code language="Austra">
+<markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
+<markup><b>let</b></markup> v1 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<markup><b>let</b></markup> v2 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<markup><b>let</b></markup> scaleFactor = 0.1;
+m * v1 ± v2;
+m * v1 ± scaleFactor * v2;
+			  </code>
+			  <para>These special operations are implemented by the <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.MultiplyAdd(Austra.Library.DVector,Austra.Library.DVector)</codeEntityReference> and <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.MultiplySubtract(Austra.Library.DVector,Austra.Library.DVector)</codeEntityReference> group of overloaded methods.</para>
+		    </content>
+		  </section>
+		</sections>
       </content>
     </section>
     <section address="MatrixIndexes">
