@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser : Scanner, IDisposable
@@ -368,7 +366,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             int namePos = start;
             string leftValue = id;
             Move();
-            if (kind == Token.Eof || kind == Token.Comma || kind == Token.Semicolon)
+            if (kind is Token.Eof or Token.Comma or Token.Semicolon)
             {
                 setExpressions.Add(source.SetExpression(leftValue, NullExpr));
                 if (!parsingTypes)
@@ -554,10 +552,10 @@ internal sealed partial class Parser : Scanner, IDisposable
         {
             // Quick path.
             Move();
-            Expression e3 = ParseConditional();
-            return DifferentTypes(ref e1, ref e3)
+            Expression e2 = ParseConditional();
+            return DifferentTypes(ref e1, ref e2)
                 ? throw Error("Conditional operands are not compatible")
-                : Expression.Condition(c, e1, e3);
+                : Expression.Condition(c, e1, e2);
         }
         List<Expression> expressions = source.Rent(8);
         try
@@ -579,18 +577,9 @@ internal sealed partial class Parser : Scanner, IDisposable
             for (int i = 1; i < expressions.Count; i += 2)
             {
                 Expression e = expressions[i];
-                if (e.Type != last.Type)
-                    if (last.Type == typeof(Complex) && IsArithmetic(e))
-                        expressions[i] = Expression.Convert(e, typeof(Complex));
-                    else if (e.Type == typeof(Complex) && IsArithmetic(last))
-                        expressions[^1] = last = Expression.Convert(last, typeof(Complex));
-                    else if (IsArithmetic(last) && IsArithmetic(e))
-                    {
-                        expressions[i] = ToDouble(expressions[i]);
-                        expressions[^1] = last = ToDouble(last);
-                    }
-                    else
-                        throw Error("Conditional operands are not compatible");
+                if (DifferentTypes(ref e, ref last))
+                    throw Error("Conditional operands are not compatible");
+                expressions[i] = e;
             }
             last = Expression.Condition(expressions[^2], expressions[^1], last);
             for (int i = expressions.Count - 3; i > 0; i -= 2)
@@ -767,7 +756,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 (Token opMul, int opMPos) = (kind, start);
                 Move();
                 Expression e3 = ParseUnary();
-                if (opMul == Token.PointTimes || opMul == Token.PointDiv)
+                if (opMul is Token.PointTimes or Token.PointDiv)
                     e2 = e2.Type == e3.Type && e2.Type.IsAssignableTo(
                             typeof(IPointwiseOperators<>).MakeGenericType(e2.Type))
                         ? e2.Type.Call(e2, opMul == Token.PointTimes
@@ -926,7 +915,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 : opKind == Token.Plus ? e1 : Expression.Negate(e1);
         }
         Expression e = ParseFactor();
-        return kind == Token.Caret || kind == Token.Caret2 ? ParsePower(e) : e;
+        return kind is Token.Caret or Token.Caret2 ? ParsePower(e) : e;
     }
 
     private Expression ParsePower(Expression e)
@@ -1052,7 +1041,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                         e = IntToDouble(e);
                     else if (e.Type != typeof(double) && e.Type != typeof(Complex))
                         throw Error("Variable must be numeric", pos);
-                    if (kind == Token.Caret || kind == Token.Caret2)
+                    if (kind is Token.Caret or Token.Caret2)
                         e = ParsePower(e);
                     e = Expression.Multiply(e1, e);
                 }
@@ -1073,7 +1062,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                         Move();
                         e = ParseProperty(e);
                     }
-                    if (kind == Token.Caret || kind == Token.Caret2)
+                    if (kind is Token.Caret or Token.Caret2)
                         e = ParsePower(e);
                     e = Expression.Multiply(e1, e);
                 }
@@ -2018,7 +2007,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     private Expression ParseGenerator()
     {
         Expression first = ParseLightConditional();
-        if (first.Type != typeof(int) && first.Type != typeof(double))
+        if (!IsArithmetic(first))
             return first;
         // It may be a range expression.
         CheckAndMove(Token.Range, "Expected range in list comprehension");
