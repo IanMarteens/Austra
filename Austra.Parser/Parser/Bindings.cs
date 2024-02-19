@@ -125,7 +125,11 @@ internal sealed class Bindings
                 new("log(", "Natural logarithm"),
                 new("log10(", "Base 10 logarithm"),
                 new("max(", "Maximum function"),
+                new("maxInt", "Maximum value for an integer"),
+                new("maxReal", "Maximum value for a real"),
                 new("min(", "Minimum function"),
+                new("minInt", "Minimum value for an integer"),
+                new("minReal", "Minimum value for a real"),
                 new("ncdf(", "Normal cummulative function"),
                 new("nrandom", "Generate a random number from a normal standard distribution"),
                 new("pearl", "Try me!"),
@@ -1481,7 +1485,7 @@ internal sealed class Bindings
         if (!trimmedText.IsEmpty)
             try
             {
-                return ExtractType(trimmedText.ToString());
+                return ExtractType(trimmedText.ToString(), out type);
             }
             catch
             {
@@ -1502,16 +1506,22 @@ internal sealed class Bindings
         return [];
 
         // Finds the type of an object path.
-        IList<Member> ExtractType(string text)
+        IList<Member> ExtractType(string text, out Type? type)
         {
             using Parser parser = new(this, source, text);
             // The abort position of the parser is set to the end of the text, so that
             // any error results in an AbortException instead of the regular AstException.
-            return parser.ParseType(text.Length + 1) is Type[] types
-                && types.Length > 0 && types[^1] is not null
-                && members.TryGetValue(types[^1], out Member[]? list)
-                ? list
-                : [];
+            if (parser.ParseType(text.Length + 1) is Type[] types
+                && types.Length > 0 && types[^1] is not null)
+            {
+                type = types[^1];
+                return members.TryGetValue(types[^1], out Member[]? list) ? list : [];
+            }
+            else
+            {
+                type = null;
+                return [];
+            }
         }
 
         // Extracts an object path from an expression fragment.

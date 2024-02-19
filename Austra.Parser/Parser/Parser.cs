@@ -908,8 +908,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             (Token opKind, int opPos) = (kind, start);
             Move();
             Expression e1 = ParseUnary();
-            return !IsArithmetic(e1)
-                && !e1.Type.IsAssignableTo(typeof(System.Numerics.IUnaryNegationOperators<,>)
+            return !e1.Type.IsAssignableTo(typeof(System.Numerics.IUnaryNegationOperators<,>)
                     .MakeGenericType(e1.Type, e1.Type))
                 ? throw Error("Unary operator not supported", opPos)
                 : opKind == Token.Plus ? e1 : Expression.Negate(e1);
@@ -1121,6 +1120,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     };
                     break;
                 case Token.Transpose:
+                    // Transpose a matrix or conjugate a complex scalar or vector.
                     e = e.Type == typeof(CVector)
                         ? Expression.Call(e, e.Type.Get(nameof(CVector.Conjugate)))
                         : IsMatrix(e)
@@ -1147,6 +1147,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                         : throw Error("Invalid indexer");
                     break;
                 case Token.LBrace:
+                    // Safe indexing.
                     Move();
                     e = e.Type.IsAssignableTo(typeof(ISafeIndexed))
                         ? ParseSafeIndexer(e)
@@ -1548,7 +1549,6 @@ internal sealed partial class Parser : Scanner, IDisposable
             {
                 source.Return(args);
             }
-
         }
     }
 
@@ -1788,7 +1788,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             Move();
             return typeof(DVector).New(ZeroExpr);
         }
-        // Verify if it's a list comprehension.
+        // Check if it's a list comprehension.
         if (kind == Token.Id)
         {
             string saveId = id;
@@ -1804,17 +1804,32 @@ internal sealed partial class Parser : Scanner, IDisposable
             {
                 string qual = saveId.ToLower();
                 Move();
-                if ((qual == "all" || qual == "any") && kind == Token.Element)
+                if (qual is "all" or "any" && kind == Token.Element)
                 {
                     id = saveId;
                     lexCursor = saveCursor;
                     return ParseListComprehension(qual);
                 }
             }
+            else if (kind == Token.Colon)
+            {
+                if (saveId.Equals("int", StringComparison.OrdinalIgnoreCase))
+                {
+                    Move();
+                    return ParseIntegerVector();
+                }
+                if (saveId.Equals("real", StringComparison.OrdinalIgnoreCase)||
+                    saveId.Equals("double", StringComparison.OrdinalIgnoreCase))
+                {
+                    Move();
+                    goto PARSE_VECTOR;
+                }
+            }
             id = saveId;
             lexCursor = saveCursor;
             kind = Token.Id;
         }
+    PARSE_VECTOR:
         // It's a vector or a matrix constructor.
         List<Expression> items = source.Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
@@ -1902,6 +1917,67 @@ internal sealed partial class Parser : Scanner, IDisposable
                 ? typeof(Matrix).New(
                     Expression.Constant(items.Count / period), Expression.Constant(period), args)
                 : typeof(DVector).New(args);
+        }
+        source.Return(items);
+        return result;
+    }
+
+    /// <summary>Parses a vector literal.</summary>
+    /// <returns>An expression creating the vector or the matrix.</returns>
+    private Expression ParseIntegerVector()
+    {
+        List<Expression> items = source.Rent(16);
+        int vectors = 0;
+        for (; ; )
+        {
+            Expression e = ParseLightConditional();
+            if (e.Type == typeof(int))
+                if (items.Count == 0 && kind == Token.Range)
+                {
+                    Move();
+                    e = ParseIntGenerator(e);
+                    CheckAndMove(Token.RBra, "] expected in sequence generator");
+                    return e;
+                }
+                else
+                    items.Add(e);
+            else if (e.Type == typeof(NVector))
+            {
+                vectors++;
+                items.Add(e);
+            }
+            else
+                throw Error("Vector item must be integer");
+            if (kind == Token.Comma)
+                Move();
+            else if (kind == Token.RBra)
+            {
+                Move();
+                break;
+            }
+            else
+                throw Error("Vector item separator expected");
+        }
+        Expression result;
+        if (vectors > 0)
+        {
+            for (int i = 0; vectors < items.Count; vectors++)
+            {
+                for (; items[i].Type == typeof(NVector); i++) ;
+                int j = i + 1;
+                for (; j < items.Count && items[j].Type != typeof(NVector); j++) ;
+                int count = j - i;
+                if (count == 1 && items.Count == 2)
+                    return typeof(NVector).New(items[0], items[1]);
+                items[i] = typeof(NVector).New(typeof(int).Make(items.GetRange(i, count)));
+                items.RemoveRange(i + 1, count - 1);
+            }
+            result = typeof(NVector).New(typeof(NVector).Make(items));
+        }
+        else
+        {
+            Expression args = typeof(int).Make(items);
+            result = typeof(NVector).New(args);
         }
         source.Return(items);
         return result;
@@ -2047,6 +2123,28 @@ internal sealed partial class Parser : Scanner, IDisposable
                     Type.EmptyTypes, first, last);
     }
 
+    private Expression ParseIntGenerator(Expression first)
+    {
+        Expression? middle = ParseLightConditional();
+        Expression? last = null;
+        if (kind == Token.Range)
+        {
+            Move();
+            last = ParseLightConditional();
+        }
+        else
+            (middle, last) = (null, middle);
+        if (last!.Type != typeof(int))
+            throw Error("Range bounds must be of the same type");
+        if (middle is not null && middle.Type != typeof(int))
+            throw Error("Range step must be an integer");
+        return middle != null
+            ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+                Type.EmptyTypes, first, middle, last)
+            : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+                Type.EmptyTypes, first, last);
+    }
+
     private Expression ParseIdBang()
     {
         // Check macro definitions.
@@ -2131,6 +2229,10 @@ internal sealed partial class Parser : Scanner, IDisposable
             "pearl" => Expression.Call(typeof(Functions).Get(nameof(Functions.Austra))),
             "random" => Expression.Call(typeof(Functions).GetMethod(nameof(Functions.Random))!),
             "nrandom" => Expression.Call(typeof(Functions).GetMethod(nameof(Functions.NRandom))!),
+            "maxint" => Expression.Constant(int.MaxValue),
+            "minint" => Expression.Constant(int.MinValue),
+            "maxreal" => Expression.Constant(double.MaxValue),
+            "minreal" => Expression.Constant(double.MinValue),
             _ => null,
         };
 
