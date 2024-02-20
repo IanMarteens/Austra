@@ -37,7 +37,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     /// <returns>A sequence returning a uniform grid of values.</returns>
     public static DSequence Create(double lower, int steps, double upper) =>
         new GridSequence(lower, upper, steps);
-    
+
     /// <summary>Creates a sequence from a vector.</summary>
     /// <param name="vector">The vector containing the sequence's values.</param>
     /// <returns>The sequence encapsulating the vector.</returns>
@@ -359,6 +359,41 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
         double[] data = Materialize();
         Array.Sort(data);
         return Create(data);
+    }
+
+    /// <summary>Gets the sum of all the values in the sequence.</summary>
+    /// <returns>The sum of all the values in the sequence.</returns>
+    public override double Sum()
+    {
+        const int CAP = 32;
+        if (!V8.IsHardwareAccelerated)
+            return base.Sum();
+        Span<double> buffer = stackalloc double[CAP];
+        ref double r0 = ref MM.GetReference(buffer);
+        ref double r1 = ref r0;
+        int c = 0;
+        V8d sum = V8d.Zero;
+        while (Next(out double value))
+        {
+            r1 = value;
+            r1 = ref Add(ref r1, 1);
+            if (++c == CAP)
+            {
+                ref double p = ref r0;
+                do
+                {
+                    sum += V8.LoadUnsafe(ref p);
+                    p = ref Add(ref p, V8d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref r1));
+                c = 0;
+                r1 = ref r0;
+            }
+        }
+        double result = V8.Sum(sum);
+        for (int i = 0; i < c; i++)
+            result += buffer[i];
+        return result;
     }
 
     /// <summary>Sorts the content of this sequence in descending order.</summary>
