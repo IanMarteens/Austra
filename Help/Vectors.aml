@@ -504,6 +504,13 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 <markup><font color="DarkGreen">-- Values between <codeInline>-10</codeInline> and <codeInline>9</codeInline>.</font><br/>
 <b><font color="DarkCyan">ivec::</font></b></markup>random(-10, 10)
 		</code>
+        <para>Integer vector literals can be created using this notation:</para>
+		<code language="Austra">
+<markup><font color="DarkGreen">-- Integer vector creation.</font><br/>
+<b>let</b></markup> v1 = [<markup><b>int</b></markup>: 1, 2, 3, 4];
+<markup><font color="DarkGreen">-- Integer vector concatenation.</font></markup>
+[<markup><b>int</b></markup>: v1, 5, v1.reverse];
+		</code>
 		<sections>
 		  <section address="ivecprop">
 		    <title>Integer vector properties</title>

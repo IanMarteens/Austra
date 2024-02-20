@@ -154,7 +154,7 @@ and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInli
 		        <entry><para>Unary suffix operator for complex conjugation.</para></entry>
 		      </row>
 		    </table>
-		    <para>The <codeInline>'</codeInline> operator is also used for <codeEntityReference qualifyHint="false" autoUpgrade="true" linkText="transposing">M:Austra.Library.Matrix.Transpose</codeEntityReference> a <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49#MatrixOperators">matrix</link>.</para>
+		    <para>The <codeInline>'</codeInline> operator is also used for conjugating complex vectors and <codeEntityReference qualifyHint="false" autoUpgrade="true" linkText="transposing">M:Austra.Library.Matrix.Transpose</codeEntityReference> a <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49#MatrixOperators">matrix</link>.</para>
 		    </content>
 		  </section>
 		  <section address="Section2B">
