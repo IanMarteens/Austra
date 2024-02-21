@@ -329,27 +329,83 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     }
 
     /// <summary>Gets the minimum value from the sequence.</summary>
+    /// <remarks>Hardware-accelerated for AVX512F.</remarks>
     /// <returns>The minimum value.</returns>
     public virtual double Min()
     {
-        if (!Next(out double value))
-            throw new EmptySequenceException();
-        while (Next(out double v))
-            value = Math.Min(value, v);
-        Reset();
-        return value;
+        if (!V8.IsHardwareAccelerated)
+        {
+            if (!Next(out double value))
+                throw new EmptySequenceException();
+            while (Next(out double v))
+                value = Math.Min(value, v);
+            Reset();
+            return value;
+        }
+        const int CAP = 64;
+        Span<double> buffer = stackalloc double[CAP];
+        ref double r0 = ref MM.GetReference(buffer);
+        ref double r1 = ref r0;
+        int c = 0;
+        V8d min = V8.Create(double.PositiveInfinity);
+        while (Next(out double value))
+        {
+            r1 = value;
+            r1 = ref Add(ref r1, 1);
+            if (++c == CAP)
+            {
+                ref double p = ref r0;
+                do
+                {
+                    min = V8.Min(min, V8.LoadUnsafe(ref p));
+                    p = ref Add(ref p, V8d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref r1));
+                c = 0;
+                r1 = ref r0;
+            }
+        }
+        return c == 0 ? min.Min() : Math.Min(min.Min(), buffer[0..c].Min());
     }
 
     /// <summary>Gets the maximum value from the sequence.</summary>
+    /// <remarks>Hardware-accelerated for AVX512F.</remarks>
     /// <returns>The maximum value.</returns>
     public virtual double Max()
     {
-        if (!Next(out double value))
-            throw new EmptySequenceException();
-        while (Next(out double v))
-            value = Math.Max(value, v);
-        Reset();
-        return value;
+        if (!V8.IsHardwareAccelerated)
+        {
+            if (!Next(out double value))
+                throw new EmptySequenceException();
+            while (Next(out double v))
+                value = Math.Max(value, v);
+            Reset();
+            return value;
+        }
+        const int CAP = 64;
+        Span<double> buffer = stackalloc double[CAP];
+        ref double r0 = ref MM.GetReference(buffer);
+        ref double r1 = ref r0;
+        int c = 0;
+        V8d max = V8.Create(double.NegativeInfinity);
+        while (Next(out double value))
+        {
+            r1 = value;
+            r1 = ref Add(ref r1, 1);
+            if (++c == CAP)
+            {
+                ref double p = ref r0;
+                do
+                {
+                    max = V8.Max(max, V8.LoadUnsafe(ref p));
+                    p = ref Add(ref p, V8d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref r1));
+                c = 0;
+                r1 = ref r0;
+            }
+        }
+        return c == 0 ? max.Max() : Math.Max(max.Max(), buffer[0..c].Max());
     }
 
     /// <summary>Sorts the content of this sequence.</summary>
@@ -362,12 +418,14 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     }
 
     /// <summary>Gets the sum of all the values in the sequence.</summary>
+    /// <remarks>Hardware-accelerated for AVX512F.</remarks>
     /// <returns>The sum of all the values in the sequence.</returns>
     public override double Sum()
     {
-        const int CAP = 32;
         if (!V8.IsHardwareAccelerated)
             return base.Sum();
+        const int CAP = 32;
+        // It seems that a small local buffer is faster than a large one.
         Span<double> buffer = stackalloc double[CAP];
         ref double r0 = ref MM.GetReference(buffer);
         ref double r1 = ref r0;
