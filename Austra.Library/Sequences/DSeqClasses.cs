@@ -304,6 +304,14 @@ public abstract partial class DSequence : IFormattable
             ? throw new IndexOutOfRangeException()
             : mapper(first + index);
 
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value.</returns>
+        public override double First() => mapper(first);
+
+        /// <summary>Gets the last value in the sequence.</summary>
+        /// <returns>The last value.</returns>
+        public override double Last() => mapper(first + length - 1);
+
         /// <summary>Resets the sequence.</summary>
         /// <returns>Echoes this sequence.</returns>
         public override DSequence Reset()
@@ -311,10 +319,6 @@ public abstract partial class DSequence : IFormattable
             current = 0;
             return this;
         }
-
-        /// <summary>Gets the last value in the sequence.</summary>
-        /// <returns>The last value.</returns>
-        public override double Last() => mapper(first + length - 1);
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -353,6 +357,10 @@ public abstract partial class DSequence : IFormattable
             (uint)index >= length
             ? throw new IndexOutOfRangeException()
             : mapper(first - index);
+
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value.</returns>
+        public override double First() => mapper(first);
 
         /// <summary>Gets the last value in the sequence.</summary>
         /// <returns>The last value.</returns>
