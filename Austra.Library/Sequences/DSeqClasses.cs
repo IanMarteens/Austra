@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Runtime.ExceptionServices;
+
+namespace Austra.Library;
 
 /// <summary>Represents any sequence returning double-precision values.</summary>
 public abstract partial class DSequence : IFormattable
@@ -279,6 +281,98 @@ public abstract partial class DSequence : IFormattable
         }
     }
 
+    /// <summary>A range sequence with a mapping function.</summary>
+    /// <param name="first">First item.</param>
+    /// <param name="last">Last item.</param>
+    /// <param name="mapper">The mapping function.</param>
+    private sealed class MappedRangeAsc(int first, int last, Func<double, double> mapper) 
+        : FixLengthSequence(Abs(last - first) + 1)
+    {
+        /// <summary>First number in the sequence.</summary>
+        private readonly double first = first;
+        /// <summary>Current value.</summary>
+        private int current;
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override double this[int index] =>
+            (uint)index >= length
+            ? throw new IndexOutOfRangeException()
+            : mapper(first + index);
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current < length)
+            {
+                value = mapper(first + current++);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>A range sequence with a mapping function.</summary>
+    /// <param name="first">First item.</param>
+    /// <param name="last">Last item.</param>
+    /// <param name="mapper">The mapping function.</param>
+    private sealed class MappedRangeDesc(int first, int last, Func<double, double> mapper)
+        : FixLengthSequence(Abs(last - first) + 1)
+    {
+        /// <summary>First number in the sequence.</summary>
+        private readonly double first = first;
+        /// <summary>Current value.</summary>
+        private int current;
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override double this[int index] =>
+            (uint)index >= length
+            ? throw new IndexOutOfRangeException()
+            : mapper(first - index);
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override DSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current < length)
+            {
+                value = mapper(first - current++);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
     /// <summary>Implements a sequence of double values based in an integer range.</summary>
     /// <remarks>Creates a double sequence from an integer range.</remarks>
     /// <param name="first">The first value in the sequence.</param>
@@ -327,6 +421,14 @@ public abstract partial class DSequence : IFormattable
             current = first;
             return this;
         }
+
+        /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
+        /// <param name="mapper">The transforming function.</param>
+        /// <returns>The transformed sequence.</returns>
+        public sealed override DSequence Map(Func<double, double> mapper) =>
+            first <= last
+            ? new MappedRangeAsc(first, last, mapper) 
+            : new MappedRangeDesc(first, last, mapper);
 
         /// <summary>Checks if the sequence contains a zero value.</summary>
         protected override bool ContainsZero => first <= 0 && last >= 0;
@@ -390,10 +492,12 @@ public abstract partial class DSequence : IFormattable
     private sealed class RangeSequenceDesc(int first, int last) : RangeSequence(first, last)
     {
         /// <summary>Sorts the content of this sequence.</summary>
+        /// <remarks>Returns a sequence with the inverted order.</remarks>
         /// <returns>A sorted sequence.</returns>
         public override DSequence Sort() => new RangeSequence(last, first);
 
         /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <remarks>This sequence is already in descending order.</remarks>
         /// <returns>A sorted sequence in descending order.</returns>
         public override DSequence SortDescending() => this;
 

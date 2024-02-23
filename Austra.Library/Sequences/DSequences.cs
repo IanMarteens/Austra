@@ -424,7 +424,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     {
         if (!V8.IsHardwareAccelerated)
             return base.Sum();
-        const int CAP = 32;
+        const int CAP = 128;
         // It seems that a small local buffer is faster than a large one.
         Span<double> buffer = stackalloc double[CAP];
         ref double r0 = ref MM.GetReference(buffer);

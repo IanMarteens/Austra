@@ -7,5 +7,3 @@ WriteLine("Benchmarks for AUSTRA");
 //BenchmarkRunner.Run<SplineBenchmark>();
 //BenchmarkRunner.Run<FunctionsBenchmark>();
 
-
-
