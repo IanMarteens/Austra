@@ -312,6 +312,22 @@ sin(pi/4) = sqrt(2)/2
 		        <entry><para>The imaginary unit.</para></entry>
 		      </row>
 		      <row>
+		        <entry><para><codeInline>maxInt</codeInline></para></entry>
+		        <entry><para>The maximum value that is representable in an integer.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>maxReal</codeInline></para></entry>
+		        <entry><para>The maximum value that is representable in a real.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>minInt</codeInline></para></entry>
+		        <entry><para>The minimum value that is representable in an integer.</para></entry>
+		      </row>
+		      <row>
+		        <entry><para><codeInline>minReal</codeInline></para></entry>
+		        <entry><para>The minimum value that is representable in a real.</para></entry>
+		      </row>
+		      <row>
 		        <entry><para><codeInline>nrandom</codeInline></para></entry>
 		        <entry><para>A random number from the standard normal distribution.</para></entry>
 		      </row>
@@ -340,6 +356,7 @@ sin(pi/4) = sqrt(2)/2
 		  <section address="polys">
 		    <title>Polynomials and solvers</title>
 		    <content>
+		    <para>These methods are also defined inside the <codeInline>math</codeInline> class, so they can be used without explicitly writing the class prefix:</para>
 		    <table>
 		      <row>
 		        <entry><para><codeInline>solve</codeInline></para></entry>
@@ -481,6 +498,7 @@ Newton-Raphson algorithm.</para>
 		    <entry><para>Logical disjunction.</para></entry>
 		  </row>
         </table>
+        <para>The precedence of these operators is the standard one. Negation binds first, then conjunction, and finally disjunction.</para>
         <sections>
           <section address="Section5A">
             <title>Conditional expressions</title>
