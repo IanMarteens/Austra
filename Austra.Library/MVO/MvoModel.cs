@@ -87,6 +87,15 @@ public class MvoModel
         this(returns, covariance, new DVector(returns.Length, 0.0), new DVector(returns.Length, 1.0), Array.Empty<string>())
     { }
 
+    /// <summary>Creates and calculates a MVO model.</summary>
+    /// <param name="returns">Expected returns.</param>
+    /// <param name="series">A list of series to provide the asset names and the covariance matrix.</param>
+    public MvoModel(DVector returns, params Series[] series) :
+        this(returns, Series.CovarianceMatrix(series),
+            new DVector(returns.Length, 0.0), new DVector(returns.Length, 1.0),
+            series)
+    { }
+
     /// <summary>Number of assets in the model.</summary>
     public int Size => Returns.Length;
 

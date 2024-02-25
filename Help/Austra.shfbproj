@@ -119,6 +119,10 @@
       <ImageId>acf001</ImageId>
       <AlternateText>acf 001</AlternateText>
     </Image>
+    <Image Include="mark001.png">
+      <ImageId>mark001</ImageId>
+      <AlternateText>mark 001</AlternateText>
+    </Image>
     <Image Include="s006.png">
       <ImageId>s006</ImageId>
       <AlternateText>s 006</AlternateText>
