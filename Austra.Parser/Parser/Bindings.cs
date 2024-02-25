@@ -826,6 +826,7 @@ internal sealed class Bindings
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix)),
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector), typeof(DVector)),
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix), typeof(Series[])),
+                typeof(MvoModel).MD(typeof(DVector), typeof(Series[])),
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix),
                     typeof(DVector), typeof(DVector), typeof(Series[])),
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix), typeof(string[])),
