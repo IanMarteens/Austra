@@ -37,13 +37,41 @@ public class MvoModel
             labels = newLabels;
         }
         Labels = labels;
-        var input = new Inputs(returns.Length);
-        input.SetExpectedReturns(returns);
-        input.SetCovariance(covariance);
-        input.SetLowerBoundaries(lowerLimits);
-        input.SetUpperBoundaries(upperLimits);
+        Inputs input = new(Returns, []);
+        input.SetCovariance(Covariance);
+        input.SetLowerBoundaries(LowerLimits);
+        input.SetUpperBoundaries(UpperLimits);
         Portfolios = Optimizer.GetEfficientFrontier(input);
     }
+
+    /// <summary>Add constraints to the model.</summary>
+    /// <param name="constraintLHS">A matrix of Constraints * Securities size.</param>
+    /// <param name="constraintRHS">A vector of Constraints size.</param>
+    /// <param name="constraintTypes">One constraint sign for each constraint.</param>
+    /// <returns>The updated model with a recalculated efficient frontier.</returns>
+    public MvoModel SetConstraints(Matrix constraintLHS, DVector constraintRHS, NVector constraintTypes)
+    {
+        if (constraintLHS.Cols != Returns.Length)
+            throw new MatrixSizeException($"Matrix should be {constraintLHS.Rows}x{Returns.Length}");
+        if (constraintRHS.Length != constraintLHS.Rows)
+            throw new VectorLengthException($"Vector length should be {constraintLHS.Rows}");
+        if (constraintRHS.Length != constraintTypes.Length)
+            throw new VectorLengthException($"The must be a constraint type for each constraint");
+        Inputs input = new(Returns, constraintTypes);
+        input.SetCovariance(Covariance);
+        input.SetLowerBoundaries(LowerLimits);
+        input.SetUpperBoundaries(UpperLimits);
+        input.SetConstraints(constraintLHS, constraintRHS);
+        Portfolios = Optimizer.GetEfficientFrontier(input);
+        return this;
+    }
+
+    /// <summary>Add equality constraints to the model.</summary>
+    /// <param name="constraintLHS">A matrix of Constraints * Securities size.</param>
+    /// <param name="constraintRHS">A vector of Constraints size.</param>
+    /// <returns>The updated model with a recalculated efficient frontier.</returns>
+    public MvoModel SetConstraints(Matrix constraintLHS, DVector constraintRHS) =>
+        SetConstraints(constraintLHS, constraintRHS, new NVector(constraintRHS.Length));
 
     /// <summary>Creates and calculates a MVO model.</summary>
     /// <param name="returns">Expected returns.</param>
@@ -110,7 +138,7 @@ public class MvoModel
     /// <summary>The name of the assets.</summary>
     public string[] Labels { get; }
     /// <summary>Portfolios in the efficient frontier.</summary>
-    public Portfolio[] Portfolios { get; }
+    public Portfolio[] Portfolios { get; private set; } = [];
 
     /// <summary>Gets the number of portfolios in the efficient frontier.</summary>
     public int Length => Portfolios.Length;

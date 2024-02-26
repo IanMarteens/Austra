@@ -120,15 +120,16 @@ s1.poly(^1);
       <codeEntityReference qualifyHint="false">T:Austra.Library.Spline`1</codeEntityReference>
       <codeEntityReference qualifyHint="false">T:Austra.Library.DateSpline</codeEntityReference>
       <codeEntityReference qualifyHint="false">T:Austra.Library.VectorSpline</codeEntityReference>
+      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Primitive types</link>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
       <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
-      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetic</link>
       <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">Time series</link>
       <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
       <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
       <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49">Matrices</link>
       <link xlink:href="95cad3a9-e319-4787-a66b-596e34e6ddd6">List comprehensions</link>
+      <link xlink:href="e7993a1e-f2c5-4eb0-aa47-0a3f620375fc">Models</link>
     </relatedTopics>
   </developerConceptualDocument>
 </topic>

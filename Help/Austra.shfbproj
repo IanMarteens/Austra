@@ -87,6 +87,7 @@
   <ItemGroup>
     <None Include="Arithmetic.aml" />
     <None Include="Comprehensions.aml" />
+    <None Include="Models.aml" />
     <None Include="Splines.aml" />
     <None Include="Matrices.aml" />
     <None Include="Time series.aml" />
@@ -118,6 +119,10 @@
     <Image Include="acf001.png">
       <ImageId>acf001</ImageId>
       <AlternateText>acf 001</AlternateText>
+    </Image>
+    <Image Include="mark002.png">
+      <ImageId>mark002</ImageId>
+      <AlternateText>mark 002</AlternateText>
     </Image>
     <Image Include="mark001.png">
       <ImageId>mark001</ImageId>

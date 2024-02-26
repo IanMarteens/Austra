@@ -526,66 +526,22 @@ aac.rets
 	  		</alert>
 		  </content>
         </section>
-        <section>
-          <title>Mean Variance Optimizer</title>
-          <content>
-            <para>Mean variance optimization (MVO) is a mathematical optimization for maximizing the expected return of a portfolio given a level of risk. Inside a polytope, the fundamental algorithm is an optimizer for a quadratic objective function. A <legacyItalic>polytope</legacyItalic> is just a fancy name for a polyhedron in a high-dimensional space.</para>
-            <para>The MVO is implemented by the <codeEntityReference qualifyHint="false">T:Austra.Library.MVO.MvoModel</codeEntityReference> class from the Austra library, and it is available for the AUSTRA language by executing the <codeInline>model::mvo</codeInline> class method. The <codeInline>model</codeInline> class is a general-purpose container for algorithms that do not fit well as members of other classes. Nevertheless, we prefer to cover the MVO here for its close relationship to financial series.</para>
-            <para>Let us assume we have a portfolio with three assets, and we want to find the three optimal weights, one for each asset. The most general method overload of the MVO would be like this:</para>
-            <code language="Austra">
-<markup><font color="DarkGreen">-- This example assumes we are dealing with three assets.</font><br/>
-<b><font color="DarkCyan">model</font></b></markup>::mvo(
-    <markup><font color="DarkGreen">-- A 3D-vector for returns and a 3x3 covariance matrix.</font></markup>
-    retVec, covMatrix,
-    <markup><font color="DarkGreen">-- Two 3D-vectors for lower and upper bounds.</font></markup>
-    [0, 0, 0], [1, 1, 1],
-    <markup><font color="DarkGreen">-- A label for easy identification of each asset</font></markup>.
-    <markup><font color="DarkRed">"Name1"</font></markup>,
-    <markup><font color="DarkRed">"Name2"</font></markup>,
-    <markup><font color="DarkRed">"Name3"</font></markup>)
-            </code>
-            <list class="bullet">
-              <listItem>We have purposefully avoided stating any values for the <legacyItalic>retVec</legacyItalic> and <legacyItalic>covMatrix</legacyItalic> variables. These two variables would contain a vector with the expected return of each asset and a covariance matrix for these assets.</listItem>
-              <listItem>It is not obvious how expected returns are to be calculated. Financial series are seldom stationary, so the expected return would normally depend on time.</listItem>
-              <listItem>The covariance matrix faces a similar problem.</listItem>
-              <listItem>The lower and upper bounds, on the contrary, are generally easier to set; they are just the minimum and maximum weights we desire for each asset in the portfolio.</listItem>
-              <listItem>The MVO algorithm automatically adds another condition for the weights: their sum must be equal to one.</listItem>
-            </list>
-            <para>For the sake of the example, we are going to assume an arbitrary rentability for each of our three hypothetical assets. For the covariance matrix, we will make things more interesting by creating a fake matrix with three of our series examples: <codeInline>aaa</codeInline>, <codeInline>aab</codeInline> and <codeInline>aad</codeInline>:</para>
-            <code language="Austra">
-> matrix::cov(aaa, aab, aad)
-ans ∊ ℝ(3⨯3)
- 589666   525180  19023.8
- 525180   553027  16232.4
-19023.8  16232.4  42045.1
-            </code>
-            <para>The main diagonal of the above matrix tells us how volatile each of our assets is. We can see that <codeInline>aaa</codeInline> has the greater variance and that <codeInline>aad</codeInline> has the lesser variance and, consequently, the lower associated risk. So, we will assume that the first asset provides the better return, followed by the second and third assets:</para>
-            <code language="Austra">
-<markup><b><font color="DarkCyan">model</font></b></markup>::mvo(
-    [1, 0.8, 0.6],
-    <markup><b><font color="DarkCyan">matrix</font></b></markup>::cov(aaa, aab, aac),
-    [0, 0, 0], [1, 1, 1],
-    <markup><font color="DarkRed">"Name1"</font></markup>, <markup><font color="DarkRed">"Name2"</font></markup>, <markup><font color="DarkRed">"Name3"</font></markup>)
-            </code>
-            <para>If we execute this code, we will get the following interactive output in the area with results from the Austra Desktop application:</para>
-			<mediaLink><image placement="near" xlink:href="mark001"/></mediaLink>
-          </content>
-        </section>
       </sections>
       </content>
     </section>
     <relatedTopics>
       <codeEntityReference qualifyHint="false">T:Austra.Library.Series</codeEntityReference>
       <codeEntityReference qualifyHint="false">T:Austra.Library.Series`1</codeEntityReference>
+      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Primitive types</link>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>
       <link xlink:href="9ebcc778-37a1-4313-87f9-1ea37494d2c8">Lambda functions</link>
-      <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Arithmetic</link>
       <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">Vectors</link>
       <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">Sequences</link>
       <link xlink:href="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49">Matrices</link>
       <link xlink:href="95cad3a9-e319-4787-a66b-596e34e6ddd6">List comprehensions</link>
       <link xlink:href="008dce7e-55cd-4c37-997b-b0463d7c24d0">Splines</link>
+      <link xlink:href="e7993a1e-f2c5-4eb0-aa47-0a3f620375fc">Models</link>
     </relatedTopics>
   </developerConceptualDocument>
 </topic>

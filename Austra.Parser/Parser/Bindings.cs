@@ -478,6 +478,7 @@ internal sealed class Bindings
                 new("last", "Gets the last corner portfolio"),
                 new("length", "Gets the number of corner portfolios"),
                 new("size", "Gets the number of assets in the model"),
+                new("setConstraints(", "Adds constraints to the model and recalculates the frontier"),
             ],
             [typeof(NSequence)] = [
                 new("distinct", "Get the unique values in the sequence"),
@@ -1365,6 +1366,9 @@ internal sealed class Bindings
             [new(typeof(LU), "solve")] = new(
                 typeof(LU).MD(nameof(LU.Solve), typeof(DVector)),
                 typeof(LU).MD(nameof(LU.Solve), typeof(Matrix))),
+            [new(typeof(MvoModel), "setconstraint")] = new(
+                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector), typeof(NVector)),
+                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector))),
             [new(typeof(NSequence), "until")] = new(
                 typeof(NSequence).MD(nameof(NSequence.Until), typeof(Func<int, bool>)),
                 typeof(NSequence).MD(nameof(NSequence.Until), NArg)),

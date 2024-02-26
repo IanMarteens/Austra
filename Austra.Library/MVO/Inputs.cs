@@ -53,18 +53,18 @@ public sealed class Inputs
     /// <summary>Initializes portfolio data for the Mean-Variance Optimizer.</summary>
     /// <param name="securities">Number of securities in the portfolio.</param>
     /// <param name="constraintTypes">One constraint type for each constraint.</param>
-    public Inputs(int securities, params char[] constraintTypes)
+    public Inputs(int securities, NVector constraintTypes)
     {
         Securities = securities;
-        if (constraintTypes == null || constraintTypes.Length == 0)
+        if (!constraintTypes.IsInitialized || constraintTypes.Length == 0)
         {
             Constraints = 1;
-            ConstraintTypes = new ConstraintType[1] { ConstraintType.EQUAL };
+            ConstraintTypes = [ConstraintType.EQUAL];
             Variables = Securities;
             ConstraintsLHS = new double[1, Securities + 1];
             for (int col = 0; col < Securities; col++)
                 ConstraintsLHS[0, col] = 1.0;
-            ConstraintsRHS = new double[1] { 1.0 };
+            ConstraintsRHS = [1.0];
         }
         else
         {
@@ -74,14 +74,14 @@ public sealed class Inputs
             for (int i = 0; i < constraintTypes.Length; i++)
                 switch (constraintTypes[i])
                 {
-                    case '=':
+                    case 0:
                         ConstraintTypes[i] = ConstraintType.EQUAL;
                         break;
-                    case '<':
+                    case < 0:
                         ConstraintTypes[i] = ConstraintType.LESS_THAN;
                         slackVars++;
                         break;
-                    case '>':
+                    default:
                         ConstraintTypes[i] = ConstraintType.GREATER_THAN;
                         slackVars++;
                         break;
@@ -96,6 +96,14 @@ public sealed class Inputs
         Array.Fill(UpperLimits, Simplex.INFINITY);
         Cov = new double[Variables + Constraints, Variables + Constraints];
     }
+
+    /// <summary>Initializes portfolio data for the Mean-Variance Optimizer.</summary>
+    /// <param name="expectedReturns">Expected return for each security</param>
+    /// <param name="constraintTypes">One constraint sign for each constraint.</param>
+    public Inputs(DVector expectedReturns, NVector constraintTypes) : 
+        this(expectedReturns.Length, constraintTypes) =>
+        Array.Copy((double[])expectedReturns, Mean, Securities);
+
 
     /// <summary>Sets the constraint left hand and right hand sides.</summary>
     /// <param name="constraintLHS">A matrix of Constraints * Securities size.</param>
