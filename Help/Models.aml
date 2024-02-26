@@ -72,6 +72,48 @@ ans ∊ ℝ(3⨯3)
 			  <para>This is the simplest method overload for the MVO. Note that we have also removed the lower and upper bounds, making the natural assumption that all weights will stay in the [0,1] interval. We still need, however, to explicitly state the expected returns, but Austra infers that we want to use the covariance matrix for the three used series.</para>
 		    </content>
 		  </section>
+		  <section>
+		    <title>Additional constraints</title>
+		    <content>
+			  <para>Optimization problems frequently include additional constraints beyond the simple limits we have shown so far. As a matter of fact, since we have not included a constraint for the total sum of weights, the <codeInline>model::mvo</codeInline> method has automatically added this constraint to the problem:</para>
+			  <mediaLink><image placement="near" xlink:href="mark004"/></mediaLink> 
+	  		  <para>Let’s say we want another constraint. For instance, the first asset’s weight must always be greater or equal to the third asset's weight:</para>
+			  <mediaLink><image placement="near" xlink:href="mark005"/></mediaLink> 
+		  	  <para>The most general form for this kind of constraint is a list of equations following this pattern:</para>
+			  <mediaLink><image placement="near" xlink:href="mark006"/></mediaLink> 
+			  <para>Here, <math>l</math> stands for left side and <math>r</math> means right side. That strange symbol <codeInline>⋈</codeInline> only means that we can substitute it either with an equality or an inequality. So, more generally, our additional constraints could always be written as:</para>
+			  <mediaLink><image placement="near" xlink:href="mark007"/></mediaLink> 
+			  <para><math>L</math> is a matrix with as many columns as assets in the problem and an arbitrary number of rows, <math>r</math> is a vector with the same number of items as rows in the left-side matrix. Still, we must find a way to determine which relational operator must be used for each of the constraints.</para>
+			  <para>The <codeEntityReference qualifyHint="false">T:Austra.Library.MVO.MvoModel</codeEntityReference> class provides an overloaded method for adding constraints to an already existing model:</para>
+        	  <code language="Austra">
+mvoModel.setConstraints(lhsMatrix, rhsVector, opsIntVector)
+        	  </code>
+			  <para>The first parameter must be a matrix; the second parameter must be a real vector; and the third parameter must be an integer vector. Items in the third parameter are interpreted according to their signs. A positive value means a greater or equal operation; a negative value stands for a lesser or equal relationship; and zero means equality. The third parameter can be omitted when all constraints are equality constraints.</para>
+			  <para>This way, if we want to combine the sum-of-weights constraint with our additional constraint, we will need the following code:</para>
+        	  <code language="Austra">
+<markup><b><font color="DarkCyan">model</font></b></markup>::mvo(
+    [1, 0.8, 0.6],
+    aaa, aab, aad).setConstraints(
+        [1, 1, 1; 1, 0, -1], [1, 0], [<b>int</b>:0, 1])
+        	  </code>
+		<para>These are the portfolios from the efficient frontier, with the additional constraint:</para>
+		<mediaLink><image placement="near" xlink:href="mark003"/></mediaLink> 
+		<para>We could even drop the first constraint because the optimiser will add it when it is not present:</para>
+        	  <code language="Austra">
+<markup><b><font color="DarkCyan">model</font></b></markup>::mvo(
+    [1, 0.8, 0.6],
+    aaa, aab, aad).setConstraints(
+        [1; 0; -1]’, [0], [<b>int</b>:1])
+        	  </code>
+			  <para>Please note the trick we need to create a matrix literal with only one row; we wrote it as a one-column matrix and then transposed it. This is a valid alternative:</para>
+        	  <code language="Austra">
+<markup><b><font color="DarkCyan">model</font></b></markup>::mvo(
+    [1, 0.8, 0.6],
+    aaa, aab, aad).setConstraints(
+        <markup><b><font color="DarkCyan">matrix</font></b></markup>::rows([1, 0, -1]), [0], [<b>int</b>:1])
+        	  </code>
+		    </content>
+		  </section>
 		</sections>
       </content>
     </section>

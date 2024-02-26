@@ -120,6 +120,26 @@
       <ImageId>acf001</ImageId>
       <AlternateText>acf 001</AlternateText>
     </Image>
+    <Image Include="mark007.png">
+      <ImageId>mark007</ImageId>
+      <AlternateText>mark 007</AlternateText>
+    </Image>
+    <Image Include="mark006.png">
+      <ImageId>mark006</ImageId>
+      <AlternateText>mark 006</AlternateText>
+    </Image>
+    <Image Include="mark005.png">
+      <ImageId>mark005</ImageId>
+      <AlternateText>mark 005</AlternateText>
+    </Image>
+    <Image Include="mark004.png">
+      <ImageId>mark004</ImageId>
+      <AlternateText>mark 004</AlternateText>
+    </Image>
+    <Image Include="mark003.png">
+      <ImageId>mark003</ImageId>
+      <AlternateText>mark 003</AlternateText>
+    </Image>
     <Image Include="mark002.png">
       <ImageId>mark002</ImageId>
       <AlternateText>mark 002</AlternateText>

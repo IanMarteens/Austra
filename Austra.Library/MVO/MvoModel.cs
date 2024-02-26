@@ -57,6 +57,24 @@ public class MvoModel
             throw new VectorLengthException($"Vector length should be {constraintLHS.Rows}");
         if (constraintRHS.Length != constraintTypes.Length)
             throw new VectorLengthException($"The must be a constraint type for each constraint");
+        // Check if the sum of weights constraint is present.
+        bool found = false;
+        for (int i = 0; i < constraintLHS.Rows; i++)
+        {
+            DVector row = constraintLHS.GetRow(i);
+            if (row.All(x => x == 1d) && constraintRHS[i] == 1d && constraintTypes[i] == 0d)
+            {
+                found = true;
+                break;
+            }
+        }
+        // Add the sum of weights constraint if it's not present.
+        if (!found)
+        {
+            constraintLHS = Matrix.VCat(constraintLHS, new DVector(constraintLHS.Cols, 1d));
+            constraintRHS = new(constraintRHS, 1d);
+            constraintTypes = new(constraintTypes, 0);
+        }
         Inputs input = new(Returns, constraintTypes);
         input.SetCovariance(Covariance);
         input.SetLowerBoundaries(LowerLimits);
