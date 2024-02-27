@@ -169,6 +169,10 @@ The vector is handled as a row vector.</font></markup>
 	    	<entry><para><codeInline>map</codeInline></para></entry>
 	    	<entry><para>Creates a new matrix with transformed cells. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Map(System.Func{System.Double,System.Double})</codeEntityReference>.</para></entry>
 	  	  </row>
+		  <row>
+	    	<entry><para><codeInline>redim</codeInline></para></entry>
+	    	<entry><para>Creates a new matrix a different size. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Redim(System.Int32,System.Int32)</codeEntityReference>.</para></entry>
+	  	  </row>
 	  	</table>
 	  </content>
     </section>
