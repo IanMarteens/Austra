@@ -421,6 +421,7 @@ internal sealed class Bindings
                 new("min", "Gets the minimum absolute value"),
                 new("rows", "Gets the number of rows"),
                 new("trace", "Gets the sum of the main diagonal"),
+                new("redim(", "Creates a new matrix with a different size"),
             ],
             [typeof(LU)] = [
                 new("det", "Gets the determinant of the decomposed matrix"),
@@ -450,18 +451,19 @@ internal sealed class Bindings
                 new("diag", "Extracts the diagonal as a vector"),
                 new("evd", "Calculates the EigenValues Decomposition"),
                 new("inverse", "Calculates the inverse of a square matrix"),
+                new("isSymmetric", "Checks if a matrix is symmetric"),
                 new("lu", "Calculates the LU Decomposition of a square matrix"),
                 new("max", "Gets the maximum value"),
                 new("min", "Gets the minimum absolute value"),
                 new("rows", "Gets the number of rows"),
+                new("stats", "Calculates statistics on the cells"),
                 new("trace", "Gets the sum of the main diagonal"),
                 new("all(x => ", "Universal operator"),
                 new("any(x => ", "Existential operator"),
                 new("getCol(", "Extracts a column as a vector"),
                 new("getRow(", "Extracts a row as a vector"),
-                new("isSymmetric", "Checks if a matrix is symmetric"),
                 new("map(x => ", "Pointwise transformation of matrix cells"),
-                new("stats", "Calculates statistics on the cells"),
+                new("redim(", "Creates a new matrix with a different size"),
             ],
             [typeof(MAVModel)] = [
                 new("coefficients", "Gets the autoregression coefficients"),
@@ -540,6 +542,7 @@ internal sealed class Bindings
                 new("min", "Gets the minimum absolute value"),
                 new("rows", "Gets the number of rows"),
                 new("trace", "Gets the sum of the main diagonal"),
+                new("redim(", "Creates a new matrix with a different size"),
             ],
             [typeof(Point<Date>)] = [
                 new("date", "Gets the date argument"),
@@ -1363,9 +1366,15 @@ internal sealed class Bindings
             [new(typeof(DVector), "indexof")] = new(
                 typeof(DVector).MD(nameof(DVector.IndexOf), DArg),
                 typeof(DVector).MD(nameof(DVector.IndexOf), typeof(double), typeof(int))),
+            [new(typeof(LMatrix), "redim")] = new(
+                typeof(LMatrix).MD(nameof(LMatrix.Redim), NArg),
+                typeof(LMatrix).MD(nameof(LMatrix.Redim), NNArg)),
             [new(typeof(LU), "solve")] = new(
                 typeof(LU).MD(nameof(LU.Solve), typeof(DVector)),
                 typeof(LU).MD(nameof(LU.Solve), typeof(Matrix))),
+            [new(typeof(Matrix), "redim")] = new(
+                typeof(Matrix).MD(nameof(Matrix.Redim), NArg),
+                typeof(Matrix).MD(nameof(Matrix.Redim), NNArg)),
             [new(typeof(MvoModel), "setconstraints")] = new(
                 typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector), typeof(NVector)),
                 typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector))),
@@ -1375,7 +1384,9 @@ internal sealed class Bindings
             [new(typeof(NVector), "indexof")] = new(
                 typeof(NVector).MD(nameof(NVector.IndexOf), NArg),
                 typeof(NVector).MD(nameof(NVector.IndexOf), NNArg)),
-
+            [new(typeof(RMatrix), "redim")] = new(
+                typeof(RMatrix).MD(nameof(RMatrix.Redim), NArg),
+                typeof(RMatrix).MD(nameof(RMatrix.Redim), NNArg)),
         }.ToFrozenDictionary();
 
     /// <summary>Get root expressions for code completion.</summary>

@@ -1,31 +1,26 @@
 ﻿namespace Austra.Library.MVO;
 
 /// <summary>Represents a portfolio in the efficient frontier.</summary>
-public class Portfolio
+/// <param name="weights">Asset weights.</param>
+/// <param name="lambda">Risk tolerance.</param>
+/// <param name="mean">Expected return.</param>
+/// <param name="variance">Expected volatility.</param>
+public class Portfolio(
+    DVector weights,
+    double lambda,
+    double mean,
+    double variance)
 {
     /// <summary>Asset weights.</summary>
-    public DVector Weights { get; }
+    public DVector Weights { get; } = weights;
     /// <summary>Risk tolerance.</summary>
-    public double Lambda { get; }
+    public double Lambda { get; } = lambda;
     /// <summary>Expected return.</summary>
-    public double Mean { get; }
+    public double Mean { get; } = mean;
     /// <summary>Expected volatility.</summary>
-    public double Variance { get; }
+    public double Variance { get; } = variance;
     /// <summary>Standard deviation.</summary>
-    public double StdDev { get; }
-
-    /// <summary>Creates a portfolio from the efficient frontier.</summary>
-    /// <param name="weights">Asset weights.</param>
-    /// <param name="lambda">Risk tolerance.</param>
-    /// <param name="mean">Expected return.</param>
-    /// <param name="variance">Expected volatility.</param>
-    public Portfolio(
-        DVector weights,
-        double lambda,
-        double mean,
-        double variance) =>
-        (Weights, Lambda, Mean, Variance, StdDev) =
-        (weights, lambda, mean, variance, Sqrt(variance));
+    public double StdDev { get; } = Sqrt(variance);
 
     /// <summary>Calculates the Sharpe ratio of this portfolio.</summary>
     /// <param name="riskFreeReturn">The risk free return.</param>

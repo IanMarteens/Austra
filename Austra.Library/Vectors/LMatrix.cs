@@ -193,6 +193,17 @@ public readonly struct LMatrix :
         get => values[row * Cols + column];
     }
 
+    /// <summary>Creates a new matrix with different dimensions.</summary>
+    /// <param name="rows">New number of rows.</param>
+    /// <param name="columns">New number of columns.</param>
+    /// <returns>A new matrix, or the same one, when no resizing is needed.</returns>
+    public LMatrix Redim(int rows, int columns) => (LMatrix)((Matrix)this).Redim(rows, columns);
+
+    /// <summary>Creates a new matrix with different dimensions.</summary>
+    /// <param name="size">New number of rows and columns.</param>
+    /// <returns>A new matrix, or the same one, when no resizing is needed.</returns>
+    public LMatrix Redim(int size) => Redim(size, size);
+
     /// <summary>Transposes the matrix.</summary>
     /// <returns>A new matrix with swapped rows and cells.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

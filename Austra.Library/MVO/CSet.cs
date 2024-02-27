@@ -1,18 +1,18 @@
 ﻿namespace Austra.Library.MVO;
 
 /// <summary>A set keeping its items in sorted order.</summary>
-internal struct CSet
+/// <param name="capacity">The maximum number of items in this set.</param>
+internal struct CSet(int capacity)
 {
     /// <summary>Stored items.</summary>
-    private readonly int[] items;
-
-    /// <summary>Creates an ordered set with a given capacity.</summary>
-    /// <param name="capacity">The maximum number of items in this set.</param>
-    public CSet(int capacity) => (items, Count) = (new int[capacity], 0);
+    private readonly int[] items = new int[capacity];
 
     /// <summary>Gets the number of items in this set.</summary>
     public int Count { readonly get; private set; }
 
+    /// <summary>Gets an item by its index.</summary>
+    /// <param name="index">The index.</param>
+    /// <returns>The item.</returns>
     public readonly int this[int index] => items[index];
 
     public void RemoveAt(int index)
@@ -55,7 +55,7 @@ internal struct CSet
     /// <returns>The list of stored items.</returns>
     public override readonly string ToString()
     {
-        var s = new StringBuilder("[");
+        StringBuilder s = new('[');
         if (Count > 0)
         {
             s.Append(items[0]);

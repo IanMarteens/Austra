@@ -506,6 +506,28 @@ public readonly struct Matrix :
     public Matrix this[Index row, Range columnRange] =>
         this[row.GetOffset(Rows)..(row.GetOffset(Rows) + 1), columnRange];
 
+    /// <summary>Creates a new matrix with different dimensions.</summary>
+    /// <param name="rows">New number of rows.</param>
+    /// <param name="columns">New number of columns.</param>
+    /// <returns>A new matrix, or the same one, when no resizing is needed.</returns>
+    public Matrix Redim(int rows, int columns)
+    {
+        if (Rows == rows && Cols == columns)
+            return this;
+        double[] newValues = rows <= Rows && Cols <= columns
+            ? GC.AllocateUninitializedArray<double>(rows * columns)
+            : new double[rows * columns];
+        int maxRow = Min(Rows, rows), maxCol = Min(Cols, columns);
+        for (int r = 0; r < maxRow; r++)
+            Array.Copy(values, r * Cols, newValues, r * columns, maxCol);
+        return new(rows, columns, newValues);
+    }
+
+    /// <summary>Creates a new matrix with different dimensions.</summary>
+    /// <param name="size">New number of rows and columns.</param>
+    /// <returns>A new matrix, or the same one, when no resizing is needed.</returns>
+    public Matrix Redim(int size) => Redim(size, size);
+
     /// <summary>Copies the content of this matrix into an existing one.</summary>
     /// <param name="dest">Destination matrix.</param>
     internal void CopyTo(Matrix dest)

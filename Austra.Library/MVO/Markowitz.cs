@@ -65,7 +65,7 @@ internal static class Markowitz
             else
                 i++;
         }
-        return result.ToArray();
+        return [.. result];
     }
 
     private static Portfolio Clean(Portfolio p, Inputs input)
