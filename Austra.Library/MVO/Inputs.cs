@@ -97,6 +97,27 @@ public sealed class Inputs
         Cov = new double[Variables + Constraints, Variables + Constraints];
     }
 
+    internal void TransformConstraints()
+    {
+        // Index to next slack variable.
+        int j = Securities;
+        for (int i = 0; i < Constraints; i++)
+        {
+            if (ConstraintTypes[i] != ConstraintType.EQUAL)
+            {
+                if (ConstraintTypes[i] == ConstraintType.GREATER_THAN)
+                {
+                    // Convert "greater than" constraint to "less than".
+                    for (int k = 0; k < Securities; k++)
+                        ConstraintsLHS[i, k] = -ConstraintsLHS[i, k];
+                    ConstraintsRHS[i] = -ConstraintsRHS[i];
+                }
+                // Slack variable coefficient.
+                ConstraintsLHS[i, j++] = 1;
+            }
+        }
+    }
+
     /// <summary>Initializes portfolio data for the Mean-Variance Optimizer.</summary>
     /// <param name="expectedReturns">Expected return for each security</param>
     /// <param name="constraintTypes">One constraint sign for each constraint.</param>

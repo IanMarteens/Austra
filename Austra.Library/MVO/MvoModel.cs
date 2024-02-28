@@ -84,6 +84,14 @@ public class MvoModel
         return this;
     }
 
+    /// <summary>Add constraints to the model.</summary>
+    /// <param name="constraintLHS">A matrix of Constraints * Securities size.</param>
+    /// <param name="constraintRHS">A vector of Constraints size.</param>
+    /// <param name="constraintType">The sign for all constraints.</param>
+    /// <returns>The updated model with a recalculated efficient frontier.</returns>
+    public MvoModel SetConstraints(Matrix constraintLHS, DVector constraintRHS, int constraintType) =>
+        SetConstraints(constraintLHS, constraintRHS, new NVector(constraintRHS.Length, constraintType));
+
     /// <summary>Add equality constraints to the model.</summary>
     /// <param name="constraintLHS">A matrix of Constraints * Securities size.</param>
     /// <param name="constraintRHS">A vector of Constraints size.</param>
@@ -172,7 +180,7 @@ public class MvoModel
     /// <summary>Gets the last portfolio in the efficient frontier.</summary>
     public Portfolio Last => this[^1];
 
-    /// <summary>Gets a textual representation of the models.</summary>
+    /// <summary>Gets a textual representation of the model.</summary>
     /// <returns>A list with all portfolios in the efficient frontier.</returns>
     public override string ToString()
     {

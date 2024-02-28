@@ -163,6 +163,7 @@ internal sealed class Bindings
             ],
             ["model"] = [
                 new("mvo(", "Creates a model for a Mean Variance Optimizer"),
+                new("simplex(", "Creates a model for a Linear Programming problem"),
                 new("plot(", "Plots vectors, series and sequences"),
             ],
             ["seq"] = [
@@ -626,6 +627,11 @@ internal sealed class Bindings
                 new("last", "Gets the last point"),
                 new("values", "Gets the underlying vector of values"),
             ],
+            [typeof(SimplexModel)] = [
+                new("objective", "Gets the coefficients of the objective function"),
+                new("value", "Gets the value of the objective function at the optimal solution"),
+                new("weights", "Gets the weights of the optimal solution"),
+            ],
             [typeof(VectorSpline)] = [
                 new("area", "Gets the approximate area below the spline"),
                 new("first", "Gets the lower bound of the spline's interval"),
@@ -836,6 +842,10 @@ internal sealed class Bindings
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix), typeof(string[])),
                 typeof(MvoModel).MD(typeof(DVector), typeof(Matrix),
                     typeof(DVector), typeof(DVector), typeof(string[]))),
+            ["model.simplex"] = new(
+                typeof(SimplexModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector), typeof(NVector), typeof(string[])),
+                typeof(SimplexModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector), typeof(int)),
+            typeof(SimplexModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector))),
             ["seq.ar"] = new(
                 typeof(DSequence).MD(nameof(DSequence.AR),
                     typeof(int), typeof(double), typeof(DVector))),
@@ -1218,6 +1228,10 @@ internal sealed class Bindings
             [new(typeof(Series<int>), "values")] = typeof(Series<int>).Prop(nameof(Series<int>.Values)),
             [new(typeof(Series<int>), "sum")] = typeof(Series<int>).Get(nameof(Series<int>.Sum)),
 
+            [new(typeof(SimplexModel), "objective")] = typeof(SimplexModel).Prop(nameof(SimplexModel.Objective)),
+            [new(typeof(SimplexModel), "value")] = typeof(SimplexModel).Prop(nameof(SimplexModel.Value)),
+            [new(typeof(SimplexModel), "weights")] = typeof(SimplexModel).Prop(nameof(SimplexModel.Weights)),
+
             [new(typeof(VectorSpline), "area")] = typeof(VectorSpline).Prop(nameof(VectorSpline.Area)),
             [new(typeof(VectorSpline), "first")] = typeof(VectorSpline).Prop(nameof(VectorSpline.First)),
             [new(typeof(VectorSpline), "last")] = typeof(VectorSpline).Prop(nameof(VectorSpline.Last)),
@@ -1377,6 +1391,7 @@ internal sealed class Bindings
                 typeof(Matrix).MD(nameof(Matrix.Redim), NNArg)),
             [new(typeof(MvoModel), "setconstraints")] = new(
                 typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector), typeof(NVector)),
+                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector), typeof(int)),
                 typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector))),
             [new(typeof(NSequence), "until")] = new(
                 typeof(NSequence).MD(nameof(NSequence.Until), typeof(Func<int, bool>)),
