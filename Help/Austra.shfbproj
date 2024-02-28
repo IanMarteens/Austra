@@ -120,6 +120,14 @@
       <ImageId>acf001</ImageId>
       <AlternateText>acf 001</AlternateText>
     </Image>
+    <Image Include="simplex002.png">
+      <ImageId>simplex002</ImageId>
+      <AlternateText>simplex 002</AlternateText>
+    </Image>
+    <Image Include="simplex001.png">
+      <ImageId>simplex001</ImageId>
+      <AlternateText>simplex 001</AlternateText>
+    </Image>
     <Image Include="mark007.png">
       <ImageId>mark007</ImageId>
       <AlternateText>mark 007</AlternateText>

@@ -164,6 +164,7 @@ internal sealed class Bindings
             ["model"] = [
                 new("mvo(", "Creates a model for a Mean Variance Optimizer"),
                 new("simplex(", "Creates a model for a Linear Programming problem"),
+                new("simplexMin(", "Creates a model for a Linear Programming problem minimizing its objective function"),
                 new("plot(", "Plots vectors, series and sequences"),
             ],
             ["seq"] = [
@@ -844,8 +845,18 @@ internal sealed class Bindings
                     typeof(DVector), typeof(DVector), typeof(string[]))),
             ["model.simplex"] = new(
                 typeof(SimplexModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector), typeof(NVector), typeof(string[])),
+                typeof(SimplexModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector), typeof(NVector)),
                 typeof(SimplexModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector), typeof(int)),
-            typeof(SimplexModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector))),
+                typeof(SimplexModel).MD(typeof(DVector), typeof(Matrix), typeof(DVector))),
+            ["model.simplexmin"] = new(
+                typeof(SimplexModel).MD(nameof(SimplexModel.Minimize),
+                    typeof(DVector), typeof(Matrix), typeof(DVector), typeof(NVector), typeof(string[])),
+                typeof(SimplexModel).MD(nameof(SimplexModel.Minimize),
+                    typeof(DVector), typeof(Matrix), typeof(DVector), typeof(NVector)),
+                typeof(SimplexModel).MD(nameof(SimplexModel.Minimize), 
+                    typeof(DVector), typeof(Matrix), typeof(DVector), typeof(int)),
+                typeof(SimplexModel).MD(nameof(SimplexModel.Minimize),
+                    typeof(DVector), typeof(Matrix), typeof(DVector))),
             ["seq.ar"] = new(
                 typeof(DSequence).MD(nameof(DSequence.AR),
                     typeof(int), typeof(double), typeof(DVector))),

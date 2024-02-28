@@ -48,6 +48,7 @@ The online Austra help covers both the library and the language, and is availabl
 * Overload resolution has been enhanced. The parser is now shorter, easier to read and faster.
 * AUSTRA has been added as the main application for using the language. It is a WPF application, running on .NET Core 7/8.
 * Moving Average models can be generated and estimated.
+* Linear programming has been added to the library, and it is available in the language.
 
 ## Next steps
 
@@ -66,8 +67,7 @@ The library, of course, must also be expanded:
 * More matrix decompositions are crucial.
 * Complex matrices.
 * More transforms.
-* A good simplex implementation could be nice.
-* We will probably need to add support for 64 bits integers.
+* Support for 64 bits integers.
 * Optional task-based concurrency for big matrices and vectors.
 * Sparse matrices.
 * It can be useful to allow date homogenization for time series, both by adjusting common ranges and by interpolating missing values.
