@@ -15,9 +15,9 @@
 	  <Product>AUSTRA</Product>
 	  <Copyright>Copyright © 2020-2023, by Ian Marteens</Copyright>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <AssemblyVersion>2.0.7</AssemblyVersion>
-	  <FileVersion>2.0.7</FileVersion>
-	  <Version>2.0.7</Version>
+	  <AssemblyVersion>2.5.0</AssemblyVersion>
+	  <FileVersion>2.5.0</FileVersion>
+	  <Version>2.5.0</Version>
 	  <RootNamespace>Austra.Library</RootNamespace>
 	  <AssemblyName>Austra.Library</AssemblyName>
 	  <Title>A high-performance library for linear algebra.</Title>
@@ -26,7 +26,7 @@
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
 	  <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>Supports sequences in the formula language.</PackageReleaseNotes>
+	  <PackageReleaseNotes>Added support for simplex. Faster random number generators.</PackageReleaseNotes>
 	  <NeutralLanguage>en-US</NeutralLanguage>
 	  <PackageProjectUrl>https://intsight.com</PackageProjectUrl>
 	  <IncludeSymbols>True</IncludeSymbols>

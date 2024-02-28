@@ -93,33 +93,46 @@ extProduct! = extProduct
       	  </code>
       	  </content>
       	</section>
-      	<section address="functions">
-      	  <title>Function definitions</title>
-      	  <content>
-      	    <para>A definition can also have parameters, for defining a function. For instance, the factorial of an integer can be defined this way:</para>
-      	    <code language="Austra">
+      </sections>
+    </section>
+   	<section address="functions">
+   	  <title>Function definitions</title>
+   	  <content>
+      	<para>A definition can also have parameters, for defining a function. For instance, the factorial of an integer can be defined this way:</para>
+      	<code language="Austra">
 <markup><b>def</b></markup> fact(n: <markup><b>int</b></markup>) = iff(n &lt;= 1, 1, [2..n].prod)
-      	    </code>
-      	    <para>The above definition is non recursive. Recursive functions must declare their return type:</para>
-      	    <code language="Austra">
+      	</code>
+      	<para>The above definition is non recursive. Recursive functions must declare their return type:</para>
+      	<code language="Austra">
 <markup><b>def</b></markup> recFact(n: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
     <markup><b>if</b></markup> n &lt;= 1 <markup><b>then</b></markup> 1 <markup><b>else</b></markup> n * recFact(n - 1)
-      	    </code>
-      	    <para>You can use local variables when defining a function:</para>
-            <code language="Austra">
+      	</code>
+      	<para>You can use local variables when defining a function:</para>
+        <code language="Austra">
 <markup><b>def</b></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
     <markup><b>let</b></markup> m = a % b <markup><b>in</b></markup> iff(m = 0, b, mcd(b, m))
-            </code>
-      	    <para>And you can also define auxiliary functions inside a function definition:</para>
-            <code language="Austra">
+        </code>
+      	<para>And you can also define auxiliary functions inside a function definition:</para>
+        <code language="Austra">
 <markup><b>def</b></markup> fact(n: <markup><b>int</b></markup>) =
     <markup><b>let</b></markup> f(n, acc: <markup><b>int</b></markup>): <markup><b>int</b></markup> = iff(n &lt;= 1, acc, f(n - 1, n * acc)) <markup><b>in</b></markup>
         f(n, 1)
-            </code>
-      	    <para>In this case,  the inner function <codeInline>f</codeInline> is the one that is directly recursive. The outer function does not need to declare its return type.</para>
-      	  </content>
-      	</section>
-      </sections>
+        </code>
+      	<para>In this case,  the inner function <codeInline>f</codeInline> is the one that is directly recursive. The outer function does not need to declare its return type.</para>
+      	<sections>
+      	  <section address="funtionsDesc">
+      	    <title>Describing function definitions</title>
+      	    <content>
+      		  <para>A permanent description can be attached to a function definition using the same syntax as before:</para>
+      	      <code language="Austra">
+<markup><b>def</b></markup> fact:"Iterative factorial"(n: <markup><b>int</b></markup>) =
+    iff(n &lt;= 1, 1, [2..n].prod)
+      	      </code>
+      		  <para>The description will be serialized and saved in whichever data storage Austra uses.</para>
+      	    </content>
+      	  </section>
+      	</sections>
+      </content>
     </section>
     <relatedTopics>
       <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Primitive types</link>
