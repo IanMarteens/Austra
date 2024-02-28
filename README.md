@@ -38,7 +38,7 @@ Last, but not least, the main resource for AVX/AVX2 optimizations has been the e
 
 ## Documentation
 
-The online Austra help covers both the library and the language, and is available [here](https://marteens.com/austra/library).
+The online Austra help covers both the library and the language, and is available [here](https://marteens.com/austra/library). Help for the language is also available, in [PDF format](https://marteens.com/austra/austra.pdf).
 
 
 ## Last changes
