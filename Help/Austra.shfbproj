@@ -120,6 +120,10 @@
       <ImageId>acf001</ImageId>
       <AlternateText>acf 001</AlternateText>
     </Image>
+    <Image Include="spline001.png">
+      <ImageId>spline001</ImageId>
+      <AlternateText>spline 001</AlternateText>
+    </Image>
     <Image Include="simplex002.png">
       <ImageId>simplex002</ImageId>
       <AlternateText>simplex 002</AlternateText>

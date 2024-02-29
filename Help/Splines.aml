@@ -113,6 +113,14 @@ s1.poly(^1);
 			  </table>
 		  	</content>
 		  </section>
+		  <section>
+		  	<title>Interacting with a spline</title>
+		  	<content>
+		  	  <para>When a spline is evaluated in the Austra Desktop application, an interactive control is shown. You can enter values in the <codeInline>Argument</codeInline> text box to evaluate the spline and its derivative at the supplied argument. This control appears no matter which argument type is being used for the spline:</para>
+			  <mediaLink><image placement="near" xlink:href="spline001"/></mediaLink>
+			  <para>For numeric arguments, you can even type an Austra formula in the text box, and Austra evaluates the formula when <codeInline>Enter</codeInline> is pressed.</para>
+		  	</content>
+		  </section>
 		</sections>
       </content>
     </section>
