@@ -479,7 +479,7 @@ public abstract partial class DSequence : IFormattable
 
         /// <summary>Gets the sum of all the values in the sequence.</summary>
         /// <returns>The sum of all the values in the sequence.</returns>
-        public override double Sum() => (last * (last + 1) - first * (first - 1)) / 2.0;
+        public override double Sum() => ((long)last * (last + 1) - (long)first * (first - 1)) / 2.0;
 
         /// <summary>Gets only the unique values in this sequence.</summary>
         /// <remarks>This sequence has always unique values.</remarks>
@@ -559,7 +559,7 @@ public abstract partial class DSequence : IFormattable
 
         /// <summary>Gets the sum of all the values in the sequence.</summary>
         /// <returns>The sum of all the values in the sequence.</returns>
-        public override double Sum() => (first * (first + 1) - last * (last - 1)) / 2.0;
+        public override double Sum() => ((long)first * (first + 1) - (long)last * (last - 1)) / 2.0;
 
         /// <summary>Negates a sequence without an underlying storage.</summary>
         /// <returns>The negated sequence.</returns>

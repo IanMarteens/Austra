@@ -426,7 +426,7 @@ public abstract partial class NSequence
 
         /// <summary>Gets the sum of all the values in the sequence.</summary>
         /// <returns>The sum of all the values in the sequence.</returns>
-        public override int Sum() => (length * first + step * length * (length - 1) / 2);
+        public override int Sum() => (int)((long)length * first + (long)step * length * (length - 1) / 2);
 
         /// <summary>Adds a sequence to this sequence.</summary>
         /// <param name="other">Sequence to add.</param>
@@ -537,7 +537,7 @@ public abstract partial class NSequence
 
         /// <summary>Gets the sum of all the values in the sequence.</summary>
         /// <returns>The sum of all the values in the sequence.</returns>
-        public override int Sum() => (length * min + step * length * (length - 1) / 2);
+        public override int Sum() => (int)((long)length * min + step * (long)length * (length - 1) / 2);
 
         /// <summary>Adds a sequence to this sequence.</summary>
         /// <param name="other">Sequence to add.</param>
