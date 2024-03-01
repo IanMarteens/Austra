@@ -107,11 +107,23 @@ public readonly struct DVector :
     {
         values = GC.AllocateUninitializedArray<double>(size);
         ref double p = ref MM.GetArrayDataReference(values);
-        int i = 0;
-        for (int t = size & ~1; i < t; i += 2)
-            rnd.NextDoubles(ref Add(ref p, i));
-        if (i < size)
-            Add(ref p, i) = rnd.NextDouble();
+        if (Avx512F.IsSupported && size >= V8d.Count && rnd == NormalRandom.Shared)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(size - V8d.Count);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(rnd512.NextNormal(), ref a, i);
+            V8.StoreUnsafe(rnd512.NextNormal(), ref a, t);
+        }
+        else
+        {
+            int i = 0;
+            for (int t = size & ~1; i < t; i += 2)
+                rnd.NextDoubles(ref Add(ref p, i));
+            if (i < size)
+                Add(ref p, i) = rnd.NextDouble();
+        }
     }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>

@@ -5,11 +5,11 @@ public class VectorBenchmark : BenchmarkControl
     private readonly int size;
     private readonly DVector cv1, cv2, cv3, cv4, cv5, cv6, cv7;
     private readonly NVector nv1;
+    private readonly Random rnd = new(133);
 
     public VectorBenchmark()
     {
         size = Configure();
-        var rnd = new Random(133);
         cv1 = new DVector(size, rnd);
         cv2 = new DVector(size, rnd);
         cv3 = cv1.Clone();
@@ -70,6 +70,9 @@ public class VectorBenchmark : BenchmarkControl
 
     [Benchmark]
     public DVector AustraRandomVector() => new(size, NormalRandom.Shared);
+
+    [Benchmark]
+    public DVector AustraURandomVector() => new(size, Random.Shared);
 
     [Benchmark]
     public double AustraSquareVector() => cv4.Squared();

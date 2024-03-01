@@ -29,6 +29,9 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>Reference to the <see cref="Random.Shared"/> property.</summary>
     private static readonly Expression RandomExpr =
         Expression.Property(null, typeof(Random), nameof(Random.Shared));
+    /// <summary>Reference to the <see cref="NormalRandom.Shared"/> property.</summary>
+    private static readonly Expression NormalRandomExpr =
+        Expression.Property(null, typeof(NormalRandom), nameof(NormalRandom.Shared));
     /// <summary>Method for multiplying by a transposed matrix.</summary>
     private static readonly MethodInfo MatrixMultiplyTranspose =
         typeof(Matrix).GetMethod(nameof(Matrix.MultiplyTranspose), [typeof(Matrix)])!;
@@ -1592,7 +1595,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                         if (t == typeof(Random))
                             args.Add(RandomExpr);
                         else if (t == typeof(NormalRandom))
-                            args.Add(t.New());
+                            args.Add(NormalRandomExpr);
                         else if (t == typeof(One))
                             args.Add(Expression.Constant(1d));
                         else
@@ -1734,7 +1737,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             args.Add(t == typeof(Random)
                 ? RandomExpr
                 : t == typeof(NormalRandom)
-                ? t.New()
+                ? NormalRandomExpr
                 : Expression.Constant(t == typeof(One) ? 1d : 0d));
         if (mth.ExpectedArgs != int.MaxValue && args.Count < mth.ExpectedArgs)
             throw Error("No method accepts this argument list.");

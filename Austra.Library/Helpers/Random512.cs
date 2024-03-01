@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
 
 namespace Austra.Library.Helpers;
 
@@ -12,6 +13,11 @@ public sealed class Random512
     /// <summary>Converts a ulong to a double in the range [0, 1).</summary>
     private const double NORM = 1.0 / (1UL << 53);
     private Vector512<ulong> _s0, _s1, _s2, _s3;
+
+    /// <summary>Pending value to return.</summary>
+    private Vector512<double> item;
+    /// <summary>Do we have a pending value to return.</summary>
+    private bool hasItem;
 
     /// <summary>Initializes a new instance of the <see cref="Random512"/> class.</summary>
     public Random512()
@@ -59,11 +65,24 @@ public sealed class Random512
 
     /// <summary>Produces eight values in the range [0, 1).</summary>
     /// <returns>An AVX512 vector of double precision reals.</returns>
-    public V8d NextDouble()
+    public V8d NextDouble() => V8.ConvertToDouble(NextUInt64() >> 11) * V8.Create(NORM);
+
+    /// <summary>Produces eight values from the standard normal distribution.</summary>
+    /// <returns>An AVX512 vector of double precision reals.</returns>
+    public V8d NextNormal()
     {
-        Vector512<ulong> x = NextUInt64() >> 11;
-        return V8.Create(
-            x.ToScalar() * NORM, x[1] * NORM, x[2] * NORM, x[3] * NORM,
-            x[4] * NORM, x[5] * NORM, x[6] * NORM, x[7] * NORM);
+        if (hasItem)
+        {
+            hasItem = false;
+            return item;
+        }
+
+        hasItem = true;
+        V8d u = (V8d.One - NextDouble()).Log();
+        V8d r = V8.Sqrt(-u - u);
+        V8d v = NextDouble() * V8.Create(Tau);
+        var (s, c) = v.SinCos();
+        item = s * r;
+        return c * r;
     }
 }

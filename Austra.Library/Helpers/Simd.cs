@@ -538,6 +538,57 @@ public static class Simd
             Avx512F.CompareEqual(x, V8.Create(double.NegativeInfinity));
     }
 
+    /// <summary>Computes the sine and cosine of a vector of doubles.</summary>
+    /// <param name="x">AVX512 argument.</param>
+    /// <returns>A tuple with the sine and the cosine.</returns>
+    public static (V8d Sin, V8d Cos) SinCos(this V8d x)
+    {
+        const double P0sin = -1.66666666666666307295E-1;
+        const double P1sin = 8.33333333332211858878E-3;
+        const double P2sin = -1.98412698295895385996E-4;
+        const double P3sin = 2.75573136213857245213E-6;
+        const double P4sin = -2.50507477628578072866E-8;
+        const double P5sin = 1.58962301576546568060E-10;
+
+        const double P0cos = 4.16666666666665929218E-2;
+        const double P1cos = -1.38888888888730564116E-3;
+        const double P2cos = 2.48015872888517045348E-5;
+        const double P3cos = -2.75573141792967388112E-7;
+        const double P4cos = 2.08757008419747316778E-9;
+        const double P5cos = -1.13585365213876817300E-11;
+
+        const double DP1 = 7.853981554508209228515625E-1 * 2;
+        const double DP2 = 7.94662735614792836714E-9 * 2;
+        const double DP3 = 3.06161699786838294307E-17 * 2;
+
+        V8d absX = V8.Abs(x);
+        absX = V8.ConditionalSelect(
+            Avx512F.CompareGreaterThan(absX, V8.Create(1E17d)),
+            V8d.Zero,
+            absX);
+        V8d y = absX * V8.Create(2.0 / PI);
+        y = V8.Create(Avx.RoundToNearestInteger(y.GetLower()), Avx.RoundToNearestInteger(y.GetUpper()));
+        V8d xx = Avx512F.FusedMultiplyAddNegated(y, V8.Create(DP3),
+            Avx512F.FusedMultiplyAddNegated(y, V8.Create(DP2 + DP1), absX));
+        V8d x2 = xx * xx;
+        V8d s = x2.Poly5(P0sin, P1sin, P2sin, P3sin, P4sin, P5sin);
+        V8d c = x2.Poly5(P0cos, P1cos, P2cos, P3cos, P4cos, P5cos);
+        // s = x + (x * x2) * s;
+        s = Avx512F.FusedMultiplyAdd(xx * x2, s, xx);
+        // c = 1.0 - x2 * 0.5 + (x2 * x2) * c;
+        c = Avx512F.FusedMultiplyAdd(x2 * x2, c,
+            Avx512F.FusedMultiplyAddNegated(x2, V8.Create(0.5), V8d.One));
+        Vector512<ulong> q = V8.ConvertToUInt64(y);
+        V8d swap = V8.Equals(q & Vector512<ulong>.One, Vector512<ulong>.One).AsDouble();
+        V8d sin1 = V8.ConditionalSelect(swap, c, s);
+        V8d cos1 = V8.ConditionalSelect(swap, s, c);
+        sin1 = V8.ConditionalSelect((q << 62).AsDouble(), -sin1, sin1);
+        sin1 = V8.ConditionalSelect(x & V8.Create(-0.0), -sin1, sin1);
+        cos1 = V8.ConditionalSelect(
+            (((q + Vector512<ulong>.One) & V8.Create(2UL)) << 62).AsDouble(), -cos1, cos1);
+        return (sin1, cos1);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static V8d AndNot(V8d x, V8d y) =>
         V8.Create(
