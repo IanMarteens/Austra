@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace Austra.Library.Helpers;
 
@@ -12,10 +11,11 @@ public sealed class Random512
 
     /// <summary>Converts a ulong to a double in the range [0, 1).</summary>
     private const double NORM = 1.0 / (1UL << 53);
+    /// <summary>Four vector seeds for the xoshiro256** algorithm.</summary>
     private Vector512<ulong> _s0, _s1, _s2, _s3;
 
-    /// <summary>Pending value to return.</summary>
-    private Vector512<double> item;
+    /// <summary>Pending value to return, for the normal distribution generator.</summary>
+    private V8d item;
     /// <summary>Do we have a pending value to return.</summary>
     private bool hasItem;
 
@@ -54,10 +54,8 @@ public sealed class Random512
         Vector512<ulong> t = s1 << 17;
 
         s2 ^= s0; s3 ^= s1; s1 ^= s2; s0 ^= s3;
-
         s2 ^= t;
         s3 = Avx512F.RotateLeft(s3, 45);
-
         _s0 = s0; _s1 = s1; _s2 = s2; _s3 = s3;
 
         return result;
@@ -80,8 +78,7 @@ public sealed class Random512
         hasItem = true;
         V8d u = (V8d.One - NextDouble()).Log();
         V8d r = V8.Sqrt(-u - u);
-        V8d v = NextDouble() * V8.Create(Tau);
-        var (s, c) = v.SinCos();
+        (V8d s, V8d c) = (NextDouble() * V8.Create(Tau)).SinCosNormal();
         item = s * r;
         return c * r;
     }

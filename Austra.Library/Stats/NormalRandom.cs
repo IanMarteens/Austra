@@ -61,6 +61,9 @@ public sealed class NormalRandom
     /// <returns>A new shifted generator.</returns>
     public NormalRandom Shift(double value) => new(random, mean + value, stdDev);
 
+    /// <summary>Gets the standard deviation of the distribution.</summary>
+    public double StandardDeviation => stdDev;
+
     /// <summary>
     /// Returns a random value according to the standard normal distribution.
     /// </summary>

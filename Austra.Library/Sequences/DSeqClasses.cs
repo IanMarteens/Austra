@@ -1,4 +1,5 @@
-﻿using System.Runtime.ExceptionServices;
+﻿using System;
+using System.Runtime.ExceptionServices;
 
 namespace Austra.Library;
 
@@ -285,7 +286,7 @@ public abstract partial class DSequence : IFormattable
     /// <param name="first">First item.</param>
     /// <param name="last">Last item.</param>
     /// <param name="mapper">The mapping function.</param>
-    private sealed class MappedRangeAsc(int first, int last, Func<double, double> mapper) 
+    private sealed class MappedRangeAsc(int first, int last, Func<double, double> mapper)
         : FixLengthSequence(Abs(last - first) + 1)
     {
         /// <summary>First number in the sequence.</summary>
@@ -443,7 +444,7 @@ public abstract partial class DSequence : IFormattable
         /// <returns>The transformed sequence.</returns>
         public sealed override DSequence Map(Func<double, double> mapper) =>
             first <= last
-            ? new MappedRangeAsc(first, last, mapper) 
+            ? new MappedRangeAsc(first, last, mapper)
             : new MappedRangeDesc(first, last, mapper);
 
         /// <summary>Checks if the sequence contains a zero value.</summary>
@@ -874,11 +875,15 @@ public abstract partial class DSequence : IFormattable
         CursorSequence(length)
     {
         /// <summary>The normal random source for noise.</summary>
-        private readonly NormalRandom generator = new(0, variance);
+        private readonly NormalRandom generator = new(0, Sqrt(variance));
         /// <summary>Autoregression coefficients.</summary>
         private readonly double[] coefficients = (double[])coefficients;
         /// <summary>Buffer for previous terms in the sequence.</summary>
         private readonly double[] previousTerms = new double[coefficients.Length];
+        /// <summary>Cached samples when AVX512F is supported.</summary>
+        private V8d nextTerms;
+        /// <summary>Next cached sample index, when AVX512F is supported.</summary>
+        private int next = int.MaxValue;
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -887,7 +892,17 @@ public abstract partial class DSequence : IFormattable
         {
             if (current < length)
             {
-                value = generator.NextDouble() + coefficients.AsSpan().Dot(previousTerms);
+                if (V8.IsHardwareAccelerated)
+                {
+                    if (next >= V8d.Count)
+                    {
+                        nextTerms = Random512.Shared.NextNormal() * V8.Create(generator.StandardDeviation);
+                        next = 0;
+                    }
+                    value = nextTerms[next++] + coefficients.AsSpan().Dot(previousTerms);
+                }
+                else
+                    value = generator.NextDouble() + coefficients.AsSpan().Dot(previousTerms);
                 Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
                 previousTerms[0] = value;
                 current++;
@@ -897,6 +912,7 @@ public abstract partial class DSequence : IFormattable
             return false;
         }
     }
+
     /// <summary>Implements moving average sequence.</summary>
     /// <param name="length">The length of the sequence.</param>
     /// <param name="variance">Variance of the sequence.</param>
@@ -906,11 +922,15 @@ public abstract partial class DSequence : IFormattable
         CursorSequence(length)
     {
         /// <summary>The normal random source for noise.</summary>
-        private readonly NormalRandom generator = new(0, variance);
+        private readonly NormalRandom generator = new(0, Sqrt(variance));
         /// <summary>Autoregression coefficients.</summary>
         private readonly double[] coefficients = (double[])coefficients;
         /// <summary>Buffer for previous terms in the sequence.</summary>
         private readonly double[] previousTerms = new double[coefficients.Length];
+        /// <summary>Cached samples when AVX512F is supported.</summary>
+        private V8d nextTerms;
+        /// <summary>Next cached sample index, when AVX512F is supported.</summary>
+        private int next = int.MaxValue;
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
@@ -919,7 +939,18 @@ public abstract partial class DSequence : IFormattable
         {
             if (current < length)
             {
-                double innovation = generator.NextDouble();
+                double innovation;
+                if (V8.IsHardwareAccelerated)
+                {
+                    if (next >= V8d.Count)
+                    {
+                        nextTerms = Random512.Shared.NextNormal() * V8.Create(generator.StandardDeviation);
+                        next = 0;
+                    }
+                    innovation = nextTerms[next++];
+                }
+                else
+                    innovation = generator.NextDouble();
                 value = mean + innovation + coefficients.AsSpan().Dot(previousTerms);
                 Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
                 previousTerms[0] = innovation;

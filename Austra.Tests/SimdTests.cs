@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace Austra.Tests;
 
@@ -40,6 +41,34 @@ public class SimdTests
         var d = at1 - at2;
         var diff = Vector512.Sum(d);
         Assert.That(Math.Abs(diff), Is.LessThan(1E-12));
+    }
+
+    [Test]
+    public void TestSinCos()
+    {
+        var v1 = Random512.Shared.NextDouble() * Vector512.Create(Math.Tau);
+        var (s, c) = v1.SinCosNormal();
+        var s1 = Vector512.Create(
+            Math.Sin(v1[0]), Math.Sin(v1[1]), Math.Sin(v1[2]), Math.Sin(v1[3]),
+            Math.Sin(v1[4]), Math.Sin(v1[5]), Math.Sin(v1[6]), Math.Sin(v1[7]));
+        var c1 = Vector512.Create(
+            Math.Cos(v1[0]), Math.Cos(v1[1]), Math.Cos(v1[2]), Math.Cos(v1[3]),
+            Math.Cos(v1[4]), Math.Cos(v1[5]), Math.Cos(v1[6]), Math.Cos(v1[7]));
+        var d1 = Max(Vector512.Abs(s - s1));
+        var d2 = Max(Vector512.Abs(c - c1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(d1, Is.LessThan(1E-13));
+            Assert.That(d2, Is.LessThan(1E-13));
+        });
+
+        static double Max256(Vector256<double> v)
+        {
+            Vector128<double> x = Sse2.Max(v.GetLower(), v.GetUpper());
+            return Math.Max(x.ToScalar(), x.GetElement(1));
+        }
+        static double Max(Vector512<double> v) =>
+            Math.Max(Max256(v.GetLower()), Max256(v.GetUpper()));
     }
 
     [Test]
