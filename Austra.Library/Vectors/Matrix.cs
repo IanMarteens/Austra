@@ -173,13 +173,26 @@ public readonly struct Matrix :
     /// <param name="random">A random standard normal generator.</param>
     public Matrix(int rows, int cols, NormalRandom random)
     {
-        int i = 0, len = rows * cols;
+        int len = rows * cols;
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(len));
         ref double p = ref MM.GetArrayDataReference(values);
-        for (int t = len & ~1; i < t; i += 2)
-            random.NextDoubles(ref Add(ref p, i));
-        if (i < len)
-            Add(ref p, i) = random.NextDouble();
+        if (Avx512F.IsSupported && values.Length >= V8d.Count && random == NormalRandom.Shared)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(values.Length - V8d.Count);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(rnd512.NextNormal(), ref a, i);
+            V8.StoreUnsafe(rnd512.NextNormal(), ref a, t);
+        }
+        else
+        {
+            int i = 0;
+            for (int t = len & ~1; i < t; i += 2)
+                random.NextDoubles(ref Add(ref p, i));
+            if (i < len)
+                Add(ref p, i) = random.NextDouble();
+        }
     }
 
     /// <summary>Creates a squared matrix filled with a standard normal distribution.</summary>

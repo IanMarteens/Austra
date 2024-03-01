@@ -846,6 +846,24 @@ public abstract partial class DSequence : IFormattable
             value = default;
             return false;
         }
+
+        /// <summary>Creates an array with all values from the sequence.</summary>
+        /// <returns>The values as an array.</returns>
+        protected override double[] Materialize()
+        {
+            if (!Avx512F.IsSupported || length < V8d.Count ||
+                random != Library.Stats.NormalRandom.Shared)
+                return base.Materialize();
+            double[] data = GC.AllocateUninitializedArray<double>(length);
+            ref double a = ref MM.GetArrayDataReference(data);
+            nuint t = (nuint)(data.Length - V8d.Count);
+            Random512 rnd = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(rnd.NextNormal(), ref a, i);
+            V8.StoreUnsafe(rnd.NextNormal(), ref a, t);
+            Reset();
+            return data;
+        }
     }
 
     /// <summary>Implements an autoregressive sequence.</summary>
