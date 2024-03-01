@@ -573,9 +573,9 @@ public static class Simd
         V8d x2 = xx * xx;
         V8d s = x2.Poly5(P0sin, P1sin, P2sin, P3sin, P4sin, P5sin);
         V8d c = x2.Poly5(P0cos, P1cos, P2cos, P3cos, P4cos, P5cos);
-        // s = x + (x * x2) * s;
+        // s = x + (x * z2) * s;
         s = Avx512F.FusedMultiplyAdd(xx * x2, s, xx);
-        // c = 1.0 - x2 * 0.5 + (x2 * x2) * c;
+        // c = 1.0 - z2 * 0.5 + (z2 * z2) * c;
         c = Avx512F.FusedMultiplyAdd(x2 * x2, c,
             Avx512F.FusedMultiplyAddNegated(x2, V8.Create(0.5), V8d.One));
         Vector512<ulong> q = V8.ConvertToUInt64(y);
@@ -618,24 +618,20 @@ public static class Simd
 
         V8d y = x * V8.Create(2.0 / PI);
         y = V8.Create(Avx.RoundToNearestInteger(y.GetLower()), Avx.RoundToNearestInteger(y.GetUpper()));
-        V8d xx = Avx512F.FusedMultiplyAddNegated(y, V8.Create(DP3),
+        V8d z = Avx512F.FusedMultiplyAddNegated(y, V8.Create(DP3),
             Avx512F.FusedMultiplyAddNegated(y, V8.Create(DP2 + DP1), x));
-        V8d x2 = xx * xx;
-        V8d s = x2.Poly5(P0sin, P1sin, P2sin, P3sin, P4sin, P5sin);
-        V8d c = x2.Poly5(P0cos, P1cos, P2cos, P3cos, P4cos, P5cos);
-        // s = x + (x * x2) * s;
-        s = Avx512F.FusedMultiplyAdd(xx * x2, s, xx);
-        // c = 1.0 - x2 * 0.5 + (x2 * x2) * c;
-        c = Avx512F.FusedMultiplyAdd(x2 * x2, c,
-            Avx512F.FusedMultiplyAddNegated(x2, V8.Create(0.5), V8d.One));
+        V8d z2 = z * z;
+        // s = z + (z * z2) * s;
+        V8d s = Avx512F.FusedMultiplyAdd(z * z2, z2.Poly5(P0sin, P1sin, P2sin, P3sin, P4sin, P5sin), z);
+        // c = 1.0 - z2 * 0.5 + (z2 * z2) * c;
+        V8d c = Avx512F.FusedMultiplyAdd(z2 * z2, z2.Poly5(P0cos, P1cos, P2cos, P3cos, P4cos, P5cos),
+            Avx512F.FusedMultiplyAddNegated(z2, V8.Create(0.5), V8d.One));
         Vector512<ulong> q = V8.ConvertToUInt64(y);
         V8d swap = V8.Equals(q & Vector512<ulong>.One, Vector512<ulong>.One).AsDouble();
         V8d sin1 = V8.ConditionalSelect(swap, c, s);
         V8d cos1 = V8.ConditionalSelect(swap, s, c);
-        sin1 = V8.ConditionalSelect((q << 62).AsDouble(), -sin1, sin1);
-        cos1 = V8.ConditionalSelect(
-            (((q + Vector512<ulong>.One) & V8.Create(2UL)) << 62).AsDouble(), -cos1, cos1);
-        return (sin1, cos1);
+        return (V8.ConditionalSelect((q << 62).AsDouble(), -sin1, sin1), V8.ConditionalSelect(
+            (((q + Vector512<ulong>.One) & V8.Create(2UL)) << 62).AsDouble(), -cos1, cos1));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
