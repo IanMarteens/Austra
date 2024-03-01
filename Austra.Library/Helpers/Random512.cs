@@ -11,6 +11,8 @@ public sealed class Random512
 
     /// <summary>Converts a ulong to a double in the range [0, 1).</summary>
     private const double NORM = 1.0 / (1UL << 53);
+    /// <summary>Converts a ulong to a double in the range [0, τ).</summary>
+    private const double TAU_NORM = Tau / (1UL << 53);
     /// <summary>Four vector seeds for the xoshiro256** algorithm.</summary>
     private Vector512<ulong> _s0, _s1, _s2, _s3;
 
@@ -78,7 +80,8 @@ public sealed class Random512
         hasItem = true;
         V8d u = (V8d.One - NextDouble()).Log();
         V8d r = V8.Sqrt(-u - u);
-        (V8d s, V8d c) = (NextDouble() * V8.Create(Tau)).SinCosNormal();
+        (V8d s, V8d c) = (V8.ConvertToDouble(NextUInt64() >> 11)
+            * V8.Create(TAU_NORM)).SinCosNormal();
         item = s * r;
         return c * r;
     }
