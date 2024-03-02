@@ -48,6 +48,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition/>
+                        <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition SharedSizeGroup="A"/>
@@ -55,6 +56,7 @@
                     </Grid.ColumnDefinitions>
                     <CheckBox x:Name="ctrlCompTime" Grid.Row="0" Grid.Column="1" Content=" Show compile time" FontSize="12" VerticalAlignment="Center"/>
                     <CheckBox x:Name="ctrlExecTime" Grid.Row="1" Grid.Column="1" Content=" Show execution time" FontSize="12" VerticalAlignment="Center"/>
+                    <CheckBox x:Name="ctrlDebug" Grid.Row="2" Grid.Column="1" Content=" Debug formulas" FontSize="12" VerticalAlignment="Center"/>
                 </Grid>
             </GroupBox>
             <Separator HorizontalAlignment="Stretch" Height="1" Background="#FF404040"/>

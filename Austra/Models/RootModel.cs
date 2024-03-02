@@ -13,8 +13,6 @@ public sealed partial class RootModel : Entity
     /// <summary>Gets the global instance of the root view-model.</summary>
     public static RootModel Instance { get; } = new();
 
-    private static readonly char[] lineChange = ['\r', '\n', ' '];
-
     /// <summary>Global transient message for the status bar.</summary>
     private string message = "";
     /// <summary>Austra session, containing variables and definitions.</summary>
@@ -231,6 +229,7 @@ public sealed partial class RootModel : Entity
             }
             ShowFormulaEditor = Visibility.Visible;
             MainSection?.ContentEnd.InsertTextInRun("Welcome to AUSTRA!\nv" + Version + "\n\n");
+            environment.Engine.DebugFormulas = Properties.Settings.Default.DebugFormulas;
         }
     }
 
@@ -246,14 +245,14 @@ public sealed partial class RootModel : Entity
         ? "Series"
         : type == typeof(AMatrix) || type == typeof(LMatrix) || type == typeof(RMatrix)
         ? "Matrices"
-        : type == typeof(DVector) || type == typeof(CVector)
+        : type?.IsAssignableTo(typeof(IVector)) == true
         ? "Vectors"
         : type == typeof(ARSModel) || type == typeof(ARVModel)
             || type == typeof(LinearSModel) || type == typeof(LinearVModel)
             || type == typeof(DateSpline) || type == typeof(VectorSpline)
             || type == typeof(MvoModel)
         ? "Models"
-        : type?.IsAssignableTo(typeof(DSequence)) == true
+        : type?.IsAssignableTo(typeof(Sequence<,>)) == true
         ? "Sequences"
         : "Other";
 
@@ -413,6 +412,8 @@ public sealed partial class RootModel : Entity
                     t == typeof(Series<int>) ? "Series<int>" :
                     t.IsGenericType ? GetFriendlyName(t) :
                     t.Name)));
+            if (environment!.Engine.DebugFormulas)
+                Message = environment.Engine.LastFormula;
         }
         catch (AstException e)
         {

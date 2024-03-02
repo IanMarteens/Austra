@@ -953,7 +953,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 if (power == 2)
                 {
                     ParameterExpression p = Expression.Parameter(e.Type);
-                    e = Expression.Block(new[] { p },
+                    e = Expression.Block([p],
                         Expression.Assign(p, e),
                         Expression.Multiply(p, p));
                     return true;
@@ -961,7 +961,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 else if (power == 3)
                 {
                     ParameterExpression p = Expression.Parameter(e.Type);
-                    e = Expression.Block(new[] { p },
+                    e = Expression.Block([p],
                         Expression.Assign(p, e),
                         Expression.Multiply(Expression.Multiply(p, p), p));
                     return true;
@@ -969,7 +969,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 else if (power == 4)
                 {
                     ParameterExpression p = Expression.Parameter(e.Type);
-                    e = Expression.Block(new[] { p },
+                    e = Expression.Block([p],
                         Expression.Assign(p, e),
                         Expression.Assign(p, Expression.Multiply(p, p)),
                         Expression.Multiply(p, p));

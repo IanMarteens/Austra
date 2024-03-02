@@ -121,6 +121,12 @@ public interface IAustraEngine : IVariableListener
     /// <param name="fileName">An UTF-8 file previously serialized.</param>
     /// <returns>An object implementing this interface.</returns>
     public static abstract IAustraEngine Deserialize(string fileName);
+
+    /// <summary>Gets or sets if formulas should be debugged, showing the generated code.</summary>
+    public bool DebugFormulas { get; set; }
+
+    /// <summary>Gets the serialized tree of the last evaluated formula.</summary>
+    public string LastFormula { get; }
 }
 
 /// <summary>The simplest implementation for the AUSTRA engine.</summary>
@@ -151,6 +157,12 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Gets the queue of fragment's ranges.</summary>
     public Queue<Range> RangeQueue { get; } = new();
+
+    /// <summary>Gets or sets if formulas should be debugged, showing the generated code.</summary>
+    public bool DebugFormulas { get; set; } = false;
+
+    /// <summary>Gets the serialized tree of the last evaluated formula.</summary>
+    public string LastFormula { get; private set;  } = "";
 
     /// <summary>Parses and evaluates an AUSTRA formula.</summary>
     /// <param name="formula">Any acceptable text for an AUSTRA formula.</param>
@@ -185,6 +197,8 @@ public partial class AustraEngine : IAustraEngine
         Expression<Action<IDataSource>> expression =
             Source.CreateLambda(parser.ParseStatement());
         sw.Stop();
+        if (DebugFormulas)
+            LastFormula = expression.ToString();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         sw.Restart();
         Action<IDataSource> lambda = expression.Compile();

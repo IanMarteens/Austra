@@ -11,6 +11,7 @@ public partial class OptionsView : Window
         ctrlFile.Text = Properties.Settings.Default.AutoloadFile;
         ctrlCompTime.IsChecked = Properties.Settings.Default.ShowCompileTime;
         ctrlExecTime.IsChecked = Properties.Settings.Default.ShowExecutionTime;
+        ctrlDebug.IsChecked = Properties.Settings.Default.DebugFormulas;
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -21,7 +22,10 @@ public partial class OptionsView : Window
             Properties.Settings.Default.Autoload = ctrlAutoload.IsChecked == true;
             Properties.Settings.Default.ShowCompileTime = ctrlCompTime.IsChecked == true;
             Properties.Settings.Default.ShowExecutionTime = ctrlExecTime.IsChecked == true;
+            Properties.Settings.Default.DebugFormulas = ctrlDebug.IsChecked == true;
             Properties.Settings.Default.Save();
+            if (RootModel.Instance?.Environment?.Engine is not null)
+                RootModel.Instance.Environment.Engine.DebugFormulas = Properties.Settings.Default.DebugFormulas;
         }
     }
 
