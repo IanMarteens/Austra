@@ -793,6 +793,14 @@ internal sealed partial class Parser : Scanner, IDisposable
                                 Token.Div => d1 / d2,
                                 _ => d1 % d2
                             })
+                            : e2 is ConstantExpression { Value: int i1 } &&
+                                e3 is ConstantExpression { Value: int i2 }
+                            ? Expression.Constant(opMul switch
+                            {
+                                Token.Times => i1 * i2,
+                                Token.Div => i1 / i2,
+                                _ => i1 % i2
+                            })
                             : opMul == Token.Times
                             ? (e2 == e3 && e2.Type == typeof(DVector)
                                 ? Expression.Call(e2, typeof(DVector).Get(nameof(DVector.Squared)))
