@@ -366,6 +366,14 @@ public readonly struct DVector :
         return result;
     }
 
+    /// <summary>Inplace negation of the vector.</summary>
+    /// <returns>The same vector instance, with items negated.</returns>
+    public DVector InplaceNegate()
+    {
+        values.AsSpan().Neg();
+        return this;
+    }
+
     /// <summary>Adds a scalar to a vector.</summary>
     /// <param name="v">A vector summand.</param>
     /// <param name="d">A scalar summand.</param>
@@ -397,13 +405,6 @@ public readonly struct DVector :
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
         v.values.AsSpan().Sub(d, result);
         return result;
-    }
-
-    /// <summary>Inplace negation of the vector.</summary>
-    /// <returns>The same vector instance, with items negated.</returns>
-    public DVector InplaceNegate()
-    {
-        return this;
     }
 
     /// <summary>Subtracts a vector from a scalar.</summary>

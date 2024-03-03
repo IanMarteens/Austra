@@ -592,6 +592,24 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = -Unsafe.Add(ref p, i);
     }
 
+    /// <summary>Inplace pointwise negation of a span.</summary>
+    /// <param name="span">Span to negate.</param>
+    public static void Neg(this Span<double> span)
+    {
+        ref double p = ref MM.GetReference(span);
+        int i = 0;
+        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
+            for (int top = span.Length & Simd.MASK8; i < top;
+                i += V8d.Count, p = ref Unsafe.Add(ref p, V8d.Count))
+                V8.StoreUnsafe(-V8.LoadUnsafe(ref p), ref p);
+        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
+            for (int top = span.Length & Simd.MASK4; i < top;
+                i += V4d.Count, p = ref Unsafe.Add(ref p, V4d.Count))
+                V4.StoreUnsafe(-V4.LoadUnsafe(ref p), ref p);
+        for (; i < span.Length; i++, p = ref Unsafe.Add(ref p, 1))
+            p = -p;
+    }
+
     /// <summary>Pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
     /// <param name="target">Target memory for the operation.</param>

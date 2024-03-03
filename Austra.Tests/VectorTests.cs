@@ -254,4 +254,12 @@ public class VectorTests
         double phase2 = x[i].Phase;
         Assert.That(phase1, Is.EqualTo(phase2).Within(1E-14));
     }
+
+    [Test]
+    public void CheckInplaceNegation()
+    {
+        DVector v1 = new(1024, Random.Shared);
+        DVector v2 = -v1;
+        Assert.That(v1, Is.EqualTo(v2.InplaceNegate()));
+    }
 }

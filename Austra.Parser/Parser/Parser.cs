@@ -902,20 +902,27 @@ internal sealed partial class Parser : Scanner, IDisposable
         }
     }
 
+    /// <summary>Parses a unary expression.</summary>
     private Expression ParseUnary()
     {
-        if ((uint)(kind - Token.Plus) <= (Token.Minus - Token.Plus))
+        if ((uint)(kind - Token.Plus) > (Token.Minus - Token.Plus))
         {
-            (Token opKind, int opPos) = (kind, start);
-            Move();
-            Expression e1 = ParseUnary();
-            return !e1.Type.IsAssignableTo(typeof(System.Numerics.IUnaryNegationOperators<,>)
-                    .MakeGenericType(e1.Type, e1.Type))
-                ? throw Error("Unary operator not supported", opPos)
-                : opKind == Token.Plus ? e1 : Expression.Negate(e1);
+            Expression e = ParseFactor();
+            return kind is Token.Caret or Token.Caret2 ? ParsePower(e) : e;
         }
-        Expression e = ParseFactor();
-        return kind is Token.Caret or Token.Caret2 ? ParsePower(e) : e;
+        (Token opKind, int opPos) = (kind, start);
+        Move();
+        Expression u = ParseUnary();
+        return
+            !u.Type.IsAssignableTo(typeof(System.Numerics.IUnaryNegationOperators<,>)
+                .MakeGenericType(u.Type, u.Type))
+            ? throw Error("Unary operator not supported", opPos)
+            : opKind == Token.Plus
+            ? u
+            : u.Type == typeof(DVector) && u is BinaryExpression b
+            // It's safe to overwrite the memory of a binary vector operation result.
+            ? Expression.Call(u, typeof(DVector).Get(nameof(DVector.InplaceNegate)))
+            : Expression.Negate(u);
     }
 
     private Expression ParsePower(Expression e)
