@@ -421,7 +421,10 @@ internal sealed partial class Parser : Scanner, IDisposable
         {
             Expression rvalue = ParseConditional();
             if (forceCast)
-                rvalue = Expression.Convert(rvalue, typeof(object));
+                rvalue = rvalue is UnaryExpression { NodeType: ExpressionType.Convert } u
+                    && u.Operand.Type == typeof(object)
+                    ? u.Operand 
+                    :  Expression.Convert(rvalue, typeof(object));
             if (leftValue != "")
                 rvalue = source.SetExpression(leftValue, rvalue);
             letExpressions.Add(rvalue);
