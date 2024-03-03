@@ -71,7 +71,7 @@ public interface IDataSource
     IReadOnlyList<Definition> AllDefinitions { get; }
 
     /// <summary>Get a list of definitions that are not fully resolved.</summary>
-    IList<Definition> TroubledDefinitions { get; }
+    List<Definition> TroubledDefinitions { get; }
 
     /// <summary>Gets an expression tree for a given identifier.</summary>
     /// <param name="identifier">The name of a variable.</param>
@@ -311,7 +311,7 @@ public class DataSource : IDataSource
             .OrderBy(t => t.Key);
 
     /// <summary>A list with non-compilable definitions.</summary>
-    public IList<Definition> TroubledDefinitions { get; } = new List<Definition>();
+    public List<Definition> TroubledDefinitions { get; } = [];
 
     /// <summary>Gets an expression tree for a given identifier.</summary>
     /// <param name="identifier">The name of a variable.</param>

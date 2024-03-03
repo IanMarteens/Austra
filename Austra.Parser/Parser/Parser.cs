@@ -70,7 +70,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>Gets the outer scope for variables.</summary>
     private readonly IDataSource source;
     /// <summary>Place holder for lambda arguments, if any.</summary>
-    private LambdaBlock lambdaBlock;
+    private readonly LambdaBlock lambdaBlock;
     /// <summary>Referenced definitions.</summary>
     private readonly HashSet<Definition> references = [];
 
@@ -215,7 +215,6 @@ internal sealed partial class Parser : Scanner, IDisposable
             if (kind != Token.Semicolon)
                 if (kind != Token.Set)
                 {
-                    int from = start;
                     Expression e = ParseFormula("", false);
                     if (e is not ConstantExpression { Value: null })
                         result.Add(e.Type);
@@ -1169,7 +1168,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             }
     }
 
-    private Expression ParseSafeIndexer(Expression e)
+    private MethodCallExpression ParseSafeIndexer(Expression e)
     {
         Expression e1 = ParseLightConditional();
         CheckAndMove(Token.RBrace, "} expected in indexer");
@@ -1178,7 +1177,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             : e.Type.Call(e, nameof(DVector.SafeThis), e1);
     }
 
-    private Expression ParseSplineIndexer(Expression e, Type expected)
+    private IndexExpression ParseSplineIndexer(Expression e, Type expected)
     {
         Expression e1 = ParseLightConditional();
         CheckAndMove(Token.RBra, "] expected in indexer");
@@ -1188,7 +1187,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             : Expression.Property(e, "Item", ToDouble(e1));
     }
 
-    private Expression ParseIndexer(Expression e, bool allowSlice)
+    private IndexExpression ParseIndexer(Expression e, bool allowSlice)
     {
         bool fromEnd1 = false;
         Expression e1 = kind == Token.Range && allowSlice
@@ -1390,7 +1389,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             ? throw Error("Index must be integer") : e;
     }
 
-    private Expression ParseIndex()
+    private NewExpression ParseIndex()
     {
         bool fromEnd = false;
         return Expression.New(IndexCtor, ParseIndex(ref fromEnd), Expression.Constant(fromEnd));
@@ -2101,7 +2100,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         return ParseGenerator(first);
     }
 
-    private Expression ParseGenerator(Expression first)
+    private MethodCallExpression ParseGenerator(Expression first)
     {
         Expression? middle = ParseLightConditional();
         Expression? last = null;
@@ -2134,7 +2133,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     Type.EmptyTypes, first, last);
     }
 
-    private Expression ParseIntGenerator(Expression first)
+    private MethodCallExpression ParseIntGenerator(Expression first)
     {
         Expression? middle = ParseLightConditional();
         Expression? last = null;
