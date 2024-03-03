@@ -824,63 +824,31 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     if (e1.Type == typeof(DVector) && e2.Type == typeof(DVector))
                     {
-                        string method = opAdd == Token.Plus
-                            ? nameof(DVector.MultiplyAdd)
-                            : nameof(DVector.MultiplySubtract);
                         if (e1 is BinaryExpression { NodeType: ExpressionType.Multiply } be1)
                         {
                             // any * v ± v
-                            if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } be2
-                                && be1.Left.Type == typeof(double)
-                                && be2.Left.Type == typeof(double))
+                            if (e2 is not BinaryExpression { NodeType: ExpressionType.Multiply } be2)
+                                e1 = OptimizeVectorSum(opAdd, be1, e2);
+                            else if (be1.Left.Type == typeof(double)
+                                    && be2.Left.Type == typeof(double))
                                 // d1 * v1 + d2 * v2
                                 e1 = Expression.Call(VectorCombine2,
                                     be1.Left,
-                                    opAdd == Token.Plus ? be2.Left : Expression.Negate(be2.Left),
+                                    opAdd == Token.Plus ? be2.Left : Negate(be2.Left),
                                     be1.Right, be2.Right);
-                            else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } bee2
-                                && be1.Left.Type == typeof(Matrix)
-                                && bee2.Left.Type == typeof(double))
+                            else if (be1.Left.Type == typeof(Matrix)
+                                && be2.Left.Type == typeof(double))
                                 // m * v1 + d * v2
                                 e1 = Expression.Call(be1.Left, MatrixCombine,
                                     be1.Right,
-                                    opAdd == Token.Plus ? bee2.Left : Expression.Negate(bee2.Left),
-                                    bee2.Right);
+                                    opAdd == Token.Plus ? be2.Left : Negate(be2.Left),
+                                    be2.Right);
                             else
-                                e1 = be1.Right.Type == typeof(double)
-                                    ? Expression.Call(be1.Left,
-                                        typeof(DVector).GetMethod(method, DoubleVectorArg)!,
-                                        be1.Right, e2)
-                                    : be1.Left.Type == typeof(double)
-                                    ? Expression.Call(be1.Right,
-                                        typeof(DVector).GetMethod(method, DoubleVectorArg)!,
-                                        be1.Left, e2)
-                                    : be1.Left.Type == typeof(Matrix)
-                                    ? Expression.Call(be1.Left,
-                                        typeof(Matrix).GetMethod(method, VectorVectorArg)!,
-                                        be1.Right, e2)
-                                    : opAdd == Token.Plus
-                                    ? Expression.Add(e1, e2)
-                                    : Expression.Subtract(e1, e2);
+                                e1 = OptimizeVectorSum(opAdd, be1, e2);
                         }
                         else if (opAdd == Token.Plus &&
                             e2 is BinaryExpression { NodeType: ExpressionType.Multiply } be2)
-                        {
-                            // v + any * v
-                            e1 = be2.Right.Type == typeof(double)
-                                ? Expression.Call(be2.Left,
-                                    typeof(DVector).GetMethod(method, DoubleVectorArg)!,
-                                    be2.Right, e1)
-                                : be2.Left.Type == typeof(double)
-                                ? Expression.Call(be2.Right,
-                                    typeof(DVector).GetMethod(method, DoubleVectorArg)!,
-                                    be2.Left, e1)
-                                : be2.Left.Type == typeof(Matrix)
-                                ? Expression.Call(be2.Left,
-                                    typeof(Matrix).GetMethod(method, VectorVectorArg)!,
-                                    be2.Right, e1)
-                                : Expression.Add(e1, e2);
-                        }
+                            e1 = OptimizeVectorSum(opAdd, be2, e1);
                         else
                             e1 = opAdd == Token.Plus
                                 ? Expression.Add(e1, e2) : Expression.Subtract(e1, e2);
@@ -888,7 +856,12 @@ internal sealed partial class Parser : Scanner, IDisposable
                     else
                         e1 = e1 is ConstantExpression { Value: double d1 } &&
                                 e2 is ConstantExpression { Value: double d2 }
+                            // Double constants folded.
                             ? Expression.Constant(opAdd == Token.Plus ? d1 + d2 : d1 - d2)
+                            : e1 is ConstantExpression { Value: int i1 } &&
+                                e2 is ConstantExpression { Value: int i2 }
+                            // Integer constants folded.
+                            ? Expression.Constant(opAdd == Token.Plus ? i1 + i2 : i1 - i2)
                             : opAdd == Token.Plus
                             ? Expression.Add(e1, e2)
                             : Expression.Subtract(e1, e2);
@@ -901,6 +874,31 @@ internal sealed partial class Parser : Scanner, IDisposable
             if ((uint)(kind - Token.Plus) > (Token.Minus - Token.Plus))
                 return e1;
             (opAdd, opAPos) = (kind, start);
+        }
+
+        static Expression Negate(Expression e) => e is ConstantExpression { Value: double d }
+            ? Expression.Constant(-d) : Expression.Negate(e);
+
+        static Expression OptimizeVectorSum(Token opAdd, BinaryExpression be1, Expression e2)
+        {
+            string method = opAdd == Token.Plus
+                ? nameof(DVector.MultiplyAdd)
+                : nameof(DVector.MultiplySubtract);
+            return be1.Right.Type == typeof(double)
+                ? Expression.Call(be1.Left,
+                    typeof(DVector).GetMethod(method, DoubleVectorArg)!,
+                    be1.Right, e2)
+                : be1.Left.Type == typeof(double)
+                ? Expression.Call(be1.Right,
+                    typeof(DVector).GetMethod(method, DoubleVectorArg)!,
+                    be1.Left, e2)
+                : be1.Left.Type == typeof(Matrix)
+                ? Expression.Call(be1.Left,
+                    typeof(Matrix).GetMethod(method, VectorVectorArg)!,
+                    be1.Right, e2)
+                : opAdd == Token.Plus
+                ? Expression.Add(be1, e2)
+                : Expression.Subtract(be1, e2);
         }
     }
 
@@ -1821,7 +1819,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     Move();
                     return ParseIntegerVector();
                 }
-                if (saveId.Equals("real", StringComparison.OrdinalIgnoreCase)||
+                if (saveId.Equals("real", StringComparison.OrdinalIgnoreCase) ||
                     saveId.Equals("double", StringComparison.OrdinalIgnoreCase))
                 {
                     Move();
