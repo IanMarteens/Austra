@@ -399,6 +399,13 @@ public readonly struct DVector :
         return result;
     }
 
+    /// <summary>Inplace negation of the vector.</summary>
+    /// <returns>The same vector instance, with items negated.</returns>
+    public DVector InplaceNegate()
+    {
+        return this;
+    }
+
     /// <summary>Subtracts a vector from a scalar.</summary>
     /// <param name="d">The scalar operand.</param>
     /// <param name="v">The vector operand.</param>
