@@ -856,9 +856,8 @@ internal sealed partial class Parser : Scanner, IDisposable
                             else
                                 e1 = OptimizeVectorSum(opAdd, b1, e2);
                         }
-                        else if (opAdd == Token.Plus &&
-                            e2 is BinaryExpression { NodeType: ExpressionType.Multiply } b2)
-                            e1 = OptimizeVectorSum(opAdd, b2, e1);
+                        else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } b2)
+                            e1 = OptimizeVectorSum(opAdd, b2, e1, true);
                         else
                             e1 = opAdd == Token.Plus
                                 ? Expression.Add(e1, e2) : Expression.Subtract(e1, e2);
@@ -889,10 +888,13 @@ internal sealed partial class Parser : Scanner, IDisposable
         static Expression Negate(Expression e) => e is ConstantExpression { Value: double d }
             ? Expression.Constant(-d) : Expression.Negate(e);
 
-        static Expression OptimizeVectorSum(Token opAdd, BinaryExpression b1, Expression e2)
+        static Expression OptimizeVectorSum(Token opAdd, BinaryExpression b1, Expression e2,
+            bool reversed = false)
         {
             string method = opAdd == Token.Plus
                 ? nameof(DVector.MultiplyAdd)
+                : reversed 
+                ? nameof(DVector.SubtractMultiply)
                 : nameof(DVector.MultiplySubtract);
             return b1.Right.Type == typeof(double)
                 ? Expression.Call(b1.Left,
