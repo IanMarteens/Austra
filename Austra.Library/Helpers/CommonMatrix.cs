@@ -308,6 +308,24 @@ public static class CommonMatrix
                 Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
     }
 
+    /// <summary>Pointwise inplace sum of two equally sized spans.</summary>
+    /// <param name="span1">First summand and target.</param>
+    /// <param name="span2">Second summand.</param>
+    public static void Add(this Span<double> span1, Span<double> span2)
+    {
+        ref double a = ref MM.GetReference(span1);
+        ref double b = ref MM.GetReference(span2);
+        nuint i = 0;
+        if (V8.IsHardwareAccelerated && span1.Length >= V8d.Count)
+            for (nuint top = (nuint)(span1.Length & Simd.MASK8); i < top; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) + V8.LoadUnsafe(ref b, i), ref a, i);
+        else if (V4.IsHardwareAccelerated && span1.Length >= V4d.Count)
+            for (nuint top = (nuint)(span1.Length & Simd.MASK4); i < top; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) + V4.LoadUnsafe(ref b, i), ref a, i);
+        for (; i < (nuint)span1.Length; i++)
+            Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
+    }
+
     /// <summary>Pointwise sum of two equally sized spans.</summary>
     /// <param name="span1">First summand.</param>
     /// <param name="span2">Second summand.</param>
@@ -420,6 +438,24 @@ public static class CommonMatrix
         else
             for (int i = 0; i < target.Length; i++)
                 Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
+    }
+
+    /// <summary>Pointwise inplace subtraction of two equally sized spans.</summary>
+    /// <param name="span1">Minuend and target.</param>
+    /// <param name="span2">Subtrahend.</param>
+    public static void Sub(this Span<double> span1, Span<double> span2)
+    {
+        ref double a = ref MM.GetReference(span1);
+        ref double b = ref MM.GetReference(span2);
+        nuint i = 0;
+        if (V8.IsHardwareAccelerated && span1.Length >= V8d.Count)
+            for (nuint top = (nuint)(span1.Length & Simd.MASK8); i < top; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) - V8.LoadUnsafe(ref b, i), ref a, i);
+        else if (V4.IsHardwareAccelerated && span1.Length >= V4d.Count)
+            for (nuint top = (nuint)(span1.Length & Simd.MASK4); i < top; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) - V4.LoadUnsafe(ref b, i), ref a, i);
+        for (; i < (nuint)span1.Length; i++)
+            Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
     }
 
     /// <summary>Pointwise subtraction of two equally sized spans.</summary>

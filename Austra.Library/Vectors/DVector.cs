@@ -338,10 +338,26 @@ public readonly struct DVector :
         return result;
     }
 
+    /// <summary>Inplace addition of two vectors.</summary>
+    /// <param name="v">Second vector operand.</param>
+    /// <returns>The component by component sum.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public DVector InplaceAdd(DVector v)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        if (Length != v.Length)
+            throw new VectorLengthException();
+        values.AsSpan().Add(v.values);
+        return this;
+    }
+
     /// <summary>Subtracts two vectors.</summary>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component subtraction.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DVector operator -(DVector v1, DVector v2)
     {
@@ -352,6 +368,21 @@ public readonly struct DVector :
         double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
         v1.values.AsSpan().Sub(v2.values, result);
         return result;
+    }
+
+    /// <summary>Inplace substraction of two vectors.</summary>
+    /// <param name="v">Subtrahend.</param>
+    /// <returns>The component by component subtraction.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public DVector InplaceSub(DVector v)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        if (Length != v.Length)
+            throw new VectorLengthException();
+        values.AsSpan().Sub(v.values);
+        return this;
     }
 
     /// <summary>Negates a vector.</summary>
