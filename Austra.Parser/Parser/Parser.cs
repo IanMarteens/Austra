@@ -858,6 +858,10 @@ internal sealed partial class Parser : Scanner, IDisposable
                         }
                         else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } b2)
                             e1 = OptimizeVectorSum(opAdd, b2, e1, true);
+                        else if (e1 is NewExpression)
+                            e1 = opAdd == Token.Plus
+                                ? Expression.Call(e1, typeof(DVector).Get(nameof(DVector.InplaceAdd)), e2)
+                                : Expression.Call(e1, typeof(DVector).Get(nameof(DVector.InplaceSub)), e2);
                         else
                             e1 = opAdd == Token.Plus
                                 ? Expression.Add(e1, e2) : Expression.Subtract(e1, e2);
@@ -931,8 +935,8 @@ internal sealed partial class Parser : Scanner, IDisposable
             ? throw Error("Unary operator not supported", opPos)
             : opKind == Token.Plus
             ? u
-            : u.Type == typeof(DVector) && u is BinaryExpression b
-            // It's safe to overwrite the memory of a binary vector operation result.
+            : u.Type == typeof(DVector) && u is BinaryExpression or NewExpression
+            // Overwrite the memory of a binary vector operation result or a new vector.
             ? Expression.Call(u, typeof(DVector).Get(nameof(DVector.InplaceNegate)))
             : Expression.Negate(u);
     }
