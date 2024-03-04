@@ -731,6 +731,50 @@ public readonly struct DVector :
         return result;
     }
 
+    /// <summary>Optimized subtraction of scaled vector.</summary>
+    /// <remarks>
+    /// <para>The current vector is the minuend.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
+    /// <param name="multiplier">The multiplier scalar.</param>
+    /// <param name="subtrahend">The vector to scaled.</param>
+    /// <returns><code>this - multiplier * subtrahend</code></returns>
+    public DVector SubtractMultiply(double multiplier, DVector subtrahend)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(subtrahend.IsInitialized);
+        Contract.Requires(Length == subtrahend.Length);
+
+        double[] result = GC.AllocateUninitializedArray<double>(Length);
+        ref double p = ref MM.GetArrayDataReference(values);
+        ref double r = ref MM.GetArrayDataReference(subtrahend.values);
+        ref double s = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
+        {
+            V8d vq = V8.Create(multiplier);
+            nuint t = (nuint)(result.Length - V8d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(
+                    V8.LoadUnsafe(ref r, i), vq, V8.LoadUnsafe(ref p, i)), ref s, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(
+                V8.LoadUnsafe(ref r, t), vq, V8.LoadUnsafe(ref p, t)), ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && Fma.IsSupported && result.Length >= V4d.Count)
+        {
+            V4d vq = V4.Create(multiplier);
+            nuint t = (nuint)(result.Length - V4d.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(Fma.MultiplyAddNegated(
+                    V4.LoadUnsafe(ref r, i), vq, V4.LoadUnsafe(ref p, i)), ref s, i);
+            V4.StoreUnsafe(Fma.MultiplyAddNegated(
+                V4.LoadUnsafe(ref r, t), vq, V4.LoadUnsafe(ref p, t)), ref s, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = Add(ref p, i) - multiplier * Add(ref r, i);
+        return result;
+    }
+
     /// <summary>Low-level method to linearly combine vectors with weights.</summary>
     /// <param name="weights">The weights for each vector.</param>
     /// <param name="vectors">Vectors to be linearly combined.</param>
