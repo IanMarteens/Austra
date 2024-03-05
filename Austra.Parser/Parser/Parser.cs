@@ -859,8 +859,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                         else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } b2)
                             e1 = OptimizeVectorSum(opAdd, b2, e1, true);
                         else if (e1 is NewExpression 
-                            || e1 is MethodCallExpression
-                                { Method.Name: "InplaceAdd" or "InplaceSub" or "MultiplyAdd" or "Combine2" })
+                            || e1 is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name))
                             e1 = opAdd == Token.Plus
                                 ? Expression.Call(e1, typeof(DVector).Get(nameof(DVector.InplaceAdd)), e2)
                                 : Expression.Call(e1, typeof(DVector).Get(nameof(DVector.InplaceSub)), e2);

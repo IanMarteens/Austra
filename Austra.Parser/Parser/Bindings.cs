@@ -1401,9 +1401,12 @@ internal sealed class Bindings
                 typeof(Matrix).MD(nameof(Matrix.Redim), NArg),
                 typeof(Matrix).MD(nameof(Matrix.Redim), NNArg)),
             [new(typeof(MvoModel), "setconstraints")] = new(
-                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector), typeof(NVector)),
-                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector), typeof(int)),
-                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), typeof(Matrix), typeof(DVector))),
+                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints),
+                    typeof(Matrix), typeof(DVector), typeof(NVector)),
+                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), 
+                    typeof(Matrix), typeof(DVector), typeof(int)),
+                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints),
+                    typeof(Matrix), typeof(DVector))),
             [new(typeof(NSequence), "until")] = new(
                 typeof(NSequence).MD(nameof(NSequence.Until), typeof(Func<int, bool>)),
                 typeof(NSequence).MD(nameof(NSequence.Until), NArg)),
@@ -1414,6 +1417,13 @@ internal sealed class Bindings
                 typeof(RMatrix).MD(nameof(RMatrix.Redim), NArg),
                 typeof(RMatrix).MD(nameof(RMatrix.Redim), NNArg)),
         }.ToFrozenDictionary();
+
+    private readonly FrozenSet<string> optimizableCalls = new HashSet<string> {
+        nameof(DVector.InplaceAdd), nameof(DVector.InplaceSub),
+        nameof(DVector.MultiplyAdd), nameof(DVector.MultiplySubtract),
+        nameof(DVector.SubtractMultiply),
+        nameof(DVector.Combine2), nameof(DVector.Combine)
+    }.ToFrozenSet();
 
     /// <summary>Get root expressions for code completion.</summary>
     /// <returns>Class names, global methods and a couple of statement prefixes.</returns>
@@ -1428,6 +1438,8 @@ internal sealed class Bindings
     /// <returns><see langword="true"/> when the identifier is a root class name.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsClassName(string identifier) => classMembers.ContainsKey(identifier);
+
+    public bool IsOptimizableCall(string identifier) => optimizableCalls.Contains(identifier);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="source">A data source.</param>
