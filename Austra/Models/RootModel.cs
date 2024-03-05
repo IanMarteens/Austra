@@ -51,7 +51,6 @@ public sealed partial class RootModel : Entity
             ErrorText = "";
             Message = "";
             ShowErrorText = Visibility.Collapsed;
-            ErrorText = "";
             timer.Stop();
         };
         CloseAllCommand = new(ExecuteCloseAllCommand, GetHasEnvironment);
@@ -183,10 +182,16 @@ public sealed partial class RootModel : Entity
     public Visibility ShowErrorText
     {
         get => showErrorText;
-        set => SetField(ref showErrorText, value, nameof(ErrorTextHeight));
+        set
+        {
+            if (SetField(ref showErrorText, value))
+                OnPropertyChanged(nameof(ErrorTextHeight), nameof(ErrorIconSize));
+        }
     }
 
     public int ErrorTextHeight => showErrorText == Visibility.Collapsed ? 0 : 18;
+
+    public int ErrorIconSize => showErrorText == Visibility.Collapsed ? 0 : 15;
 
     /// <summary>
     /// Prepares the workspace, filling the variables tree and selecting the first node.
@@ -519,7 +524,7 @@ public sealed partial class RootModel : Entity
                     }
                     if (answer.Value != null)
                     {
-                        string form = CleanFormula(engine.RangeQueue.TryDequeue(out Range range) 
+                        string form = CleanFormula(engine.RangeQueue.TryDequeue(out Range range)
                             ? text[range] : text);
                         VarNode? node = answer.Value switch
                         {
