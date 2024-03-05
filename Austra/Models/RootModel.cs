@@ -183,8 +183,10 @@ public sealed partial class RootModel : Entity
     public Visibility ShowErrorText
     {
         get => showErrorText;
-        set => SetField(ref showErrorText, value);
+        set => SetField(ref showErrorText, value, nameof(ErrorTextHeight));
     }
+
+    public int ErrorTextHeight => showErrorText == Visibility.Collapsed ? 0 : 18;
 
     /// <summary>
     /// Prepares the workspace, filling the variables tree and selecting the first node.

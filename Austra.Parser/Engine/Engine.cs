@@ -261,13 +261,12 @@ public partial class AustraEngine : IAustraEngine
                         .OrderBy(x => x.Name)
                 ];
         }
-        return Source.Variables
+        return [.. Source.Variables
                 .Select(t => new Member(t.name, "Variable: " + t.type?.Name))
             .Concat(Source.AllDefinitions
                 .Select(d => new Member(d.Name, "Definition: " + d.Type.Name)))
             .Concat(classesAndGlobals)
-            .OrderBy(x => x.Name)
-            .ToList();
+            .OrderBy(x => x.Name)];
     }
 
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
