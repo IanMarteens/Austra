@@ -60,6 +60,7 @@ public sealed partial class RootModel : Entity
         EvaluateCommand = new(_ => Evaluate(Editor.Text), GetHasEnvironment);
         CheckTypeCommand = new(_ => CheckType(Editor.Text), GetHasEnvironment);
         ClearCommand = new(_ => MainSection?.Blocks.Clear(), GetHasEnvironment);
+        DebugFormula = new(ExecuteDebugFormula, GetHasEnvironment);
     }
 
     public DelegateCommand CloseAllCommand { get; }
@@ -105,6 +106,8 @@ public sealed partial class RootModel : Entity
 
     public DelegateCommand AboutCommand { get; } =
         new(() => new AboutView().Show());
+
+    public DelegateCommand DebugFormula { get; }
 
     /// <summary>Gets the version of Austra.Libray.</summary>
     public static string Version { get; } =
@@ -412,8 +415,6 @@ public sealed partial class RootModel : Entity
                     t == typeof(Series<int>) ? "Series<int>" :
                     t.IsGenericType ? GetFriendlyName(t) :
                     t.Name)));
-            if (environment!.Engine.DebugFormulas)
-                Message = environment.Engine.LastFormula;
         }
         catch (AstException e)
         {
@@ -639,6 +640,12 @@ public sealed partial class RootModel : Entity
             historyIndex = 0;
         }
         Editor.CaretOffset = Editor.Text.Length;
+    }
+
+    private void ExecuteDebugFormula(object? _)
+    {
+        if (environment?.Engine.DebugFormulas == true)
+            Message = environment.Engine.LastFormula;
     }
 
     private void CleanBeforeParsing()

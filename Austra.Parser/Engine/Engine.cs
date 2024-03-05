@@ -198,7 +198,7 @@ public partial class AustraEngine : IAustraEngine
             Source.CreateLambda(parser.ParseStatement());
         sw.Stop();
         if (DebugFormulas)
-            LastFormula = expression.ToString();
+            LastFormula = expression.AsString();
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         sw.Restart();
         Action<IDataSource> lambda = expression.Compile();
