@@ -65,6 +65,7 @@ internal sealed class Bindings
             ["iseq"] = typeof(NSequence),
             ["matrix"] = typeof(Matrix),
             ["date"] = typeof(Date),
+            ["string"] = typeof(string),
         }.ToFrozenDictionary();
 
     /// <summary>Code completion descriptors for root classes.</summary>
@@ -1421,12 +1422,14 @@ internal sealed class Bindings
                 typeof(RMatrix).MD(nameof(RMatrix.Redim), NNArg)),
         }.ToFrozenDictionary();
 
-    private readonly FrozenSet<string> optimizableCalls = new HashSet<string> {
-        nameof(DVector.InplaceAdd), nameof(DVector.InplaceSub),
-        nameof(DVector.MultiplyAdd), nameof(DVector.MultiplySubtract),
-        nameof(DVector.SubtractMultiply),
-        nameof(DVector.Combine2), nameof(DVector.Combine)
-    }.ToFrozenSet();
+    private readonly FrozenSet<string> optimizableCalls =
+        new HashSet<string>
+        {
+            nameof(DVector.InplaceAdd), nameof(DVector.InplaceSub),
+            nameof(DVector.MultiplyAdd), nameof(DVector.MultiplySubtract),
+            nameof(DVector.SubtractMultiply),
+            nameof(DVector.Combine2), nameof(DVector.Combine)
+        }.ToFrozenSet();
 
     /// <summary>Get root expressions for code completion.</summary>
     /// <returns>Class names, global methods and a couple of statement prefixes.</returns>
@@ -1760,6 +1763,48 @@ internal readonly struct MethodData
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Expression GetExpression(Expression instance, List<Expression> actualArguments) =>
         Expression.Call(instance, (MethodInfo)mInfo, actualArguments);
+
+    public string DescribeArguments()
+    {
+        StringBuilder sb = new(Args.Length * 16);
+        sb.Append('(');
+        foreach (Type arg in Args)
+        {
+            string typeName = DescribeType(arg);
+            if (typeName != "")
+            {
+                if (sb.Length > 0)
+                    sb.Append(", ");
+                sb.Append(typeName);
+            }
+        }
+        return sb.Append(')').ToString();
+    }
+
+    private readonly static FrozenDictionary<Type, string> types =
+        new Dictionary<Type, string>
+        {
+            [typeof(bool)] = "bool",
+            [typeof(int)] = "int",
+            [typeof(long)] = "long",
+            [typeof(double)] = "real",
+            [typeof(string)] = "string",
+            [typeof(Date)] = "date",
+            [typeof(Complex)] = "Complex",
+            [typeof(Series)] = "series",
+            [typeof(Matrix)] = "matrix",
+            [typeof(DVector)] = "vec",
+            [typeof(CVector)] = "cvec",
+            [typeof(NVector)] = "ivec",
+            [typeof(DSequence)] = "seq",
+            [typeof(CSequence)] = "cseq",
+            [typeof(NSequence)] = "iseq",
+        }.ToFrozenDictionary();
+
+    public static string DescribeType(Type type) =>
+        type.IsArray
+        ? DescribeType(type.GetElementType()!) + "..."
+        : types.TryGetValue(type, out string? name) ? name : "";
 }
 
 /// <summary>Represents a set of overloaded methods.</summary>
