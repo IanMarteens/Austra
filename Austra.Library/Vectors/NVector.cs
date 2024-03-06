@@ -47,6 +47,16 @@ public readonly struct NVector :
         Array.Fill(values, value);
     }
 
+    /// <summary>Initializes a vector from a scalar.</summary>
+    /// <remarks>This constructor is used by the AUSTRA parser.</remarks>
+    /// <param name="size">Vector length.</param>
+    /// <param name="value">Scalar value to be repeated.</param>
+    public NVector(int size, double value)
+    {
+        values = GC.AllocateUninitializedArray<int>(size);
+        Array.Fill(values, (int)value);
+    }
+
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
     /// <param name="rnd">A random number generator.</param>
@@ -380,6 +390,14 @@ public readonly struct NVector :
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<NVector>().Length == Length);
         return values.AsSpan().Div(other.values);
+    }
+
+    /// <summary>Inplace negation of the vector.</summary>
+    /// <returns>The same vector instance, with items negated.</returns>
+    public NVector InplaceNegate()
+    {
+        values.AsSpan().Neg();
+        return this;
     }
 
     /// <summary>Gets statistics on the vector values.</summary>

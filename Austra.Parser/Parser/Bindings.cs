@@ -697,7 +697,7 @@ internal sealed class Bindings
                 typeof(NVector).MD(typeof(int), typeof(Func<int, int>)),
                 typeof(NVector).MD(typeof(int), typeof(Func<int, NVector, int>))),
             ["ivec.ones"] = new(
-                typeof(NVector).MD(nameof(NVector.Ones), typeof(int))),
+                typeof(NVector).MD(typeof(int), typeof(One))),
             ["ivec.random"] = new(
                 typeof(NVector).MD(typeof(int), typeof(Random)),
                 typeof(NVector).MD(typeof(int), typeof(int), typeof(Random)),

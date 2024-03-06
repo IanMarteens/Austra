@@ -983,6 +983,9 @@ internal sealed partial class Parser : Scanner, IDisposable
             : u.Type == typeof(CVector) && (u is BinaryExpression or NewExpression
                 || u is MethodCallExpression n && bindings.IsOptimizableCall(n.Method.Name))
             ? Expression.Call(u, typeof(CVector).Get(nameof(CVector.InplaceNegate)))
+            : u.Type == typeof(NVector) && (u is BinaryExpression or NewExpression
+                || u is MethodCallExpression nm && bindings.IsOptimizableCall(nm.Method.Name))
+            ? Expression.Call(u, typeof(NVector).Get(nameof(NVector.InplaceNegate)))
             : Expression.Negate(u);
     }
 
