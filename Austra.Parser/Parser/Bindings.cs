@@ -173,6 +173,7 @@ internal sealed class Bindings
                 new("new(", "Creates a sequence from a range, a grid or a vector"),
                 new("nrandom(", "Creates a sequence from normal random numbers"),
                 new("random(", "Creates a sequence from random numbers"),
+                new("repeat(", "Creates a sequence with a repeated value"),
                 new("unfold", "Creates a sequence from a seed and a lambda"),
             ],
             ["series"] = [
@@ -871,11 +872,13 @@ internal sealed class Bindings
                 typeof(DSequence).MD(nameof(DSequence.Create), typeof(DVector)),
                 typeof(DSequence).MD(nameof(DSequence.Create), typeof(Matrix)),
                 typeof(DSequence).MD(nameof(DSequence.Create), typeof(Series))),
-            ["seq.random"] = new(
-                typeof(DSequence).MD(nameof(DSequence.Random), typeof(int))),
             ["seq.nrandom"] = new(
                 typeof(DSequence).MD(nameof(DSequence.NormalRandom), typeof(int)),
                 typeof(DSequence).MD(nameof(DSequence.NormalRandom), NDArg)),
+            ["seq.random"] = new(
+                typeof(DSequence).MD(nameof(DSequence.Random), typeof(int))),
+            ["seq.repeat"] = new(
+                typeof(DSequence).MD(nameof(DSequence.Repeat), typeof(int), typeof(double))),
             ["seq.unfold"] = new(
                 typeof(DSequence).MD(nameof(DSequence.Unfold),
                     typeof(int), typeof(double), typeof(Func<double, double>)),

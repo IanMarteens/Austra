@@ -41,6 +41,51 @@ public abstract partial class DSequence : IFormattable
         }
     }
 
+    /// <summary>A fixed length sequence that repeats the same value a number of times.</summary>
+    /// <param name="length">Number of items in the sequence.</param>
+    /// <param name="value">The repeated value.</param>
+    private sealed class RepeatSequence(int length, double value): CursorSequence(length)
+    {
+        /// <summary>The value to repeat.</summary>
+        private readonly double value = value;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out double value)
+        {
+            if (current++ < length)
+            {
+                value = this.value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        public override double this[int idx] => 
+            (uint)idx < length ? value : throw new IndexOutOfRangeException();
+
+        public override bool Contains(double value) => value == this.value;
+
+        public override double First() => value;
+        public override double Last() => value;
+        public override double Max() => value;
+        public override double Min() => value;
+        public override double Sum() => length * value;
+        public override double Product() => Pow(value, length);
+        public override DSequence Distinct() => this;
+        public override DSequence Sort() => this;
+        public override DSequence SortDescending() => this;
+
+        protected override bool ContainsZero => value == 0d;
+        protected override DSequence Negate() => new RepeatSequence(length, -value);
+        protected override DSequence Scale(double d) =>
+            new RepeatSequence(length, value * d);
+        protected override DSequence Shift(double d) =>
+            new RepeatSequence(length, value + d);
+    }
+
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="mapper">The mapping function.</param>
