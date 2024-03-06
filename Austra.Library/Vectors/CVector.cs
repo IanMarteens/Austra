@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Austra.Library;
 
 /// <summary>Represents a dense complex vector of arbitrary size.</summary>
 /// <remarks>
@@ -671,6 +673,93 @@ public readonly struct CVector :
     /// <returns>The multiplication of the vector by the real scalar.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CVector operator *(double d, CVector v) => v * d;
+
+    /// <summary>Optimized vector multiplication and addition.</summary>
+    /// <remarks>The current vector is the multiplicand.</remarks>
+    /// <param name="multiplier">The multiplier scalar.</param>
+    /// <param name="summand">The vector to be added to the scalar multiplication.</param>
+    /// <returns><code>this * multiplier + summand</code></returns>
+    public CVector MultiplyAdd(double multiplier, CVector summand)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(summand.IsInitialized);
+        Contract.Requires(Length == summand.Length);
+
+        return new(
+            new DVector(re).MultiplyAdd(multiplier, summand.re),
+            new DVector(im).MultiplyAdd(multiplier, summand.im));
+    }
+
+    /// <summary>Optimized vector scaling and subtraction.</summary>
+    /// <remarks>
+    /// <para>The current vector is the multiplicand.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
+    /// <param name="multiplier">The multiplier scalar.</param>
+    /// <param name="subtrahend">The vector to be subtracted from the multiplication.</param>
+    /// <returns><code>this * multiplier - subtrahend</code></returns>
+    public CVector MultiplySubtract(double multiplier, CVector subtrahend)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(subtrahend.IsInitialized);
+        Contract.Requires(Length == subtrahend.Length);
+
+        return new(
+            new DVector(re).MultiplySubtract(multiplier, subtrahend.re),
+            new DVector(im).MultiplySubtract(multiplier, subtrahend.im));
+    }
+
+    /// <summary>Optimized subtraction of scaled vector.</summary>
+    /// <remarks>
+    /// <para>The current vector is the minuend.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
+    /// <param name="multiplier">The multiplier scalar.</param>
+    /// <param name="subtrahend">The vector to scaled.</param>
+    /// <returns><code>this - multiplier * subtrahend</code></returns>
+    public CVector SubtractMultiply(double multiplier, CVector subtrahend)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(subtrahend.IsInitialized);
+        Contract.Requires(Length == subtrahend.Length);
+
+        return new(
+            new DVector(re).SubtractMultiply(multiplier, subtrahend.re),
+            new DVector(im).SubtractMultiply(multiplier, subtrahend.im));
+    }
+
+    /// <summary>Inplace addition of two vectors.</summary>
+    /// <param name="v">Second vector operand.</param>
+    /// <returns>The component by component sum.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public CVector InplaceAdd(CVector v)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        if (Length != v.Length)
+            throw new VectorLengthException();
+        return new(new DVector(re).InplaceAdd(v.re), new DVector(im).InplaceAdd(v.im));
+    }
+
+    /// <summary>Inplace substraction of two vectors.</summary>
+    /// <param name="v">Subtrahend.</param>
+    /// <returns>The component by component subtraction.</returns>
+    /// <exception cref="VectorLengthException">If the vectors have different lengths.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public CVector InplaceSub(CVector v)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        if (Length != v.Length)
+            throw new VectorLengthException();
+        return new(new DVector(re).InplaceSub(v.re), new DVector(im).InplaceSub(v.im));
+    }
+
+    /// <summary>Inplace negation of the vector.</summary>
+    /// <returns>The same vector instance, with items negated.</returns>
+    public CVector InplaceNegate() =>
+        new(new DVector(re).InplaceNegate(), new DVector(im).InplaceNegate());
 
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <returns>The sum of all vector's items.</returns>

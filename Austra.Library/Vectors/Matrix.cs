@@ -1133,6 +1133,14 @@ public readonly struct Matrix :
     public static DVector operator *(Matrix m, DVector v) =>
         m.Transform(v, GC.AllocateUninitializedArray<double>(m.Rows));
 
+    /// <summary>Transform a complex vector using a matrix.</summary>
+    /// <param name="m">The transformation matrix.</param>
+    /// <param name="v">Complex vector to transform.</param>
+    /// <returns>The transformed complex vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CVector operator *(Matrix m, CVector v) =>
+        new(m * v.Real, m * v.Imaginary);
+
     /// <summary>Transforms a vector using a matrix and a preallocated buffer.</summary>
     /// <remarks>The buffer must have <see cref="Matrix.Rows"/> items.</remarks>
     /// <param name="v">Vector to transform.</param>
@@ -1164,6 +1172,18 @@ public readonly struct Matrix :
     /// <returns>The transformed vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DVector operator *(DVector v, Matrix m) => m.TransposeMultiply(v);
+
+    /// <summary>Transform a complex vector using the transposed matrix.</summary>
+    /// <remarks>
+    /// This operator is equivalent to the method <see cref="TransposeMultiply(DVector)"/>,
+    /// but operating on complex vectors.
+    /// </remarks>
+    /// <param name="v">Complex vector to transform.</param>
+    /// <param name="m">The transformation matrix.</param>
+    /// <returns>The transformed complex vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CVector operator *(CVector v, Matrix m) =>
+        new(v.Real * m, v.Imaginary * m);
 
     /// <summary>Transforms a vector using the transpose of this matrix.</summary>
     /// <remarks>
@@ -1213,6 +1233,16 @@ public readonly struct Matrix :
         return result;
     }
 
+    /// <summary>Transforms a complex vector and adds an offset.</summary>
+    /// <remarks>
+    /// This method avoids allocating a temporary vector for the multiplication.
+    /// </remarks>
+    /// <param name="v">Complex vector to transform.</param>
+    /// <param name="add">Complex ector to add.</param>
+    /// <returns><c>this * v + add</c>.</returns>
+    public CVector MultiplyAdd(CVector v, CVector add) =>
+        new(MultiplyAdd(v.Real, add.Real), MultiplyAdd(v.Imaginary, add.Imaginary));
+
     /// <summary>Transforms a vector and adds an offset.</summary>
     /// <remarks>
     /// This method avoids allocating two temporary vectors.
@@ -1261,6 +1291,16 @@ public readonly struct Matrix :
             Add(ref b, i) = values.AsSpan(offset, c).Dot(source) - sb;
         return result;
     }
+
+    /// <summary>Transforms a complex vector and subtracts an offset.</summary>
+    /// <remarks>
+    /// This method avoids allocating a temporary vector for the multiplication.
+    /// </remarks>
+    /// <param name="v">Complex vector to transform.</param>
+    /// <param name="sub">Complex vector to subtract.</param>
+    /// <returns><c>this * multiplicand - sub</c>.</returns>
+    public CVector MultiplySubtract(CVector v, CVector sub) =>
+        new(MultiplySubtract(v.Real, sub.Real), MultiplySubtract(v.Imaginary, sub.Imaginary));
 
     /// <summary>Computes the Cholesky decomposition of this matrix.</summary>
     /// <returns>A Cholesky decomposition.</returns>
