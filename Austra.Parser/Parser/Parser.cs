@@ -949,7 +949,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 ? Expression.Call(b1.Right,
                     typeof(CVector).GetMethod(method, [typeof(Complex), typeof(CVector)])!,
                     b1.Left, e2)
-                : b1.Left.Type == typeof(Matrix) && !reversed
+                : b1.Left.Type == typeof(Matrix)
                 ? Expression.Call(b1.Left,
                     typeof(Matrix).GetMethod(method, [typeof(CVector), typeof(CVector)])!,
                     b1.Right, e2)

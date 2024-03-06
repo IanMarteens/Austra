@@ -1292,6 +1292,42 @@ public readonly struct Matrix :
         return result;
     }
 
+    /// <summary>Optimized subtraction of transformed vector.</summary>
+    /// <remarks>
+    /// <para>The second vector is the minuend.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
+    /// <param name="v">The vector to be transformed.</param>
+    /// <param name="minuend">The vector acting as minuend.</param>
+    /// <returns><code>minuend - this v</code>.</returns>
+    public DVector SubtractMultiply(DVector v, DVector minuend)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(v.IsInitialized);
+        int r = Rows, c = Cols;
+        if (c != v.Length)
+            throw new MatrixSizeException();
+
+        double[] result = GC.AllocateUninitializedArray<double>(r);
+        double[] source = (double[])v;
+        ref double sb = ref MM.GetArrayDataReference((double[])minuend);
+        ref double b = ref MM.GetArrayDataReference(result);
+        for (int i = 0, offset = 0; i < r; i++, offset += c, sb = ref Add(ref sb, 1))
+            Add(ref b, i) = sb - values.AsSpan(offset, c).Dot(source);
+        return result;
+    }
+
+    /// <summary>Optimized subtraction of transformed complex vector.</summary>
+    /// <remarks>
+    /// <para>The second vector is the minuend.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
+    /// <param name="v">The vector to be transformed.</param>
+    /// <param name="minuend">The vector acting as minuend.</param>
+    /// <returns><code>minuend - this v</code>.</returns>
+    public CVector SubtractMultiply(CVector v, CVector minuend) =>
+        new(SubtractMultiply(v.Real, minuend.Real), SubtractMultiply(v.Imaginary, minuend.Imaginary));
+
     /// <summary>Transforms a complex vector and subtracts an offset.</summary>
     /// <remarks>
     /// This method avoids allocating a temporary vector for the multiplication.
