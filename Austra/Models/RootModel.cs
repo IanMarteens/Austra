@@ -1,6 +1,5 @@
 ﻿using Austra.Parser;
 using Microsoft.Win32;
-using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -43,12 +42,13 @@ public sealed partial class RootModel : Entity
     private int errorIconSize = 0;
     private int infoArrowSize = 0;
     private IReadOnlyList<string> overloads = [];
+    private int overloadIdx;
+
 
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
     {
         CommonMatrix.TERMINAL_COLUMNS = 160;
-        timer.Interval = new TimeSpan(0, 0, 30);
         timer.Tick += (e, a) =>
         {
             ErrorText = "";
@@ -65,6 +65,8 @@ public sealed partial class RootModel : Entity
         CheckTypeCommand = new(_ => CheckType(Editor.Text), GetHasEnvironment);
         ClearCommand = new(_ => MainSection?.Blocks.Clear(), GetHasEnvironment);
         DebugFormula = new(ExecuteDebugFormula, GetHasEnvironment);
+        OverloadUp = new(ExecuteOverloadUp);
+        OverloadDown = new(ExecuteOverloadDown);
     }
 
     public DelegateCommand CloseAllCommand { get; }
@@ -78,6 +80,10 @@ public sealed partial class RootModel : Entity
     public DelegateCommand CheckTypeCommand { get; }
 
     public DelegateCommand ClearCommand { get; }
+
+    public DelegateCommand OverloadUp { get; }
+
+    public DelegateCommand OverloadDown { get; }
 
     public DelegateCommand PasteExcelCommand { get; } = new(
         (object? _) =>
@@ -126,7 +132,7 @@ public sealed partial class RootModel : Entity
             if (SetField(ref message, value))
             {
                 if (!string.IsNullOrEmpty(value))
-                    timer.Start();
+                    StartTimer();
             }
         }
     }
@@ -447,7 +453,7 @@ public sealed partial class RootModel : Entity
             ErrorIconSize = 15;
             InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
-            timer.Start();
+            StartTimer();
         }
         catch (Exception e)
         {
@@ -455,7 +461,7 @@ public sealed partial class RootModel : Entity
             ErrorIconSize = 15;
             InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
-            timer.Start();
+            StartTimer();
         }
 
         static string GetFriendlyName(Type t)
@@ -589,7 +595,7 @@ public sealed partial class RootModel : Entity
             ErrorIconSize = 15;
             InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
-            timer.Start();
+            StartTimer();
         }
         catch (Exception e)
         {
@@ -597,7 +603,7 @@ public sealed partial class RootModel : Entity
             ErrorIconSize = 15;
             InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
-            timer.Start();
+            StartTimer();
         }
     }
 
@@ -727,17 +733,46 @@ public sealed partial class RootModel : Entity
     {
         if (Environment != null)
         {
-            overloads = Environment.Engine.GetParameterInfo(fragment, out string method);
-            if (overloads.Count > 0)
+            overloads = Environment.Engine.GetParameterInfo(fragment);
+            if (overloads.Count == 0)
+                HideParameterInfo();
+            else
             {
-                ErrorText = method + overloads[0];
-                ErrorIconSize = 0;
-                InfoArrowSize = 15;
-                ShowErrorText = Visibility.Visible;
-                timer.Start();
+                overloadIdx = -1;
+                ExecuteOverloadUp(null);
             }
         }
     }
+
+    private void ExecuteOverloadUp(object? _)
+    {
+        if (overloads.Count > 0)
+        {
+            overloadIdx++;
+            if (overloadIdx >= overloads.Count)
+                overloadIdx = 0;
+            ErrorText = overloads[overloadIdx];
+            ErrorIconSize = 0;
+            InfoArrowSize = 15;
+            ShowErrorText = Visibility.Visible;
+            StartTimer(new TimeSpan(0, 1, 0));
+        }
+    }
+
+    private void ExecuteOverloadDown(object? _)
+    {
+        if (overloads.Count > 0)
+        {
+            overloadIdx--;
+            if (overloadIdx < 0)
+                overloadIdx = overloads.Count - 1;
+            ErrorText = overloads[overloadIdx];
+            ErrorIconSize = 0;
+            InfoArrowSize = 15;
+            ShowErrorText = Visibility.Visible;
+            StartTimer(new TimeSpan(0, 1, 0));
+        }
+    }   
 
     public void HideParameterInfo()
     {
@@ -748,5 +783,11 @@ public sealed partial class RootModel : Entity
             InfoArrowSize = 0;
             ShowErrorText = Visibility.Collapsed;
         }
+    }
+
+    private void StartTimer(TimeSpan? interval = null)
+    {
+        timer.Interval = interval ?? new(0, 0, 15);
+        timer.Start();
     }
 }

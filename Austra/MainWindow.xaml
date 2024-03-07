@@ -353,8 +353,10 @@
                         </avalonEdit:TextEditor>
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Background="#FF363636" Height="auto">
                             <Image Height="15" Width="{Binding ErrorIconSize, Mode=OneWay}" Source="/images/error.png" Margin="2,0,2,0" VerticalAlignment="Center" />
-                            <Image Height="15" Width="{Binding InfoArrowSize, Mode=OneWay}" Source="/images/up.png" Margin="2,0,0,0" VerticalAlignment="Center" />
-                            <Image Height="15" Width="{Binding InfoArrowSize, Mode=OneWay}" Source="/images/down.png" Margin="0" VerticalAlignment="Center" />
+                            <Image Height="15" Width="{Binding InfoArrowSize, Mode=OneWay}" Source="/images/down.png" Margin="0" VerticalAlignment="Center"
+                                   MouseDown="OverloadUpClick"/>
+                            <Image Height="15" Width="{Binding InfoArrowSize, Mode=OneWay}" Source="/images/up.png" Margin="2,0,0,0" VerticalAlignment="Center" 
+                                   MouseDown="OverloadDownClick"/>
                             <TextBlock Foreground="White" Padding="8,1" FontSize="12" Text="{Binding ErrorText}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>

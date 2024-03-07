@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.ExceptionServices;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning double-precision values.</summary>
 public abstract partial class DSequence : IFormattable

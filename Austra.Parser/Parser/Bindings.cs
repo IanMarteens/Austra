@@ -1653,11 +1653,9 @@ internal sealed class Bindings
 
     /// <summary>Checks if there is parameter information for a given method.</summary>
     /// <param name="text">Text up to the method call.</param>
-    /// <param name="method">The method name, if exists.</param>
     /// <returns>The list of method overload signatures.</returns>
-    public IReadOnlyList<string> GetParamInfo(string text, out string method)
+    public IReadOnlyList<string> GetParamInfo(string text)
     {
-        method = "";
         // Extract a class method call.
         int i = text.Length - 1;
         for (ref char c = ref Unsafe.As<Str>(text).FirstChar; i >= 0; i--)
@@ -1667,25 +1665,21 @@ internal sealed class Bindings
                 && !char.IsWhiteSpace(ch))
                 break;
         }
-        method = text[(i + 1)..].Trim();
+        string method = text[(i + 1)..].Trim();
         if (method.Contains("::"))
             text = method.Replace("::", ".");
         else if (IsClassName(method))
             text = method + ".new";
         else
-        {
-            method = "";
             return emptyParameters;
-        }
         if (classMethods.TryGetValue(text, out MethodList list)
             && list.Methods != null)
         {
             List<string> result = new(list.Methods.Length);
             foreach (MethodData m in list.Methods)
-                result.Add(m.DescribeArguments());
+                result.Add(method + m.DescribeArguments());
             return result.AsReadOnly();
         }
-        method = "";
         return emptyParameters;
     }
 

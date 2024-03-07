@@ -191,4 +191,8 @@ public partial class MainWindow : Window
             gMode = false;
         }
     }
+
+    private void OverloadDownClick(object sender, MouseButtonEventArgs e) => RootModel.Instance.OverloadDown.Execute(null);
+
+    private void OverloadUpClick(object sender, MouseButtonEventArgs e) => RootModel.Instance.OverloadUp.Execute(null);
 }
