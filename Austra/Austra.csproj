@@ -22,6 +22,7 @@
 		<None Remove="Images\copy.png" />
 		<None Remove="Images\cut.png" />
 		<None Remove="Images\delete.png" />
+		<None Remove="Images\down.png" />
 		<None Remove="Images\error.png" />
 		<None Remove="Images\evd.png" />
 		<None Remove="Images\exit.png" />
@@ -48,6 +49,7 @@
 		<None Remove="Images\store.png" />
 		<None Remove="Images\tag.png" />
 		<None Remove="Images\undo.png" />
+		<None Remove="Images\up.png" />
 		<None Remove="Images\vector.png" />
 		<None Remove="Images\waves.png" />
 		<None Remove="Images\waves1.png" />
@@ -62,6 +64,7 @@
 	<ItemGroup>
 	  <Resource Include="Images\clearResults.png" />
 	  <Resource Include="Images\delete.png" />
+	  <Resource Include="Images\down.png" />
 	  <Resource Include="Images\function.png" />
 	  <Resource Include="Images\help.png" />
 	  <Resource Include="Images\histDown.png" />
@@ -136,6 +139,7 @@
 	  <Resource Include="Images\store.png" />
 	  <Resource Include="Images\tag.png" />
 	  <Resource Include="Images\undo.png" />
+	  <Resource Include="Images\up.png" />
 	  <Resource Include="Images\vector.png" />
 	  <Resource Include="Images\waves.png" />
 	  <Resource Include="Images\waves1.png" />

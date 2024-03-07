@@ -45,6 +45,8 @@ internal sealed class Bindings
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(DVector)),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(Complex), typeof(double[])));
 
+    private readonly IReadOnlyList<string> emptyParameters = new List<string>(0).AsReadOnly();
+
     /// <summary>Reusable lambda block for parsing lambda expressions.</summary>
     public LambdaBlock LambdaBlock { get; } = new();
 
@@ -855,7 +857,7 @@ internal sealed class Bindings
                     typeof(DVector), typeof(Matrix), typeof(DVector), typeof(NVector), typeof(string[])),
                 typeof(SimplexModel).MD(nameof(SimplexModel.Minimize),
                     typeof(DVector), typeof(Matrix), typeof(DVector), typeof(NVector)),
-                typeof(SimplexModel).MD(nameof(SimplexModel.Minimize), 
+                typeof(SimplexModel).MD(nameof(SimplexModel.Minimize),
                     typeof(DVector), typeof(Matrix), typeof(DVector), typeof(int)),
                 typeof(SimplexModel).MD(nameof(SimplexModel.Minimize),
                     typeof(DVector), typeof(Matrix), typeof(DVector))),
@@ -1407,7 +1409,7 @@ internal sealed class Bindings
             [new(typeof(MvoModel), "setconstraints")] = new(
                 typeof(MvoModel).MD(nameof(MvoModel.SetConstraints),
                     typeof(Matrix), typeof(DVector), typeof(NVector)),
-                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints), 
+                typeof(MvoModel).MD(nameof(MvoModel.SetConstraints),
                     typeof(Matrix), typeof(DVector), typeof(int)),
                 typeof(MvoModel).MD(nameof(MvoModel.SetConstraints),
                     typeof(Matrix), typeof(DVector))),
@@ -1626,8 +1628,7 @@ internal sealed class Bindings
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>A list of pairs member name/description.</returns>
-    public IList<Member> GetClassMembers(
-        string text)
+    public IList<Member> GetClassMembers(string text)
     {
         return classMembers.TryGetValue(ExtractClassName(text),
             out Member[]? list) ? list : [];
@@ -1648,6 +1649,44 @@ internal sealed class Bindings
                 i--;
             return text[(i + 1)..end].Trim();
         }
+    }
+
+    /// <summary>Checks if there is parameter information for a given method.</summary>
+    /// <param name="text">Text up to the method call.</param>
+    /// <param name="method">The method name, if exists.</param>
+    /// <returns>The list of method overload signatures.</returns>
+    public IReadOnlyList<string> GetParamInfo(string text, out string method)
+    {
+        method = "";
+        // Extract a class method call.
+        int i = text.Length - 1;
+        for (ref char c = ref Unsafe.As<Str>(text).FirstChar; i >= 0; i--)
+        {
+            char ch = Unsafe.Add(ref c, i);
+            if (!char.IsLetterOrDigit(ch) && ch is not '_' and not ':'
+                && !char.IsWhiteSpace(ch))
+                break;
+        }
+        method = text[(i + 1)..].Trim();
+        if (method.Contains("::"))
+            text = method.Replace("::", ".");
+        else if (IsClassName(method))
+            text = method + ".new";
+        else
+        {
+            method = "";
+            return emptyParameters;
+        }
+        if (classMethods.TryGetValue(text, out MethodList list)
+            && list.Methods != null)
+        {
+            List<string> result = new(list.Methods.Length);
+            foreach (MethodData m in list.Methods)
+                result.Add(m.DescribeArguments());
+            return result.AsReadOnly();
+        }
+        method = "";
+        return emptyParameters;
     }
 
     /// <summary>Gets a property method for a given type and identifier.</summary>
@@ -1773,7 +1812,7 @@ internal readonly struct MethodData
             string typeName = DescribeType(arg);
             if (typeName != "")
             {
-                if (sb.Length > 0)
+                if (sb.Length > 1)
                     sb.Append(", ");
                 sb.Append(typeName);
             }
@@ -1803,8 +1842,13 @@ internal readonly struct MethodData
 
     public static string DescribeType(Type type) =>
         type.IsArray
-        ? DescribeType(type.GetElementType()!) + "..."
+        ? DescribeType(type.GetElementType()!) + "[]"
+        : type.IsAssignableTo(typeof(Delegate))
+        ? DescribeDelegate(type)
         : types.TryGetValue(type, out string? name) ? name : "";
+
+    private static string DescribeDelegate(Type type) =>
+        string.Join("=>", type.GenericTypeArguments.Select(DescribeType));
 }
 
 /// <summary>Represents a set of overloaded methods.</summary>

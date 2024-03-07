@@ -66,6 +66,12 @@ public interface IAustraEngine : IVariableListener
     /// <returns>Null if not a valid type.</returns>
     IList<Member> GetClassMembers(string text);
 
+    /// <summary>Gets parameter information on a method call.</summary>
+    /// <param name="text">An expression fragment.</param>
+    /// <param name="method">The method name, if exists.</param>
+    /// <returns>The list of signatures, or an empty list when none available.</returns>
+    IReadOnlyList<string> GetParameterInfo(string text, out string method);
+
     /// <summary>Checks if the name is a valid class accepting class methods.</summary>
     /// <param name="text">Class name to check.</param>
     /// <returns><see langword="true"/> if the text is a valid class name.</returns>
@@ -292,6 +298,13 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>Null if not a valid type.</returns>
     public IList<Member> GetClassMembers(string text) =>
         bindings.GetClassMembers(text);
+
+    /// <summary>Gets parameter information on a method call.</summary>
+    /// <param name="text">An expression fragment.</param>
+    /// <param name="method">The method name, if exists.</param>
+    /// <returns>The list of signatures, or an empty list when none available.</returns>
+    public IReadOnlyList<string> GetParameterInfo(string text, out string method) =>
+        bindings.GetParamInfo(text, out method);
 
     /// <summary>Should load series and definitions from persistent storage.</summary>
     public virtual void Load() { }

@@ -40,16 +40,21 @@ public sealed partial class RootModel : Entity
     /// </summary>
     private int historyIndex = -1;
     private string savedHistory = "";
+    private int errorIconSize = 0;
+    private int infoArrowSize = 0;
+    private IReadOnlyList<string> overloads = [];
 
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
     {
         CommonMatrix.TERMINAL_COLUMNS = 160;
-        timer.Interval = new TimeSpan(0, 0, 15);
+        timer.Interval = new TimeSpan(0, 0, 30);
         timer.Tick += (e, a) =>
         {
             ErrorText = "";
             Message = "";
+            ErrorIconSize = 0;
+            InfoArrowSize = 0;
             ShowErrorText = Visibility.Collapsed;
             timer.Stop();
         };
@@ -185,13 +190,23 @@ public sealed partial class RootModel : Entity
         set
         {
             if (SetField(ref showErrorText, value))
-                OnPropertyChanged(nameof(ErrorTextHeight), nameof(ErrorIconSize));
+                OnPropertyChanged(nameof(ErrorTextHeight));
         }
     }
 
     public int ErrorTextHeight => showErrorText == Visibility.Collapsed ? 0 : 18;
 
-    public int ErrorIconSize => showErrorText == Visibility.Collapsed ? 0 : 15;
+    public int ErrorIconSize
+    {
+        get => errorIconSize;
+        set => SetField(ref errorIconSize, value);
+    }
+
+    public int InfoArrowSize
+    {
+        get => infoArrowSize;
+        set => SetField(ref infoArrowSize, value);
+    }
 
     /// <summary>
     /// Prepares the workspace, filling the variables tree and selecting the first node.
@@ -391,6 +406,8 @@ public sealed partial class RootModel : Entity
         Classes.Clear();
         Environment = null;
         ShowFormulaEditor = Visibility.Collapsed;
+        ErrorIconSize = 0;
+        InfoArrowSize = 0;
         ShowErrorText = Visibility.Collapsed;
         MainSection?.Blocks.Clear();
     }
@@ -427,12 +444,16 @@ public sealed partial class RootModel : Entity
         {
             Editor.CaretOffset = Math.Min(e.Position, Editor.Text.Length);
             ErrorText = e.Message;
+            ErrorIconSize = 15;
+            InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
         catch (Exception e)
         {
             ErrorText = e.Message;
+            ErrorIconSize = 15;
+            InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
@@ -565,12 +586,16 @@ public sealed partial class RootModel : Entity
         {
             Editor.CaretOffset = Math.Min(e.Position, Editor.Text.Length);
             ErrorText = e.Message;
+            ErrorIconSize = 15;
+            InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
         catch (Exception e)
         {
             ErrorText = e.Message;
+            ErrorIconSize = 15;
+            InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
             timer.Start();
         }
@@ -660,6 +685,8 @@ public sealed partial class RootModel : Entity
         timer.Stop();
         Message = "";
         ErrorText = "";
+        ErrorIconSize = 0;
+        InfoArrowSize = 0;
         ShowErrorText = Visibility.Collapsed;
         CloseCompletion();
     }
@@ -696,7 +723,30 @@ public sealed partial class RootModel : Entity
             Message = msg;
     }
 
-    /// <summary>Gets a regex that matches a set statement</summary>
-    [GeneratedRegex("^\\s*set\\s*(?'name'[\\w]+)\\s*=", RegexOptions.IgnoreCase, "en-US")]
-    private static partial Regex SetRegex();
+    public void ShowParameterInfo(string fragment)
+    {
+        if (Environment != null)
+        {
+            overloads = Environment.Engine.GetParameterInfo(fragment, out string method);
+            if (overloads.Count > 0)
+            {
+                ErrorText = method + overloads[0];
+                ErrorIconSize = 0;
+                InfoArrowSize = 15;
+                ShowErrorText = Visibility.Visible;
+                timer.Start();
+            }
+        }
+    }
+
+    public void HideParameterInfo()
+    {
+        if (ShowErrorText == Visibility.Visible && ErrorIconSize == 0)
+        {
+            timer.Stop();
+            ErrorText = "";
+            InfoArrowSize = 0;
+            ShowErrorText = Visibility.Collapsed;
+        }
+    }
 }

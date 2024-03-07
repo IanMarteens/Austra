@@ -1,5 +1,6 @@
 ﻿using Austra.Parser;
 using ICSharpCode.AvalonEdit.CodeCompletion;
+using ICSharpCode.AvalonEdit.Document;
 using System.IO;
 
 namespace Austra;
@@ -19,6 +20,7 @@ public partial class MainWindow : Window
         avalon.TextArea.TextEntered += TextArea_TextEntered;
         avalon.TextArea.TextEntering += TextArea_TextEntering;
         avalon.PreviewKeyDown += AvalonPreviewKeyDown;
+        avalon.Document.Changed += (s, e) => DocumentChanged(e);
         Loaded += MainWindowLoaded;
     }
 
@@ -140,6 +142,14 @@ public partial class MainWindow : Window
             completionWindow.Show();
             completionWindow.Closed += CompletionListClosed;
         }
+    }
+
+    private void DocumentChanged(DocumentChangeEventArgs e)
+    {
+        if (e.InsertedText.Text.EndsWith('('))
+            RootModel.Instance.ShowParameterInfo(GetFragment(1));
+        else if (e.InsertedText.Text.EndsWith(')'))
+            RootModel.Instance.HideParameterInfo();
     }
 
     private void CompletionListClosed(object? sender, EventArgs e) => completionWindow = null;
