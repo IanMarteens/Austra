@@ -1799,15 +1799,19 @@ internal readonly struct MethodData
 
     public string DescribeArguments()
     {
+        ParameterInfo[] parameters = mInfo.GetParameters();
         StringBuilder sb = new(Args.Length * 16);
         sb.Append('(');
-        foreach (Type arg in Args)
+        for (int i = 0; i < Args.Length; i++)
         {
+            Type arg = Args[i];
             string typeName = DescribeType(arg);
             if (typeName != "")
             {
                 if (sb.Length > 1)
                     sb.Append(", ");
+                if (i < parameters.Length)
+                    sb.Append(parameters[i].Name).Append(": ");
                 sb.Append(typeName);
             }
         }
