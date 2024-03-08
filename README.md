@@ -49,7 +49,8 @@ The online Austra help covers both the library and the language, and is availabl
 * AUSTRA has been added as the main application for using the language. It is a WPF application, running on .NET Core 7/8.
 * Moving Average models can be generated and estimated.
 * Linear programming has been added to the library, and it is available in the language.
-* AVX512 support for random number generators.
+* AVX256 & AVX512 support for random number generators.
+* Real matrices can transform complex vectors.
 
 ## Next steps
 
