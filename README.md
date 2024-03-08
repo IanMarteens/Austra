@@ -43,6 +43,7 @@ The online Austra help covers both the library and the language, and is availabl
 
 ## Last changes
 
+* Functions! We have user-defined functions now. Even recursive ones.
 * Sequences of double-precision values have been fully implemented, via the class name `seq`. They are very similar to C#'s `IEnumerable` and LINQ. They can be converted to vectors and can use a vector as their source of data.
 * The lexical scanner has been rewritten. Most of the index checking is gone now. It is also a lot faster, as a consequence.
 * Overload resolution has been enhanced. The parser is now shorter, easier to read and faster.
@@ -57,8 +58,9 @@ The online Austra help covers both the library and the language, and is availabl
 This project is still in an early stage of development. Most compelling needs are, not necessarily in that order:
 
 * We should have control on formatting output and sending it to external files (Excel, JSON, CSV). It could be interesting formatting some kind of outputs to C# format, for retrofitting.
-* Parameterized definitions, that is, actual functions.
 * Connectors, to access external data sources with real time series, such as stock prices, meteorological data, etc.
+* More matrix decompositions (SVD, e.g.).
+* Support for 64 bits integers.
 
 In fact, we already have code for storing series in SQL Server, and it will be added to the repository in the near future, after some cleaning.
 
@@ -66,10 +68,8 @@ The library, of course, must also be expanded:
 
 * A decent implementation of ARIMA. We have already implemented AR, and MA.
 * GARCH, EGARCH and variants.
-* More matrix decompositions are crucial.
 * Complex matrices.
 * More transforms.
-* Support for 64 bits integers.
 * Optional task-based concurrency for big matrices and vectors.
 * Sparse matrices.
 * It can be useful to allow date homogenization for time series, both by adjusting common ranges and by interpolating missing values.
