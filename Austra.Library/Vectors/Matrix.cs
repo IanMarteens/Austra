@@ -134,6 +134,17 @@ public readonly struct Matrix :
                 V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, i);
             V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, t);
         }
+        else if (Avx2.IsSupported && values.Length >= V4d.Count && random == Random.Shared)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(values.Length - V4d.Count);
+            V4d vOff = V4.Create(offset);
+            V4d vWidth = V4.Create(width);
+            Random256 rnd256 = Random256.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, i);
+            V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, t);
+        }
         else
             for (int i = 0; i < values.Length; i++)
                 values[i] = FusedMultiplyAdd(random.NextDouble(), width, offset);
@@ -154,6 +165,15 @@ public readonly struct Matrix :
             for (nuint i = 0; i < t; i += (nuint)V8d.Count)
                 V8.StoreUnsafe(rnd512.NextDouble(), ref a, i);
             V8.StoreUnsafe(rnd512.NextDouble(), ref a, t);
+        }
+        else if (Avx2.IsSupported && values.Length >= V4d.Count && random == Random.Shared)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(values.Length - V4d.Count);
+            Random256 rnd256 = Random256.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(rnd256.NextDouble(), ref a, i);
+            V4.StoreUnsafe(rnd256.NextDouble(), ref a, t);
         }
         else
             for (int i = 0; i < values.Length; i++)
