@@ -906,18 +906,31 @@ public abstract partial class DSequence : IFormattable
         /// <returns>The values as an array.</returns>
         protected override double[] Materialize()
         {
-            if (!Avx512F.IsSupported || length < V8d.Count ||
-                random != Library.Stats.NormalRandom.Shared)
-                return base.Materialize();
-            double[] data = GC.AllocateUninitializedArray<double>(length);
-            ref double a = ref MM.GetArrayDataReference(data);
-            nuint t = (nuint)(data.Length - V8d.Count);
-            Random512 rnd = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(rnd.NextNormal(), ref a, i);
-            V8.StoreUnsafe(rnd.NextNormal(), ref a, t);
-            Reset();
-            return data;
+            if (Avx512F.IsSupported && length < V8d.Count 
+                && random == Library.Stats.NormalRandom.Shared)
+            {
+                double[] data = GC.AllocateUninitializedArray<double>(length);
+                ref double a = ref MM.GetArrayDataReference(data);
+                nuint t = (nuint)(data.Length - V8d.Count);
+                Random512 rnd = Random512.Shared;
+                for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                    V8.StoreUnsafe(rnd.NextNormal(), ref a, i);
+                V8.StoreUnsafe(rnd.NextNormal(), ref a, t);
+                return data;
+            }
+            if (Avx2.IsSupported && length < V4d.Count
+                && random == Library.Stats.NormalRandom.Shared)
+            {
+                double[] data = GC.AllocateUninitializedArray<double>(length);
+                ref double a = ref MM.GetArrayDataReference(data);
+                nuint t = (nuint)(data.Length - V4d.Count);
+                Random256 rnd = Random256.Shared;
+                for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                    V4.StoreUnsafe(rnd.NextNormal(), ref a, i);
+                V4.StoreUnsafe(rnd.NextNormal(), ref a, t);
+                return data;
+            }
+            return base.Materialize();
         }
     }
 
@@ -936,7 +949,9 @@ public abstract partial class DSequence : IFormattable
         private readonly double[] previousTerms = new double[coefficients.Length];
         /// <summary>Cached samples when AVX512F is supported.</summary>
         private V8d nextTerms;
-        /// <summary>Next cached sample index, when AVX512F is supported.</summary>
+        /// <summary>Cached samples when AVX2 is supported.</summary>
+        private V4d nextTerms256;
+        /// <summary>Next cached sample index, when AVX is supported.</summary>
         private int next = int.MaxValue;
 
         /// <summary>Gets the next number in the sequence.</summary>
@@ -954,6 +969,15 @@ public abstract partial class DSequence : IFormattable
                         next = 0;
                     }
                     value = nextTerms[next++] + coefficients.AsSpan().Dot(previousTerms);
+                }
+                else if (Avx2.IsSupported)
+                {
+                    if (next >= V4d.Count)
+                    {
+                        nextTerms256 = Random256.Shared.NextNormal() * V4.Create(generator.StandardDeviation);
+                        next = 0;
+                    }
+                    value = nextTerms256[next++] + coefficients.AsSpan().Dot(previousTerms);
                 }
                 else
                     value = generator.NextDouble() + coefficients.AsSpan().Dot(previousTerms);
@@ -983,7 +1007,9 @@ public abstract partial class DSequence : IFormattable
         private readonly double[] previousTerms = new double[coefficients.Length];
         /// <summary>Cached samples when AVX512F is supported.</summary>
         private V8d nextTerms;
-        /// <summary>Next cached sample index, when AVX512F is supported.</summary>
+        /// <summary>Cached samples when AVX2 is supported.</summary>
+        private V4d nextTerms256;
+        /// <summary>Next cached sample index, when AVX is supported.</summary>
         private int next = int.MaxValue;
 
         /// <summary>Gets the next number in the sequence.</summary>
@@ -1002,6 +1028,15 @@ public abstract partial class DSequence : IFormattable
                         next = 0;
                     }
                     innovation = nextTerms[next++];
+                }
+                else if (Avx2.IsSupported)
+                {
+                    if (next >= V4d.Count)
+                    {
+                        nextTerms256 = Random256.Shared.NextNormal() * V4.Create(generator.StandardDeviation);
+                        next = 0;
+                    }
+                    innovation = nextTerms256[next++];
                 }
                 else
                     innovation = generator.NextDouble();

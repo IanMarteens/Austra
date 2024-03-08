@@ -11,12 +11,15 @@ public sealed class Random256
 
     /// <summary>Converts a ulong to a double in the range [0, 1).</summary>
     private const double NORM = 1.0 / (1UL << 53);
+    /// <summary>Converts a ulong to a double in the range [0, τ).</summary>
+    private const double TAU_NORM = Tau / (1UL << 53);
+    /// <summary>Four vector seeds for the xoshiro256** algorithm.</summary>
     private Vector256<ulong> _s0, _s1, _s2, _s3;
 
-    ///// <summary>Pending value to return.</summary>
-    //private V4d item;
-    ///// <summary>Do we have a pending value to return.</summary>
-    //private bool hasItem;
+    /// <summary>Pending value to return.</summary>
+    private V4d item;
+    /// <summary>Do we have a pending value to return.</summary>
+    private bool hasItem;
 
     /// <summary>Initializes a new instance of the <see cref="Random256"/> class.</summary>
     public Random256()
@@ -24,10 +27,10 @@ public sealed class Random256
         Span<byte> bytes = stackalloc byte[16 * sizeof(ulong)];
         RandomNumberGenerator.Create().GetNonZeroBytes(bytes);
         ref byte b = ref MemoryMarshal.GetReference(bytes);
-        _s0 = Vector256.LoadUnsafe(ref Unsafe.As<byte, ulong>(ref b));
-        _s1 = Vector256.LoadUnsafe(ref Unsafe.As<byte, ulong>(ref Unsafe.Add(ref b, 4)));
-        _s2 = Vector256.LoadUnsafe(ref Unsafe.As<byte, ulong>(ref Unsafe.Add(ref b, 8)));
-        _s3 = Vector256.LoadUnsafe(ref Unsafe.As<byte, ulong>(ref Unsafe.Add(ref b, 12)));
+        _s0 = V4.LoadUnsafe(ref Unsafe.As<byte, ulong>(ref b));
+        _s1 = V4.LoadUnsafe(ref Unsafe.As<byte, ulong>(ref Unsafe.Add(ref b, 4)));
+        _s2 = V4.LoadUnsafe(ref Unsafe.As<byte, ulong>(ref Unsafe.Add(ref b, 8)));
+        _s3 = V4.LoadUnsafe(ref Unsafe.As<byte, ulong>(ref Unsafe.Add(ref b, 12)));
     }
 
     /// <summary>A shared instance of the generator using a randomized seed.</summary>
@@ -49,7 +52,7 @@ public sealed class Random256
         //     See <http://creativecommons.org/publicdomain/zero/1.0/>.
 
         Vector256<ulong> s0 = _s0, s1 = _s1, s2 = _s2, s3 = _s3;
-        Vector256<ulong> result = RotateLeft7(_s1 * Vector256.Create(5UL)) * Vector256.Create(9UL);
+        Vector256<ulong> result = RotateLeft7(_s1 * V4.Create(5UL)) * V4.Create(9UL);
         Vector256<ulong> t = s1 << 17;
 
         s2 ^= s0;
@@ -79,5 +82,24 @@ public sealed class Random256
     /// <summary>Produces four values in the range [0, 1).</summary>
     /// <returns>An AVX512 vector of double precision reals.</returns>
     public V4d NextDouble() =>
-        Vector256.ConvertToDouble(NextUInt64() >> 11) * Vector256.Create(NORM);
+        V4.ConvertToDouble(NextUInt64() >> 11) * V4.Create(NORM);
+
+    /// <summary>Produces four values from the standard normal distribution.</summary>
+    /// <returns>An AVX256 vector of double precision reals.</returns>
+    public V4d NextNormal()
+    {
+        if (hasItem)
+        {
+            hasItem = false;
+            return item;
+        }
+
+        hasItem = true;
+        V4d u = (V4d.One - NextDouble()).Log();
+        V4d r = V4.Sqrt(-u - u);
+        (V4d s, V4d c) = (V4.ConvertToDouble(NextUInt64() >> 11)
+            * V4.Create(TAU_NORM)).SinCosNormal();
+        item = s * r;
+        return c * r;
+    }
 }

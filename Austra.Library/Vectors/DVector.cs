@@ -136,6 +136,15 @@ public readonly struct DVector :
                 V8.StoreUnsafe(rnd512.NextNormal(), ref a, i);
             V8.StoreUnsafe(rnd512.NextNormal(), ref a, t);
         }
+        else if (Avx2.IsSupported && size >= V4d.Count && rnd == NormalRandom.Shared)
+        {
+            ref double a = ref MM.GetArrayDataReference(values);
+            nuint t = (nuint)(size - V4d.Count);
+            Random256 rnd256 = Random256.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(rnd256.NextNormal(), ref a, i);
+            V4.StoreUnsafe(rnd256.NextNormal(), ref a, t);
+        }
         else
         {
             int i = 0;
