@@ -68,7 +68,7 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public DVector AustraMatrixMultiplySub() => cm1.MultiplySubtract(cv1, cv2);
 
-    //[Benchmark]
+    [Benchmark]
     public LMatrix AustraLowerTriangular() => new(size, NormalRandom.Shared);
 
     //[Benchmark]

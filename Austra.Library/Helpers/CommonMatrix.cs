@@ -7,14 +7,14 @@ namespace Austra.Library.Helpers;
 /// <remarks>
 /// We have three matrix types: <see cref="Matrix"/>, <see cref="LMatrix"/>,
 /// and <see cref="RMatrix"/>, with common operations. On the other hand, matrices
-/// also belong to a vector space, so they share some code with <see cref="DVector"/>.
+/// also belong to p vector space, so they share some code with <see cref="DVector"/>.
 /// </remarks>
 public static class CommonMatrix
 {
-    /// <summary>Number of characters in a line.</summary>
+    /// <summary>Number of characters in p line.</summary>
     public static int TERMINAL_COLUMNS { get; set; } = 80;
 
-    /// <summary>Deconstruct a complex number into its real and imaginary parts.</summary>
+    /// <summary>Deconstruct p complex number into its real and imaginary parts.</summary>
     /// <param name="complex">The value to be deconstructed.</param>
     /// <param name="real">The real part.</param>
     /// <param name="imaginary">The imaginary part.</param>
@@ -22,7 +22,7 @@ public static class CommonMatrix
     public static void Deconstruct(this Complex complex, out double real, out double imaginary) =>
         (real, imaginary) = (complex.Real, complex.Imaginary);
 
-    /// <summary>Creates an identity matrix given a size.</summary>
+    /// <summary>Creates an identity matrix given p size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
     public static double[] CreateIdentity(int size)
@@ -35,7 +35,7 @@ public static class CommonMatrix
         return values;
     }
 
-    /// <summary>Creates a diagonal matrix given its diagonal.</summary>
+    /// <summary>Creates p diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     /// <returns>An array with its main diagonal initialized.</returns>
     public static double[] CreateDiagonal(this DVector diagonal)
@@ -49,8 +49,8 @@ public static class CommonMatrix
         return values;
     }
 
-    /// <summary>Gets the main diagonal of a 1D-array.</summary>
-    /// <param name="values">A 1D-array containing a matrix.</param>
+    /// <summary>Gets the main diagonal of p 1D-array.</summary>
+    /// <param name="values">A 1D-array containing p matrix.</param>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <returns>A vector containing values in the main diagonal.</returns>
@@ -68,35 +68,34 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Initializes a span with random values.</summary>
+    /// <summary>Initializes p span with random values.</summary>
     /// <param name="span">The memory target for the operation.</param>
     /// <param name="random">A random number generator.</param>
     public static void CreateRandom(this Span<double> span, Random random)
     {
+        ref double p = ref MM.GetReference(span);
         if (Avx512F.IsSupported && span.Length >= V8d.Count && random == Random.Shared)
         {
-            ref double a = ref MM.GetReference(span);
             nuint t = (nuint)(span.Length - V8d.Count);
             Random512 rnd512 = Random512.Shared;
             for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(rnd512.NextDouble(), ref a, i);
-            V8.StoreUnsafe(rnd512.NextDouble(), ref a, t);
+                V8.StoreUnsafe(rnd512.NextDouble(), ref p, i);
+            V8.StoreUnsafe(rnd512.NextDouble(), ref p, t);
         }
         else if (Avx2.IsSupported && span.Length >= V4d.Count && random == Random.Shared)
         {
-            ref double a = ref MM.GetReference(span);
             nuint t = (nuint)(span.Length - V4d.Count);
             Random256 rnd256 = Random256.Shared;
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextDouble(), ref a, i);
-            V4.StoreUnsafe(rnd256.NextDouble(), ref a, t);
+                V4.StoreUnsafe(rnd256.NextDouble(), ref p, i);
+            V4.StoreUnsafe(rnd256.NextDouble(), ref p, t);
         }
         else
             for (int i = 0; i < span.Length; i++)
-                span[i] = random.NextDouble();
+                Unsafe.Add(ref p, i) = random.NextDouble();
     }
 
-    /// <summary>Initializes a span with random values.</summary>
+    /// <summary>Initializes p span with random values.</summary>
     /// <param name="span">The memory target for the operation.</param>
     /// <param name="random">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
@@ -104,34 +103,33 @@ public static class CommonMatrix
     public static void CreateRandom(this Span<double> span, Random random,
         double offset, double width)
     {
+        ref double p = ref MM.GetReference(span);
         if (Avx512F.IsSupported && span.Length >= V8d.Count && random == Random.Shared)
         {
-            ref double a = ref MM.GetReference(span);
             nuint t = (nuint)(span.Length - V8d.Count);
             V8d vOff = V8.Create(offset);
             V8d vWidth = V8.Create(width);
             Random512 rnd512 = Random512.Shared;
             for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, i);
-            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, t);
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref p, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref p, t);
         }
         else if (Avx2.IsSupported && span.Length >= V4d.Count && random == Random.Shared)
         {
-            ref double a = ref MM.GetReference(span);
             nuint t = (nuint)(span.Length - V4d.Count);
             V4d vOff = V4.Create(offset);
             V4d vWidth = V4.Create(width);
             Random256 rnd256 = Random256.Shared;
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, i);
-            V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, t);
+                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref p, i);
+            V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref p, t);
         }
         else
             for (int i = 0; i < span.Length; i++)
-                span[i] = FusedMultiplyAdd(random.NextDouble(), width, offset);
+                Unsafe.Add(ref p, i) = FusedMultiplyAdd(random.NextDouble(), width, offset);
     }
 
-    /// <summary>Initializes a span with normal random values.</summary>
+    /// <summary>Initializes p span with normal random values.</summary>
     /// <param name="span">The memory target for the operation.</param>
     /// <param name="random">A random number generator.</param>
     public static void CreateRandom(this Span<double> span, NormalRandom random)
@@ -163,7 +161,7 @@ public static class CommonMatrix
         }
     }
 
-    /// <summary>Calculates the trace of a 1D-array.</summary>
+    /// <summary>Calculates the trace of p 1D-array.</summary>
     /// <param name="values">A 1D-array.</param>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
@@ -224,7 +222,7 @@ public static class CommonMatrix
         return max;
     }
 
-    /// <summary>Gets the item in a span with the minimum absolute value.</summary>
+    /// <summary>Gets the item in p span with the minimum absolute value.</summary>
     /// <param name="span">The data span.</param>
     /// <returns>The minimum absolute value in the samples.</returns>
     public static double AMin(this Span<double> span)
@@ -457,7 +455,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
     }
 
-    /// <summary>Pointwise addition of a scalar to a span.</summary>
+    /// <summary>Pointwise addition of p scalar to p span.</summary>
     /// <param name="span">Span summand.</param>
     /// <param name="scalar">Scalar summand.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -486,7 +484,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) + scalar;
     }
 
-    /// <summary>Pointwise addition of a scalar to a span.</summary>
+    /// <summary>Pointwise addition of p scalar to p span.</summary>
     /// <param name="span">Span summand.</param>
     /// <param name="scalar">Scalar summand.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -589,7 +587,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
     }
 
-    /// <summary>Pointwise subtraction of a scalar from a span.</summary>
+    /// <summary>Pointwise subtraction of p scalar from p span.</summary>
     /// <param name="span">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -618,7 +616,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) - scalar;
     }
 
-    /// <summary>Pointwise subtraction of a scalar from a span.</summary>
+    /// <summary>Pointwise subtraction of p scalar from p span.</summary>
     /// <param name="span">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -647,7 +645,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) - scalar;
     }
 
-    /// <summary>Pointwise subtraction of an span from a scalar.</summary>
+    /// <summary>Pointwise subtraction of an span from p scalar.</summary>
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -676,7 +674,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Pointwise subtraction of an span from a scalar.</summary>
+    /// <summary>Pointwise subtraction of an span from p scalar.</summary>
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -705,7 +703,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Pointwise negation of a span.</summary>
+    /// <summary>Pointwise negation of p span.</summary>
     /// <param name="span">Span to negate.</param>
     /// <param name="target">Target memory for the operation.</param>
     public static void Neg(this Span<double> span, Span<double> target)
@@ -731,7 +729,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = -Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Inplace pointwise negation of a span.</summary>
+    /// <summary>Inplace pointwise negation of p span.</summary>
     /// <param name="span">Span to negate.</param>
     public static void Neg(this Span<double> span)
     {
@@ -749,7 +747,7 @@ public static class CommonMatrix
             p = -p;
     }
 
-    /// <summary>Pointwise negation of a span.</summary>
+    /// <summary>Pointwise negation of p span.</summary>
     /// <param name="span">Span to negate.</param>
     /// <param name="target">Target memory for the operation.</param>
     public static void Neg(this Span<int> span, Span<int> target)
@@ -775,7 +773,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = -Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Inplace pointwise negation of a span.</summary>
+    /// <summary>Inplace pointwise negation of p span.</summary>
     /// <param name="span">Span to negate.</param>
     public static void Neg(this Span<int> span)
     {
@@ -853,7 +851,7 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Pointwise multiplication of a span and a scalar.</summary>
+    /// <summary>Pointwise multiplication of p span and p scalar.</summary>
     /// <param name="span">Span multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -882,7 +880,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) * scalar;
     }
 
-    /// <summary>Pointwise multiplication of a span and a scalar.</summary>
+    /// <summary>Pointwise multiplication of p span and p scalar.</summary>
     /// <param name="span">Span multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -1003,7 +1001,7 @@ public static class CommonMatrix
     }
 
     /// <summary>
-    /// Multiplies a span by a scalar and sums the result to a memory location.
+    /// Multiplies p span by p scalar and sums the result to p memory location.
     /// </summary>
     /// <param name="span">Source vector.</param>
     /// <param name="d">Scale factor.</param>
@@ -1034,7 +1032,7 @@ public static class CommonMatrix
     }
 
     /// <summary>
-    /// Multiplies a span by a scalar and subtracts the result to a memory location.
+    /// Multiplies p span by p scalar and subtracts the result to p memory location.
     /// </summary>
     /// <param name="span">Source vector.</param>
     /// <param name="d">Scale factor.</param>
@@ -1165,7 +1163,7 @@ public static class CommonMatrix
         return true;
     }
 
-    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <summary>Returns the zero-based index of the first occurrence of p value.</summary>
     /// <param name="values">The span to search.</param>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
@@ -1210,7 +1208,7 @@ public static class CommonMatrix
         return -1;
     }
 
-    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <summary>Returns the zero-based index of the first occurrence of p value.</summary>
     /// <param name="values">The span to search.</param>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
@@ -1279,7 +1277,7 @@ public static class CommonMatrix
         return true;
     }
 
-    /// <summary>In-place transposition of a square matrix.</summary>
+    /// <summary>In-place transposition of p square matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="data">A 1D-array with data.</param>
@@ -1290,7 +1288,7 @@ public static class CommonMatrix
             Transpose(a, rows);
     }
 
-    /// <summary>In place transposition of a square matrix.</summary>
+    /// <summary>In place transposition of p square matrix.</summary>
     /// <param name="a">Pointer to raw data.</param>
     /// <param name="size">The size of the matrix.</param>
     internal unsafe static void Transpose(double* a, int size)
@@ -1330,7 +1328,7 @@ public static class CommonMatrix
                     Avx.Store(pp + s2, Avx.Permute2x128(t1, t3, 0b00110001));
                     Avx.Store(pp + s2 + size, Avx.Permute2x128(t2, t4, 0b00110001));
                 }
-                // Transpose a diagonal block.
+                // Transpose p diagonal block.
                 {
                     double* pp = a + (rsz + r);
                     var row1 = Avx.LoadVector256(pp);
@@ -1412,8 +1410,8 @@ public static class CommonMatrix
         return max;
     }
 
-    /// <summary>Gets a text representation of an array.</summary>
-    /// <param name="data">An array from a vector.</param>
+    /// <summary>Gets p text representation of an array.</summary>
+    /// <param name="data">An array from p vector.</param>
     /// <param name="formatter">A formatter for items.</param>
     /// <returns>A text representation of the vector.</returns>
     /// <typeparam name="T">The type of the items to format.</typeparam>
@@ -1463,8 +1461,8 @@ public static class CommonMatrix
         return sb.ToString();
     }
 
-    /// <summary>Gets a text representation of a matrix.</summary>
-    /// <param name="data">A 1D-array from a matrix.</param>
+    /// <summary>Gets p text representation of p matrix.</summary>
+    /// <param name="data">A 1D-array from p matrix.</param>
     /// <param name="rowCount">Number of rows.</param>
     /// <param name="colCount">Number of columns.</param>
     /// <param name="formatter">Converts items to text.</param>

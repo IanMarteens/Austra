@@ -65,10 +65,14 @@ public readonly struct LMatrix :
         double offset = 0.0, double width = 1.0)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        ref double cell = ref MM.GetArrayDataReference(values);
-        for (int r = 0; r < rows; r++, cell = ref Add(ref cell, cols))
-            for (int c = 0, top = Min(cols, r + 1); c < top; c++)
-                Add(ref cell, c) = FusedMultiplyAdd(random.NextDouble(), width, offset);
+        // First row is special!
+        values[0] = random.NextDouble();
+        int r = 1, off = cols, top = Min(cols, rows);
+        for (; r < top; r++, off += cols)
+            new Span<double>(values, off, r + 1).CreateRandom(random, offset, width);
+        if (rows > cols)
+            new Span<double>(values, cols * cols, cols * (rows - cols))
+                .CreateRandom(random, offset, width);
     }
 
     /// <summary>
@@ -80,10 +84,13 @@ public readonly struct LMatrix :
     public LMatrix(int rows, int cols, Random random)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        ref double cell = ref MM.GetArrayDataReference(values);
-        for (int r = 0; r < rows; r++, cell = ref Add(ref cell, cols))
-            for (int c = 0, top = Min(cols, r + 1); c < top; c++)
-                Add(ref cell, c) = random.NextDouble();
+        // First row is special!
+        values[0] = random.NextDouble();
+        int r = 1, off = cols, top = Min(cols, rows);
+        for (; r < top; r++, off += cols)
+            new Span<double>(values, off, r + 1).CreateRandom(random);
+        if (rows > cols)
+            new Span<double>(values, cols * cols, cols * (rows - cols)).CreateRandom(random);
     }
 
     /// <summary>
@@ -103,18 +110,13 @@ public readonly struct LMatrix :
     public LMatrix(int rows, int cols, NormalRandom random)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        ref double cell = ref MM.GetArrayDataReference(values);
         // First row is special!
-        cell = random.NextDouble();
-        for (int r = 1; r < rows; r++)
-        {
-            cell = ref Add(ref cell, cols);
-            int c = 0, top = Min(cols, r + 1);
-            for (int t = top & ~1; c < t; c += 2)
-                random.NextDoubles(ref Add(ref cell, c));
-            if (c < top)
-                Add(ref cell, c) = random.NextDouble();
-        }
+        values[0] = random.NextDouble();
+        int r = 1, off = cols, top = Min(cols, rows);
+        for (; r < top; r++, off += cols)
+            new Span<double>(values, off, r + 1).CreateRandom(random);
+        if (rows > cols)
+            new Span<double>(values, cols * cols, cols * (rows - cols)).CreateRandom(random);
     }
 
     /// <summary>Creates a squared matrix with a standard normal distribution.</summary>

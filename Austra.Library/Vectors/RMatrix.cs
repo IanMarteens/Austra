@@ -54,15 +54,11 @@ public readonly struct RMatrix :
     /// <param name="random">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public RMatrix(
-        int rows, int cols, Random random,
-        double offset = 0.0, double width = 1.0)
+    public RMatrix(int rows, int cols, Random random, double offset, double width)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        ref double cell = ref MM.GetArrayDataReference(values);
-        for (int r = 0; r < rows; r++, cell = ref Add(ref cell, cols))
-            for (int c = r; c < cols; c++)
-                Add(ref cell, c) = FusedMultiplyAdd(random.NextDouble(), width, offset);
+        for (int r = 0, off = 0, top = Min(rows, cols); r < top; r++, off += cols + 1)
+            new Span<double>(values, off, cols - r).CreateRandom(random, offset, width);
     }
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
@@ -72,10 +68,8 @@ public readonly struct RMatrix :
     public RMatrix(int rows, int cols, Random random)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        ref double cell = ref MM.GetArrayDataReference(values);
-        for (int r = 0; r < rows; r++, cell = ref Add(ref cell, cols))
-            for (int c = r; c < cols; c++)
-                Add(ref cell, c) = random.NextDouble();
+        for (int r = 0, off = 0, top = Min(rows, cols); r < top; r++, off += cols + 1)
+            new Span<double>(values, off, cols - r).CreateRandom(random);
     }
 
     /// <summary>
@@ -85,18 +79,15 @@ public readonly struct RMatrix :
     /// <param name="random">A random number generator.</param>
     public RMatrix(int size, Random random) : this(size, size, random) { }
 
-    /// <summary>
-    /// Creates a matrix filled with a standard normal distribution.
-    /// </summary>
+    /// <summary>Creates a matrix filled with a standard normal distribution.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="random">A random standard normal generator.</param>
     public RMatrix(int rows, int cols, NormalRandom random)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
-        for (int r = 0; r < rows; r++)
-            for (int c = r; c < cols; c++)
-                values[r * Cols + c] = random.NextDouble();
+        for (int r = 0, off = 0, top = Min(rows, cols); r < top; r++, off += cols + 1)
+            new Span<double>(values, off, cols - r).CreateRandom(random);
     }
 
     /// <summary>
