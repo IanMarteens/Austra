@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System;
+
+namespace Austra.Library;
 
 /// <summary>Represents a lower triangular matrix.</summary>
 /// <remarks>
@@ -743,6 +745,25 @@ public readonly struct LMatrix :
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => values.Det(Rows, Cols);
+
+    /// <summary>Gets statistics on the matrix cells.</summary>
+    /// <remarks>Only cells in the lower half are used.</remarks>
+    /// <returns>Matrix statistics.</returns>
+    public unsafe Accumulator Stats()
+    {
+        Accumulator stats = new();
+        if (values.Length > 0)
+            fixed (double* p = values)
+            {
+                stats.Add(*p);
+                int r = 1, off = Cols, top = Min(Cols, Rows);
+                for (; r < top; r++, off += Cols)
+                    stats.Add(p + off, r + 1);
+                if (Rows > Cols)
+                    stats.Add(p + off, Cols * (Rows - Cols));
+            }
+        return stats;
+    }
 
     /// <summary>Checks if the matrix contains the given value.</summary>
     /// <param name="value">Value to locate.</param>

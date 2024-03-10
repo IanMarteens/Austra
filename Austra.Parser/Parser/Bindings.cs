@@ -426,6 +426,7 @@ internal sealed class Bindings
                 new("max", "Gets the maximum value"),
                 new("min", "Gets the minimum absolute value"),
                 new("rows", "Gets the number of rows"),
+                new("stats", "Calculates statistics on the cells"),
                 new("trace", "Gets the sum of the main diagonal"),
                 new("redim(", "Creates a new matrix with a different size"),
             ],
@@ -1093,6 +1094,7 @@ internal sealed class Bindings
             [new(typeof(LMatrix), "min")] = typeof(LMatrix).Get(nameof(LMatrix.Minimum)),
             [new(typeof(LMatrix), "rows")] = typeof(LMatrix).Prop(nameof(LMatrix.Rows)),
             [new(typeof(LMatrix), "trace")] = typeof(LMatrix).Get(nameof(LMatrix.Trace)),
+            [new(typeof(LMatrix), "stats")] = typeof(LMatrix).Get(nameof(LMatrix.Stats)),
 
             [new(typeof(LU), "det")] = typeof(LU).Get(nameof(LU.Determinant)),
             [new(typeof(LU), "l")] = typeof(LU).Prop(nameof(LU.L)),
