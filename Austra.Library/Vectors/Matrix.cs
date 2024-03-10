@@ -78,13 +78,12 @@ public readonly struct Matrix :
         Cols = rows[0].Length;
         if (Cols == 0)
             throw new MatrixSizeException();
-        for (int i = 1; i < rows.Length; i++)
-            if (rows[i].Length != Cols)
-                throw new MatrixSizeException();
         values = GC.AllocateUninitializedArray<double>(Rows * Cols);
         int offset = 0;
         foreach (DVector row in rows)
         {
+            if (row.Length != Cols)
+                throw new MatrixSizeException();
             Array.Copy((double[])row, 0, values, offset, Cols);
             offset += Cols;
         }
@@ -319,9 +318,7 @@ public readonly struct Matrix :
     /// <returns>A deep clone of the instance.</returns>
     public Matrix Clone() => new(Rows, Cols, (double[])values.Clone());
 
-    /// <summary>
-    /// Explicit conversion from a matrix to a 2D-array.
-    /// </summary>
+    /// <summary>Explicit conversion from a matrix to a 2D-array.</summary>
     /// <remarks>
     /// The returned array is a copy of the original matrix storage.
     /// </remarks>
