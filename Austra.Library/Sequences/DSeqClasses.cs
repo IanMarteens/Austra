@@ -849,29 +849,9 @@ public abstract partial class DSequence : IFormattable
         /// <returns>The values as an array.</returns>
         protected override double[] Materialize()
         {
-            if (Avx512F.IsSupported && length < V8d.Count)
-            {
-                double[] data = GC.AllocateUninitializedArray<double>(length);
-                ref double a = ref MM.GetArrayDataReference(data);
-                nuint t = (nuint)(data.Length - V8d.Count);
-                Random512 rnd = Random512.Shared;
-                for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                    V8.StoreUnsafe(rnd.NextDouble(), ref a, i);
-                V8.StoreUnsafe(rnd.NextDouble(), ref a, t);
-                return data;
-            }
-            if (Avx2.IsSupported && length < V4d.Count)
-            {
-                double[] data = GC.AllocateUninitializedArray<double>(length);
-                ref double a = ref MM.GetArrayDataReference(data);
-                nuint t = (nuint)(data.Length - V4d.Count);
-                Random256 rnd = Random256.Shared;
-                for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                    V4.StoreUnsafe(rnd.NextDouble(), ref a, i);
-                V4.StoreUnsafe(rnd.NextDouble(), ref a, t);
-                return data;
-            }
-            return base.Materialize();
+            double[] data = GC.AllocateUninitializedArray<double>(length);
+            data.AsSpan().CreateRandom(random);
+            return data;
         }
     }
 
@@ -906,31 +886,9 @@ public abstract partial class DSequence : IFormattable
         /// <returns>The values as an array.</returns>
         protected override double[] Materialize()
         {
-            if (Avx512F.IsSupported && length < V8d.Count 
-                && random == Library.Stats.NormalRandom.Shared)
-            {
-                double[] data = GC.AllocateUninitializedArray<double>(length);
-                ref double a = ref MM.GetArrayDataReference(data);
-                nuint t = (nuint)(data.Length - V8d.Count);
-                Random512 rnd = Random512.Shared;
-                for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                    V8.StoreUnsafe(rnd.NextNormal(), ref a, i);
-                V8.StoreUnsafe(rnd.NextNormal(), ref a, t);
-                return data;
-            }
-            if (Avx2.IsSupported && length < V4d.Count
-                && random == Library.Stats.NormalRandom.Shared)
-            {
-                double[] data = GC.AllocateUninitializedArray<double>(length);
-                ref double a = ref MM.GetArrayDataReference(data);
-                nuint t = (nuint)(data.Length - V4d.Count);
-                Random256 rnd = Random256.Shared;
-                for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                    V4.StoreUnsafe(rnd.NextNormal(), ref a, i);
-                V4.StoreUnsafe(rnd.NextNormal(), ref a, t);
-                return data;
-            }
-            return base.Materialize();
+            double[] data = GC.AllocateUninitializedArray<double>(length);
+            data.AsSpan().CreateRandom(random);
+            return data;
         }
     }
 

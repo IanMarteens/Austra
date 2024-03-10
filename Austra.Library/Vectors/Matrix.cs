@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
@@ -8,11 +6,10 @@ namespace Austra.Library;
 /// Compatibility with bidimensional arrays, however, has been preserved.</para>
 /// <para>
 /// Most methods respect immutability at the cost of extra allocations.
-/// Of course, there are special methods, like
-/// <see cref="MultiplyAdd(DVector, double, DVector)"/>
-/// for saving unneeded allocations. Also, most methods are hardware accelerated,
+/// Methods like <see cref="MultiplyAdd(DVector, double, DVector)"/>
+/// save unneeded allocations. Most methods are hardware accelerated,
 /// either by using managed references, SIMD operations or both.
-/// Memory pinning has been reduced to the minimum.
+/// Memory pinning has also been reduced to the minimum.
 /// </para>
 /// </remarks>
 [JsonConverter(typeof(MatrixJsonConverter))]
@@ -118,36 +115,10 @@ public readonly struct Matrix :
     /// <param name="random">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public Matrix(
-        int rows, int cols, Random random,
-        double offset = 0.0, double width = 1.0)
+    public Matrix(int rows, int cols, Random random, double offset, double width)
     {
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
-        if (Avx512F.IsSupported && values.Length >= V8d.Count && random == Random.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(values.Length - V8d.Count);
-            V8d vOff = V8.Create(offset);
-            V8d vWidth = V8.Create(width);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, i);
-            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, t);
-        }
-        else if (Avx2.IsSupported && values.Length >= V4d.Count && random == Random.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(values.Length - V4d.Count);
-            V4d vOff = V4.Create(offset);
-            V4d vWidth = V4.Create(width);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, i);
-            V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, t);
-        }
-        else
-            for (int i = 0; i < values.Length; i++)
-                values[i] = FusedMultiplyAdd(random.NextDouble(), width, offset);
+        values.AsSpan().CreateRandom(random, offset, width);
     }
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
@@ -157,27 +128,7 @@ public readonly struct Matrix :
     public Matrix(int rows, int cols, Random random)
     {
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
-        if (Avx512F.IsSupported && values.Length >= V8d.Count && random == Random.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(values.Length - V8d.Count);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(rnd512.NextDouble(), ref a, i);
-            V8.StoreUnsafe(rnd512.NextDouble(), ref a, t);
-        }
-        else if (Avx2.IsSupported && values.Length >= V4d.Count && random == Random.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(values.Length - V4d.Count);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextDouble(), ref a, i);
-            V4.StoreUnsafe(rnd256.NextDouble(), ref a, t);
-        }
-        else
-            for (int i = 0; i < values.Length; i++)
-                values[i] = random.NextDouble();
+        values.AsSpan().CreateRandom(random);
     }
 
     /// <summary>
@@ -195,33 +146,7 @@ public readonly struct Matrix :
     {
         int len = rows * cols;
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(len));
-        ref double p = ref MM.GetArrayDataReference(values);
-        if (Avx512F.IsSupported && values.Length >= V8d.Count && random == NormalRandom.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(values.Length - V8d.Count);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(rnd512.NextNormal(), ref a, i);
-            V8.StoreUnsafe(rnd512.NextNormal(), ref a, t);
-        }
-        else if (Avx2.IsSupported && values.Length >= V4d.Count && random == NormalRandom.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(values.Length - V4d.Count);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextNormal(), ref a, i);
-            V4.StoreUnsafe(rnd256.NextNormal(), ref a, t);
-        }
-        else
-        {
-            int i = 0;
-            for (int t = len & ~1; i < t; i += 2)
-                random.NextDoubles(ref Add(ref p, i));
-            if (i < len)
-                Add(ref p, i) = random.NextDouble();
-        }
+        values.AsSpan().CreateRandom(random);
     }
 
     /// <summary>Creates a squared matrix filled with a standard normal distribution.</summary>

@@ -8,13 +8,11 @@
 /// at the cost of extra memory allocation.
 /// </para>
 /// <para>
-/// Of course, there exist methods like
-/// <see cref="MultiplyAdd(DVector, DVector)"/>
-/// that save memory by reusing the current vector's storage, and even
-/// may save time by using SIMD fused multiply-add instructions.
+/// Methods like <see cref="MultiplyAdd(DVector, DVector)"/> save memory by reusing 
+/// intermediate storage, and also time by using SIMD fused multiply-add instructions.
 /// </para>
 /// <para>
-/// Also, most methods are hardware accelerated, either by using managed references,
+/// Most methods are hardware accelerated, either by using managed references,
 /// SIMD operations or both. Memory pinning has been reduced to the minimum, for
 /// easing the garbage collector's work.
 /// </para>
@@ -57,102 +55,32 @@ public readonly struct DVector :
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
-    /// <param name="rnd">A random number generator.</param>
+    /// <param name="random">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public DVector(int size, Random rnd, double offset, double width)
+    public DVector(int size, Random random, double offset, double width)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        if (Avx512F.IsSupported && size >= V8d.Count && rnd == Random.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(size - V8d.Count);
-            V8d vOff = V8.Create(offset);
-            V8d vWidth = V8.Create(width);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, i);
-            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, t);
-        }
-        else if (Avx2.IsSupported && size >= V4d.Count && rnd == Random.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(size - V4d.Count);
-            V4d vOff = V4.Create(offset);
-            V4d vWidth = V4.Create(width);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, i);
-            V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, t);
-        }
-        else
-            for (int i = 0; i < values.Length; i++)
-                values[i] = FusedMultiplyAdd(rnd.NextDouble(), width, offset);
+        values.AsSpan().CreateRandom(random, offset, width);
     }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
-    /// <param name="rnd">A random number generator.</param>
+    /// <param name="random">A random number generator.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DVector(int size, Random rnd)
+    public DVector(int size, Random random)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        if (Avx512F.IsSupported && size >= V8d.Count && rnd == Random.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(size - V8d.Count);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(rnd512.NextDouble(), ref a, i);
-            V8.StoreUnsafe(rnd512.NextDouble(), ref a, t);
-        }
-        else if (Avx2.IsSupported && size >= V4d.Count && rnd == Random.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(size - V4d.Count);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextDouble(), ref a, i);
-            V4.StoreUnsafe(rnd256.NextDouble(), ref a, t);
-        }
-        else
-            for (int i = 0; i < values.Length; i++)
-                values[i] = rnd.NextDouble();
+        values.AsSpan().CreateRandom(random);
     }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
     /// <param name="size">Size of the vector.</param>
-    /// <param name="rnd">A normal random number generator.</param>
-    public DVector(int size, NormalRandom rnd)
+    /// <param name="random">A normal random number generator.</param>
+    public DVector(int size, NormalRandom random)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        ref double p = ref MM.GetArrayDataReference(values);
-        if (Avx512F.IsSupported && size >= V8d.Count && rnd == NormalRandom.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(size - V8d.Count);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(rnd512.NextNormal(), ref a, i);
-            V8.StoreUnsafe(rnd512.NextNormal(), ref a, t);
-        }
-        else if (Avx2.IsSupported && size >= V4d.Count && rnd == NormalRandom.Shared)
-        {
-            ref double a = ref MM.GetArrayDataReference(values);
-            nuint t = (nuint)(size - V4d.Count);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextNormal(), ref a, i);
-            V4.StoreUnsafe(rnd256.NextNormal(), ref a, t);
-        }
-        else
-        {
-            int i = 0;
-            for (int t = size & ~1; i < t; i += 2)
-                rnd.NextDoubles(ref Add(ref p, i));
-            if (i < size)
-                Add(ref p, i) = rnd.NextDouble();
-        }
+        values.AsSpan().CreateRandom(random);
     }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>

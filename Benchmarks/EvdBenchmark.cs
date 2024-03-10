@@ -10,7 +10,7 @@ public class EvdBenchmark : BenchmarkControl
         var rnd = new Random();
         var lm = new LMatrix(size, size, rnd, 0.1);
         cm1 = lm.MultiplyTranspose(lm);
-        acm1 = new Matrix(size, size, rnd, 0.1);
+        acm1 = new Matrix(size, size, rnd, 0.1, 1);
     }
 
     [Benchmark]
@@ -28,7 +28,7 @@ public class EvdBenchmark : BenchmarkControl
     internal static void Trace(int rank)
     {
         WriteLine("Austra EVD");
-        Matrix m = new(rank, rank, new Random(12), 1);
+        Matrix m = new(rank, rank, new Random(12), 1, 1);
         EVD e = m.EVD();
         WriteLine(e.Vectors);
         foreach (Complex c in e.Values)

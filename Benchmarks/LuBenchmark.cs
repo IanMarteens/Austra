@@ -10,7 +10,7 @@ public class LuBenchmark : BenchmarkControl
     {
         int size = Configure();
         var rnd = new Random();
-        cm1 = new Matrix(size, size, rnd, 0.1);
+        cm1 = new Matrix(size, size, rnd, 0.1, 1);
         cid = Matrix.Identity(size);
         cv1 = new DVector(size, rnd);
         clu = cm1.LU();

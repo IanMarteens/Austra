@@ -25,7 +25,7 @@ public class FactorizationTests
     public void EvdTest([Values(8, 15, 18, 32, 33)] int size)
     {
         // Generate a random squared matrix.
-        Matrix m = new(size, size, new Random(12), 1);
+        Matrix m = new(size, size, new Random(12), 1, 1);
         EVD evd = m.EVD(false);
         Matrix AV = m * evd.Vectors;
         Matrix VΛ = evd.Vectors * evd.D;

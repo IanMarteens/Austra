@@ -1,6 +1,14 @@
-﻿namespace Austra.Library.Helpers;
+﻿using System;
+using System.Drawing;
+
+namespace Austra.Library.Helpers;
 
 /// <summary>Implements common matrix and vector operations.</summary>
+/// <remarks>
+/// We have three matrix types: <see cref="Matrix"/>, <see cref="LMatrix"/>,
+/// and <see cref="RMatrix"/>, with common operations. On the other hand, matrices
+/// also belong to a vector space, so they share some code with <see cref="DVector"/>.
+/// </remarks>
 public static class CommonMatrix
 {
     /// <summary>Number of characters in a line.</summary>
@@ -58,6 +66,101 @@ public static class CommonMatrix
         for (; size-- > 0; a = ref Unsafe.Add(ref a, r), b = ref Unsafe.Add(ref b, 1))
             b = a;
         return result;
+    }
+
+    /// <summary>Initializes a span with random values.</summary>
+    /// <param name="span">The memory target for the operation.</param>
+    /// <param name="random">A random number generator.</param>
+    public static void CreateRandom(this Span<double> span, Random random)
+    {
+        if (Avx512F.IsSupported && span.Length >= V8d.Count && random == Random.Shared)
+        {
+            ref double a = ref MM.GetReference(span);
+            nuint t = (nuint)(span.Length - V8d.Count);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(rnd512.NextDouble(), ref a, i);
+            V8.StoreUnsafe(rnd512.NextDouble(), ref a, t);
+        }
+        else if (Avx2.IsSupported && span.Length >= V4d.Count && random == Random.Shared)
+        {
+            ref double a = ref MM.GetReference(span);
+            nuint t = (nuint)(span.Length - V4d.Count);
+            Random256 rnd256 = Random256.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(rnd256.NextDouble(), ref a, i);
+            V4.StoreUnsafe(rnd256.NextDouble(), ref a, t);
+        }
+        else
+            for (int i = 0; i < span.Length; i++)
+                span[i] = random.NextDouble();
+    }
+
+    /// <summary>Initializes a span with random values.</summary>
+    /// <param name="span">The memory target for the operation.</param>
+    /// <param name="random">A random number generator.</param>
+    /// <param name="offset">An offset for the random numbers.</param>
+    /// <param name="width">Width for the uniform distribution.</param>
+    public static void CreateRandom(this Span<double> span, Random random,
+        double offset, double width)
+    {
+        if (Avx512F.IsSupported && span.Length >= V8d.Count && random == Random.Shared)
+        {
+            ref double a = ref MM.GetReference(span);
+            nuint t = (nuint)(span.Length - V8d.Count);
+            V8d vOff = V8.Create(offset);
+            V8d vWidth = V8.Create(width);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, i);
+            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref a, t);
+        }
+        else if (Avx2.IsSupported && span.Length >= V4d.Count && random == Random.Shared)
+        {
+            ref double a = ref MM.GetReference(span);
+            nuint t = (nuint)(span.Length - V4d.Count);
+            V4d vOff = V4.Create(offset);
+            V4d vWidth = V4.Create(width);
+            Random256 rnd256 = Random256.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, i);
+            V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref a, t);
+        }
+        else
+            for (int i = 0; i < span.Length; i++)
+                span[i] = FusedMultiplyAdd(random.NextDouble(), width, offset);
+    }
+
+    /// <summary>Initializes a span with normal random values.</summary>
+    /// <param name="span">The memory target for the operation.</param>
+    /// <param name="random">A random number generator.</param>
+    public static void CreateRandom(this Span<double> span, NormalRandom random)
+    {
+        ref double p = ref MM.GetReference(span);
+        if (Avx512F.IsSupported && span.Length >= V8d.Count && random == NormalRandom.Shared)
+        {
+            nuint t = (nuint)(span.Length - V8d.Count);
+            Random512 rnd512 = Random512.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(rnd512.NextNormal(), ref p, i);
+            V8.StoreUnsafe(rnd512.NextNormal(), ref p, t);
+        }
+        else if (Avx2.IsSupported && span.Length >= V4d.Count && random == NormalRandom.Shared)
+        {
+            nuint t = (nuint)(span.Length - V4d.Count);
+            Random256 rnd256 = Random256.Shared;
+            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(rnd256.NextNormal(), ref p, i);
+            V4.StoreUnsafe(rnd256.NextNormal(), ref p, t);
+        }
+        else
+        {
+            int i = 0;
+            for (int t = span.Length & ~1; i < t; i += 2)
+                random.NextDoubles(ref Unsafe.Add(ref p, i));
+            if (i < span.Length)
+                Unsafe.Add(ref p, i) = random.NextDouble();
+        }
     }
 
     /// <summary>Calculates the trace of a 1D-array.</summary>

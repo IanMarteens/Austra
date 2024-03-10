@@ -12,8 +12,8 @@ public class MatrixBenchmark : BenchmarkControl
     {
         size = Configure();
         var rnd = new Random();
-        cm1 = new Matrix(size, size, rnd, 0.1);
-        cm2 = new Matrix(size, size, rnd, 0.1);
+        cm1 = new Matrix(size, size, rnd, 0.1, 1);
+        cm2 = new Matrix(size, size, rnd, 0.1, 1);
         sym = cm1.MultiplyTranspose(cm1);
         cv1 = new DVector(size, rnd);
         cv2 = new DVector(size, rnd);
