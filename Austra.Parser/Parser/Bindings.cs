@@ -1621,7 +1621,8 @@ internal sealed class Bindings
                     if (count > 0)
                         return [];
                 }
-                else if (!char.IsLetterOrDigit(ch) && ch is not '_' and not '.' and not ':'
+                else if (!char.IsLetterOrDigit(ch)
+                    && ch is not '_' and not '.' and not ':' and not '\''
                     && !char.IsWhiteSpace(ch))
                     break;
             }

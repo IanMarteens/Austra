@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents a lower triangular matrix.</summary>
 /// <remarks>
