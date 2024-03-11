@@ -551,6 +551,19 @@ public readonly struct RMatrix :
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => values.Det(Rows, Cols);
 
+    /// <summary>Gets statistics on the matrix cells.</summary>
+    /// <remarks>Only cells in the lower half are used.</remarks>
+    /// <returns>Matrix statistics.</returns>
+    public unsafe Accumulator Stats()
+    {
+        Accumulator stats = new();
+        if (values.Length > 0)
+            fixed (double* p = values)
+                for (int r = 0, off = 0, top = Min(Rows, Cols); r < top; r++, off += Cols + 1)
+                    stats.Add(p + off, Cols - r);
+        return stats;
+    }
+
     /// <summary>Checks if the matrix contains the given value.</summary>
     /// <param name="value">Value to locate.</param>
     /// <returns><see langword="true"/> if successful.</returns>
