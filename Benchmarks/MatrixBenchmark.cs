@@ -3,7 +3,7 @@
 public class MatrixBenchmark : BenchmarkControl
 {
     private readonly int size;
-    private readonly Matrix cm1, cm2, sym;
+    private readonly Matrix cm1, cm2, sym, id;
     private readonly DVector cv1, cv2;
     private readonly LMatrix lm1, lm2;
     private readonly RMatrix rm1, rm2;
@@ -21,6 +21,7 @@ public class MatrixBenchmark : BenchmarkControl
         lm2 = new LMatrix(size, rnd);
         rm1 = new RMatrix(size, rnd);
         rm2 = new RMatrix(size, rnd);
+        id = Matrix.Identity(size);
     }
 
     //[Benchmark]
@@ -68,7 +69,7 @@ public class MatrixBenchmark : BenchmarkControl
     //[Benchmark]
     public DVector AustraMatrixMultiplySub() => cm1.MultiplySubtract(cv1, cv2);
 
-    [Benchmark]
+    //[Benchmark]
     public LMatrix AustraLowerTriangular() => new(size, NormalRandom.Shared);
 
     //[Benchmark]
@@ -106,4 +107,10 @@ public class MatrixBenchmark : BenchmarkControl
 
     //[Benchmark]
     public RMatrix AustraLMatrixTranspose() => lm2.Transpose();
+
+    [Benchmark]
+    public LMatrix AustraLMatrixInverse() => lm1.Inverse();
+
+    [Benchmark]
+    public Matrix AustraLMatrixInverse1() => id / lm1;
 }

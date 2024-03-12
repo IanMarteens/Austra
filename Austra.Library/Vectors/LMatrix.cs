@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Data;
+
+namespace Austra.Library;
 
 /// <summary>Represents a lower triangular matrix.</summary>
 /// <remarks>
@@ -738,6 +740,32 @@ public readonly struct LMatrix :
             Add(ref pR, i) = (Add(ref pV, i) - MM.CreateSpan(ref pA, i)
                 .Dot(MM.CreateSpan(ref pR, i))) / Add(ref pA, i);
         }
+    }
+
+    /// <summary>Calculates the inverse of the matrix.</summary>
+    /// <returns>The inverse matrix using LU factorization.</returns>
+    public LMatrix Inverse()
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(IsSquare);
+
+        double[] newValues = new double[values.Length];
+        ref double pA = ref MM.GetArrayDataReference(values);
+        ref double pB = ref MM.GetArrayDataReference(newValues);
+        pB = 1.0 / pA;    // First row is special.
+        for (int r = 1; r < Rows; r++)
+        {
+            pA = ref Add(ref pA, Cols);
+            for (int c = 0; c < r; c++)
+            {
+                double sum = Add(ref pA, c) * Add(ref pB, c * Cols + c);
+                for (int j = c + 1; j < r; j++)
+                    sum = FusedMultiplyAdd(Add(ref pA, j), Add(ref pB, j * Cols + c), sum);
+                Add(ref pB, r * Cols + c) = -sum / Add(ref pA, r);
+            }
+            Add(ref pB, r * Cols + r) = 1.0 / Add(ref pA, r);
+        }
+        return new(Rows, Cols, newValues);
     }
 
     /// <summary>Gets the determinant of the matrix.</summary>
