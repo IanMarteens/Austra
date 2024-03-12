@@ -68,7 +68,7 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Initializes p span with random values.</summary>
+    /// <summary>Initializes a span with random values.</summary>
     /// <param name="span">The memory target for the operation.</param>
     /// <param name="random">A random number generator.</param>
     public static void CreateRandom(this Span<double> span, Random random)
@@ -95,7 +95,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref p, i) = random.NextDouble();
     }
 
-    /// <summary>Initializes p span with random values.</summary>
+    /// <summary>Initializes a span with random values.</summary>
     /// <param name="span">The memory target for the operation.</param>
     /// <param name="random">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
@@ -129,7 +129,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref p, i) = FusedMultiplyAdd(random.NextDouble(), width, offset);
     }
 
-    /// <summary>Initializes p span with normal random values.</summary>
+    /// <summary>Initializes a span with normal random values.</summary>
     /// <param name="span">The memory target for the operation.</param>
     /// <param name="random">A random number generator.</param>
     public static void CreateRandom(this Span<double> span, NormalRandom random)
@@ -222,7 +222,7 @@ public static class CommonMatrix
         return max;
     }
 
-    /// <summary>Gets the item in p span with the minimum absolute value.</summary>
+    /// <summary>Gets the item in a span with the minimum absolute value.</summary>
     /// <param name="span">The data span.</param>
     /// <returns>The minimum absolute value in the samples.</returns>
     public static double AMin(this Span<double> span)
@@ -455,7 +455,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
     }
 
-    /// <summary>Pointwise addition of p scalar to p span.</summary>
+    /// <summary>Pointwise addition of a scalar to a span.</summary>
     /// <param name="span">Span summand.</param>
     /// <param name="scalar">Scalar summand.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -484,7 +484,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) + scalar;
     }
 
-    /// <summary>Pointwise addition of p scalar to p span.</summary>
+    /// <summary>Pointwise addition of a scalar to a span.</summary>
     /// <param name="span">Span summand.</param>
     /// <param name="scalar">Scalar summand.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -587,7 +587,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
     }
 
-    /// <summary>Pointwise subtraction of p scalar from p span.</summary>
+    /// <summary>Pointwise subtraction of a scalar from a span.</summary>
     /// <param name="span">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -616,7 +616,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) - scalar;
     }
 
-    /// <summary>Pointwise subtraction of p scalar from p span.</summary>
+    /// <summary>Pointwise subtraction of a scalar from a span.</summary>
     /// <param name="span">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -645,7 +645,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) - scalar;
     }
 
-    /// <summary>Pointwise subtraction of an span from p scalar.</summary>
+    /// <summary>Pointwise subtraction of an span from a scalar.</summary>
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -674,7 +674,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Pointwise subtraction of an span from p scalar.</summary>
+    /// <summary>Pointwise subtraction of an span from a scalar.</summary>
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -703,7 +703,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Pointwise negation of p span.</summary>
+    /// <summary>Pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
     /// <param name="target">Target memory for the operation.</param>
     public static void Neg(this Span<double> span, Span<double> target)
@@ -729,7 +729,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = -Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Inplace pointwise negation of p span.</summary>
+    /// <summary>Inplace pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
     public static void Neg(this Span<double> span)
     {
@@ -747,7 +747,7 @@ public static class CommonMatrix
             p = -p;
     }
 
-    /// <summary>Pointwise negation of p span.</summary>
+    /// <summary>Pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
     /// <param name="target">Target memory for the operation.</param>
     public static void Neg(this Span<int> span, Span<int> target)
@@ -773,7 +773,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = -Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Inplace pointwise negation of p span.</summary>
+    /// <summary>Inplace pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
     public static void Neg(this Span<int> span)
     {
@@ -851,7 +851,7 @@ public static class CommonMatrix
         return result;
     }
 
-    /// <summary>Pointwise multiplication of p span and p scalar.</summary>
+    /// <summary>Pointwise multiplication of a span and a scalar.</summary>
     /// <param name="span">Span multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -880,7 +880,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) * scalar;
     }
 
-    /// <summary>Pointwise multiplication of p span and p scalar.</summary>
+    /// <summary>Pointwise multiplication of a span and a scalar.</summary>
     /// <param name="span">Span multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -1001,7 +1001,7 @@ public static class CommonMatrix
     }
 
     /// <summary>
-    /// Multiplies p span by p scalar and sums the result to p memory location.
+    /// Multiplies a span by a scalar and sums the result to a memory location.
     /// </summary>
     /// <param name="span">Source vector.</param>
     /// <param name="d">Scale factor.</param>
@@ -1032,7 +1032,7 @@ public static class CommonMatrix
     }
 
     /// <summary>
-    /// Multiplies p span by p scalar and subtracts the result to p memory location.
+    /// Multiplies a span by a scalar and subtracts the result to a memory location.
     /// </summary>
     /// <param name="span">Source vector.</param>
     /// <param name="d">Scale factor.</param>
