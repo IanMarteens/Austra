@@ -8,12 +8,12 @@ WriteLine("Benchmarks for AUSTRA");
 //BenchmarkRunner.Run<FunctionsBenchmark>();
 BenchmarkRunner.Run<MatrixBenchmark>();
 
-var lm = new LMatrix(16, Random.Shared);
+var lm = new LMatrix(128, 128, Random.Shared, 0.3, 1.1);
 WriteLine(lm.ToString());
 WriteLine();
 WriteLine(lm.Inverse().ToString());
 WriteLine();
 WriteLine((lm * lm.Inverse()).ToString());
 WriteLine();
-WriteLine((lm * lm.Inverse() - LMatrix.Identity(16)).AMax());
-
+WriteLine((lm * lm.Inverse() - LMatrix.Identity(128)).AMax());
+WriteLine((Matrix.Identity(128) / lm * lm - Matrix.Identity(128)).AMax());

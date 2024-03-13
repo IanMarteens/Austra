@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents a lower triangular matrix.</summary>
 /// <remarks>
@@ -62,9 +60,7 @@ public readonly struct LMatrix :
     /// <param name="random">A random number generator.</param>
     /// <param name="offset">An offset for the random numbers.</param>
     /// <param name="width">Width for the uniform distribution.</param>
-    public LMatrix(
-        int rows, int cols, Random random,
-        double offset = 0.0, double width = 1.0)
+    public LMatrix(int rows, int cols, Random random, double offset = 0.0, double width = 1.0)
     {
         (Rows, Cols, values) = (rows, cols, new double[rows * cols]);
         // First row is special!
@@ -76,6 +72,15 @@ public readonly struct LMatrix :
             new Span<double>(values, cols * cols, cols * (rows - cols))
                 .CreateRandom(random, offset, width);
     }
+
+    /// <summary>Creates a square matrix filled with a uniform distribution generator.</summary>
+    /// <param name="size">Number of rows and columns.</param>
+    /// <param name="random">A random number generator.</param>
+    /// <param name="offset">An offset for the random numbers.</param>
+    /// <param name="width">Width for the uniform distribution.</param>
+    public LMatrix(int size, Random random, double offset = 0.0, double width = 1.0) :
+        this(size, size, random, offset, width)
+    { }
 
     /// <summary>
     /// Creates a matrix filled with a uniform distribution generator.
@@ -212,7 +217,7 @@ public readonly struct LMatrix :
     /// <returns>A new matrix with swapped rows and cells.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RMatrix Transpose() => ((Matrix)this).Transpose();
- 
+
     /// <summary>Sums two lower matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
@@ -752,18 +757,30 @@ public readonly struct LMatrix :
         double[] newValues = new double[values.Length];
         ref double pA = ref MM.GetArrayDataReference(values);
         ref double pB = ref MM.GetArrayDataReference(newValues);
-        pB = 1.0 / pA;    // First row is special.
-        for (int r = 1; r < Rows; r++)
+        int n = Rows;
+        // First row is special.
+        pB = 1.0 / pA;
+        // Second row is also special.
+        if (n > 1)
         {
-            pA = ref Add(ref pA, Cols);
+            pA = ref Add(ref pA, n);
+            double invDiag = 1.0 / Add(ref pA, 1);
+            Add(ref pB, n) = -pA * pB * invDiag;
+            Add(ref pB, n + 1) = invDiag;
+        }
+        ref double pBr = ref Add(ref pB, n + n);
+        for (int r = 2; r < n; r++, pBr = ref Add(ref pBr, n))
+        {
+            pA = ref Add(ref pA, n);
+            double invDiag = 1.0 / Add(ref pA, r);
             for (int c = 0; c < r; c++)
             {
-                double sum = Add(ref pA, c) * Add(ref pB, c * Cols + c);
-                for (int j = c + 1; j < r; j++)
-                    sum = FusedMultiplyAdd(Add(ref pA, j), Add(ref pB, j * Cols + c), sum);
-                Add(ref pB, r * Cols + c) = -sum / Add(ref pA, r);
+                double sum = 0;
+                for (int k = c, off = c * n + c; k < r; k++, off += n)
+                    sum = FusedMultiplyAdd(Add(ref pA, k), Add(ref pB, off), sum);
+                Add(ref pBr, c) = -sum * invDiag;
             }
-            Add(ref pB, r * Cols + r) = 1.0 / Add(ref pA, r);
+            Add(ref pBr, r) = invDiag;
         }
         return new(Rows, Cols, newValues);
     }

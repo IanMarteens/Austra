@@ -120,6 +120,15 @@ public readonly struct Matrix :
         values.AsSpan().CreateRandom(random, offset, width);
     }
 
+    /// <summary>Creates a square matrix filled with a uniform distribution generator.</summary>
+    /// <param name="size">Number of rows and columns.</param>
+    /// <param name="random">A random number generator.</param>
+    /// <param name="offset">An offset for the random numbers.</param>
+    /// <param name="width">Width for the uniform distribution.</param>
+    public Matrix(int size, Random random, double offset, double width) :
+        this(size, size, random, offset, width)
+    { }
+
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
