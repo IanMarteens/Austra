@@ -9,7 +9,7 @@ namespace Austra;
 public partial class MainWindow : Window
 {
     private CompletionWindow? completionWindow;
-    private bool gMode;
+    private bool gMode, qMode;
 
     public MainWindow()
     {
@@ -180,6 +180,11 @@ public partial class MainWindow : Window
             gMode = !gMode;
             e.Handled = true;
         }
+        else if (e.Key == Key.Q && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            qMode = !qMode;
+            e.Handled = true;
+        }
         else if (gMode && e.Key != Key.LeftShift & e.Key != Key.RightShift)
         {
             if (GreekSymbols.TryTransform(e.Key, out char ch))
@@ -189,6 +194,22 @@ public partial class MainWindow : Window
                 e.Handled = true;
             }
             gMode = false;
+        }
+        else if (qMode && e.Key != Key.LeftShift & e.Key != Key.RightShift)
+        {
+            if (e.Key == Key.A)
+            {
+                avalon.SelectedText = "";
+                avalon.Document.Insert(avalon.CaretOffset, "∀");
+                e.Handled = true;
+            }
+            else if (e.Key == Key.E)
+            {
+                avalon.SelectedText = "";
+                avalon.Document.Insert(avalon.CaretOffset, "∃");
+                e.Handled = true;
+            }
+            qMode = false;
         }
     }
 

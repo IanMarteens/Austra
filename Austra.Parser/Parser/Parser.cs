@@ -1861,7 +1861,35 @@ internal sealed partial class Parser : Scanner, IDisposable
             return typeof(DVector).New(ZeroExpr);
         }
         // Check if it's a list comprehension.
-        if (kind == Token.Id)
+        if (kind == Token.All)
+        {
+            int saveCursor = lexCursor;
+            Move();
+            if (kind == Token.Id)
+            {
+                Move();
+                if (kind == Token.Element)
+                {
+                    lexCursor = saveCursor;
+                    return ParseListComprehension("all");
+                }
+            }
+        }
+        else if (kind == Token.Any)
+        {
+            int saveCursor = lexCursor;
+            Move();
+            if (kind == Token.Id)
+            {
+                Move();
+                if (kind == Token.Element)
+                {
+                    lexCursor = saveCursor;
+                    return ParseListComprehension("any");
+                }
+            }
+        }
+        else if (kind == Token.Id)
         {
             string saveId = id;
             int saveCursor = lexCursor;
@@ -2077,8 +2105,14 @@ internal sealed partial class Parser : Scanner, IDisposable
             Move();
             lambdaBlock.Add(Expression.Parameter(
                 eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName));
-            string qual = id.ToLower();
-            if (kind == Token.Id && (qual == "all" || qual == "any"))
+            string qual = kind switch
+            {
+                Token.Id => id.ToLower(),
+                Token.All => "all",
+                Token.Any => "any",
+                _ => ""
+            };
+            if (qual == "all" || qual == "any")
             {
                 int savePos = lexCursor;
                 Move();
@@ -2086,7 +2120,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     string paramName1 = id;
                     Move();
-                    if (kind == Token.In)
+                    if (kind == Token.Element)
                     {
                         Move();
                         Expression f = ParseGenerator();

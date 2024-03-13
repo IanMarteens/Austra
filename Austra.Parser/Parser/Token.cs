@@ -115,6 +115,10 @@ public enum Token
     IdBang,
     /// <summary>The ∈ operator.</summary>
     Element,
+    /// <summary>Universal qualifier (all, ∀).</summary>
+    All,
+    /// <summary>Existential qualifier (any, ∃).</summary>
+    Any,
     /// <summary>An unrecognized token.</summary>
     Error,
     /// <summary>End of input.</summary>

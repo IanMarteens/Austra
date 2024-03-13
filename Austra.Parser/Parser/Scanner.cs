@@ -216,6 +216,8 @@ internal class Scanner
                 case '²': kind = Token.Caret2; return;
                 case '\'': kind = Token.Transpose; return;
                 case '∈': kind = Token.Element; return;
+                case '∃': kind = Token.Any; return;
+                case '∀': kind = Token.All; return;
                 case '-':
                     if (Add(ref c, lexCursor) == '-')
                     {
