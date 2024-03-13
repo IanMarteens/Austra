@@ -209,6 +209,12 @@ public partial class MainWindow : Window
                 avalon.Document.Insert(avalon.CaretOffset, "∃");
                 e.Handled = true;
             }
+            else if (e.Key == Key.I)
+            {
+                avalon.SelectedText = "";
+                avalon.Document.Insert(avalon.CaretOffset, "∈");
+                e.Handled = true;
+            }
             qMode = false;
         }
     }
