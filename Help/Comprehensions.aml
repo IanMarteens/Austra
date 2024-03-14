@@ -98,7 +98,13 @@ iseq(2, 100).filter(x =&gt; iseq(2, x - 1).all(div => x % div != 0))
         </code>
         <para>We need no inner brackets inside the main list comprehension, since it is evident how the qualified condition is nested. We could even add a mapping at the end of the comprehension to transform the calculated prime numbers, if required.</para>
         <para>If we use regular lambdas, we will be nesting a lambda definition inside another. The generated code for the list comprehension also use nested lambdas, but with an easier to understand syntax. The inner lambda is "capturing" the parameter of the outer lambda, so we must be careful naming local variables.</para>
-      </content>
+        <para>The mathematical symbols <codeInline>∀</codeInline> and <codeInline>∃</codeInline> are also accepted as synonyms of <codeInline>all</codeInline> and <codeInline>any</codeInline>:</para>
+        <code language="Austra">
+[∃x &lt;- 10..100 : x * x = x + x];
+[x &lt; 2..100 : ∀y &lt; 2 .. x - 1 : x % y != 0];
+        </code>
+        <para>These symbols can be typed by pressing <codeInline>CtrlQ+A</codeInline> or <codeInline>CtrlQ+E</codeInline> in the <legacyBold>Code Editor</legacyBold>.</para>
+       </content>
      </section>
     <relatedTopics>
       <link xlink:href="e22b4127-e7a9-47ca-bd1c-7ac81efcc051">Primitive types</link>
