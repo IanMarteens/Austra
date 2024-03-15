@@ -757,21 +757,23 @@ public readonly struct LMatrix :
         double[] newValues = new double[values.Length];
         ref double pA = ref MM.GetArrayDataReference(values);
         ref double pB = ref MM.GetArrayDataReference(newValues);
+        ref double pBr = ref pB;
         int n = Rows;
         // First row is special.
-        pB = 1.0 / pA;
+        pBr = 1.0 / pA;
         // Second row is also special.
         if (n > 1)
         {
             pA = ref Add(ref pA, n);
+            pBr = ref Add(ref pBr, n);
             double invDiag = 1.0 / Add(ref pA, 1);
-            Add(ref pB, n) = -pA * pB * invDiag;
-            Add(ref pB, n + 1) = invDiag;
+            pBr = -pA * pB * invDiag;
+            Add(ref pBr, 1) = invDiag;
         }
-        ref double pBr = ref Add(ref pB, n + n);
-        for (int r = 2; r < n; r++, pBr = ref Add(ref pBr, n))
+        for (int r = 2; r < n; r++)
         {
             pA = ref Add(ref pA, n);
+            pBr = ref Add(ref pBr, n);
             double invDiag = 1.0 / Add(ref pA, r);
             for (int c = 0; c < r; c++)
             {

@@ -556,6 +556,36 @@ public readonly struct RMatrix :
         }
     }
 
+    /// <summary>Calculates the inverse of the matrix.</summary>
+    /// <returns>The inverse matrix using LU factorization.</returns>
+    public RMatrix Inverse()
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(IsSquare);
+
+        double[] newValues = new double[values.Length];
+        int n = Rows;
+        ref double pA = ref Add(ref MM.GetArrayDataReference(values), newValues.Length - 1);
+        ref double pB = ref MM.GetArrayDataReference(newValues);
+        ref double pBr = ref Add(ref pB, newValues.Length - 1);
+        // Lower-right corner is special.
+        pBr = 1.0 / pA;
+        for (int r = n - 2; r >= 0; r--)
+        {
+            pA = ref Subtract(ref pA, n + 1);
+            pBr = ref Subtract(ref pBr, n + 1);
+            double invDiag = pBr = 1.0 / pA;
+            for (int c = r + 1; c < n; c++)
+            {
+                double sum = 0;
+                for (int k = 1, off = r * n + c; k < n - c + 1; k++, off += n) 
+                    sum = FusedMultiplyAdd(Add(ref pA, k), Add(ref pB, off), sum);
+                Add(ref pBr, c) = -sum * invDiag;
+            }
+        }
+        return new(Rows, Cols, newValues);
+    }
+
     /// <summary>Gets the determinant of the matrix.</summary>
     /// <returns>The product of the main diagonal.</returns>
     public double Determinant() => values.Det(Rows, Cols);
