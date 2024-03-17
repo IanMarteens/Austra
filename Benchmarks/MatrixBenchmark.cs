@@ -113,4 +113,7 @@ public class MatrixBenchmark : BenchmarkControl
 
     [Benchmark]
     public Matrix AustraLMatrixInverse1() => id / lm1;
+
+    [Benchmark]
+    public RMatrix AustraRMatrixInverse() => rm1.Inverse();
 }

@@ -565,22 +565,25 @@ public readonly struct RMatrix :
 
         double[] newValues = new double[values.Length];
         int n = Rows;
-        ref double pA = ref Add(ref MM.GetArrayDataReference(values), newValues.Length - 1);
-        ref double pB = ref MM.GetArrayDataReference(newValues);
-        ref double pBr = ref Add(ref pB, newValues.Length - 1);
+        // At each step, both pA and pB are in the upper-right corner of the submatrix.
+        ref double pA = ref Add(ref MM.GetArrayDataReference(values), values.Length - 1);
+        ref double pB = ref Add(ref MM.GetArrayDataReference(newValues), values.Length - 1);
         // Lower-right corner is special.
-        pBr = 1.0 / pA;
+        pB = 1.0 / pA;
         for (int r = n - 2; r >= 0; r--)
         {
             pA = ref Subtract(ref pA, n + 1);
-            pBr = ref Subtract(ref pBr, n + 1);
-            double invDiag = pBr = 1.0 / pA;
-            for (int c = r + 1; c < n; c++)
+            pB = ref Subtract(ref pB, n + 1);
+            // The submatrix is now n-r x n-r.
+            int subSize = n - r;
+            double invDiag = pB = 1.0 / pA;
+            for (int c = 1; c < subSize; c++)
             {
                 double sum = 0;
-                for (int k = 1, off = r * n + c; k < n - c + 1; k++, off += n) 
-                    sum = FusedMultiplyAdd(Add(ref pA, k), Add(ref pB, off), sum);
-                Add(ref pBr, c) = -sum * invDiag;
+                ref double pBc = ref Add(ref pB, c + n);
+                for (int k = 1; k <= c; k++, pBc = ref Add(ref pBc, n)) 
+                    sum = FusedMultiplyAdd(Add(ref pA, k), pBc, sum);
+                Add(ref pB, c) = -sum * invDiag;
             }
         }
         return new(Rows, Cols, newValues);
