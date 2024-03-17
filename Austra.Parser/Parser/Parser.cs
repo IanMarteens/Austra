@@ -1583,8 +1583,12 @@ internal sealed partial class Parser : Scanner, IDisposable
     {
         (string function, int pos) = (id.ToLower(), start);
         SkipFunctor();
+        // Check for a parameter in a lambda header.
+        if (lambdaBlock.TryMatch(function, out ParameterExpression? lambda)
+            && lambda.Type.IsAssignableTo(typeof(Delegate)))
+            return ParseArgumentsAndBind(lambda);
         // Check for a local lambda in a LET clause.
-        if (TryGetLambda(function, out ParameterExpression? lambda))
+        if (TryGetLambda(function, out lambda))
             return ParseArgumentsAndBind(lambda);
         // Check macro definitions.
         Definition? def = source.GetDefinition(function);
