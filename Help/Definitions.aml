@@ -135,52 +135,52 @@ extProduct! = extProduct
       	    <title>Type names in AUSTRA</title>
       	    <content>
       		  <para>These are the types that can be explicitly used for parameters and return types in function definitions:</para>
-			      <table>
-	 		        <row>
-	 		          <entry><para><codeInline>bool</codeInline></para></entry>
-	 		          <entry><para>The logical data type.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>int</codeInline></para></entry>
-	 		          <entry><para>32-bit integers.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>long</codeInline></para></entry>
-	 		          <entry><para>64-bit integers.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>real</codeInline></para></entry>
-	 		          <entry><para>Double precision reals.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>date</codeInline></para></entry>
-	 		          <entry><para>Austra dates.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>string</codeInline></para></entry>
-	 		          <entry><para>Strings.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>complex</codeInline></para></entry>
-	 		          <entry><para>Double precision complex values.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>series</codeInline></para></entry>
-	 		          <entry><para>Time series.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>matrix</codeInline></para></entry>
-	 		          <entry><para>Dense double precision matrices.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>vec</codeInline>, <codeInline>cvec</codeInline>, <codeInline>ivec</codeInline></para></entry>
-	 		          <entry><para>Real, complex, and integer vectors.</para></entry>
-			        </row>
-	 		        <row>
-	 		          <entry><para><codeInline>seq</codeInline>, <codeInline>cseq</codeInline>, <codeInline>iseq</codeInline></para></entry>
-	 		          <entry><para>Real, complex, and integer sequences.</para></entry>
-			        </row>
-			      </table>
+			  <table>
+	 		    <row>
+	 		      <entry><para><codeInline>bool</codeInline></para></entry>
+	 		      <entry><para>The logical data type.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>int</codeInline></para></entry>
+	 		      <entry><para>32-bit integers.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>long</codeInline></para></entry>
+	 		      <entry><para>64-bit integers.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>real</codeInline></para></entry>
+	 		      <entry><para>Double precision reals.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>date</codeInline></para></entry>
+	 		      <entry><para>Austra dates.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>string</codeInline></para></entry>
+	 		      <entry><para>Strings.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>complex</codeInline></para></entry>
+	 		      <entry><para>Double precision complex values.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>series</codeInline></para></entry>
+	 		      <entry><para>Time series.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>matrix</codeInline></para></entry>
+	 		      <entry><para>Dense double precision matrices.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>vec</codeInline>, <codeInline>cvec</codeInline>, <codeInline>ivec</codeInline></para></entry>
+	 		      <entry><para>Real, complex, and integer vectors.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>seq</codeInline>, <codeInline>cseq</codeInline>, <codeInline>iseq</codeInline></para></entry>
+	 		      <entry><para>Real, complex, and integer sequences.</para></entry>
+			    </row>
+			  </table>
       		  <para>Arrays can be specified adding two brackets after a type name. Function types follows this convention:</para>
       	      <code language="Austra">
 <markup><font color="DarkGreen">-- A function that receives a real and returns a real:</font><br/>
@@ -188,7 +188,17 @@ extProduct! = extProduct
 <font color="DarkGreen">-- Receives an integer and a vector, and returns a real:</font><br/>
 <b>int</b></markup> => <markup><b>vec</b></markup> => <markup><b>real</b></markup>
       	      </code>
-      	    </content>
+      		  <para>For instance, this definition allows to apply a function twice to an argument:</para>
+      	      <code language="Austra">
+<markup><b>def</b></markup> twice(x: <markup><b>real</b></markup>, f: <markup><b>real</b></markup> => <markup><b>real</b></markup>) =
+    f(f(x))
+      	      </code>
+      		  <para>This function can be called like this:</para>
+      	      <code language="Austra">
+twice(1, sin)
+      	      </code>
+
+     	    </content>
       	  </section>
       	</sections>
       </content>
