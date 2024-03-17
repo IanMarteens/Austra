@@ -521,6 +521,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             Type type = ParseTypeRef();
             foreach (string param in names)
                 result.Add(Expression.Parameter(type, param));
+            names.Clear();
             if (kind != Token.Comma)
                 break;
             Move();
@@ -539,6 +540,16 @@ internal sealed partial class Parser : Scanner, IDisposable
         if (!bindings.TryGetTypeName(id, out Type? type))
             throw Error($"Invalid type name: {id}");
         Move();
+        if (kind == Token.Arrow)
+        {
+            Move();
+            if (kind != Token.Id)
+                throw Error("Type name expected");
+            if (!bindings.TryGetTypeName(id, out Type? retType))
+                throw Error($"Invalid type name: {id}");
+            Move();
+            return Expression.GetFuncType(type, retType);
+        }
         return type;
     }
 
