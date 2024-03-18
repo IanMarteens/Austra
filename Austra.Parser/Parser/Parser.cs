@@ -156,7 +156,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     }
 
     /// <summary>Parses a block expression without generating code.</summary>
-    /// <returns>The type of the block expression.</returns>
+    /// <returns>The type0 of the block expression.</returns>
     public Type[] ParseType(int abortPosition = int.MaxValue)
     {
         this.abortPosition = abortPosition;
@@ -535,22 +535,31 @@ internal sealed partial class Parser : Scanner, IDisposable
     private Type ParseTypeRef()
     {
         CheckAndMove(Token.Colon, ": expected");
-        if (kind != Token.Id)
-            throw Error("Type name expected");
-        if (!bindings.TryGetTypeName(id, out Type? type))
-            throw Error($"Invalid type name: {id}");
-        Move();
+        Type type0 = GetTypeId();
         if (kind == Token.Arrow)
         {
+            // So far, up to two input parameters and a return type.
             Move();
+            Type type1 = GetTypeId();
+            if (kind == Token.Arrow)
+            {
+                Move();
+                Type type2 = GetTypeId();
+                return Expression.GetFuncType(type0, type1, type2);
+            }
+            return Expression.GetFuncType(type0, type1);
+        }
+        return type0;
+
+        Type GetTypeId()
+        {
             if (kind != Token.Id)
                 throw Error("Type name expected");
-            if (!bindings.TryGetTypeName(id, out Type? retType))
+            if (!bindings.TryGetTypeName(id, out Type? type))
                 throw Error($"Invalid type name: {id}");
             Move();
-            return Expression.GetFuncType(type, retType);
+            return type;
         }
-        return type;
     }
 
     /// <summary>Compiles a ternary conditional expression.</summary>
@@ -2100,7 +2109,7 @@ internal sealed partial class Parser : Scanner, IDisposable
 
     /// <summary>Parses a list comprehension expression.</summary>
     /// <param name="qualifier">Optional qualifier: could be <c>any</c> or <c>all</c>.</param>
-    /// <returns>A sequence or vector type expression.</returns>
+    /// <returns>A sequence or vector type0 expression.</returns>
     private Expression ParseListComprehension(string qualifier)
     {
         if (qualifier != "")
@@ -2111,7 +2120,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         Expression? filter = null, mapper = null;
         // Parse the expression that generates the sequence.
         Expression e = ParseGenerator();
-        // Verify that the expression is a sequence and get its type.
+        // Verify that the expression is a sequence and get its type0.
         (Type eType, Type iType) = GetTypes(e);
         // Check a colon for a filter expression.
         if (kind == Token.Colon)
@@ -2139,7 +2148,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     {
                         Move();
                         Expression f = ParseGenerator();
-                        // Verify that the expression is a sequence and get its type.
+                        // Verify that the expression is a sequence and get its type0.
                         (Type fType, Type ifType) = GetTypes(e);
                         CheckAndMove(Token.Colon, ": expected in qualified filter in list comprehension");
                         lambdaBlock.Add(Expression.Parameter(
@@ -2357,7 +2366,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             _ => null,
         };
 
-    /// <summary>Checks if the expression's type is either a double or an integer.</summary>
+    /// <summary>Checks if the expression's type0 is either a double or an integer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsArithmetic(Expression e) =>
         e.Type == typeof(int) || e.Type == typeof(double);
