@@ -74,6 +74,14 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>Referenced definitions.</summary>
     private readonly HashSet<Definition> references = [];
 
+    /// <summary>Symbol table for the prolog.</summary>
+    private readonly Dictionary<string, ParameterExpression> prolog =
+        new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Prolog locals, for caching parameter definitions.</summary>
+    private readonly List<ParameterExpression> proLocals = new(8);
+    /// <summary>Prolog local asignment expressions.</summary>
+    private readonly List<Expression> proExpressions;
+
     /// <summary>All top-level locals, from LET clauses.</summary>
     private readonly List<ParameterExpression> letLocals = new(8);
     /// <summary>Top-level local asignment expressions.</summary>
@@ -111,8 +119,8 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <param name="source">Environment variables.</param>
     /// <param name="text">Text of the formula.</param>
     public Parser(Bindings bindings, IDataSource source, string text) : base(text) =>
-        (this.bindings, this.source, lambdaBlock, letExpressions, setExpressions)
-            = (bindings, source, bindings.LambdaBlock, source.Rent(8), source.Rent(8));
+        (this.bindings, this.source, lambdaBlock, proExpressions, letExpressions, setExpressions)
+            = (bindings, source, bindings.LambdaBlock, source.Rent(8), source.Rent(8), source.Rent(8));
 
     /// <summary>Returns allocated resources to the pool, in the data source.</summary>
     public void Dispose()
@@ -120,6 +128,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         lambdaBlock.Clean();
         source.Return(setExpressions);
         source.Return(letExpressions);
+        source.Return(proExpressions);
     }
 
     /// <summary>Compiles a list of statements into a block expression.</summary>
@@ -147,6 +156,11 @@ internal sealed partial class Parser : Scanner, IDisposable
         }
         if (kind != Token.Eof)
             throw Error("Extra input after expression");
+        if (proExpressions.Count > 0)
+        {
+            letExpressions.InsertRange(0, proExpressions);
+            letLocals.AddRange(proLocals);
+        }
         return letExpressions.Count switch
         {
             0 => NullExpr,
@@ -349,6 +363,8 @@ internal sealed partial class Parser : Scanner, IDisposable
             throw Error("Extra input after expression");
         if (e.Type == typeof(Series))
             e = typeof(Series).Call(e, nameof(Series.SetName), Expression.Constant(defName));
+        if (proLocals.Count > 0)
+            e = Expression.Block(proLocals, proExpressions.Append(e));
         Definition def = new(defName, paramText, text[first..], description, e);
         foreach (Definition referenced in references)
             referenced.Children.Add(def);
@@ -2311,11 +2327,11 @@ internal sealed partial class Parser : Scanner, IDisposable
             if (isParsingDefinition)
                 references.Add(def);
             string ident1 = "$" + def.Name;
-            if (!locals.TryGetValue(ident1, out local))
+            if (!prolog.TryGetValue(ident1, out local))
             {
-                locals.Add(ident1, local = Expression.Parameter(def.Type, ident));
-                letLocals.Add(local);
-                letExpressions.Add(Expression.Assign(local, def.Expression));
+                prolog.Add(ident1, local = Expression.Parameter(def.Type, ident));
+                proLocals.Add(local);
+                proExpressions.Add(Expression.Assign(local, def.Expression));
             }
             return local;
         }
