@@ -100,29 +100,15 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     /// <param name="vector">The source vector.</param>
     /// <param name="value">The value to find.</param>
     /// <returns>All indexes where the value exists, or an empty sequence.</returns>
-    internal static NSequence Iterate(DVector vector, double value) =>
-        new IndexFinder(vector, value);
+    internal static NSequence Iterate<T>(T[] vector, T value) =>
+        new IdxFinder<T>(vector, value);
 
     /// <summary>Creates an integer sequence for finding values in a vector.</summary>
     /// <param name="vector">The source vector.</param>
     /// <param name="condition">A predicate on the value of a vector's item.</param>
     /// <returns>All indexes where the value exists, or an empty sequence.</returns>
-    internal static NSequence Iterate(DVector vector, Func<double, bool> condition) =>
-        new IndexFinderWithLambda(vector, condition);
-
-    /// <summary>Creates an integer sequence for finding values in a vector.</summary>
-    /// <param name="vector">The source vector.</param>
-    /// <param name="value">The value to find.</param>
-    /// <returns>All indexes where the value exists, or an empty sequence.</returns>
-    internal static NSequence Iterate(CVector vector, Complex value) =>
-        new CIndexFinder(vector, value);
-
-    /// <summary>Creates an integer sequence for finding values in a vector.</summary>
-    /// <param name="vector">The source vector.</param>
-    /// <param name="condition">A predicate on the value of a vector's item.</param>
-    /// <returns>All indexes where the value exists, or an empty sequence.</returns>
-    internal static NSequence Iterate(CVector vector, Func<Complex, bool> condition) =>
-        new CIndexFinderWithLambda(vector, condition);
+    internal static NSequence Iterate<T>(T[] vector, Func<T, bool> condition) =>
+        new IdxFinderWithLambda<T>(vector, condition);
 
     /// <summary>Transform a sequence acording to the function passed as parameter.</summary>
     /// <param name="mapper">The transforming function.</param>

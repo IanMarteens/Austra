@@ -1462,12 +1462,12 @@ public readonly struct DVector :
     /// <summary>Returns all indexes containing ocurrences of a value.</summary>
     /// <param name="value">Value to find.</param>
     /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(double value) => NSequence.Iterate(this, value);
+    public NSequence Find(double value) => NSequence.Iterate(values, value);
 
     /// <summary>Returns all indexes satisfying a condition.</summary>
     /// <param name="condition">The condition to be satisfied.</param>
     /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(Func<double, bool> condition) => NSequence.Iterate(this, condition);
+    public NSequence Find(Func<double, bool> condition) => NSequence.Iterate(values, condition);
 
     /// <summary>Compares two vectors for equality within a tolerance.</summary>
     /// <param name="v1">First vector to compare.</param>

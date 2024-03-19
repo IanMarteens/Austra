@@ -983,12 +983,14 @@ public readonly struct CVector :
     /// <summary>Returns all indexes containing ocurrences of a value.</summary>
     /// <param name="value">Value to find.</param>
     /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(Complex value) => NSequence.Iterate(this, value);
+    public NSequence Find(Complex value) =>
+        NSequence.Iterate((Complex[])this, value);
 
     /// <summary>Returns all indexes satisfying a condition.</summary>
     /// <param name="condition">The condition to be satisfied.</param>
     /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(Func<Complex, bool> condition) => NSequence.Iterate(this, condition);
+    public NSequence Find(Func<Complex, bool> condition) =>
+        NSequence.Iterate((Complex[])this, condition);
 
     /// <summary>
     /// Creates a new vector by transforming each item with the given function.

@@ -638,6 +638,16 @@ public readonly struct NVector :
         return result >= 0 ? result + from : -1;
     }
 
+    /// <summary>Returns all indexes containing ocurrences of a value.</summary>
+    /// <param name="value">Value to find.</param>
+    /// <returns>An integer sequences with all found indexes.</returns>
+    public NSequence Find(int value) => NSequence.Iterate((int[])this, value);
+
+    /// <summary>Returns all indexes satisfying a condition.</summary>
+    /// <param name="condition">The condition to be satisfied.</param>
+    /// <returns>An integer sequences with all found indexes.</returns>
+    public NSequence Find(Func<int, bool> condition) => NSequence.Iterate((int[])this, condition);
+
     /// <summary>
     /// Creates a new vector by transforming each item with the given function.
     /// </summary>

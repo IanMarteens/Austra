@@ -841,7 +841,7 @@ public abstract partial class NSequence
     /// <remarks>This is a trivial wrapper for <see cref="DVector.IndexOf(double, int)"/></remarks>
     /// <param name="vector">Vector to search.</param>
     /// <param name="v">Value to be searched in the vector.</param>
-    private sealed class IndexFinder(DVector vector, double v) : NSequence
+    private sealed class IdxFinder<T>(T[] vector, T v) : NSequence
     {
         /// <summary>The current index in the vector.</summary>
         private int current;
@@ -859,7 +859,7 @@ public abstract partial class NSequence
         /// <returns><see langword="true"/>, when there is a next index.</returns>
         public override bool Next(out int value)
         {
-            if (current >= 0 && (current = vector.IndexOf(v, current)) >= 0)
+            if (current >= 0 && (current = Array.IndexOf(vector, v, current)) >= 0)
             {
                 value = current;
                 current++;
@@ -873,75 +873,7 @@ public abstract partial class NSequence
     /// <summary>An integer sequence with indexes in a vector for a given value.</summary>
     /// <param name="vector">Vector to search.</param>
     /// <param name="condition">A predicate on the value of a vector's item.</param>
-    private sealed class IndexFinderWithLambda(DVector vector, Func<double, bool> condition) : NSequence
-    {
-        /// <summary>The current index in the vector.</summary>
-        private int current;
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override NSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
-
-        /// <summary>Gets the next index in the sequence.</summary>
-        /// <param name="value">The next index in the sequence.</param>
-        /// <returns><see langword="true"/>, when there is a next index.</returns>
-        public override bool Next(out int value)
-        {
-            if (current >= 0)
-                for (; current < vector.Length; current++)
-                    if (condition(vector.UnsafeThis(current)))
-                    {
-                        value = current;
-                        current++;
-                        return true;
-                    }
-            current = -1;
-            value = default;
-            return false;
-        }
-    }
-
-    /// <summary>An integer sequence with indexes in a vector for a given value.</summary>
-    /// <remarks>This is a trivial wrapper for <see cref="CVector.IndexOf(Complex, int)"/></remarks>
-    /// <param name="vector">Vector to search.</param>
-    /// <param name="v">Value to be searched in the vector.</param>
-    private sealed class CIndexFinder(CVector vector, Complex v) : NSequence
-    {
-        /// <summary>The current index in the vector.</summary>
-        private int current;
-
-        /// <summary>Resets the sequence.</summary>
-        /// <returns>Echoes this sequence.</returns>
-        public override NSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
-
-        /// <summary>Gets the next index in the sequence.</summary>
-        /// <param name="value">The next index in the sequence.</param>
-        /// <returns><see langword="true"/>, when there is a next index.</returns>
-        public override bool Next(out int value)
-        {
-            if (current >= 0 && (current = vector.IndexOf(v, current)) >= 0)
-            {
-                value = current;
-                current++;
-                return true;
-            }
-            value = default;
-            return false;
-        }
-    }
-
-    /// <summary>An integer sequence with indexes in a vector for a given value.</summary>
-    /// <param name="vector">Vector to search.</param>
-    /// <param name="condition">A predicate on the value of a vector's item.</param>
-    private sealed class CIndexFinderWithLambda(CVector vector, Func<Complex, bool> condition) : NSequence
+    private sealed class IdxFinderWithLambda<T>(T[] vector, Func<T, bool> condition) : NSequence
     {
         /// <summary>The current index in the vector.</summary>
         private int current;

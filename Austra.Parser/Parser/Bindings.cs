@@ -536,6 +536,7 @@ internal sealed class Bindings
                 new("all(x => ", "Universal operator"),
                 new("any(x => ", "Existential operator"),
                 new("filter(x => ", "Filters items by value"),
+                new("find(", "Finds the indexes of all ocurrences of a value"),
                 new("indexOf(", "Returns the index where a value is stored"),
                 new("map(x => ", "Pointwise transformation of vector items"),
                 new("mapReal(x => ", "Pointwise transformation from integers to reals"),
@@ -1430,6 +1431,9 @@ internal sealed class Bindings
             [new(typeof(NSequence), "until")] = new(
                 typeof(NSequence).MD(nameof(NSequence.Until), typeof(Func<int, bool>)),
                 typeof(NSequence).MD(nameof(NSequence.Until), NArg)),
+            [new(typeof(NVector), "find")] = new(
+                typeof(NVector).MD(nameof(DVector.Find), NArg),
+                typeof(NVector).MD(nameof(DVector.Find), typeof(Func<int, bool>))),
             [new(typeof(NVector), "indexof")] = new(
                 typeof(NVector).MD(nameof(NVector.IndexOf), NArg),
                 typeof(NVector).MD(nameof(NVector.IndexOf), NNArg)),
