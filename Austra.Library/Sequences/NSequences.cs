@@ -64,6 +64,13 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public static NSequence Random(int size, int lowerBound, int upperBound) =>
         new RandomSequence(size, lowerBound, upperBound, System.Random.Shared);
 
+    /// <summary>Creates a sequence by repeating a value a given number of times.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="value">The repeated value.</param>
+    /// <returns>The repeating sequence.</returns>
+    public static NSequence Repeat(int size, int value) =>
+        new RepeatSequence(size, value);
+
     /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
     /// <param name="size">The size of the sequence.</param>
     /// <param name="seed">First value in the sequence.</param>

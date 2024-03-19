@@ -49,6 +49,13 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public static CSequence NormalRandom(int size, double variance) =>
         new NormalRandomSequence(size, new NormalRandom(0, Sqrt(variance)));
 
+    /// <summary>Creates a sequence by repeating a value a given number of times.</summary>
+    /// <param name="size">The size of the sequence.</param>
+    /// <param name="value">The repeated value.</param>
+    /// <returns>The repeating sequence.</returns>
+    public static CSequence Repeat(int size, Complex value) =>
+        new RepeatSequence(size, value);
+
     /// <summary>Creates a sequence by unfolding an initial state by a function.</summary>
     /// <param name="size">The size of the sequence.</param>
     /// <param name="seed">First value in the sequence.</param>

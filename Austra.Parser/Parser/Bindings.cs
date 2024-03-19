@@ -94,6 +94,7 @@ internal sealed class Bindings
                 new("new(", "Creates a complex sequence from a complex vector"),
                 new("nrandom(", "Creates a complex sequence from normal random numbers"),
                 new("random(", "Creates a complex sequence from random numbers"),
+                new("repeat(", "Creates a sequence with a repeated value"),
                 new("unfold", "Creates a complex sequence from a seed and a lambda"),
             ],
             ["cvec"] = [
@@ -104,6 +105,7 @@ internal sealed class Bindings
             ["iseq"] = [
                 new("new(", "Creates an integer sequence either from a range, a range and a step, or a vector"),
                 new("random(", "Creates an integer sequence with random numbers"),
+                new("repeat(", "Creates a sequence with a repeated value"),
                 new("unfold", "Creates an integer sequence from a seed and a lambda"),
             ],
             ["ivec"] = [
@@ -662,11 +664,13 @@ internal sealed class Bindings
                 typeof(CSequence).MD(nameof(CSequence.Create),
                     typeof(Complex), typeof(Complex), typeof(int)),
                 typeof(CSequence).MD(nameof(CSequence.Create), typeof(CVector))),
-            ["cseq.random"] = new(
-                typeof(CSequence).MD(nameof(CSequence.Random), typeof(int))),
             ["cseq.nrandom"] = new(
                 typeof(CSequence).MD(nameof(CSequence.NormalRandom), typeof(int)),
                 typeof(CSequence).MD(nameof(CSequence.NormalRandom), NDArg)),
+            ["cseq.random"] = new(
+                typeof(CSequence).MD(nameof(CSequence.Random), typeof(int))),
+            ["cseq.repeat"] = new(
+                typeof(CSequence).MD(nameof(CSequence.Repeat), typeof(int), typeof(Complex))),
             ["cseq.unfold"] = new(
                 typeof(CSequence).MD(nameof(CSequence.Unfold),
                     typeof(int), typeof(Complex), typeof(Func<Complex, Complex>)),
@@ -693,6 +697,8 @@ internal sealed class Bindings
                 typeof(NSequence).MD(nameof(NSequence.Random), NArg),
                 typeof(NSequence).MD(nameof(NSequence.Random), NNArg),
                 typeof(NSequence).MD(nameof(NSequence.Random), [.. NNArg, typeof(int)])),
+            ["seq.repeat"] = new(
+                typeof(NSequence).MD(nameof(NSequence.Repeat), typeof(int), typeof(int))),
             ["iseq.unfold"] = new(
                 typeof(NSequence).MD(nameof(NSequence.Unfold),
                     typeof(int), typeof(int), typeof(Func<int, int>)),

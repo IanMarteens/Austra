@@ -38,6 +38,46 @@ public abstract partial class CSequence
         }
     }
 
+    /// <summary>A fixed length sequence that repeats the same value a number of times.</summary>
+    /// <param name="length">Number of items in the sequence.</param>
+    /// <param name="value">The repeated value.</param>
+    private sealed class RepeatSequence(int length, Complex value) : CursorSequence(length)
+    {
+        /// <summary>The value to repeat.</summary>
+        private readonly Complex value = value;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Complex value)
+        {
+            if (current++ < length)
+            {
+                value = this.value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        public override Complex this[int idx] =>
+            (uint)idx < length ? value : throw new IndexOutOfRangeException();
+
+        public override bool Contains(Complex value) => value == this.value;
+
+        public override Complex First() => value;
+        public override Complex Last() => value;
+        public override Complex Sum() => length * value;
+        public override Complex Product() => Complex.Pow(value, length);
+        public override CSequence Distinct() => this;
+
+        protected override bool ContainsZero => value == Complex.Zero;
+        protected override CSequence Negate() => new RepeatSequence(length, -value);
+        protected override CSequence Scale(Complex d) =>
+            new RepeatSequence(length, value * d);
+        protected override CSequence Shift(Complex d) =>
+            new RepeatSequence(length, value + d);
+    }
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="mapper">The mapping function.</param>

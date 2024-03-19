@@ -43,6 +43,50 @@ public abstract partial class NSequence
         }
     }
 
+    /// <summary>A fixed length sequence that repeats the same value a number of times.</summary>
+    /// <param name="length">Number of items in the sequence.</param>
+    /// <param name="value">The repeated value.</param>
+    private sealed class RepeatSequence(int length, int value) : CursorSequence(length)
+    {
+        /// <summary>The value to repeat.</summary>
+        private readonly int value = value;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out int value)
+        {
+            if (current++ < length)
+            {
+                value = this.value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        public override int this[int idx] =>
+            (uint)idx < length ? value : throw new IndexOutOfRangeException();
+
+        public override bool Contains(int value) => value == this.value;
+
+        public override int First() => value;
+        public override int Last() => value;
+        public override int Max() => value;
+        public override int Min() => value;
+        public override int Sum() => length * value;
+        public override NSequence Distinct() => this;
+        public override NSequence Sort() => this;
+        public override NSequence SortDescending() => this;
+
+        protected override bool ContainsZero => value == 0;
+        protected override NSequence Negate() => new RepeatSequence(length, -value);
+        protected override NSequence Scale(int d) =>
+            new RepeatSequence(length, value * d);
+        protected override NSequence Shift(int d) =>
+            new RepeatSequence(length, value + d);
+    }
+
     /// <summary>Implements a sequence transformed by a mapper lambda.</summary>
     /// <param name="source">The original sequence.</param>
     /// <param name="mapper">The mapping function.</param>
