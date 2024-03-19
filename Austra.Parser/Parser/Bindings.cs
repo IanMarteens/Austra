@@ -697,7 +697,7 @@ internal sealed class Bindings
                 typeof(NSequence).MD(nameof(NSequence.Random), NArg),
                 typeof(NSequence).MD(nameof(NSequence.Random), NNArg),
                 typeof(NSequence).MD(nameof(NSequence.Random), [.. NNArg, typeof(int)])),
-            ["seq.repeat"] = new(
+            ["iseq.repeat"] = new(
                 typeof(NSequence).MD(nameof(NSequence.Repeat), typeof(int), typeof(int))),
             ["iseq.unfold"] = new(
                 typeof(NSequence).MD(nameof(NSequence.Unfold),
