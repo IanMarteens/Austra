@@ -3,7 +3,7 @@
 public class VectorBenchmark : BenchmarkControl
 {
     private readonly int size;
-    private readonly DVector cv1, cv2, cv3, cv4, cv5, cv6, cv7;
+    private readonly DVector cv1, cv2, cv3, cv4, cv5, cv6, cv7, cv8;
     private readonly NVector nv1;
     private readonly Random rnd = new(133);
 
@@ -17,6 +17,7 @@ public class VectorBenchmark : BenchmarkControl
         cv5 = new DVector(1024, rnd, 0.6, 1);
         cv6 = new DVector(1024, rnd);
         cv7 = new DVector(1024, new NormalRandom(rnd));
+        cv8 = cv7.Clone();
         nv1 = new NVector(size, 100, rnd);
     }
 
@@ -53,11 +54,11 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public double AustraVectorSumItems() => cv5.Sum();
 
-    //[Benchmark]
-    public bool AustraVectorEqualsFalse() => cv1 == cv2;
+    [Benchmark]
+    public bool AustraVectorEqualsFalse() => cv6 == cv7;
 
-    //[Benchmark]
-    public bool AustraVectorEqualsTrue() => cv1 == cv3;
+    [Benchmark]
+    public bool AustraVectorEqualsTrue() => cv7 == cv8;
 
     //[Benchmark]
     public DVector AustraRawLineal() => 2 * cv4 + 3 * cv5;
@@ -107,9 +108,9 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public int AustraNIndexOfLast() => nv1.IndexOf(nv1[^1]);
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraAny() => cv7.Any(x => x == double.Pi);
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraAll() => cv6.All(x => x >= 0);
 }

@@ -213,9 +213,9 @@ public static class Vec
                 vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p)));
             return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref t))).Max();
         }
-        double max = Abs(span[0]);
+        double max = Math.Abs(span[0]);
         for (int i = 1; i < span.Length; i++)
-            max = Math.Max(max, Abs(span[i]));
+            max = Math.Max(max, Math.Abs(span[i]));
         return max;
     }
 
@@ -244,9 +244,9 @@ public static class Vec
                 vm = V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref p)));
             return V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref t))).Min();
         }
-        double min = Abs(span[0]);
+        double min = Math.Abs(span[0]);
         for (int i = 1; i < span.Length; i++)
-            min = Math.Min(min, Abs(span[i]));
+            min = Math.Min(min, Math.Abs(span[i]));
         return min;
     }
 
@@ -1121,46 +1121,7 @@ public static class Vec
         return sum;
     }
 
-    /// <summary>Checks two arrays for equality.</summary>
-    /// <param name="array1">First array operand.</param>
-    /// <param name="array2">Second array operand.</param>
-    /// <returns><see langword="true"/> if both array has the same items.</returns>
-    public static bool Eqs(this double[] array1, double[] array2)
-    {
-        if (array1.Length != array2.Length)
-            return false;
-        ref double p = ref MM.GetArrayDataReference(array1);
-        ref double q = ref MM.GetArrayDataReference(array2);
-        if (V8.IsHardwareAccelerated && array1.Length >= V8d.Count)
-        {
-            ref double lstP = ref Unsafe.Add(ref p, array1.Length - V8d.Count);
-            ref double lstQ = ref Unsafe.Add(ref q, array1.Length - V8d.Count);
-            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, V8d.Count),
-                q = ref Unsafe.Add(ref q, V8d.Count))
-                if (!V8.EqualsAll(V8.LoadUnsafe(ref p), V8.LoadUnsafe(ref q)))
-                    return false;
-            if (!V8.EqualsAll(V8.LoadUnsafe(ref lstP), V8.LoadUnsafe(ref lstQ)))
-                return false;
-        }
-        else if (V4.IsHardwareAccelerated && array1.Length >= V4d.Count)
-        {
-            ref double lstP = ref Unsafe.Add(ref p, array1.Length - V4d.Count);
-            ref double lstQ = ref Unsafe.Add(ref q, array1.Length - V4d.Count);
-            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, V4d.Count),
-                q = ref Unsafe.Add(ref q, V4d.Count))
-                if (!V4.EqualsAll(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q)))
-                    return false;
-            if (!V4.EqualsAll(V4.LoadUnsafe(ref lstP), V4.LoadUnsafe(ref lstQ)))
-                return false;
-        }
-        else
-            for (int i = 0; i < array1.Length; i++)
-                if (Unsafe.Add(ref p, i) != Unsafe.Add(ref q, i))
-                    return false;
-        return true;
-    }
-
-    /// <summary>Returns the zero-based index of the first occurrence of p value.</summary>
+   /// <summary>Returns the zero-based index of the first occurrence of p value.</summary>
     /// <param name="values">The span to search.</param>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
@@ -1235,11 +1196,38 @@ public static class Vec
         return -1;
     }
 
+    /// <summary>Gets the absolute values of the array items.</summary>
+    /// <returns>A new array with non-negative items.</returns>
+    public static T[] Abs<T>(this T[] values) where T : struct, INumberBase<T>
+    {
+        T[] result = GC.AllocateUninitializedArray<T>(values.Length);
+        ref T p = ref MM.GetArrayDataReference(values);
+        ref T q = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
+        {
+            nuint t = (nuint)(result.Length - Vector512<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
+            V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
+        {
+            nuint t = (nuint)(result.Length - Vector256<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
+            V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Unsafe.Add(ref q, i) = T.Abs(Unsafe.Add(ref p, i));
+        return result;
+    }
+
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="span">The span to search.</param>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-    public static bool All<T>(this Span<T> span, Func<T, bool> predicate) where T: struct
+    public static bool All<T>(this Span<T> span, Func<T, bool> predicate) where T : struct
     {
         foreach (T item in span)
             if (!predicate(item))
@@ -1251,8 +1239,7 @@ public static class Vec
     /// <param name="span">The span to search.</param>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-    public static bool Any<T>(this Span<T> span, Func<T, bool> predicate) where T: struct
-
+    public static bool Any<T>(this Span<T> span, Func<T, bool> predicate) where T : struct
     {
         foreach (T item in span)
             if (predicate(item))
@@ -1264,17 +1251,56 @@ public static class Vec
     /// <remarks>Results are unordered.</remarks>
     /// <param name="span">The span to transform.</param>
     /// <returns>A new array with distinct values.</returns>
-    public static T[] Distinct<T>(this Span<T> span) where T: struct
+    public static T[] Distinct<T>(this Span<T> span) where T : struct
     {
         HashSet<T> set = [.. span];
         return [.. set];
+    }
+
+    /// <summary>Checks two arrays for equality.</summary>
+    /// <param name="array1">First array operand.</param>
+    /// <param name="array2">Second array operand.</param>
+    /// <returns><see langword="true"/> if both array has the same items.</returns>
+    public static bool Eqs<T>(this T[] array1, T[] array2) where T : INumberBase<T>
+    {
+        if (array1.Length != array2.Length)
+            return false;
+        ref T p = ref MM.GetArrayDataReference(array1);
+        ref T q = ref MM.GetArrayDataReference(array2);
+        if (V8.IsHardwareAccelerated && array1.Length >= Vector512<T>.Count)
+        {
+            ref T lstP = ref Unsafe.Add(ref p, array1.Length - Vector512<T>.Count);
+            ref T lstQ = ref Unsafe.Add(ref q, array1.Length - Vector512<T>.Count);
+            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, Vector512<T>.Count),
+                q = ref Unsafe.Add(ref q, Vector512<T>.Count))
+                if (!V8.EqualsAll(V8.LoadUnsafe(ref p), V8.LoadUnsafe(ref q)))
+                    return false;
+            if (!V8.EqualsAll(V8.LoadUnsafe(ref lstP), V8.LoadUnsafe(ref lstQ)))
+                return false;
+        }
+        else if (V4.IsHardwareAccelerated && array1.Length >= Vector256<T>.Count)
+        {
+            ref T lstP = ref Unsafe.Add(ref p, array1.Length - Vector256<T>.Count);
+            ref T lstQ = ref Unsafe.Add(ref q, array1.Length - Vector256<T>.Count);
+            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, Vector256<T>.Count),
+                q = ref Unsafe.Add(ref q, Vector256<T>.Count))
+                if (!V4.EqualsAll(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q)))
+                    return false;
+            if (!V4.EqualsAll(V4.LoadUnsafe(ref lstP), V4.LoadUnsafe(ref lstQ)))
+                return false;
+        }
+        else
+            for (int i = 0; i < array1.Length; i++)
+                if (Unsafe.Add(ref p, i) != Unsafe.Add(ref q, i))
+                    return false;
+        return true;
     }
 
     /// <summary>Creates a new array by filtering items with the given predicate.</summary>
     /// <param name="values">The array to filter.</param>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new array with the filtered items.</returns>
-    public static T[] Filter<T>(this T[] values, Func<T, bool> predicate) where T: struct
+    public static T[] Filter<T>(this T[] values, Func<T, bool> predicate) where T : struct
     {
         T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
         int j = 0;
@@ -1290,7 +1316,7 @@ public static class Vec
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new array with the filtered items.</returns>
-    public static T[] FilterMap<T>(this T[] values, Func<T, bool> predicate, Func<T, T> mapper) where T: struct
+    public static T[] FilterMap<T>(this T[] values, Func<T, bool> predicate, Func<T, T> mapper) where T : struct
     {
         T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
         int j = 0;
@@ -1306,7 +1332,7 @@ public static class Vec
     /// <param name="values">The array to transform.</param>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new array with the transformed content.</returns>
-    public static T[] Map<T>(this T[] values, Func<T, T> mapper) where T: struct
+    public static T[] Map<T>(this T[] values, Func<T, T> mapper) where T : struct
     {
         T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
         ref T p = ref MM.GetArrayDataReference(values);
@@ -1331,7 +1357,7 @@ public static class Vec
     /// <param name="seed">The initial value.</param>
     /// <param name="reducer">The reducing function.</param>
     /// <returns>The final synthesized value.</returns>
-    public static T Reduce<T>(this Span<T> span, T seed, Func<T, T, T> reducer) where T: struct
+    public static T Reduce<T>(this Span<T> span, T seed, Func<T, T, T> reducer) where T : struct
     {
         foreach (T item in span)
             seed = reducer(seed, item);
@@ -1343,7 +1369,7 @@ public static class Vec
     /// <param name="second">Second span to combine.</param>
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
-    public static T[] Zip<T>(this Span<T> first, Span<T> second, Func<T, T, T> zipper) where T: struct
+    public static T[] Zip<T>(this Span<T> first, Span<T> second, Func<T, T, T> zipper) where T : struct
     {
         int len = Math.Min(first.Length, second.Length);
         T[] newValues = GC.AllocateUninitializedArray<T>(len);
@@ -1353,45 +1379,6 @@ public static class Vec
         for (int i = 0; i < len; i++)
             Unsafe.Add(ref r, i) = zipper(Unsafe.Add(ref p, i), Unsafe.Add(ref q, i));
         return newValues;
-    }
-
-    /// <summary>Checks two arrays for equality.</summary>
-    /// <param name="array1">First array operand.</param>
-    /// <param name="array2">Second array operand.</param>
-    /// <returns><see langword="true"/> if both array has the same items.</returns>
-    public static bool Eqs(this int[] array1, int[] array2)
-    {
-        if (array1.Length != array2.Length)
-            return false;
-        ref int p = ref MM.GetArrayDataReference(array1);
-        ref int q = ref MM.GetArrayDataReference(array2);
-        if (V8.IsHardwareAccelerated && array1.Length >= V8i.Count)
-        {
-            ref int lstP = ref Unsafe.Add(ref p, array1.Length - V8i.Count);
-            ref int lstQ = ref Unsafe.Add(ref q, array1.Length - V8i.Count);
-            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, V8i.Count),
-                q = ref Unsafe.Add(ref q, V8i.Count))
-                if (!V8.EqualsAll(V8.LoadUnsafe(ref p), V8.LoadUnsafe(ref q)))
-                    return false;
-            if (!V8.EqualsAll(V8.LoadUnsafe(ref lstP), V8.LoadUnsafe(ref lstQ)))
-                return false;
-        }
-        else if (V4.IsHardwareAccelerated && array1.Length >= V4i.Count)
-        {
-            ref int lstP = ref Unsafe.Add(ref p, array1.Length - V4i.Count);
-            ref int lstQ = ref Unsafe.Add(ref q, array1.Length - V4i.Count);
-            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, V4i.Count),
-                q = ref Unsafe.Add(ref q, V4i.Count))
-                if (!V4.EqualsAll(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q)))
-                    return false;
-            if (!V4.EqualsAll(V4.LoadUnsafe(ref lstP), V4.LoadUnsafe(ref lstQ)))
-                return false;
-        }
-        else
-            for (int i = 0; i < array1.Length; i++)
-                if (Unsafe.Add(ref p, i) != Unsafe.Add(ref q, i))
-                    return false;
-        return true;
     }
 
     /// <summary>In-place transposition of a square matrix.</summary>
@@ -1520,7 +1507,7 @@ public static class Vec
         double max = 0;
         for (int i = 0; i < len; i++)
         {
-            double v = Abs(first[i] - second[i]);
+            double v = Math.Abs(first[i] - second[i]);
             if (v > max)
                 max = v;
         }

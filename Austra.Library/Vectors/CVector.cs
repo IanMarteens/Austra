@@ -1077,7 +1077,6 @@ public readonly struct CVector :
         return j == 0 ? new([], []) : j == Length ? this : new(newRe[..j], newIm[..j]);
     }
 
-
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
     /// <param name="seed">The initial value.</param>
     /// <param name="reducer">The reducing function.</param>
@@ -1180,5 +1179,4 @@ public readonly struct CVector :
     /// <summary>Creates a plot for this vector.</summary>
     /// <returns>A plot containing this vector as its dataset.</returns>
     public Plot<CVector> Plot() => new(this);
-
 }

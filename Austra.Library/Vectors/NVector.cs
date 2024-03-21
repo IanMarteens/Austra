@@ -529,27 +529,7 @@ public readonly struct NVector :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == Length);
 
-        int[] result = GC.AllocateUninitializedArray<int>(Length);
-        ref int p = ref MM.GetArrayDataReference(values);
-        ref int q = ref MM.GetArrayDataReference(result);
-        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
-        {
-            nuint t = (nuint)(result.Length - V8i.Count);
-            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
-                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
-            V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
-        }
-        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
-        {
-            nuint t = (nuint)(result.Length - V4i.Count);
-            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
-                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
-            V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref q, i) = Math.Abs(Add(ref p, i));
-        return result;
+        return values.Abs();
     }
 
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>

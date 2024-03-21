@@ -991,27 +991,7 @@ public readonly struct DVector :
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == Length);
 
-        double[] result = GC.AllocateUninitializedArray<double>(Length);
-        ref double p = ref MM.GetArrayDataReference(values);
-        ref double q = ref MM.GetArrayDataReference(result);
-        if (V8.IsHardwareAccelerated && result.Length >= V8d.Count)
-        {
-            nuint t = (nuint)(result.Length - V8d.Count);
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
-            V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
-        }
-        else if (V4.IsHardwareAccelerated && result.Length >= V4d.Count)
-        {
-            nuint t = (nuint)(result.Length - V4d.Count);
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
-            V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Add(ref q, i) = Math.Abs(Add(ref p, i));
-        return result;
+        return values.Abs();
     }
 
     /// <summary>
