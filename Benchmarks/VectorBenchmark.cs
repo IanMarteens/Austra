@@ -21,7 +21,7 @@ public class VectorBenchmark : BenchmarkControl
         nv1 = new NVector(size, 100, rnd);
     }
 
-    //[Benchmark]
+    [Benchmark]
     public DVector AustraVectorSum() => cv4 + cv5;
 
     //[Benchmark]
@@ -54,10 +54,10 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public double AustraVectorSumItems() => cv5.Sum();
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraVectorEqualsFalse() => cv6 == cv7;
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraVectorEqualsTrue() => cv7 == cv8;
 
     //[Benchmark]
