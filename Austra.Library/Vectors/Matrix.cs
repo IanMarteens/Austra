@@ -1427,37 +1427,19 @@ public readonly struct Matrix :
     /// <summary>Applies a function to each cell of the matrix.</summary>
     /// <param name="mapper">The transformation function.</param>
     /// <returns>A new matrix with transformed cells.</returns>
-    public Matrix Map(Func<double, double> mapper)
-    {
-        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
-        ref double p = ref MM.GetArrayDataReference(values);
-        ref double q = ref MM.GetArrayDataReference(newValues);
-        for (int i = 0; i < newValues.Length; i++)
-            Add(ref q, i) = mapper(Add(ref p, i));
-        return new(Rows, Cols, newValues);
-    }
+    public Matrix Map(Func<double, double> mapper) => new(Rows, Cols, values.Map(mapper));
 
     /// <summary>Checks whether the predicate is satified by all cells.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all cells satisfy the predicate.</returns>
-    public bool All(Func<double, bool> predicate)
-    {
-        foreach (double value in values)
-            if (!predicate(value))
-                return false;
-        return true;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool All(Func<double, bool> predicate) => values.AsSpan().All(predicate);
 
     /// <summary>Checks whether the predicate is satified by at least one cell.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a cell satisfying the predicate.</returns>
-    public bool Any(Func<double, bool> predicate)
-    {
-        foreach (double value in values)
-            if (predicate(value))
-                return true;
-        return false;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Any(Func<double, bool> predicate) => values.AsSpan().Any(predicate);
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
