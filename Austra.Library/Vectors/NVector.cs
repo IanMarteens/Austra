@@ -360,7 +360,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        CommonMatrix.Sub(d, v.values, result);
+        Vec.Sub(d, v.values, result);
         return result;
     }
 
@@ -555,63 +555,30 @@ public readonly struct NVector :
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-    public bool All(Func<int, bool> predicate)
-    {
-        foreach (int value in values)
-            if (!predicate(value))
-                return false;
-        return true;
-    }
+    public bool All(Func<int, bool> predicate) => values.AsSpan().All(predicate);
 
     /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-    public bool Any(Func<int, bool> predicate)
-    {
-        foreach (int value in values)
-            if (predicate(value))
-                return true;
-        return false;
-    }
+    public bool Any(Func<int, bool> predicate) => values.AsSpan().Any(predicate);
 
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
-    public NVector Distinct()
-    {
-        HashSet<int> set = new(Length);
-        foreach (int value in values)
-            set.Add(value);
-        return new(set.ToArray());
-    }
+    public NVector Distinct() => values.AsSpan().Distinct();
 
     /// <summary>Creates a new vector by filtering items with the given predicate.</summary>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new vector with the filtered items.</returns>
-    public NVector Filter(Func<int, bool> predicate)
-    {
-        int[] newValues = GC.AllocateUninitializedArray<int>(values.Length);
-        int j = 0;
-        foreach (int value in values)
-            if (predicate(value))
-                newValues[j++] = value;
-        return j == 0 ? new NVector(0) : j == Length ? this : newValues[..j];
-    }
+    public NVector Filter(Func<int, bool> predicate) => values.Filter(predicate);
 
     /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
     /// <remarks>This method can save an intermediate buffer and one iteration.</remarks>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new vector with the filtered items.</returns>
-    public NVector FilterMap(Func<int, bool> predicate, Func<int, int> mapper)
-    {
-        int[] newValues = GC.AllocateUninitializedArray<int>(values.Length);
-        int j = 0;
-        foreach (int value in values)
-            if (predicate(value))
-                newValues[j++] = mapper(value);
-        return j == 0 ? new(0) : j == Length ? this : newValues[..j];
-    }
+    public NVector FilterMap(Func<int, bool> predicate, Func<int, int> mapper) =>
+        values.FilterMap(predicate, mapper);
 
     /// <summary>Checks if the vector contains the given value.</summary>
     /// <param name="value">Value to locate.</param>
@@ -653,14 +620,8 @@ public readonly struct NVector :
     /// </summary>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new vector with the transformed content.</returns>
-    public NVector Map(Func<int, int> mapper)
-    {
-        int[] newValues = GC.AllocateUninitializedArray<int>(values.Length);
-        ref int p = ref MM.GetArrayDataReference(values);
-        for (int i = 0; i < newValues.Length; i++)
-            newValues[i] = mapper(Add(ref p, i));
-        return newValues;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public NVector Map(Func<int, int> mapper) => values.Map(mapper);
 
     /// <summary>
     /// Creates a new real vector by transforming each item with the given function.
@@ -680,12 +641,9 @@ public readonly struct NVector :
     /// <param name="seed">The initial value.</param>
     /// <param name="reducer">The reducing function.</param>
     /// <returns>The final synthesized value.</returns>
-    public double Reduce(int seed, Func<int, int, int> reducer)
-    {
-        foreach (int value in values)
-            seed = reducer(seed, value);
-        return seed;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public double Reduce(int seed, Func<int, int, int> reducer) =>
+        values.AsSpan().Reduce(seed, reducer);
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
@@ -718,17 +676,8 @@ public readonly struct NVector :
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
-    public NVector Zip(NVector other, Func<int, int, int> zipper)
-    {
-        int len = Min(Length, other.Length);
-        int[] newValues = GC.AllocateUninitializedArray<int>(len);
-        ref int p = ref MM.GetArrayDataReference(values);
-        ref int q = ref MM.GetArrayDataReference(other.values);
-        ref int r = ref MM.GetArrayDataReference(newValues);
-        for (int i = 0; i < len; i++)
-            Add(ref r, i) = zipper(Add(ref p, i), Add(ref q, i));
-        return newValues;
-    }
+    public NVector Zip(NVector other, Func<int, int, int> zipper) =>
+        values.AsSpan().Zip(other.values, zipper);
 
     /// <summary>Convert this vector to a vector of reals.</summary>
     /// <returns>A new vector of reals.</returns>

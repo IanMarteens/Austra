@@ -110,7 +110,7 @@ public readonly struct RMatrix :
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
     public static RMatrix Identity(int size) =>
-        new(size, size, CommonMatrix.CreateIdentity(size));
+        new(size, size, Vec.CreateIdentity(size));
 
     /// <summary>Creates an identical lower triangular matrix.</summary>
     /// <returns>A deep clone of the instance.</returns>
@@ -290,7 +290,7 @@ public readonly struct RMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = new double[m.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            CommonMatrix.Sub(d, m.values.AsSpan(offset + row, c - row),
+            Vec.Sub(d, m.values.AsSpan(offset + row, c - row),
                 result.AsSpan(offset + row, c - row));
         return new(r, c, result);
     }

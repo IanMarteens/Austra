@@ -136,7 +136,7 @@ public readonly struct LMatrix :
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
     public static LMatrix Identity(int size) =>
-        new(size, size, CommonMatrix.CreateIdentity(size));
+        new(size, size, Vec.CreateIdentity(size));
 
     /// <summary>Creates an identical lower triangular matrix.</summary>
     /// <returns>A deep clone of the instance.</returns>
@@ -367,11 +367,11 @@ public readonly struct LMatrix :
             r = c;
         result[0] = d - m.values[0];    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            CommonMatrix.Sub(d, m.values.AsSpan(offset, row + 1), result.AsSpan(offset, row + 1));
+            Vec.Sub(d, m.values.AsSpan(offset, row + 1), result.AsSpan(offset, row + 1));
         if (m.Rows > c)
         {
             int c2 = c * c;
-            CommonMatrix.Sub(d, m.values.AsSpan(c2), result.AsSpan(c2));
+            Vec.Sub(d, m.values.AsSpan(c2), result.AsSpan(c2));
         }
         return new(m.Rows, m.Cols, result);
     }

@@ -106,7 +106,7 @@ public readonly struct Matrix :
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     public Matrix(params double[] diagonal) =>
-        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, CommonMatrix.CreateDiagonal(diagonal));
+        (Rows, Cols, values) = (diagonal.Length, diagonal.Length, Vec.CreateDiagonal(diagonal));
 
     /// <summary>Creates a matrix filled with a uniform distribution generator.</summary>
     /// <param name="rows">Number of rows.</param>
@@ -166,7 +166,7 @@ public readonly struct Matrix :
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
     public static Matrix Identity(int size) =>
-        new(size, size, CommonMatrix.CreateIdentity(size));
+        new(size, size, Vec.CreateIdentity(size));
 
     /// <summary>Creates a matrix given its columns.</summary>
     /// <param name="columns">The array of columns.</param>
@@ -820,7 +820,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
-        CommonMatrix.Sub(d, m.values, result);
+        Vec.Sub(d, m.values, result);
         return new(m.Rows, m.Cols, result);
     }
 

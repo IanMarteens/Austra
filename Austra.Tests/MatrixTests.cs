@@ -33,7 +33,7 @@ public class MatrixTests
     {
         Matrix m = new(size, new NormalRandom());
         Matrix m1 = m.Transpose();
-        CommonMatrix.Transpose(m.Rows, m.Cols, (double[])m);
+        Vec.Transpose(m.Rows, m.Cols, (double[])m);
         Assert.That((m - m1).AMax(), Is.EqualTo(0));
     }
 

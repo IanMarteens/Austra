@@ -404,7 +404,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        CommonMatrix.Sub(d, v.values, result);
+        Vec.Sub(d, v.values, result);
         return result;
     }
 
@@ -1019,102 +1019,48 @@ public readonly struct DVector :
     /// </summary>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new vector with the transformed content.</returns>
-    public DVector Map(Func<double, double> mapper)
-    {
-        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
-        ref double p = ref MM.GetArrayDataReference(values);
-        ref double q = ref MM.GetArrayDataReference(newValues);
-        int i = 0;
-        for (int size = newValues.Length & (~3); i < size; i += 4)
-        {
-            var (a, b, c, d) = (mapper(Add(ref p, i)), mapper(Add(ref p, i + 1)),
-                mapper(Add(ref p, i + 2)), mapper(Add(ref p, i + 3)));
-            Add(ref q, i) = a;
-            Add(ref q, i + 1) = b;
-            Add(ref q, i + 2) = c;
-            Add(ref q, i + 3) = d;
-        }
-        for (; i < newValues.Length; i++)
-            Add(ref q, i) = mapper(Add(ref p, i));
-        return newValues;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public DVector Map(Func<double, double> mapper) => values.Map(mapper);
 
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-    public bool All(Func<double, bool> predicate)
-    {
-        foreach (double value in values)
-            if (!predicate(value))
-                return false;
-        return true;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool All(Func<double, bool> predicate) => values.AsSpan().All(predicate);
 
     /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-    public bool Any(Func<double, bool> predicate)
-    {
-        foreach (double value in values)
-            if (predicate(value))
-                return true;
-        return false;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Any(Func<double, bool> predicate) => values.AsSpan().Any(predicate);
 
     /// <summary>Creates a new vector by filtering items with the given predicate.</summary>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new vector with the filtered items.</returns>
-    public DVector Filter(Func<double, bool> predicate)
-    {
-        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
-        int j = 0;
-        foreach (double value in values)
-            if (predicate(value))
-                newValues[j++] = value;
-        return j == 0 ? [] : j == Length ? this : newValues[..j];
-    }
+    public DVector Filter(Func<double, bool> predicate) => values.Filter(predicate);
 
     /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
     /// <remarks>This method can save an intermediate buffer and one iteration.</remarks>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new vector with the filtered items.</returns>
-    public DVector FilterMap(Func<double, bool> predicate, Func<double, double> mapper)
-    {
-        double[] newValues = GC.AllocateUninitializedArray<double>(values.Length);
-        int j = 0;
-        foreach (double value in values)
-            if (predicate(value))
-                newValues[j++] = mapper(value);
-        return j == 0 ? new(0) : j == Length ? this : newValues[..j];
-    }
+    public DVector FilterMap(Func<double, bool> predicate, Func<double, double> mapper) =>
+        values.FilterMap(predicate, mapper);
 
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
     /// <param name="seed">The initial value.</param>
     /// <param name="reducer">The reducing function.</param>
     /// <returns>The final synthesized value.</returns>
-    public double Reduce(double seed, Func<double, double, double> reducer)
-    {
-        foreach (double value in values)
-            seed = reducer(seed, value);
-        return seed;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public double Reduce(double seed, Func<double, double, double> reducer) =>
+        values.AsSpan().Reduce(seed, reducer);
 
     /// <summary>Combines the common prefix of two vectors.</summary>
     /// <param name="other">Second vector to combine.</param>
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
-    public DVector Zip(DVector other, Func<double, double, double> zipper)
-    {
-        int len = Min(Length, other.Length);
-        double[] newValues = GC.AllocateUninitializedArray<double>(len);
-        ref double p = ref MM.GetArrayDataReference(values);
-        ref double q = ref MM.GetArrayDataReference(other.values);
-        ref double r = ref MM.GetArrayDataReference(newValues);
-        for (int i = 0; i < len; i++)
-            Add(ref r, i) = zipper(Add(ref p, i), Add(ref q, i));
-        return newValues;
-    }
+    public DVector Zip(DVector other, Func<double, double, double> zipper) =>
+        values.AsSpan().Zip(other.values, zipper);
 
     /// <summary>Computes the autocorrelation for a fixed lag.</summary>
     /// <param name="lag">Lag number in samples.</param>
@@ -1403,13 +1349,7 @@ public readonly struct DVector :
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
-    public DVector Distinct()
-    {
-        HashSet<double> set = new(Length);
-        foreach (double value in values)
-            set.Add(value);
-        return new(set.ToArray());
-    }
+    public DVector Distinct() => values.AsSpan().Distinct();
 
     /// <summary>Returns a new vector with sorted values.</summary>
     /// <returns>A new vector with sorted values.</returns>

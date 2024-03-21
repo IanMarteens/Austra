@@ -20,90 +20,96 @@ public class VectorBenchmark : BenchmarkControl
         nv1 = new NVector(size, 100, rnd);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorSum() => cv4 + cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorSub() => cv4 - cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorScale() => 2d * cv4;
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorAddScalar() => cv4 + 2d;
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorPointMult() => cv4.PointwiseMultiply(cv5);
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorPointMultAdd() => cv4.MultiplyAdd(cv5, cv6);
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorMultAdd() => cv4.MultiplyAdd(Math.PI, cv6);
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorMultAddRaw() => cv4 * Math.PI + cv6;
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraDotProduct() => cv1 * cv2;
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraVectorProduct() => cv5.Product();
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraVectorSumItems() => cv5.Sum();
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraVectorEqualsFalse() => cv1 == cv2;
 
-    [Benchmark]
+    //[Benchmark]
     public bool AustraVectorEqualsTrue() => cv1 == cv3;
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraRawLineal() => 2 * cv4 + 3 * cv5;
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraCombineLineal() => DVector.Combine2(2, 3, cv4, cv5);
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraNegate() => -cv4;
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraRandomVector() => new(size, NormalRandom.Shared);
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraURandomVector() => new(size, Random.Shared);
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraSquareVector() => cv4.Squared();
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorSqrt() => cv4.Sqrt();
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorAbs() => cv7.Abs();
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorMap() => cv7.Map(Math.Abs);
 
-    [Benchmark]
+    //[Benchmark]
     public Matrix AustraExternalProduct() => cv1 ^ cv3;
 
-    [Benchmark]
+    //[Benchmark]
     public int AustraIndexOfMiddle() => cv7.IndexOf(cv7[cv7.Length / 2]);
 
-    [Benchmark]
+    //[Benchmark]
     public int AustraIndexOfLast() => cv7.IndexOf(cv7[^1]);
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraAutocorrelation() => cv7.AutoCorrelation(4);
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorReverse() => cv7.Reverse();
 
-    [Benchmark]
+    //[Benchmark]
     public Accumulator AustraVectorAccumulator() => nv1.Stats();
 
-    [Benchmark]
+    //[Benchmark]
     public int AustraNIndexOfLast() => nv1.IndexOf(nv1[^1]);
+
+    [Benchmark]
+    public bool AustraAny() => cv7.Any(x => x == double.Pi);
+
+    [Benchmark]
+    public bool AustraAll() => cv6.All(x => x >= 0);
 }

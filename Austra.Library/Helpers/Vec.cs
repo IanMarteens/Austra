@@ -1,20 +1,17 @@
-﻿using System;
-using System.Drawing;
-
-namespace Austra.Library.Helpers;
+﻿namespace Austra.Library.Helpers;
 
 /// <summary>Implements common matrix and vector operations.</summary>
 /// <remarks>
 /// We have three matrix types: <see cref="Matrix"/>, <see cref="LMatrix"/>,
 /// and <see cref="RMatrix"/>, with common operations. On the other hand, matrices
-/// also belong to p vector space, so they share some code with <see cref="DVector"/>.
+/// also belong to a vector space, so they share some code with <see cref="DVector"/>.
 /// </remarks>
-public static class CommonMatrix
+public static class Vec
 {
-    /// <summary>Number of characters in p line.</summary>
+    /// <summary>Number of characters in a line.</summary>
     public static int TERMINAL_COLUMNS { get; set; } = 80;
 
-    /// <summary>Deconstruct p complex number into its real and imaginary parts.</summary>
+    /// <summary>Deconstruct a complex number into its real and imaginary parts.</summary>
     /// <param name="complex">The value to be deconstructed.</param>
     /// <param name="real">The real part.</param>
     /// <param name="imaginary">The imaginary part.</param>
@@ -22,7 +19,7 @@ public static class CommonMatrix
     public static void Deconstruct(this Complex complex, out double real, out double imaginary) =>
         (real, imaginary) = (complex.Real, complex.Imaginary);
 
-    /// <summary>Creates an identity matrix given p size.</summary>
+    /// <summary>Creates an identity matrix given a size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
     public static double[] CreateIdentity(int size)
@@ -49,8 +46,8 @@ public static class CommonMatrix
         return values;
     }
 
-    /// <summary>Gets the main diagonal of p 1D-array.</summary>
-    /// <param name="values">A 1D-array containing p matrix.</param>
+    /// <summary>Gets the main diagonal of a 1D-array.</summary>
+    /// <param name="values">A 1D-array containing a matrix.</param>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <returns>A vector containing values in the main diagonal.</returns>
@@ -161,7 +158,7 @@ public static class CommonMatrix
         }
     }
 
-    /// <summary>Calculates the trace of p 1D-array.</summary>
+    /// <summary>Calculates the trace of a 1D-array.</summary>
     /// <param name="values">A 1D-array.</param>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
@@ -191,7 +188,7 @@ public static class CommonMatrix
         return product;
     }
 
-    /// <summary>Gets the item in an span with the maximum absolute value.</summary>
+    /// <summary>Gets the item in a span with the maximum absolute value.</summary>
     /// <param name="span">The data span.</param>
     /// <returns>The maximum absolute value in the samples.</returns>
     public static double AMax(this Span<double> span)
@@ -645,7 +642,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) - scalar;
     }
 
-    /// <summary>Pointwise subtraction of an span from a scalar.</summary>
+    /// <summary>Pointwise subtraction of a span from a scalar.</summary>
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -674,7 +671,7 @@ public static class CommonMatrix
                 Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Pointwise subtraction of an span from a scalar.</summary>
+    /// <summary>Pointwise subtraction of a span from a scalar.</summary>
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -1238,6 +1235,126 @@ public static class CommonMatrix
         return -1;
     }
 
+    /// <summary>Checks whether the predicate is satisfied by all items.</summary>
+    /// <param name="span">The span to search.</param>
+    /// <param name="predicate">The predicate to be checked.</param>
+    /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
+    public static bool All<T>(this Span<T> span, Func<T, bool> predicate) where T: struct
+    {
+        foreach (T item in span)
+            if (!predicate(item))
+                return false;
+        return true;
+    }
+
+    /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
+    /// <param name="span">The span to search.</param>
+    /// <param name="predicate">The predicate to be checked.</param>
+    /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
+    public static bool Any<T>(this Span<T> span, Func<T, bool> predicate) where T: struct
+
+    {
+        foreach (T item in span)
+            if (predicate(item))
+                return true;
+        return false;
+    }
+
+    /// <summary>Returns a new array with the distinct values in the span.</summary>
+    /// <remarks>Results are unordered.</remarks>
+    /// <param name="span">The span to transform.</param>
+    /// <returns>A new array with distinct values.</returns>
+    public static T[] Distinct<T>(this Span<T> span) where T: struct
+    {
+        HashSet<T> set = [.. span];
+        return [.. set];
+    }
+
+    /// <summary>Creates a new array by filtering items with the given predicate.</summary>
+    /// <param name="values">The array to filter.</param>
+    /// <param name="predicate">The predicate to evaluate.</param>
+    /// <returns>A new array with the filtered items.</returns>
+    public static T[] Filter<T>(this T[] values, Func<T, bool> predicate) where T: struct
+    {
+        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
+        int j = 0;
+        foreach (T value in values)
+            if (predicate(value))
+                newValues[j++] = value;
+        return j == 0 ? [] : j == values.Length ? values : newValues[..j];
+    }
+
+    /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
+    /// <remarks>This method can save an intermediate buffer and one iteration.</remarks>
+    /// <param name="values">The array to transform.</param>
+    /// <param name="predicate">The predicate to evaluate.</param>
+    /// <param name="mapper">The mapping function.</param>
+    /// <returns>A new array with the filtered items.</returns>
+    public static T[] FilterMap<T>(this T[] values, Func<T, bool> predicate, Func<T, T> mapper) where T: struct
+    {
+        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
+        int j = 0;
+        foreach (T value in values)
+            if (predicate(value))
+                newValues[j++] = mapper(value);
+        return j == 0 ? [] : j == values.Length ? values : newValues[..j];
+    }
+
+    /// <summary>
+    /// Creates a new array by transforming each item with the given function.
+    /// </summary>
+    /// <param name="values">The array to transform.</param>
+    /// <param name="mapper">The mapping function.</param>
+    /// <returns>A new array with the transformed content.</returns>
+    public static T[] Map<T>(this T[] values, Func<T, T> mapper) where T: struct
+    {
+        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
+        ref T p = ref MM.GetArrayDataReference(values);
+        ref T q = ref MM.GetArrayDataReference(newValues);
+        int i = 0;
+        for (int size = newValues.Length & (~3); i < size; i += 4)
+        {
+            var (a, b, c, d) = (mapper(Unsafe.Add(ref p, i)), mapper(Unsafe.Add(ref p, i + 1)),
+                mapper(Unsafe.Add(ref p, i + 2)), mapper(Unsafe.Add(ref p, i + 3)));
+            Unsafe.Add(ref q, i) = a;
+            Unsafe.Add(ref q, i + 1) = b;
+            Unsafe.Add(ref q, i + 2) = c;
+            Unsafe.Add(ref q, i + 3) = d;
+        }
+        for (; i < newValues.Length; i++)
+            Unsafe.Add(ref q, i) = mapper(Unsafe.Add(ref p, i));
+        return newValues;
+    }
+
+    /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
+    /// <param name="span">The span to reduce.</param>
+    /// <param name="seed">The initial value.</param>
+    /// <param name="reducer">The reducing function.</param>
+    /// <returns>The final synthesized value.</returns>
+    public static T Reduce<T>(this Span<T> span, T seed, Func<T, T, T> reducer) where T: struct
+    {
+        foreach (T item in span)
+            seed = reducer(seed, item);
+        return seed;
+    }
+
+    /// <summary>Combines the common prefix of two spans.</summary>
+    /// <param name="first">First span to combine.</param>
+    /// <param name="second">Second span to combine.</param>
+    /// <param name="zipper">The combining function.</param>
+    /// <returns>The combining function applied to each pair of items.</returns>
+    public static T[] Zip<T>(this Span<T> first, Span<T> second, Func<T, T, T> zipper) where T: struct
+    {
+        int len = Math.Min(first.Length, second.Length);
+        T[] newValues = GC.AllocateUninitializedArray<T>(len);
+        ref T p = ref MM.GetReference(first);
+        ref T q = ref MM.GetReference(second);
+        ref T r = ref MM.GetArrayDataReference(newValues);
+        for (int i = 0; i < len; i++)
+            Unsafe.Add(ref r, i) = zipper(Unsafe.Add(ref p, i), Unsafe.Add(ref q, i));
+        return newValues;
+    }
+
     /// <summary>Checks two arrays for equality.</summary>
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>
@@ -1277,7 +1394,7 @@ public static class CommonMatrix
         return true;
     }
 
-    /// <summary>In-place transposition of p square matrix.</summary>
+    /// <summary>In-place transposition of a square matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
     /// <param name="data">A 1D-array with data.</param>
@@ -1288,7 +1405,7 @@ public static class CommonMatrix
             Transpose(a, rows);
     }
 
-    /// <summary>In place transposition of p square matrix.</summary>
+    /// <summary>In place transposition of a square matrix.</summary>
     /// <param name="a">Pointer to raw data.</param>
     /// <param name="size">The size of the matrix.</param>
     internal unsafe static void Transpose(double* a, int size)
@@ -1328,7 +1445,7 @@ public static class CommonMatrix
                     Avx.Store(pp + s2, Avx.Permute2x128(t1, t3, 0b00110001));
                     Avx.Store(pp + s2 + size, Avx.Permute2x128(t2, t4, 0b00110001));
                 }
-                // Transpose p diagonal block.
+                // Transpose a diagonal block.
                 {
                     double* pp = a + (rsz + r);
                     var row1 = Avx.LoadVector256(pp);
@@ -1411,7 +1528,7 @@ public static class CommonMatrix
     }
 
     /// <summary>Gets p text representation of an array.</summary>
-    /// <param name="data">An array from p vector.</param>
+    /// <param name="data">An array from a vector.</param>
     /// <param name="formatter">A formatter for items.</param>
     /// <returns>A text representation of the vector.</returns>
     /// <typeparam name="T">The type of the items to format.</typeparam>
@@ -1461,8 +1578,8 @@ public static class CommonMatrix
         return sb.ToString();
     }
 
-    /// <summary>Gets p text representation of p matrix.</summary>
-    /// <param name="data">A 1D-array from p matrix.</param>
+    /// <summary>Gets a text representation of a matrix.</summary>
+    /// <param name="data">A 1D-array from a matrix.</param>
     /// <param name="rowCount">Number of rows.</param>
     /// <param name="colCount">Number of columns.</param>
     /// <param name="formatter">Converts items to text.</param>

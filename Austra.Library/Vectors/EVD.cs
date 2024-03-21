@@ -26,7 +26,7 @@ public readonly struct EVD : IFormattable
                     sourceBytesToCopy: r * sizeof(double));
                 SymmetricTridiagonalize(pA, pd, pe, r);
                 SymmetricDiagonalize(pA, pd, pe, r);
-                CommonMatrix.Transpose(pA, r);
+                Vec.Transpose(pA, r);
             }
         }
         else
@@ -37,7 +37,7 @@ public readonly struct EVD : IFormattable
             {
                 ReduceToHessenberg(pA, pH, pd, r);
                 ReduceToSchur(pA, pH, pd, pe, r);
-                CommonMatrix.Transpose(pA, r);
+                Vec.Transpose(pA, r);
             }
         }
         Values = new(d, e);

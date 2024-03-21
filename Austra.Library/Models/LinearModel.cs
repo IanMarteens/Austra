@@ -78,7 +78,7 @@ public abstract class LinearModel<T>: IFormattable
                 sb.Append(w.ToString(format, provider)).Append(" * ").Append(Variables[i]);
         }
         sb.AppendLine()
-            .Append("TStats: ").Append(CommonMatrix.ToString((double[])TStats, d => d.ToString(format, provider)))
+            .Append("TStats: ").Append(Vec.ToString((double[])TStats, d => d.ToString(format, provider)))
             .Append("R² = ").Append(R2.ToString(format, provider)).AppendLine();
         return sb.ToString();
     }
