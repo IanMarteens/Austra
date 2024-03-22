@@ -503,6 +503,11 @@ public readonly struct NVector :
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
     public bool Any(Func<int, bool> predicate) => values.AsSpan().Any(predicate);
 
+    /// <summary>Checks if the vector contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    public bool Contains(int value) => IndexOf(value) != -1;
+
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
@@ -521,10 +526,15 @@ public readonly struct NVector :
     public NVector FilterMap(Func<int, bool> predicate, Func<int, int> mapper) =>
         values.FilterMap(predicate, mapper);
 
-    /// <summary>Checks if the vector contains the given value.</summary>
-    /// <param name="value">Value to locate.</param>
-    /// <returns><see langword="true"/> if successful.</returns>
-    public bool Contains(int value) => IndexOf(value) != -1;
+    /// <summary>Returns all indexes containing ocurrences of a value.</summary>
+    /// <param name="value">Value to find.</param>
+    /// <returns>An integer sequences with all found indexes.</returns>
+    public NSequence Find(int value) => NSequence.Iterate((int[])this, value);
+
+    /// <summary>Returns all indexes satisfying a condition.</summary>
+    /// <param name="condition">The condition to be satisfied.</param>
+    /// <returns>An integer sequences with all found indexes.</returns>
+    public NSequence Find(Func<int, bool> condition) => NSequence.Iterate((int[])this, condition);
 
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="value">The value to locate.</param>
@@ -545,16 +555,6 @@ public readonly struct NVector :
         int result = Vec.IndexOf(new ReadOnlySpan<int>(values, from, Length - from), value);
         return result >= 0 ? result + from : -1;
     }
-
-    /// <summary>Returns all indexes containing ocurrences of a value.</summary>
-    /// <param name="value">Value to find.</param>
-    /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(int value) => NSequence.Iterate((int[])this, value);
-
-    /// <summary>Returns all indexes satisfying a condition.</summary>
-    /// <param name="condition">The condition to be satisfied.</param>
-    /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(Func<int, bool> condition) => NSequence.Iterate((int[])this, condition);
 
     /// <summary>
     /// Creates a new vector by transforming each item with the given function.

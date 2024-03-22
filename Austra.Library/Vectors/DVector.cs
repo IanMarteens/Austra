@@ -967,10 +967,26 @@ public readonly struct DVector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Any(Func<double, bool> predicate) => values.AsSpan().Any(predicate);
 
+    /// <summary>Checks if the vector contains the given value.</summary>
+    /// <param name="value">Value to locate.</param>
+    /// <returns><see langword="true"/> if successful.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(double value) => IndexOf(value) != -1;
+
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
     public DVector Distinct() => values.AsSpan().Distinct();
+
+    /// <summary>Returns all indexes containing ocurrences of a value.</summary>
+    /// <param name="value">Value to find.</param>
+    /// <returns>An integer sequences with all found indexes.</returns>
+    public NSequence Find(double value) => NSequence.Iterate(values, value);
+
+    /// <summary>Returns all indexes satisfying a condition.</summary>
+    /// <param name="condition">The condition to be satisfied.</param>
+    /// <returns>An integer sequences with all found indexes.</returns>
+    public NSequence Find(Func<double, bool> condition) => NSequence.Iterate(values, condition);
 
     /// <summary>Creates a new vector by filtering items with the given predicate.</summary>
     /// <param name="predicate">The predicate to evaluate.</param>
@@ -984,6 +1000,26 @@ public readonly struct DVector :
     /// <returns>A new vector with the filtered items.</returns>
     public DVector FilterMap(Func<double, bool> predicate, Func<double, double> mapper) =>
         values.FilterMap(predicate, mapper);
+
+    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <param name="value">The value to locate.</param>
+    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int IndexOf(double value) => IndexOf(value, 0);
+
+    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <param name="value">The value to locate.</param>
+    /// <param name="from">The zero-based starting index.</param>
+    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
+    public int IndexOf(double value, int from)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(from >= 0 && from < Length);
+        Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
+
+        int result = Vec.IndexOf(new ReadOnlySpan<double>(values, from, Length - from), value);
+        return result >= 0 ? result + from : -1;
+    }
 
     /// <summary>
     /// Creates a new vector by transforming each item with the given function.
@@ -1306,42 +1342,6 @@ public readonly struct DVector :
     /// <summary>Computes the real discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>
     public FftRModel Fft() => new(FFT.Transform(values));
-
-    /// <summary>Checks if the vector contains the given value.</summary>
-    /// <param name="value">Value to locate.</param>
-    /// <returns><see langword="true"/> if successful.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Contains(double value) => IndexOf(value) != -1;
-
-    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
-    /// <param name="value">The value to locate.</param>
-    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int IndexOf(double value) => IndexOf(value, 0);
-
-    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
-    /// <param name="value">The value to locate.</param>
-    /// <param name="from">The zero-based starting index.</param>
-    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-    public int IndexOf(double value, int from)
-    {
-        Contract.Requires(IsInitialized);
-        Contract.Requires(from >= 0 && from < Length);
-        Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
-
-        int result = Vec.IndexOf(new ReadOnlySpan<double>(values, from, Length - from), value);
-        return result >= 0 ? result + from : -1;
-    }
-
-    /// <summary>Returns all indexes containing ocurrences of a value.</summary>
-    /// <param name="value">Value to find.</param>
-    /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(double value) => NSequence.Iterate(values, value);
-
-    /// <summary>Returns all indexes satisfying a condition.</summary>
-    /// <param name="condition">The condition to be satisfied.</param>
-    /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(Func<double, bool> condition) => NSequence.Iterate(values, condition);
 
     /// <summary>Compares two vectors for equality within a tolerance.</summary>
     /// <param name="v1">First vector to compare.</param>
