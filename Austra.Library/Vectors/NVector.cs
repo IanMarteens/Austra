@@ -446,44 +446,6 @@ public readonly struct NVector :
     /// <returns>The quotient of the vector over the scalar.</returns>
     public static NVector operator /(NVector v, int d) => v.values.AsSpan().Div(d);
 
-    /// <summary>Calculates the sum of the vector's items.</summary>
-    /// <returns>The sum of all vector's items.</returns>
-    public int Sum()
-    {
-        Contract.Requires(IsInitialized);
-
-        int result = 0;
-        ref int p = ref MM.GetArrayDataReference(values);
-        ref int q = ref Add(ref p, values.Length);
-        if (V8.IsHardwareAccelerated && Length > V8i.Count)
-        {
-            ref int last = ref Add(ref p, values.Length & Simd.MASK16);
-            V8i sum = V8i.Zero;
-            do
-            {
-                sum += V8.LoadUnsafe(ref p);
-                p = ref Add(ref p, V8i.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = V8.Sum(sum);
-        }
-        else if (V4.IsHardwareAccelerated && Length > V4i.Count)
-        {
-            ref int last = ref Add(ref p, values.Length & Simd.MASK16);
-            V4i sum = V4i.Zero;
-            do
-            {
-                sum += V4.LoadUnsafe(ref p);
-                p = ref Add(ref p, V4i.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = V4.Sum(sum);
-        }
-        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
-            result += p;
-        return result;
-    }
-
     /// <summary>Calculates the product of the vector's items.</summary>
     /// <returns>The product of all vector's items.</returns>
     public int Product()
@@ -528,7 +490,6 @@ public readonly struct NVector :
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == Length);
-
         return values.Abs();
     }
 
@@ -624,6 +585,14 @@ public readonly struct NVector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double Reduce(int seed, Func<int, int, int> reducer) =>
         values.AsSpan().Reduce(seed, reducer);
+
+    /// <summary>Calculates the sum of the vector's items.</summary>
+    /// <returns>The sum of all vector's items.</returns>
+    public int Sum()
+    {
+        Contract.Requires(IsInitialized);
+        return values.Sum();
+    }
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>

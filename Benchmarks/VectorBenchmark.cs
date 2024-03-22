@@ -45,13 +45,13 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public DVector AustraVectorMultAddRaw() => cv4 * Math.PI + cv6;
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraDotProduct() => cv6 * cv7;
 
     //[Benchmark]
     public double AustraVectorProduct() => cv5.Product();
 
-    //[Benchmark]
+    [Benchmark]
     public double AustraVectorSumItems() => cv5.Sum();
 
     //[Benchmark]

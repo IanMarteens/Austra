@@ -874,44 +874,6 @@ public readonly struct DVector :
         return values.Distance(v.values);
     }
 
-    /// <summary>Calculates the sum of the vector's items.</summary>
-    /// <returns>The sum of all vector's items.</returns>
-    public double Sum()
-    {
-        Contract.Requires(IsInitialized);
-
-        double result = 0d;
-        ref double p = ref MM.GetArrayDataReference(values);
-        ref double q = ref Add(ref p, values.Length);
-        if (V8.IsHardwareAccelerated && Length > V8d.Count)
-        {
-            ref double last = ref Add(ref p, values.Length & Simd.MASK8);
-            V8d sum = V8d.Zero;
-            do
-            {
-                sum += V8.LoadUnsafe(ref p);
-                p = ref Add(ref p, V8d.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = V8.Sum(sum);
-        }
-        else if (V4.IsHardwareAccelerated && Length > V4d.Count)
-        {
-            ref double last = ref Add(ref p, values.Length & Simd.MASK4);
-            V4d sum = V4d.Zero;
-            do
-            {
-                sum += V4.LoadUnsafe(ref p);
-                p = ref Add(ref p, V4d.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = V4.Sum(sum);
-        }
-        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
-            result += p;
-        return result;
-    }
-
     /// <summary>Calculates the product of the vector's items.</summary>
     /// <returns>The product of all vector's items.</returns>
     public double Product()
@@ -990,7 +952,6 @@ public readonly struct DVector :
     {
         Contract.Requires(IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == Length);
-
         return values.Abs();
     }
 
@@ -1034,6 +995,14 @@ public readonly struct DVector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double Reduce(double seed, Func<double, double, double> reducer) =>
         values.AsSpan().Reduce(seed, reducer);
+
+    /// <summary>Calculates the sum of the vector's items.</summary>
+    /// <returns>The sum of all vector's items.</returns>
+    public double Sum()
+    {
+        Contract.Requires(IsInitialized);
+        return values.Sum();
+    }
 
     /// <summary>Combines the common prefix of two vectors.</summary>
     /// <param name="other">Second vector to combine.</param>

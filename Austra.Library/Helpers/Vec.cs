@@ -1110,6 +1110,45 @@ public static class Vec
         return seed;
     }
 
+    /// <summary>Calculates the sum of the vector's items.</summary>
+    /// <param name="values">The vector to sum.</param>
+    /// <returns>The sum of all vector's items.</returns>
+    public static T Sum<T>(this T[] values) where T: INumberBase<T>
+    {
+        T result = T.AdditiveIdentity;
+        ref T p = ref MM.GetArrayDataReference(values);
+        ref T q = ref Unsafe.Add(ref p, values.Length);
+        if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
+        {
+            int MASK = 0x07FFF_FFFF ^ (Vector512<T>.Count - 1);
+            ref T last = ref Unsafe.Add(ref p, values.Length & MASK);
+            Vector512<T> sum = Vector512<T>.Zero;
+            do
+            {
+                sum += V8.LoadUnsafe(ref p);
+                p = ref Unsafe.Add(ref p, Vector512<T>.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = V8.Sum(sum);
+        }
+        else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
+        {
+            int MASK = 0x07FFF_FFFF ^ (Vector256<T>.Count - 1);
+            ref T last = ref Unsafe.Add(ref p, values.Length & MASK);
+            Vector256<T> sum = Vector256<T>.Zero;
+            do
+            {
+                sum += V4.LoadUnsafe(ref p);
+                p = ref Unsafe.Add(ref p, Vector256<T>.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = V4.Sum(sum);
+        }
+        for (; IsAddressLessThan(ref p, ref q); p = ref Unsafe.Add(ref p, 1))
+            result += p;
+        return result;
+    }
+
     /// <summary>Combines the common prefix of two spans.</summary>
     /// <param name="first">First span to combine.</param>
     /// <param name="second">Second span to combine.</param>
