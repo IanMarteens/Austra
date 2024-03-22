@@ -34,7 +34,7 @@ public static class Vec
         return values;
     }
 
-    /// <summary>Creates p diagonal matrix given its diagonal.</summary>
+    /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     /// <returns>An array with its main diagonal initialized.</returns>
     public static double[] CreateDiagonal(this DVector diagonal)
@@ -851,7 +851,7 @@ public static class Vec
         return sum;
     }
 
-   /// <summary>Returns the zero-based index of the first occurrence of p value.</summary>
+   /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="values">The span to search.</param>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
@@ -896,7 +896,7 @@ public static class Vec
         return -1;
     }
 
-    /// <summary>Returns the zero-based index of the first occurrence of p value.</summary>
+    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="values">The span to search.</param>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
@@ -1310,7 +1310,7 @@ public static class Vec
         return max;
     }
 
-    /// <summary>Gets p text representation of an array.</summary>
+    /// <summary>Gets a text representation of an array.</summary>
     /// <param name="data">An array from a vector.</param>
     /// <param name="formatter">A formatter for items.</param>
     /// <returns>A text representation of the vector.</returns>
