@@ -505,52 +505,24 @@ public static class Vec
     /// <param name="span">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
-    public static void Sub(this Span<double> span, double scalar, Span<double> target)
+    public static void Sub<T>(this Span<T> span, T scalar, Span<T> target)
+        where T: INumberBase<T>
     {
-        ref double p = ref MM.GetReference(span);
-        ref double q = ref MM.GetReference(target);
-        if (V8.IsHardwareAccelerated && target.Length >= V8d.Count)
+        ref T p = ref MM.GetReference(span);
+        ref T q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
         {
-            V8d vec = V8.Create(scalar);
-            nuint t = (nuint)(target.Length - V8d.Count);
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+            Vector512<T> vec = V8.Create(scalar);
+            nuint t = (nuint)(target.Length - Vector512<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
                 V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) - vec, ref q, i);
             V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) - vec, ref q, t);
         }
-        else if (V4.IsHardwareAccelerated && target.Length >= V4d.Count)
+        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
         {
-            V4d vec = V4.Create(scalar);
-            nuint t = (nuint)(target.Length - V4d.Count);
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) - vec, ref q, i);
-            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) - vec, ref q, t);
-        }
-        else
-            for (int i = 0; i < target.Length; i++)
-                Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) - scalar;
-    }
-
-    /// <summary>Pointwise subtraction of a scalar from a span.</summary>
-    /// <param name="span">Array minuend.</param>
-    /// <param name="scalar">Scalar subtrahend.</param>
-    /// <param name="target">Target memory for the operation.</param>
-    public static void Sub(this Span<int> span, int scalar, Span<int> target)
-    {
-        ref int p = ref MM.GetReference(span);
-        ref int q = ref MM.GetReference(target);
-        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
-        {
-            V8i vec = V8.Create(scalar);
-            nuint t = (nuint)(target.Length - V8i.Count);
-            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
-                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) - vec, ref q, i);
-            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) - vec, ref q, t);
-        }
-        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
-        {
-            V4i vec = V4.Create(scalar);
-            nuint t = (nuint)(target.Length - V4i.Count);
-            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+            Vector256<T> vec = V4.Create(scalar);
+            nuint t = (nuint)(target.Length - Vector256<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) - vec, ref q, i);
             V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) - vec, ref q, t);
         }
@@ -563,52 +535,24 @@ public static class Vec
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
-    public static void Sub(double scalar, Span<double> span, Span<double> target)
+    public static void Sub<T>(T scalar, Span<T> span, Span<T> target)
+        where T: INumberBase<T>
     {
-        ref double p = ref MM.GetReference(span);
-        ref double q = ref MM.GetReference(target);
-        if (V8.IsHardwareAccelerated && target.Length >= V8d.Count)
+        ref T p = ref MM.GetReference(span);
+        ref T q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
         {
-            V8d vec = V8.Create(scalar);
-            nuint t = (nuint)(target.Length - V8d.Count);
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+            Vector512<T> vec = V8.Create(scalar);
+            nuint t = (nuint)(target.Length - Vector512<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
                 V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, i), ref q, i);
             V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, t), ref q, t);
         }
-        else if (V4.IsHardwareAccelerated && target.Length >= V4d.Count)
+        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
         {
-            V4d vec = V4.Create(scalar);
-            nuint t = (nuint)(target.Length - V4d.Count);
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, i), ref q, i);
-            V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, t), ref q, t);
-        }
-        else
-            for (int i = 0; i < target.Length; i++)
-                Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
-    }
-
-    /// <summary>Pointwise subtraction of a span from a scalar.</summary>
-    /// <param name="scalar">Scalar minuend.</param>
-    /// <param name="span">Span subtrahend.</param>
-    /// <param name="target">Target memory for the operation.</param>
-    public static void Sub(int scalar, Span<int> span, Span<int> target)
-    {
-        ref int p = ref MM.GetReference(span);
-        ref int q = ref MM.GetReference(target);
-        if (V8.IsHardwareAccelerated && target.Length >= V8i.Count)
-        {
-            V8i vec = V8.Create(scalar);
-            nuint t = (nuint)(target.Length - V8i.Count);
-            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
-                V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, i), ref q, i);
-            V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, t), ref q, t);
-        }
-        else if (V4.IsHardwareAccelerated && target.Length >= V4i.Count)
-        {
-            V4i vec = V4.Create(scalar);
-            nuint t = (nuint)(target.Length - V4i.Count);
-            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+            Vector256<T> vec = V4.Create(scalar);
+            nuint t = (nuint)(target.Length - Vector256<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
                 V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, i), ref q, i);
             V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, t), ref q, t);
         }
