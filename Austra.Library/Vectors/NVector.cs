@@ -446,44 +446,6 @@ public readonly struct NVector :
     /// <returns>The quotient of the vector over the scalar.</returns>
     public static NVector operator /(NVector v, int d) => v.values.AsSpan().Div(d);
 
-    /// <summary>Calculates the product of the vector's items.</summary>
-    /// <returns>The product of all vector's items.</returns>
-    public int Product()
-    {
-        Contract.Requires(IsInitialized);
-
-        int result = 1;
-        ref int p = ref MM.GetArrayDataReference(values);
-        ref int q = ref Add(ref p, values.Length);
-        if (V8.IsHardwareAccelerated && Length > V8i.Count)
-        {
-            ref int last = ref Add(ref p, values.Length & Simd.MASK16);
-            V8i prod = V8i.One;
-            do
-            {
-                prod *= V8.LoadUnsafe(ref p);
-                p = ref Add(ref p, V8i.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = (prod.GetLower() * prod.GetUpper()).Product();
-        }
-        else if (V4.IsHardwareAccelerated && Length > V4i.Count)
-        {
-            ref int last = ref Add(ref p, values.Length & Simd.MASK8);
-            V4i prod = V4i.One;
-            do
-            {
-                prod *= V4.LoadUnsafe(ref p);
-                p = ref Add(ref p, V4i.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = prod.Product();
-        }
-        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
-            result *= p;
-        return result;
-    }
-
     /// <summary>Gets the absolute values of the vector's items.</summary>
     /// <returns>A new vector with non-negative items.</returns>
     public NVector Abs()
@@ -576,6 +538,14 @@ public readonly struct NVector :
         for (int i = 0; i < newValues.Length; i++)
             newValues[i] = mapper(Add(ref p, i));
         return newValues;
+    }
+
+    /// <summary>Calculates the product of the vector's items.</summary>
+    /// <returns>The product of all vector's items.</returns>
+    public int Product()
+    {
+        Contract.Requires(IsInitialized);
+        return values.Product();
     }
 
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>

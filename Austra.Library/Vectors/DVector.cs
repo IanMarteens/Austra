@@ -874,48 +874,6 @@ public readonly struct DVector :
         return values.Distance(v.values);
     }
 
-    /// <summary>Calculates the product of the vector's items.</summary>
-    /// <returns>The product of all vector's items.</returns>
-    public double Product()
-    {
-        Contract.Requires(IsInitialized);
-
-        double result = 1d;
-        ref double p = ref MM.GetArrayDataReference(values);
-        ref double q = ref Add(ref p, values.Length);
-        if (V8.IsHardwareAccelerated && Length > V8d.Count)
-        {
-            ref double last = ref Add(ref p, values.Length & Simd.MASK8);
-            V8d prod = V8d.One;
-            do
-            {
-                prod *= V8.LoadUnsafe(ref p);
-                p = ref Add(ref p, V8d.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = (prod.GetLower() * prod.GetUpper()).Product();
-        }
-        else if (V4.IsHardwareAccelerated && Length > V4d.Count)
-        {
-            ref double last = ref Add(ref p, values.Length & Simd.MASK4);
-            V4d prod = V4d.One;
-            do
-            {
-                prod *= V4.LoadUnsafe(ref p);
-                p = ref Add(ref p, V4d.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = prod.Product();
-        }
-        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
-            result *= p;
-        return result;
-    }
-
-    /// <summary>Computes the mean of the vector's items.</summary>
-    /// <returns><code>this.Sum() / this.Length</code></returns>
-    public double Mean() => Sum() / Length;
-
     /// <summary>Pointwise squared root.</summary>
     /// <returns>A new vector with the square root of the original items.</returns>
     public DVector Sqrt()
@@ -1028,6 +986,18 @@ public readonly struct DVector :
     /// <returns>A new vector with the transformed content.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DVector Map(Func<double, double> mapper) => values.Map(mapper);
+
+    /// <summary>Computes the mean of the vector's items.</summary>
+    /// <returns><code>this.Sum() / this.Length</code></returns>
+    public double Mean() => Sum() / Length;
+
+    /// <summary>Calculates the product of the vector's items.</summary>
+    /// <returns>The product of all vector's items.</returns>
+    public double Product()
+    {
+        Contract.Requires(IsInitialized);
+        return values.Product();
+    }
 
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
     /// <param name="seed">The initial value.</param>

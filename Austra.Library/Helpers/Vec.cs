@@ -1050,6 +1050,43 @@ public static class Vec
         return newValues;
     }
 
+    /// <summary>Calculates the product of the items of an array.</summary>
+    /// <param name="values">The array to calculate the product.</param>
+    /// <returns>The product of all array items.</returns>
+    public static T Product<T>(this T[] values) where T: INumberBase<T>
+    {
+        T result = T.MultiplicativeIdentity;
+        ref T p = ref MM.GetArrayDataReference(values);
+        ref T q = ref Unsafe.Add(ref p, values.Length);
+        if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
+        {
+            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector512<T>.Count - 1));
+            Vector512<T> prod = Vector512<T>.One;
+            do
+            {
+                prod *= V8.LoadUnsafe(ref p);
+                p = ref Unsafe.Add(ref p, Vector512<T>.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = (prod.GetLower() * prod.GetUpper()).Product();
+        }
+        else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
+        {
+            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector256<T>.Count - 1));
+            Vector256<T> prod = Vector256<T>.One;
+            do
+            {
+                prod *= V4.LoadUnsafe(ref p);
+                p = ref Unsafe.Add(ref p, Vector256<T>.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = prod.Product();
+        }
+        for (; IsAddressLessThan(ref p, ref q); p = ref Unsafe.Add(ref p, 1))
+            result *= p;
+        return result;
+    }
+
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
     /// <param name="span">The span to reduce.</param>
     /// <param name="seed">The initial value.</param>

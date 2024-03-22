@@ -3,7 +3,7 @@
 public class VectorBenchmark : BenchmarkControl
 {
     private readonly int size;
-    private readonly DVector cv1, cv2, cv3, cv4, cv5, cv6, cv7, cv8;
+    private readonly DVector cv1, cv3, cv4, cv5, cv6, cv7, cv8;
     private readonly NVector nv1;
     private readonly Random rnd = new(133);
 
@@ -11,7 +11,6 @@ public class VectorBenchmark : BenchmarkControl
     {
         size = Configure();
         cv1 = new DVector(size, rnd);
-        cv2 = new DVector(size, rnd);
         cv3 = cv1.Clone();
         cv4 = new DVector(1024, rnd);
         cv5 = new DVector(1024, rnd, 0.6, 1);
@@ -48,7 +47,7 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public double AustraDotProduct() => cv6 * cv7;
 
-    //[Benchmark]
+    [Benchmark]
     public double AustraVectorProduct() => cv5.Product();
 
     //[Benchmark]
@@ -90,10 +89,10 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public Matrix AustraExternalProduct() => cv1 ^ cv3;
 
-    [Benchmark]
+    //[Benchmark]
     public int AustraIndexOfMiddle() => cv7.IndexOf(cv7[cv7.Length / 2]);
 
-    [Benchmark]
+    //[Benchmark]
     public int AustraIndexOfLast() => cv7.IndexOf(cv7[^1]);
 
     //[Benchmark]

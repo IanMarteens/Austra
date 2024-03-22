@@ -19,24 +19,20 @@ public static class Simd
     private const double PI_4 = PI / 4.0;
 
     /// <summary>Multiplies all the elements in a vector.</summary>
-    /// <param name="v">A intrinsics vector with four doubles.</param>
+    /// <param name="v">A intrinsics vector with four or eight values.</param>
     /// <returns>The product of all items.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Product(this V4d v)
+    internal unsafe static T Product<T>(this Vector256<T> v) where T: INumberBase<T>
     {
-        Vector128<double> x = v.GetLower() * v.GetUpper();
+        Vector128<T> x = v.GetLower() * v.GetUpper();
+#pragma warning disable CS8500
+        if (sizeof(T) == sizeof(int))
+        {
+            Vector64<T> y = x.GetLower() * x.GetUpper();
+            return y.ToScalar() * y.GetElement(1);
+        }
+#pragma warning restore CS8500
         return x.ToScalar() * x.GetElement(1);
-    }
-
-    /// <summary>Multiplies all the elements in a vector.</summary>
-    /// <param name="v">A intrinsics vector with eight integers.</param>
-    /// <returns>The product of all items.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static int Product(this V4i v)
-    {
-        Vector128<int> x = v.GetLower() * v.GetUpper();
-        Vector64<int> y = x.GetLower() * x.GetUpper();
-        return y.ToScalar() * y.GetElement(1);
     }
 
     /// <summary>Gets the maximum component in a vector.</summary>
