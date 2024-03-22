@@ -90,10 +90,10 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public Matrix AustraExternalProduct() => cv1 ^ cv3;
 
-    //[Benchmark]
+    [Benchmark]
     public int AustraIndexOfMiddle() => cv7.IndexOf(cv7[cv7.Length / 2]);
 
-    //[Benchmark]
+    [Benchmark]
     public int AustraIndexOfLast() => cv7.IndexOf(cv7[^1]);
 
     //[Benchmark]
@@ -114,6 +114,6 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public bool AustraAll() => cv6.All(x => x >= 0);
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorDistinct() => cv7.Distinct();
 }

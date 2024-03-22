@@ -1379,7 +1379,7 @@ public readonly struct Matrix :
     public bool Contains(double value)
     {
         Contract.Requires(IsInitialized);
-        return new ReadOnlySpan<double>(values).IndexOf(value) != -1;
+        return Vec.IndexOf(new ReadOnlySpan<double>(values), value) != -1;
     }
 
     /// <summary>Computes the maximum difference between cells.</summary>

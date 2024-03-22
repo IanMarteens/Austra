@@ -542,7 +542,7 @@ public readonly struct NVector :
         Contract.Requires(from >= 0 && from < Length);
         Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
 
-        int result = new ReadOnlySpan<int>(values, from, Length - from).IndexOf(value);
+        int result = Vec.IndexOf(new ReadOnlySpan<int>(values, from, Length - from), value);
         return result >= 0 ? result + from : -1;
     }
 

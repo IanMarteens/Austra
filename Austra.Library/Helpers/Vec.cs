@@ -385,7 +385,7 @@ public static class Vec
     /// <param name="span2">Second summand.</param>
     /// <param name="target">The span to receive the sum of the first two argument.</param>
     public static void Add<T>(this Span<T> span1, Span<T> span2, Span<T> target)
-        where T: INumberBase<T>
+        where T : INumberBase<T>
     {
         ref T a = ref MM.GetReference(span1);
         ref T b = ref MM.GetReference(span2);
@@ -431,7 +431,7 @@ public static class Vec
     /// <param name="span">Span summand.</param>
     /// <param name="scalar">Scalar summand.</param>
     /// <param name="target">Target memory for the operation.</param>
-    public static void Add<T>(this Span<T> span, T scalar, Span<T> target) where T: INumberBase<T>
+    public static void Add<T>(this Span<T> span, T scalar, Span<T> target) where T : INumberBase<T>
     {
         ref T p = ref MM.GetReference(span);
         ref T q = ref MM.GetReference(target);
@@ -460,8 +460,8 @@ public static class Vec
     /// <param name="span1">Minuend.</param>
     /// <param name="span2">Subtrahend.</param>
     /// <param name="target">The span to receive the result.</param>
-    public static void Sub<T>(this Span<T> span1, Span<T> span2, Span<T> target) 
-        where T: INumberBase<T>
+    public static void Sub<T>(this Span<T> span1, Span<T> span2, Span<T> target)
+        where T : INumberBase<T>
     {
         ref T a = ref MM.GetReference(span1);
         ref T b = ref MM.GetReference(span2);
@@ -508,7 +508,7 @@ public static class Vec
     /// <param name="scalar">Scalar subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
     public static void Sub<T>(this Span<T> span, T scalar, Span<T> target)
-        where T: INumberBase<T>
+        where T : INumberBase<T>
     {
         ref T p = ref MM.GetReference(span);
         ref T q = ref MM.GetReference(target);
@@ -538,7 +538,7 @@ public static class Vec
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
     public static void Sub<T>(T scalar, Span<T> span, Span<T> target)
-        where T: INumberBase<T>
+        where T : INumberBase<T>
     {
         ref T p = ref MM.GetReference(span);
         ref T q = ref MM.GetReference(target);
@@ -566,7 +566,7 @@ public static class Vec
     /// <summary>Pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
     /// <param name="target">Target memory for the operation.</param>
-    public static void Neg<T>(this Span<T> span, Span<T> target) where T: INumberBase<T>
+    public static void Neg<T>(this Span<T> span, Span<T> target) where T : INumberBase<T>
     {
         ref T p = ref MM.GetReference(span);
         ref T q = ref MM.GetReference(target);
@@ -591,7 +591,7 @@ public static class Vec
 
     /// <summary>Inplace pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
-    public static void Neg<T>(this Span<T> span) where T: INumberBase<T>
+    public static void Neg<T>(this Span<T> span) where T : INumberBase<T>
     {
         ref T p = ref MM.GetReference(span);
         int i = 0;
@@ -611,7 +611,7 @@ public static class Vec
     /// <param name="span1">Span multiplicand.</param>
     /// <param name="span2">Span multiplier.</param>
     /// <returns>The pointwise multiplication of the two arguments.</returns>
-    public static T[] Mul<T>(this Span<T> span1, Span<T> span2) where T: INumberBase<T>
+    public static T[] Mul<T>(this Span<T> span1, Span<T> span2) where T : INumberBase<T>
     {
         T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
         ref T a = ref MM.GetReference(span1);
@@ -641,7 +641,7 @@ public static class Vec
     /// <param name="span">Span multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
     /// <param name="target">Target memory for the operation.</param>
-    public static void Mul<T>(this Span<T> span, T scalar, Span<T> target) where T: INumberBase<T>
+    public static void Mul<T>(this Span<T> span, T scalar, Span<T> target) where T : INumberBase<T>
     {
         ref T p = ref MM.GetReference(span);
         ref T q = ref MM.GetReference(target);
@@ -670,7 +670,7 @@ public static class Vec
     /// <param name="span1">Span dividend.</param>
     /// <param name="span2">Span divisor.</param>
     /// <returns>The pointwise quotient of the two arguments.</returns>
-    public static T[] Div<T>(this Span<T> span1, Span<T> span2) where T: INumberBase<T>
+    public static T[] Div<T>(this Span<T> span1, Span<T> span2) where T : INumberBase<T>
     {
         T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
         ref T a = ref MM.GetReference(span1);
@@ -851,77 +851,48 @@ public static class Vec
         return sum;
     }
 
-   /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
-    /// <param name="values">The span to search.</param>
-    /// <param name="value">The value to locate.</param>
-    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-    public static int IndexOf(this ReadOnlySpan<double> values, double value)
-    {
-        ref double p = ref MM.GetReference(values);
-        nuint size = (nuint)values.Length;
-        if (V8.IsHardwareAccelerated && size >= (nuint)V8d.Count)
-        {
-            V8d v = V8.Create(value);
-            nuint t = size - (nuint)V8d.Count;
-            ulong mask;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-            {
-                mask = V8.ExtractMostSignificantBits(Avx512F.CompareEqual(V8.LoadUnsafe(ref p, i), v));
-                if (mask != 0)
-                    return (int)i + BitOperations.TrailingZeroCount(mask);
-            }
-            mask = V8.ExtractMostSignificantBits(Avx512F.CompareEqual(V8.LoadUnsafe(ref p, t), v));
-            if (mask != 0)
-                return (int)t + BitOperations.TrailingZeroCount(mask);
-        }
-        else if (V4.IsHardwareAccelerated && size >= (nuint)V4d.Count)
-        {
-            V4d v = V4.Create(value);
-            nuint t = size - (nuint)V4d.Count;
-            int mask;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-            {
-                mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p, i), v));
-                if (mask != 0)
-                    return (int)i + BitOperations.TrailingZeroCount(mask);
-            }
-            mask = Avx.MoveMask(Avx.CompareEqual(V4.LoadUnsafe(ref p, t), v));
-            if (mask != 0)
-                return (int)t + BitOperations.TrailingZeroCount(mask);
-        }
-        else
-            for (nuint i = 0; i < size; i++)
-                if (Unsafe.Add(ref p, i) == value)
-                    return (int)i;
-        return -1;
-    }
-
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="values">The span to search.</param>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-    public static int IndexOf(this ReadOnlySpan<int> values, int value)
+    public static int IndexOf<T>(this ReadOnlySpan<T> values, T value)
+        where T: struct, IEquatable<T>
     {
-        ref int p = ref MM.GetReference(values);
+        ref T p = ref MM.GetReference(values);
         nuint size = (nuint)values.Length;
-        if (V8.IsHardwareAccelerated && size >= (nuint)V8i.Count)
+        if (V8.IsHardwareAccelerated && size >= (nuint)Vector512<T>.Count)
         {
-            V8i v = V8.Create(value);
-            nuint t = size - (nuint)V8i.Count;
+            Vector512<T> v = V8.Create(value);
+            nuint t = size - (nuint)Vector512<T>.Count;
             ulong mask;
-            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
             {
-                mask = V8.ExtractMostSignificantBits(Avx512F.CompareEqual(V8.LoadUnsafe(ref p, i), v));
+                mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, i), v));
                 if (mask != 0)
                     return (int)i + BitOperations.TrailingZeroCount(mask);
             }
-            mask = V8.ExtractMostSignificantBits(Avx512F.CompareEqual(V8.LoadUnsafe(ref p, t), v));
+            mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, t), v));
+            if (mask != 0)
+                return (int)t + BitOperations.TrailingZeroCount(mask);
+        }
+        else if (V4.IsHardwareAccelerated && size >= (nuint)Vector256<T>.Count)
+        {
+            Vector256<T> v = V4.Create(value);
+            nuint t = size - (nuint)Vector256<T>.Count;
+            uint mask;
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+            {
+                mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, i), v));
+                if (mask != 0)
+                    return (int)i + BitOperations.TrailingZeroCount(mask);
+            }
+            mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, t), v));
             if (mask != 0)
                 return (int)t + BitOperations.TrailingZeroCount(mask);
         }
         else
             for (nuint i = 0; i < size; i++)
-                if (Unsafe.Add(ref p, i) == value)
+                if (Unsafe.Add(ref p, i).Equals(value))
                     return (int)i;
         return -1;
     }
@@ -1104,7 +1075,7 @@ public static class Vec
     /// <summary>Creates a new array with sorted values.</summary>
     /// <param name="values">The array to sort.</param>
     /// <returns>A new array with sorted values.</returns>
-    public static T[] Sort<T>(this T[] values) where T: INumberBase<T>
+    public static T[] Sort<T>(this T[] values) where T : INumberBase<T>
     {
         T[] result = (T[])values.Clone();
         Array.Sort(result);
@@ -1124,7 +1095,7 @@ public static class Vec
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <param name="values">The vector to sum.</param>
     /// <returns>The sum of all vector's items.</returns>
-    public static T Sum<T>(this T[] values) where T: INumberBase<T>
+    public static T Sum<T>(this T[] values) where T : INumberBase<T>
     {
         T result = T.AdditiveIdentity;
         ref T p = ref MM.GetArrayDataReference(values);
