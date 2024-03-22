@@ -548,8 +548,8 @@ public readonly struct CVector :
                 accRe += (vpr * vqr).MultiplyAdd(vpi, vqi);
                 accIm += (vpi * vqr).MultiplyAddNeg(vpr, vqi);
             }
-            sumRe = accRe.Sum();
-            sumIm = accIm.Sum();
+            sumRe = V4.Sum(accRe);
+            sumIm = V4.Sum(accIm);
         }
         for (; i < size; i++)
         {
@@ -586,7 +586,7 @@ public readonly struct CVector :
                 V4d v = V4.LoadUnsafe(ref p, i), w = V4.LoadUnsafe(ref q, i);
                 acc += (v * v).MultiplyAdd(w, w);
             }
-            sum = acc.Sum();
+            sum = V4.Sum(acc);
         }
         for (; i < (nuint)Length; i++)
             sum += Add(ref p, i) * Add(ref p, i) + Add(ref q, i) * Add(ref q, i);

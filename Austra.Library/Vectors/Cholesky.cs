@@ -57,7 +57,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                         V4d vec = Avx.LoadVector256(pDj + m);
                         acc = acc.MultiplyAdd(vec, vec);
                     }
-                    v = acc.Sum();
+                    v = V4.Sum(acc);
                 }
                 for (; m < j; m++)
                 {
@@ -185,7 +185,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                     Vector128<int> vx = Vector128.Create(0, size, 2 * size, 3 * size);
                     for (; k < size - 4; k += 4, p += s4)
                         acc = acc.MultiplyAdd(pB + k, Avx2.GatherVector256(p, vx, 8));
-                    sum -= acc.Sum();
+                    sum -= V4.Sum(acc);
                 }
                 for (; k < size; k++, p += size)
                     sum = FusedMultiplyAdd(-*p, pB[k], sum);

@@ -362,9 +362,9 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
                     vey += y;
                     vexy = vexy.MultiplyAdd(x, y);
                 }
-                ex = vex.Sum();
-                ey = vey.Sum();
-                exy = vexy.Sum();
+                ex = V4.Sum(vex);
+                ey = V4.Sum(vey);
+                exy = V4.Sum(vexy);
             }
             for (; i < count; i++)
             {

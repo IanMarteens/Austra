@@ -488,7 +488,7 @@ public readonly struct DVector :
                 p = ref Add(ref p, V4d.Count);
             }
             while (IsAddressLessThan(ref p, ref last));
-            sum = acc.Sum();
+            sum = V4.Sum(acc);
         }
         for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
             sum = FusedMultiplyAdd(p, p, sum);
@@ -905,7 +905,7 @@ public readonly struct DVector :
                 p = ref Add(ref p, V4d.Count);
             }
             while (IsAddressLessThan(ref p, ref last));
-            result = sum.Sum();
+            result = V4.Sum(sum);
         }
         for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
             result += p;
@@ -1081,8 +1081,8 @@ public readonly struct DVector :
                 vexy = vexy.MultiplyAdd(x, y);
                 veyy = veyy.MultiplyAdd(y, y);
             }
-            ex = vex.Sum(); ey = vey.Sum();
-            exx = vexx.Sum(); exy = vexy.Sum(); eyy = veyy.Sum();
+            ex = V4.Sum(vex); ey = V4.Sum(vey);
+            exx = V4.Sum(vexx); exy = V4.Sum(vexy); eyy = V4.Sum(veyy);
         }
         for (; i < count; i++)
         {

@@ -18,23 +18,13 @@ public static class Simd
     /// <summary>PI over four.</summary>
     private const double PI_4 = PI / 4.0;
 
-    /// <summary>Sums all the elements in a vector.</summary>
-    /// <param name="v">A intrinsics vector with four doubles.</param>
-    /// <returns>The total value.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Sum(this V4d v)
-    {
-        v = Avx.HorizontalAdd(v, v);
-        return v.ToScalar() + v.GetElement(2);
-    }
-
     /// <summary>Multiplies all the elements in a vector.</summary>
     /// <param name="v">A intrinsics vector with four doubles.</param>
     /// <returns>The product of all items.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static double Product(this V4d v)
     {
-        Vector128<double> x = Sse2.Multiply(v.GetLower(), v.GetUpper());
+        Vector128<double> x = v.GetLower() * v.GetUpper();
         return x.ToScalar() * x.GetElement(1);
     }
 
@@ -69,7 +59,7 @@ public static class Simd
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static double Max(this V4d v)
     {
-        Vector128<double> x = Sse2.Max(v.GetLower(), v.GetUpper());
+        Vector128<double> x = Vector128.Max(v.GetLower(), v.GetUpper());
         return Math.Max(x.ToScalar(), x.GetElement(1));
     }
 
@@ -79,7 +69,7 @@ public static class Simd
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int Max(this V4i v)
     {
-        Vector128<int> x = Sse41.Max(v.GetLower(), v.GetUpper());
+        Vector128<int> x = Vector128.Max(v.GetLower(), v.GetUpper());
         Vector64<int> y = Vector64.Max(x.GetLower(), x.GetUpper());
         return Math.Max(y.ToScalar(), y.GetElement(1));
     }
@@ -104,7 +94,7 @@ public static class Simd
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static double Min(this V4d v)
     {
-        Vector128<double> x = Sse2.Min(v.GetLower(), v.GetUpper());
+        Vector128<double> x = Vector128.Min(v.GetLower(), v.GetUpper());
         return Math.Min(x.ToScalar(), x.GetElement(1));
     }
 
@@ -114,7 +104,7 @@ public static class Simd
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int Min(this V4i v)
     {
-        Vector128<int> x = Sse41.Min(v.GetLower(), v.GetUpper());
+        Vector128<int> x = Vector128.Min(v.GetLower(), v.GetUpper());
         Vector64<int> y = Vector64.Min(x.GetLower(), x.GetUpper());
         return Math.Min(y.ToScalar(), y.GetElement(1));
     }
@@ -419,7 +409,7 @@ public static class Simd
         V8d e = Avx512F.GetExponent(x);
         V8d blend = Avx512F.CompareGreaterThan(m, V8.Create(SQRT2 * 0.5));
         e += V8d.One & blend;
-        m += AndNot(blend, m) - V8d.One;
+        m += V8.AndNot(m, blend) - V8d.One;
         V8d x2 = m * m;
         V8d re = m.Poly5(P0, P1, P2, P3, P4, P5) * m * x2
             / m.Poly5n(Q0, Q1, Q2, Q3, Q4);
@@ -505,8 +495,8 @@ public static class Simd
 
         V8d signMask = V8.Create(-0.0);
         V8d minusOne = V8.Create(-1d);
-        V8d x1 = AndNot(signMask, x);
-        V8d y1 = AndNot(signMask, y);
+        V8d x1 = V8.AndNot(x, signMask);
+        V8d y1 = V8.AndNot(y, signMask);
         V8d swap = Avx512F.CompareGreaterThan(y1, x1);
         V8d x2 = Avx512F.BlendVariable(x1, y1, swap);
         V8d y2 = Avx512F.BlendVariable(y1, x1, swap);
@@ -681,10 +671,4 @@ public static class Simd
         cos1 = V4.ConditionalSelect((((q + Vector256<ulong>.One) & V4.Create(2UL)) << 62).AsDouble(), -cos1, cos1);
         return (sin1, cos1);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static V8d AndNot(V8d x, V8d y) =>
-        V8.Create(
-            Avx.AndNot(x.GetLower(), y.GetLower()),
-            Avx.AndNot(x.GetUpper(), y.GetUpper()));
 }

@@ -21,7 +21,7 @@ public class VectorBenchmark : BenchmarkControl
         nv1 = new NVector(size, 100, rnd);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public DVector AustraVectorSum() => cv4 + cv5;
 
     //[Benchmark]
@@ -45,8 +45,8 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public DVector AustraVectorMultAddRaw() => cv4 * Math.PI + cv6;
 
-    //[Benchmark]
-    public double AustraDotProduct() => cv1 * cv2;
+    [Benchmark]
+    public double AustraDotProduct() => cv6 * cv7;
 
     //[Benchmark]
     public double AustraVectorProduct() => cv5.Product();

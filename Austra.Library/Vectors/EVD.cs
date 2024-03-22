@@ -80,7 +80,7 @@ public readonly struct EVD : IFormattable
                 V4d mask = V4.Create(-0d), sum = V4d.Zero;
                 for (int t = i & Simd.MASK4; kk < t; kk += V4d.Count)
                     sum += Avx.AndNot(mask, Avx.LoadVector256(d + kk));
-                scale = sum.Sum();
+                scale = V4.Sum(sum);
             }
             for (; kk < i; kk++)
                 scale += Abs(d[kk]);
@@ -120,7 +120,7 @@ public readonly struct EVD : IFormattable
                         sum = sum.MultiplyAdd(dvec, dvec);
                         Avx.Store(d + m, dvec);
                     }
-                    h = sum.Sum();
+                    h = V4.Sum(sum);
                 }
                 for (; m < i; m++)
                 {
@@ -180,7 +180,7 @@ public readonly struct EVD : IFormattable
                             vg = vg.MultiplyAdd(Avx.LoadVector256(d + k), va);
                             Avx.Store(e + k, Avx.LoadVector256(e + k).MultiplyAdd(va, vf));
                         }
-                        g += vg.Sum();
+                        g += V4.Sum(vg);
                     }
                     for (; k < i; k++)
                     {
@@ -212,7 +212,7 @@ public readonly struct EVD : IFormattable
                         Avx.Store(e + m, v);
                         s = s.MultiplyAdd(v, Avx.LoadVector256(d + m));
                     }
-                    f = s.Sum();
+                    f = V4.Sum(s);
                 }
                 for (; m < i; m++)
                 {
@@ -470,7 +470,7 @@ public readonly struct EVD : IFormattable
                 V4d sum = V4d.Zero;
                 for (int t = ((rank - m) & Simd.MASK4) + m; ii < t; ii += 4)
                     sum += V4.Abs(Avx.LoadVector256(h + mm1O + ii));
-                scale = sum.Sum();
+                scale = V4.Sum(sum);
             }
             for (; ii < rank; ii++)
                 scale += Abs(h[mm1O + ii]);
@@ -500,7 +500,7 @@ public readonly struct EVD : IFormattable
                         Avx.Store(ort + i, v);
                         vhh = vhh.MultiplyAdd(v, v);
                     }
-                    hh = vhh.Sum();
+                    hh = V4.Sum(vhh);
                 }
                 for (; i < rank; i++)
                 {
@@ -1077,7 +1077,7 @@ public readonly struct EVD : IFormattable
                     Vector128<int> vx = Vector128.Create(0, rank, 2 * rank, 3 * rank);
                     for (double* pa = a + i; k + 4 <= j; k += 4, pa += 4 * rank)
                         acc = acc.MultiplyAdd(h + jO + k, Avx2.GatherVector256(pa, vx, 8));
-                    z = acc.Sum();
+                    z = V4.Sum(acc);
                 }
                 for (; k <= j; k++)
                     z += a[k * rank + i] * h[jO + k];

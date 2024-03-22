@@ -829,7 +829,7 @@ public static class Vec
             V4d acc = V4d.Zero;
             for (nuint top = (nuint)span1.Length & Simd.MASK4; i < top; i += (nuint)V4d.Count)
                 acc = acc.MultiplyAdd(V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i));
-            sum = acc.Sum();
+            sum = V4.Sum(acc);
         }
         for (int j = (int)i; j < span1.Length; j++)
             sum = FusedMultiplyAdd(Unsafe.Add(ref p, j), Unsafe.Add(ref q, j), sum);
