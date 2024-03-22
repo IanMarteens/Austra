@@ -44,10 +44,7 @@ The online Austra help covers both the library and the language, and is availabl
 ## Last changes
 
 * Functions! We have user-defined functions now. Even recursive ones.
-* Sequences of double-precision values have been fully implemented, via the class name `seq`. They are very similar to C#'s `IEnumerable` and LINQ. They can be converted to vectors and can use a vector as their source of data.
-* The lexical scanner has been rewritten. Most of the index checking is gone now. It is also a lot faster, as a consequence.
-* Overload resolution has been enhanced. The parser is now shorter, easier to read and faster.
-* AUSTRA has been added as the main application for using the language. It is a WPF application, running on .NET Core 7/8.
+* Sequences of numeric values have been fully implemented, using the `seq`, `cseq` and `iseq` classes. They are very similar to C#'s `IEnumerable` and LINQ. They can be converted to vectors and can use a vector as their source of data.
 * Moving Average models can be generated and estimated.
 * Linear programming has been added to the library, and it is available in the language.
 * AVX256 & AVX512 support for random number generators.
@@ -55,7 +52,7 @@ The online Austra help covers both the library and the language, and is availabl
 
 ## Next steps
 
-This project is still in an early stage of development. Most compelling needs are, not necessarily in that order:
+Most compelling needs are, not necessarily in that order:
 
 * We should have control on formatting output and sending it to external files (Excel, JSON, CSV). It could be interesting formatting some kind of outputs to C# format, for retrofitting.
 * Connectors, to access external data sources with real time series, such as stock prices, meteorological data, etc.
