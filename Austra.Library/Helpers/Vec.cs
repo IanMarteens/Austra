@@ -1,4 +1,6 @@
-﻿namespace Austra.Library.Helpers;
+﻿using System;
+
+namespace Austra.Library.Helpers;
 
 /// <summary>Implements common matrix and vector operations.</summary>
 /// <remarks>
@@ -979,11 +981,8 @@ public static class Vec
     /// <remarks>Results are unordered.</remarks>
     /// <param name="span">The span to transform.</param>
     /// <returns>A new array with distinct values.</returns>
-    public static T[] Distinct<T>(this Span<T> span) where T : struct
-    {
-        HashSet<T> set = [.. span];
-        return [.. set];
-    }
+    public static T[] Distinct<T>(this Span<T> span) where T : struct =>
+        [.. ((HashSet<T>)([.. span]))];
 
     /// <summary>Checks two arrays for equality.</summary>
     /// <param name="array1">First array operand.</param>

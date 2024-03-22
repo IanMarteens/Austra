@@ -51,7 +51,7 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public double AustraVectorProduct() => cv5.Product();
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraVectorSumItems() => cv5.Sum();
 
     //[Benchmark]
@@ -113,4 +113,7 @@ public class VectorBenchmark : BenchmarkControl
 
     //[Benchmark]
     public bool AustraAll() => cv6.All(x => x >= 0);
+
+    [Benchmark]
+    public DVector AustraVectorDistinct() => cv7.Distinct();
 }
