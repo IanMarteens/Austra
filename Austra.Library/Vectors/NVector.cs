@@ -586,39 +586,24 @@ public readonly struct NVector :
     public double Reduce(int seed, Func<int, int, int> reducer) =>
         values.AsSpan().Reduce(seed, reducer);
 
+    /// <summary>Creates a reversed copy of the vector.</summary>
+    /// <returns>An independent reversed copy.</returns>
+    public NVector Reverse() => values.Reverse();
+
+    /// <summary>Returns a new vector with sorted values.</summary>
+    /// <returns>A new vector with sorted values.</returns>
+    public NVector Sort() => values.Sort();
+
+    /// <summary>Returns a new vector with sorted values.</summary>
+    /// <returns>A new vector with sorted values.</returns>
+    public NVector SortDescending() => values.SortDescending();
+
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <returns>The sum of all vector's items.</returns>
     public int Sum()
     {
         Contract.Requires(IsInitialized);
         return values.Sum();
-    }
-
-    /// <summary>Creates a reversed copy of the vector.</summary>
-    /// <returns>An independent reversed copy.</returns>
-    public NVector Reverse()
-    {
-        NVector result = Clone();
-        Array.Reverse(result.values);
-        return result;
-    }
-
-    /// <summary>Returns a new vector with sorted values.</summary>
-    /// <returns>A new vector with sorted values.</returns>
-    public NVector Sort()
-    {
-        NVector result = Clone();
-        Array.Sort(result.values);
-        return result;
-    }
-
-    /// <summary>Returns a new vector with sorted values.</summary>
-    /// <returns>A new vector with sorted values.</returns>
-    public NVector SortDescending()
-    {
-        NVector result = Clone();
-        Array.Sort(result.values, static (x, y) => y.CompareTo(x));
-        return result;
     }
 
     /// <summary>Combines the common prefix of two vectors.</summary>

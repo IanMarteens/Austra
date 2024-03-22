@@ -589,35 +589,17 @@ public static class Vec
 
     /// <summary>Inplace pointwise negation of a span.</summary>
     /// <param name="span">Span to negate.</param>
-    public static void Neg(this Span<double> span)
+    public static void Neg<T>(this Span<T> span) where T: INumberBase<T>
     {
-        ref double p = ref MM.GetReference(span);
+        ref T p = ref MM.GetReference(span);
         int i = 0;
-        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
-            for (int top = span.Length & Simd.MASK8; i < top;
-                i += V8d.Count, p = ref Unsafe.Add(ref p, V8d.Count))
+        if (V8.IsHardwareAccelerated && span.Length >= Vector512<T>.Count)
+            for (int top = span.Length & (0x7FFF_FFFF ^ (Vector512<T>.Count - 1)); i < top;
+                i += Vector512<T>.Count, p = ref Unsafe.Add(ref p, Vector512<T>.Count))
                 V8.StoreUnsafe(-V8.LoadUnsafe(ref p), ref p);
-        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
-            for (int top = span.Length & Simd.MASK4; i < top;
-                i += V4d.Count, p = ref Unsafe.Add(ref p, V4d.Count))
-                V4.StoreUnsafe(-V4.LoadUnsafe(ref p), ref p);
-        for (; i < span.Length; i++, p = ref Unsafe.Add(ref p, 1))
-            p = -p;
-    }
-
-    /// <summary>Inplace pointwise negation of a span.</summary>
-    /// <param name="span">Span to negate.</param>
-    public static void Neg(this Span<int> span)
-    {
-        ref int p = ref MM.GetReference(span);
-        int i = 0;
-        if (V8.IsHardwareAccelerated && span.Length >= V8i.Count)
-            for (int top = span.Length & Simd.MASK16; i < top;
-                i += V8i.Count, p = ref Unsafe.Add(ref p, V8i.Count))
-                V8.StoreUnsafe(-V8.LoadUnsafe(ref p), ref p);
-        else if (V4.IsHardwareAccelerated && span.Length >= V4i.Count)
-            for (int top = span.Length & Simd.MASK8; i < top;
-                i += V4i.Count, p = ref Unsafe.Add(ref p, V4i.Count))
+        else if (V4.IsHardwareAccelerated && span.Length >= Vector256<T>.Count)
+            for (int top = span.Length & (0x7FFF_FFFF ^ (Vector256<T>.Count - 1)); i < top;
+                i += Vector256<T>.Count, p = ref Unsafe.Add(ref p, Vector256<T>.Count))
                 V4.StoreUnsafe(-V4.LoadUnsafe(ref p), ref p);
         for (; i < span.Length; i++, p = ref Unsafe.Add(ref p, 1))
             p = -p;
@@ -1110,6 +1092,36 @@ public static class Vec
         return seed;
     }
 
+    /// <summary>Creates a reversed copy of an array.</summary>
+    /// <param name="values">The array to reverse.</param>
+    /// <returns>An independent reversed copy.</returns>
+    public static T[] Reverse<T>(this T[] values) where T : struct
+    {
+        T[] result = (T[])values.Clone();
+        Array.Reverse(result);
+        return result;
+    }
+
+    /// <summary>Creates a new array with sorted values.</summary>
+    /// <param name="values">The array to sort.</param>
+    /// <returns>A new array with sorted values.</returns>
+    public static T[] Sort<T>(this T[] values) where T: INumberBase<T>
+    {
+        T[] result = (T[])values.Clone();
+        Array.Sort(result);
+        return result;
+    }
+
+    /// <summary>Creates a new array with sorted values.</summary>
+    /// <param name="values">The array to sort.</param>
+    /// <returns>A new array with sorted values.</returns>
+    public static T[] SortDescending<T>(this T[] values) where T : IComparable<T>
+    {
+        T[] result = (T[])values.Clone();
+        Array.Sort(result, static (x, y) => y.CompareTo(x));
+        return result;
+    }
+
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <param name="values">The vector to sum.</param>
     /// <returns>The sum of all vector's items.</returns>
@@ -1120,8 +1132,8 @@ public static class Vec
         ref T q = ref Unsafe.Add(ref p, values.Length);
         if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
         {
-            int MASK = 0x07FFF_FFFF ^ (Vector512<T>.Count - 1);
-            ref T last = ref Unsafe.Add(ref p, values.Length & MASK);
+            ref T last = ref Unsafe.Add(ref p,
+                values.Length & (0x07FFF_FFFF ^ (Vector512<T>.Count - 1)));
             Vector512<T> sum = Vector512<T>.Zero;
             do
             {
@@ -1133,8 +1145,8 @@ public static class Vec
         }
         else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
         {
-            int MASK = 0x07FFF_FFFF ^ (Vector256<T>.Count - 1);
-            ref T last = ref Unsafe.Add(ref p, values.Length & MASK);
+            ref T last = ref Unsafe.Add(ref p,
+                values.Length & (0x07FFF_FFFF ^ (Vector256<T>.Count - 1)));
             Vector256<T> sum = Vector256<T>.Zero;
             do
             {

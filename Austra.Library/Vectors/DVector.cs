@@ -955,14 +955,6 @@ public readonly struct DVector :
         return values.Abs();
     }
 
-    /// <summary>
-    /// Creates a new vector by transforming each item with the given function.
-    /// </summary>
-    /// <param name="mapper">The mapping function.</param>
-    /// <returns>A new vector with the transformed content.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DVector Map(Func<double, double> mapper) => values.Map(mapper);
-
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
@@ -974,6 +966,11 @@ public readonly struct DVector :
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Any(Func<double, bool> predicate) => values.AsSpan().Any(predicate);
+
+    /// <summary>Returns a new vector with the distinct values in the original one.</summary>
+    /// <remarks>Results are unordered.</remarks>
+    /// <returns>A new vector with distinct values.</returns>
+    public DVector Distinct() => values.AsSpan().Distinct();
 
     /// <summary>Creates a new vector by filtering items with the given predicate.</summary>
     /// <param name="predicate">The predicate to evaluate.</param>
@@ -988,6 +985,14 @@ public readonly struct DVector :
     public DVector FilterMap(Func<double, bool> predicate, Func<double, double> mapper) =>
         values.FilterMap(predicate, mapper);
 
+    /// <summary>
+    /// Creates a new vector by transforming each item with the given function.
+    /// </summary>
+    /// <param name="mapper">The mapping function.</param>
+    /// <returns>A new vector with the transformed content.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public DVector Map(Func<double, double> mapper) => values.Map(mapper);
+
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
     /// <param name="seed">The initial value.</param>
     /// <param name="reducer">The reducing function.</param>
@@ -995,6 +1000,18 @@ public readonly struct DVector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double Reduce(double seed, Func<double, double, double> reducer) =>
         values.AsSpan().Reduce(seed, reducer);
+
+    /// <summary>Creates a reversed copy of the vector.</summary>
+    /// <returns>An independent reversed copy.</returns>
+    public DVector Reverse() => values.Reverse();
+
+    /// <summary>Returns a new vector with sorted values.</summary>
+    /// <returns>A new vector with sorted values.</returns>
+    public DVector Sort() => values.Sort();
+
+    /// <summary>Returns a new vector with sorted values.</summary>
+    /// <returns>A new vector with sorted values.</returns>
+    public DVector SortDescending() => values.SortDescending();
 
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <returns>The sum of all vector's items.</returns>
@@ -1285,38 +1302,6 @@ public readonly struct DVector :
     /// </returns>
     public DVector MovingAverage(int degree) =>
         new MACalculator(degree, this).Run(128, 1e-9);
-
-    /// <summary>Creates a reversed copy of the vector.</summary>
-    /// <returns>An independent reversed copy.</returns>
-    public DVector Reverse()
-    {
-        DVector result = Clone();
-        Array.Reverse(result.values);
-        return result;
-    }
-
-    /// <summary>Returns a new vector with the distinct values in the original one.</summary>
-    /// <remarks>Results are unordered.</remarks>
-    /// <returns>A new vector with distinct values.</returns>
-    public DVector Distinct() => values.AsSpan().Distinct();
-
-    /// <summary>Returns a new vector with sorted values.</summary>
-    /// <returns>A new vector with sorted values.</returns>
-    public DVector Sort()
-    {
-        DVector result = Clone();
-        Array.Sort(result.values);
-        return result;
-    }
-
-    /// <summary>Returns a new vector with sorted values.</summary>
-    /// <returns>A new vector with sorted values.</returns>
-    public DVector SortDescending()
-    {
-        DVector result = Clone();
-        Array.Sort(result.values, (x, y) => y.CompareTo(x));
-        return result;
-    }
 
     /// <summary>Computes the real discrete Fourier transform.</summary>
     /// <returns>The spectrum.</returns>
