@@ -254,63 +254,31 @@ public static class Vec
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Max(this Span<double> values)
+    public static T Max<T>(this Span<T> values) where T: INumber<T>, IMinMaxValue<T>
     {
-        if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
+        if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
         {
-            ref double p = ref MM.GetReference(values);
-            ref double t = ref Unsafe.Add(ref p, values.Length - V8d.Count);
-            V8d vm = V8.LoadUnsafe(ref p);
-            p = ref Unsafe.Add(ref p, V8d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
+            ref T p = ref MM.GetReference(values);
+            ref T t = ref Unsafe.Add(ref p, values.Length - Vector512<T>.Count);
+            Vector512<T> vm = V8.LoadUnsafe(ref p);
+            p = ref Unsafe.Add(ref p, Vector512<T>.Count);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, Vector512<T>.Count))
                 vm = V8.Max(vm, V8.LoadUnsafe(ref p));
             return V8.Max(vm, V8.LoadUnsafe(ref t)).Max();
         }
-        if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
+        if (V4.IsHardwareAccelerated && values.Length >= Vector256<T>.Count)
         {
-            ref double p = ref MM.GetReference(values);
-            ref double t = ref Unsafe.Add(ref p, values.Length - V4d.Count);
-            V4d vm = V4.LoadUnsafe(ref p);
-            p = ref Unsafe.Add(ref p, V4d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
-                vm = Avx.Max(vm, V4.LoadUnsafe(ref p));
-            return Avx.Max(vm, V4.LoadUnsafe(ref t)).Max();
+            ref T p = ref MM.GetReference(values);
+            ref T t = ref Unsafe.Add(ref p, values.Length - Vector256<T>.Count);
+            Vector256<T> vm = V4.LoadUnsafe(ref p);
+            p = ref Unsafe.Add(ref p, Vector256<T>.Count);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, Vector256<T>.Count))
+                vm = V4.Max(vm, V4.LoadUnsafe(ref p));
+            return V4.Max(vm, V4.LoadUnsafe(ref t)).Max();
         }
-        double max = double.MinValue;
-        foreach (double d in values)
-            max = Math.Max(max, d);
-        return max;
-    }
-
-    /// <summary>Gets the item with the maximum value in the array.</summary>
-    /// <param name="values">Array with data.</param>
-    /// <returns>The item with the maximum value.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Max(this int[] values)
-    {
-        if (V8.IsHardwareAccelerated && values.Length >= V8i.Count)
-        {
-            ref int p = ref MM.GetArrayDataReference(values);
-            ref int t = ref Unsafe.Add(ref p, values.Length - V8i.Count);
-            V8i vm = V8.LoadUnsafe(ref p);
-            p = ref Unsafe.Add(ref p, V8i.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8i.Count))
-                vm = V8.Max(vm, V8.LoadUnsafe(ref p));
-            return V8.Max(vm, V8.LoadUnsafe(ref t)).Max();
-        }
-        if (V4.IsHardwareAccelerated && values.Length >= V4i.Count)
-        {
-            ref int p = ref MM.GetArrayDataReference(values);
-            ref int t = ref Unsafe.Add(ref p, values.Length - V4i.Count);
-            V4i vm = V4.LoadUnsafe(ref p);
-            p = ref Unsafe.Add(ref p, V4i.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4i.Count))
-                vm = Avx2.Max(vm, V4.LoadUnsafe(ref p));
-            return Avx2.Max(vm, V4.LoadUnsafe(ref t)).Max();
-        }
-        int max = int.MinValue;
-        foreach (int d in values)
-            max = Math.Max(max, d);
+        T max = T.MinValue;
+        foreach (T d in values)
+            max = T.Max(max, d);
         return max;
     }
 
@@ -318,64 +286,32 @@ public static class Vec
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Min(this Span<double> values)
+    public static T Min<T>(this Span<T> values) where T: INumber<T>, IMinMaxValue<T>
     {
-        if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
+        if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
         {
-            ref double p = ref MM.GetReference(values);
-            ref double t = ref Unsafe.Add(ref p, values.Length - V8d.Count);
-            V8d vm = V8.LoadUnsafe(ref p);
+            ref T p = ref MM.GetReference(values);
+            ref T t = ref Unsafe.Add(ref p, values.Length - Vector512<T>.Count);
+            Vector512<T> vm = V8.LoadUnsafe(ref p);
             p = ref Unsafe.Add(ref p, V8d.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
                 vm = V8.Min(vm, V8.LoadUnsafe(ref p));
             return V8.Min(vm, V8.LoadUnsafe(ref t)).Min();
         }
-        if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
+        if (V4.IsHardwareAccelerated && values.Length >= Vector256<T>.Count)
         {
-            ref double p = ref MM.GetReference(values);
-            ref double t = ref Unsafe.Add(ref p, values.Length - V4d.Count);
-            V4d vm = V4.LoadUnsafe(ref p);
-            p = ref Unsafe.Add(ref p, V4d.Count);
+            ref T p = ref MM.GetReference(values);
+            ref T t = ref Unsafe.Add(ref p, values.Length - Vector256<T>.Count);
+            Vector256<T> vm = V4.LoadUnsafe(ref p);
+            p = ref Unsafe.Add(ref p, Vector256<T>.Count);
             for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
-                vm = Avx.Min(vm, V4.LoadUnsafe(ref p));
-            return Avx.Min(vm, V4.LoadUnsafe(ref t)).Min();
+                vm = V4.Min(vm, V4.LoadUnsafe(ref p));
+            return V4.Min(vm, V4.LoadUnsafe(ref t)).Min();
         }
-        double min = double.MaxValue;
-        foreach (double d in values)
-            min = Math.Min(min, d);
+        T min = T.MaxValue;
+        foreach (T d in values)
+            min = T.Min(min, d);
         return min;
-    }
-
-    /// <summary>Gets the item with the maximum value in the array.</summary>
-    /// <param name="values">Array with data.</param>
-    /// <returns>The item with the maximum value.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Min(this int[] values)
-    {
-        if (V8.IsHardwareAccelerated && values.Length >= V8i.Count)
-        {
-            ref int p = ref MM.GetArrayDataReference(values);
-            ref int t = ref Unsafe.Add(ref p, values.Length - V8i.Count);
-            V8i vm = V8.LoadUnsafe(ref p);
-            p = ref Unsafe.Add(ref p, V8i.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8i.Count))
-                vm = V8.Min(vm, V8.LoadUnsafe(ref p));
-            return V8.Min(vm, V8.LoadUnsafe(ref t)).Min();
-        }
-        if (V4.IsHardwareAccelerated && values.Length >= V4i.Count)
-        {
-            ref int p = ref MM.GetArrayDataReference(values);
-            ref int t = ref Unsafe.Add(ref p, values.Length - V4i.Count);
-            V4i vm = V4.LoadUnsafe(ref p);
-            p = ref Unsafe.Add(ref p, V4i.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4i.Count))
-                vm = Avx2.Min(vm, V4.LoadUnsafe(ref p));
-            return Avx2.Min(vm, V4.LoadUnsafe(ref t)).Min();
-        }
-        int max = int.MaxValue;
-        foreach (int d in values)
-            max = Math.Min(max, d);
-        return max;
     }
 
     /// <summary>Pointwise sum of two equally sized spans.</summary>
