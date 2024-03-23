@@ -11,25 +11,193 @@ public static class Vec
     /// <summary>Number of characters in a line.</summary>
     public static int TERMINAL_COLUMNS { get; set; } = 80;
 
-    /// <summary>Deconstruct a complex number into its real and imaginary parts.</summary>
-    /// <param name="complex">The value to be deconstructed.</param>
-    /// <param name="real">The real part.</param>
-    /// <param name="imaginary">The imaginary part.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Deconstruct(this Complex complex, out double real, out double imaginary) =>
-        (real, imaginary) = (complex.Real, complex.Imaginary);
-
-    /// <summary>Creates an identity matrix given a size.</summary>
-    /// <param name="size">Number of rows and columns.</param>
-    /// <returns>An identity matrix with the requested size.</returns>
-    public static double[] CreateIdentity(int size)
+    /// <summary>Gets the absolute values of the array items.</summary>
+    /// <returns>A new array with non-negative items.</returns>
+    public static T[] Abs<T>(this T[] values) where T : struct, INumberBase<T>
     {
-        double[] values = new double[size * size];
-        int r = size + 1;
-        ref double a = ref MM.GetArrayDataReference(values);
-        for (; size-- > 0; a = ref Unsafe.Add(ref a, r))
-            a = 1.0;
-        return values;
+        T[] result = GC.AllocateUninitializedArray<T>(values.Length);
+        ref T p = ref MM.GetArrayDataReference(values);
+        ref T q = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
+        {
+            nuint t = (nuint)(result.Length - Vector512<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
+            V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
+        {
+            nuint t = (nuint)(result.Length - Vector256<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
+            V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Unsafe.Add(ref q, i) = T.Abs(Unsafe.Add(ref p, i));
+        return result;
+    }
+
+    /// <summary>Pointwise sum of two equally sized spans.</summary>
+    /// <param name="span1">First summand.</param>
+    /// <param name="span2">Second summand.</param>
+    /// <param name="target">The span to receive the sum of the first two argument.</param>
+    public static void Add<T>(this Span<T> span1, Span<T> span2, Span<T> target)
+        where T : INumberBase<T>
+    {
+        ref T a = ref MM.GetReference(span1);
+        ref T b = ref MM.GetReference(span2);
+        ref T c = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
+        {
+            nuint t = (nuint)(target.Length - Vector512<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) + V8.LoadUnsafe(ref b, i), ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) + V8.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
+        {
+            nuint t = (nuint)(target.Length - Vector256<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) + V4.LoadUnsafe(ref b, i), ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) + V4.LoadUnsafe(ref b, t), ref c, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
+    }
+
+    /// <summary>Pointwise inplace sum of two equally sized spans.</summary>
+    /// <param name="span1">First summand and target.</param>
+    /// <param name="span2">Second summand.</param>
+    public static void Add(this Span<double> span1, Span<double> span2)
+    {
+        ref double a = ref MM.GetReference(span1);
+        ref double b = ref MM.GetReference(span2);
+        nuint i = 0;
+        if (V8.IsHardwareAccelerated && span1.Length >= V8d.Count)
+            for (nuint top = (nuint)(span1.Length & Simd.MASK8); i < top; i += (nuint)V8d.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) + V8.LoadUnsafe(ref b, i), ref a, i);
+        else if (V4.IsHardwareAccelerated && span1.Length >= V4d.Count)
+            for (nuint top = (nuint)(span1.Length & Simd.MASK4); i < top; i += (nuint)V4d.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) + V4.LoadUnsafe(ref b, i), ref a, i);
+        for (; i < (nuint)span1.Length; i++)
+            Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
+    }
+
+    /// <summary>Pointwise addition of a scalar to a span.</summary>
+    /// <param name="span">Span summand.</param>
+    /// <param name="scalar">Scalar summand.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void Add<T>(this Span<T> span, T scalar, Span<T> target) where T : INumberBase<T>
+    {
+        ref T p = ref MM.GetReference(span);
+        ref T q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
+        {
+            Vector512<T> vec = V8.Create(scalar);
+            nuint t = (nuint)(target.Length - Vector512<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) + vec, ref q, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) + vec, ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
+        {
+            Vector256<T> vec = V4.Create(scalar);
+            nuint t = (nuint)(target.Length - Vector256<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) + vec, ref q, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) + vec, ref q, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) + scalar;
+    }
+
+    /// <summary>Checks whether the predicate is satisfied by all items.</summary>
+    /// <param name="span">The span to search.</param>
+    /// <param name="predicate">The predicate to be checked.</param>
+    /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
+    public static bool All<T>(this Span<T> span, Func<T, bool> predicate) where T : struct
+    {
+        foreach (T item in span)
+            if (!predicate(item))
+                return false;
+        return true;
+    }
+
+    /// <summary>Gets the item in a span with the maximum absolute value.</summary>
+    /// <param name="span">The data span.</param>
+    /// <returns>The maximum absolute value in the samples.</returns>
+    public static double AMax(this Span<double> span)
+    {
+        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
+        {
+            ref double p = ref MM.GetReference(span);
+            ref double t = ref Unsafe.Add(ref p, span.Length - V8d.Count);
+            V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
+            p = ref Unsafe.Add(ref p, V8d.Count);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
+                vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p)));
+            return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref t))).Max();
+        }
+        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
+        {
+            ref double p = ref MM.GetReference(span);
+            ref double t = ref Unsafe.Add(ref p, span.Length - V4d.Count);
+            V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
+            p = ref Unsafe.Add(ref p, V4d.Count);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
+                vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p)));
+            return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref t))).Max();
+        }
+        double max = Math.Abs(span[0]);
+        for (int i = 1; i < span.Length; i++)
+            max = Math.Max(max, Math.Abs(span[i]));
+        return max;
+    }
+
+    /// <summary>Gets the item in a span with the minimum absolute value.</summary>
+    /// <param name="span">The data span.</param>
+    /// <returns>The minimum absolute value in the samples.</returns>
+    public static double AMin(this Span<double> span)
+    {
+        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
+        {
+            ref double p = ref MM.GetReference(span);
+            ref double t = ref Unsafe.Add(ref p, span.Length - V8d.Count);
+            V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
+            p = ref Unsafe.Add(ref p, V8d.Count);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
+                vm = V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref p)));
+            return V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref t))).Min();
+        }
+        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
+        {
+            ref double p = ref MM.GetReference(span);
+            ref double t = ref Unsafe.Add(ref p, span.Length - V4d.Count);
+            V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
+            p = ref Unsafe.Add(ref p, V4d.Count);
+            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
+                vm = V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref p)));
+            return V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref t))).Min();
+        }
+        double min = Math.Abs(span[0]);
+        for (int i = 1; i < span.Length; i++)
+            min = Math.Min(min, Math.Abs(span[i]));
+        return min;
+    }
+
+    /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
+    /// <param name="span">The span to search.</param>
+    /// <param name="predicate">The predicate to be checked.</param>
+    /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
+    public static bool Any<T>(this Span<T> span, Func<T, bool> predicate) where T : struct
+    {
+        foreach (T item in span)
+            if (predicate(item))
+                return true;
+        return false;
     }
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
@@ -46,23 +214,17 @@ public static class Vec
         return values;
     }
 
-    /// <summary>Gets the main diagonal of a 1D-array.</summary>
-    /// <param name="values">A 1D-array containing a matrix.</param>
-    /// <param name="rows">Number of rows.</param>
-    /// <param name="cols">Number of columns.</param>
-    /// <returns>A vector containing values in the main diagonal.</returns>
-    public static DVector Diagonal(this double[] values, int rows, int cols)
+    /// <summary>Creates an identity matrix given a size.</summary>
+    /// <param name="size">Number of rows and columns.</param>
+    /// <returns>An identity matrix with the requested size.</returns>
+    public static double[] CreateIdentity(int size)
     {
-        ArgumentNullException.ThrowIfNull(values);
-        Contract.Ensures(Contract.Result<DVector>().Length == Math.Min(rows, cols));
-
-        int r = cols + 1, size = Math.Min(rows, cols);
-        double[] result = GC.AllocateUninitializedArray<double>(size);
+        double[] values = new double[size * size];
+        int r = size + 1;
         ref double a = ref MM.GetArrayDataReference(values);
-        ref double b = ref MM.GetArrayDataReference(result);
-        for (; size-- > 0; a = ref Unsafe.Add(ref a, r), b = ref Unsafe.Add(ref b, 1))
-            b = a;
-        return result;
+        for (; size-- > 0; a = ref Unsafe.Add(ref a, r))
+            a = 1.0;
+        return values;
     }
 
     /// <summary>Initializes a span with random values.</summary>
@@ -158,21 +320,32 @@ public static class Vec
         }
     }
 
-    /// <summary>Calculates the trace of a 1D-array.</summary>
-    /// <param name="values">A 1D-array.</param>
+    /// <summary>Gets the main diagonal of a 1D-array.</summary>
+    /// <param name="values">A 1D-array containing a matrix.</param>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    /// <returns>The sum of the cells in the main diagonal.</returns>
-    public static double Trace(this double[] values, int rows, int cols)
+    /// <returns>A vector containing values in the main diagonal.</returns>
+    public static DVector Diagonal(this double[] values, int rows, int cols)
     {
-        if (values is null)
-            return 0;
-        double trace = 0;
+        ArgumentNullException.ThrowIfNull(values);
+        Contract.Ensures(Contract.Result<DVector>().Length == Math.Min(rows, cols));
+
         int r = cols + 1, size = Math.Min(rows, cols);
-        for (ref double p = ref MM.GetArrayDataReference(values); size-- > 0; p = ref Unsafe.Add(ref p, r))
-            trace += p;
-        return trace;
+        double[] result = GC.AllocateUninitializedArray<double>(size);
+        ref double a = ref MM.GetArrayDataReference(values);
+        ref double b = ref MM.GetArrayDataReference(result);
+        for (; size-- > 0; a = ref Unsafe.Add(ref a, r), b = ref Unsafe.Add(ref b, 1))
+            b = a;
+        return result;
     }
+
+    /// <summary>Deconstruct a complex number into its real and imaginary parts.</summary>
+    /// <param name="complex">The value to be deconstructed.</param>
+    /// <param name="real">The real part.</param>
+    /// <param name="imaginary">The imaginary part.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Deconstruct(this Complex complex, out double real, out double imaginary) =>
+        (real, imaginary) = (complex.Real, complex.Imaginary);
 
     /// <summary>Gets the product of the cells in the main diagonal.</summary>
     /// <param name="values">A 1D-array.</param>
@@ -188,73 +361,262 @@ public static class Vec
         return product;
     }
 
-    /// <summary>Gets the item in a span with the maximum absolute value.</summary>
-    /// <param name="span">The data span.</param>
-    /// <returns>The maximum absolute value in the samples.</returns>
-    public static double AMax(this Span<double> span)
+    /// <summary>Computes the maximum difference between two arrays.</summary>
+    /// <remarks>Arrays can be of different lengths.</remarks>
+    /// <param name="first">First array.</param>
+    /// <param name="second">Second array.</param>
+    /// <returns>The max-norm of the vector difference.</returns>
+    public static double Distance(this double[] first, double[] second)
     {
-        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
+        int len = Math.Min(first.Length, second.Length);
+        if (V8.IsHardwareAccelerated && len >= V8d.Count)
         {
-            ref double p = ref MM.GetReference(span);
-            ref double t = ref Unsafe.Add(ref p, span.Length - V8d.Count);
-            V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
-            p = ref Unsafe.Add(ref p, V8d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
-                vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p)));
-            return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref t))).Max();
+            ref double p = ref MM.GetArrayDataReference(first);
+            ref double q = ref MM.GetArrayDataReference(second);
+            ref double lastp = ref Unsafe.Add(ref p, len - V8d.Count);
+            ref double lastq = ref Unsafe.Add(ref q, len - V8d.Count);
+            V8d vm = V8d.Zero;
+            for (; IsAddressLessThan(ref p, ref lastp); p = ref Unsafe.Add(ref p, V8d.Count),
+                q = ref Unsafe.Add(ref q, V8d.Count))
+                vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p) - V8.LoadUnsafe(ref q)));
+            return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref lastp) - V8.LoadUnsafe(ref lastq))).Max();
         }
-        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
+        if (V4.IsHardwareAccelerated && len >= V4d.Count)
         {
-            ref double p = ref MM.GetReference(span);
-            ref double t = ref Unsafe.Add(ref p, span.Length - V4d.Count);
-            V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
-            p = ref Unsafe.Add(ref p, V4d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
-                vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p)));
-            return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref t))).Max();
+            ref double p = ref MM.GetArrayDataReference(first);
+            ref double q = ref MM.GetArrayDataReference(second);
+            ref double lastp = ref Unsafe.Add(ref p, len - V4d.Count);
+            ref double lastq = ref Unsafe.Add(ref q, len - V4d.Count);
+            V4d vm = V4d.Zero;
+            for (; IsAddressLessThan(ref p, ref lastp); p = ref Unsafe.Add(ref p, V4d.Count),
+                q = ref Unsafe.Add(ref q, V4d.Count))
+                vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p) - V4.LoadUnsafe(ref q)));
+            return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref lastp) - V4.LoadUnsafe(ref lastq))).Max();
         }
-        double max = Math.Abs(span[0]);
-        for (int i = 1; i < span.Length; i++)
-            max = Math.Max(max, Math.Abs(span[i]));
+        double max = 0;
+        for (int i = 0; i < len; i++)
+        {
+            double v = Math.Abs(first[i] - second[i]);
+            if (v > max)
+                max = v;
+        }
         return max;
     }
 
-    /// <summary>Gets the item in a span with the minimum absolute value.</summary>
-    /// <param name="span">The data span.</param>
-    /// <returns>The minimum absolute value in the samples.</returns>
-    public static double AMin(this Span<double> span)
+    /// <summary>Returns a new array with the distinct values in the span.</summary>
+    /// <remarks>Results are unordered.</remarks>
+    /// <param name="span">The span to transform.</param>
+    /// <returns>A new array with distinct values.</returns>
+    public static T[] Distinct<T>(this Span<T> span) where T : struct =>
+        [.. ((HashSet<T>)([.. span]))];
+
+    /// <summary>Pointwise division of two equally sized spans.</summary>
+    /// <param name="span1">Span dividend.</param>
+    /// <param name="span2">Span divisor.</param>
+    /// <returns>The pointwise quotient of the two arguments.</returns>
+    public static T[] Div<T>(this Span<T> span1, Span<T> span2) where T : INumberBase<T>
     {
-        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
+        T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
+        ref T a = ref MM.GetReference(span1);
+        ref T b = ref MM.GetReference(span2);
+        ref T c = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
         {
-            ref double p = ref MM.GetReference(span);
-            ref double t = ref Unsafe.Add(ref p, span.Length - V8d.Count);
-            V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
-            p = ref Unsafe.Add(ref p, V8d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
-                vm = V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref p)));
-            return V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref t))).Min();
+            nuint t = (nuint)(result.Length - Vector512<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) / V8.LoadUnsafe(ref b, i), ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) / V8.LoadUnsafe(ref b, t), ref c, t);
         }
-        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
+        else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
         {
-            ref double p = ref MM.GetReference(span);
-            ref double t = ref Unsafe.Add(ref p, span.Length - V4d.Count);
-            V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
-            p = ref Unsafe.Add(ref p, V4d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
-                vm = V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref p)));
-            return V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref t))).Min();
+            nuint t = (nuint)(result.Length - Vector256<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) / V4.LoadUnsafe(ref b, i), ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) / V4.LoadUnsafe(ref b, t), ref c, t);
         }
-        double min = Math.Abs(span[0]);
-        for (int i = 1; i < span.Length; i++)
-            min = Math.Min(min, Math.Abs(span[i]));
-        return min;
+        else
+            for (int i = 0; i < result.Length; i++)
+                Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) / Unsafe.Add(ref b, i);
+        return result;
+    }
+
+    /// <summary>Pointwise division of two equally sized spans.</summary>
+    /// <param name="span">Span dividend.</param>
+    /// <param name="divisor">Scalar divisor.</param>
+    /// <returns>The pointwise quotient of the two arguments.</returns>
+    public static int[] Div(this Span<int> span, int divisor)
+    {
+        int[] result = GC.AllocateUninitializedArray<int>(span.Length);
+        ref int a = ref MM.GetReference(span);
+        ref int c = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            V8i d = V8.Create(divisor);
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) / d, ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) / d, ref c, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            V4i d = V4.Create(divisor);
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) / d, ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) / d, ref c, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) / divisor;
+        return result;
+    }
+
+    /// <summary>Checks two arrays for equality.</summary>
+    /// <param name="array1">First array operand.</param>
+    /// <param name="array2">Second array operand.</param>
+    /// <returns><see langword="true"/> if both array has the same items.</returns>
+    public static bool Eqs<T>(this T[] array1, T[] array2) where T : INumberBase<T>
+    {
+        if (array1.Length != array2.Length)
+            return false;
+        ref T p = ref MM.GetArrayDataReference(array1);
+        ref T q = ref MM.GetArrayDataReference(array2);
+        if (V8.IsHardwareAccelerated && array1.Length >= Vector512<T>.Count)
+        {
+            ref T lstP = ref Unsafe.Add(ref p, array1.Length - Vector512<T>.Count);
+            ref T lstQ = ref Unsafe.Add(ref q, array1.Length - Vector512<T>.Count);
+            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, Vector512<T>.Count),
+                q = ref Unsafe.Add(ref q, Vector512<T>.Count))
+                if (!V8.EqualsAll(V8.LoadUnsafe(ref p), V8.LoadUnsafe(ref q)))
+                    return false;
+            if (!V8.EqualsAll(V8.LoadUnsafe(ref lstP), V8.LoadUnsafe(ref lstQ)))
+                return false;
+        }
+        else if (V4.IsHardwareAccelerated && array1.Length >= Vector256<T>.Count)
+        {
+            ref T lstP = ref Unsafe.Add(ref p, array1.Length - Vector256<T>.Count);
+            ref T lstQ = ref Unsafe.Add(ref q, array1.Length - Vector256<T>.Count);
+            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, Vector256<T>.Count),
+                q = ref Unsafe.Add(ref q, Vector256<T>.Count))
+                if (!V4.EqualsAll(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q)))
+                    return false;
+            if (!V4.EqualsAll(V4.LoadUnsafe(ref lstP), V4.LoadUnsafe(ref lstQ)))
+                return false;
+        }
+        else
+            for (int i = 0; i < array1.Length; i++)
+                if (Unsafe.Add(ref p, i) != Unsafe.Add(ref q, i))
+                    return false;
+        return true;
+    }
+
+    /// <summary>Creates a new array by filtering items with the given predicate.</summary>
+    /// <param name="values">The array to filter.</param>
+    /// <param name="predicate">The predicate to evaluate.</param>
+    /// <returns>A new array with the filtered items.</returns>
+    public static T[] Filter<T>(this T[] values, Func<T, bool> predicate) where T : struct
+    {
+        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
+        int j = 0;
+        foreach (T value in values)
+            if (predicate(value))
+                newValues[j++] = value;
+        return j == 0 ? [] : j == values.Length ? values : newValues[..j];
+    }
+
+    /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
+    /// <remarks>This method can save an intermediate buffer and one iteration.</remarks>
+    /// <param name="values">The array to transform.</param>
+    /// <param name="predicate">The predicate to evaluate.</param>
+    /// <param name="mapper">The mapping function.</param>
+    /// <returns>A new array with the filtered items.</returns>
+    public static T[] FilterMap<T>(this T[] values, Func<T, bool> predicate, Func<T, T> mapper) where T : struct
+    {
+        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
+        int j = 0;
+        foreach (T value in values)
+            if (predicate(value))
+                newValues[j++] = mapper(value);
+        return j == 0 ? [] : j == values.Length ? values : newValues[..j];
+    }
+
+    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <param name="values">The span to search.</param>
+    /// <param name="value">The value to locate.</param>
+    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
+    public static int IndexOf<T>(this ReadOnlySpan<T> values, T value)
+        where T : struct, IEquatable<T>
+    {
+        ref T p = ref MM.GetReference(values);
+        nuint size = (nuint)values.Length;
+        if (V8.IsHardwareAccelerated && size >= (nuint)Vector512<T>.Count)
+        {
+            Vector512<T> v = V8.Create(value);
+            nuint t = size - (nuint)Vector512<T>.Count;
+            ulong mask;
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+            {
+                mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, i), v));
+                if (mask != 0)
+                    return (int)i + BitOperations.TrailingZeroCount(mask);
+            }
+            mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, t), v));
+            if (mask != 0)
+                return (int)t + BitOperations.TrailingZeroCount(mask);
+        }
+        else if (V4.IsHardwareAccelerated && size >= (nuint)Vector256<T>.Count)
+        {
+            Vector256<T> v = V4.Create(value);
+            nuint t = size - (nuint)Vector256<T>.Count;
+            uint mask;
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+            {
+                mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, i), v));
+                if (mask != 0)
+                    return (int)i + BitOperations.TrailingZeroCount(mask);
+            }
+            mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, t), v));
+            if (mask != 0)
+                return (int)t + BitOperations.TrailingZeroCount(mask);
+        }
+        else
+            for (nuint i = 0; i < size; i++)
+                if (Unsafe.Add(ref p, i).Equals(value))
+                    return (int)i;
+        return -1;
+    }
+
+    /// <summary>
+    /// Creates a new array by transforming each item with the given function.
+    /// </summary>
+    /// <param name="values">The array to transform.</param>
+    /// <param name="mapper">The mapping function.</param>
+    /// <returns>A new array with the transformed content.</returns>
+    public static T[] Map<T>(this T[] values, Func<T, T> mapper) where T : struct
+    {
+        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
+        ref T p = ref MM.GetArrayDataReference(values);
+        ref T q = ref MM.GetArrayDataReference(newValues);
+        int i = 0;
+        for (int size = newValues.Length & (~3); i < size; i += 4)
+        {
+            var (a, b, c, d) = (mapper(Unsafe.Add(ref p, i)), mapper(Unsafe.Add(ref p, i + 1)),
+                mapper(Unsafe.Add(ref p, i + 2)), mapper(Unsafe.Add(ref p, i + 3)));
+            Unsafe.Add(ref q, i) = a;
+            Unsafe.Add(ref q, i + 1) = b;
+            Unsafe.Add(ref q, i + 2) = c;
+            Unsafe.Add(ref q, i + 3) = d;
+        }
+        for (; i < newValues.Length; i++)
+            Unsafe.Add(ref q, i) = mapper(Unsafe.Add(ref p, i));
+        return newValues;
     }
 
     /// <summary>Gets the item with the maximum value in the array.</summary>
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Max<T>(this Span<T> values) where T: INumber<T>, IMinMaxValue<T>
+    public static T Max<T>(this Span<T> values) where T : INumber<T>, IMinMaxValue<T>
     {
         if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
         {
@@ -286,7 +648,7 @@ public static class Vec
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Min<T>(this Span<T> values) where T: INumber<T>, IMinMaxValue<T>
+    public static T Min<T>(this Span<T> values) where T : INumber<T>, IMinMaxValue<T>
     {
         if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
         {
@@ -314,58 +676,41 @@ public static class Vec
         return min;
     }
 
-    /// <summary>Pointwise sum of two equally sized spans.</summary>
-    /// <param name="span1">First summand.</param>
-    /// <param name="span2">Second summand.</param>
-    /// <param name="target">The span to receive the sum of the first two argument.</param>
-    public static void Add<T>(this Span<T> span1, Span<T> span2, Span<T> target)
-        where T : INumberBase<T>
+    /// <summary>Pointwise multiplication of two equally sized spans.</summary>
+    /// <param name="span1">Span multiplicand.</param>
+    /// <param name="span2">Span multiplier.</param>
+    /// <returns>The pointwise multiplication of the two arguments.</returns>
+    public static T[] Mul<T>(this Span<T> span1, Span<T> span2) where T : INumberBase<T>
     {
+        T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
         ref T a = ref MM.GetReference(span1);
         ref T b = ref MM.GetReference(span2);
-        ref T c = ref MM.GetReference(target);
-        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
+        ref T c = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
         {
-            nuint t = (nuint)(target.Length - Vector512<T>.Count);
+            nuint t = (nuint)(result.Length - Vector512<T>.Count);
             for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) + V8.LoadUnsafe(ref b, i), ref c, i);
-            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) + V8.LoadUnsafe(ref b, t), ref c, t);
+                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) * V8.LoadUnsafe(ref b, i), ref c, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) * V8.LoadUnsafe(ref b, t), ref c, t);
         }
-        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
+        else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
         {
-            nuint t = (nuint)(target.Length - Vector256<T>.Count);
+            nuint t = (nuint)(result.Length - Vector256<T>.Count);
             for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) + V4.LoadUnsafe(ref b, i), ref c, i);
-            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) + V4.LoadUnsafe(ref b, t), ref c, t);
+                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) * V4.LoadUnsafe(ref b, i), ref c, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) * V4.LoadUnsafe(ref b, t), ref c, t);
         }
         else
-            for (int i = 0; i < target.Length; i++)
-                Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
+            for (int i = 0; i < result.Length; i++)
+                Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) * Unsafe.Add(ref b, i);
+        return result;
     }
 
-    /// <summary>Pointwise inplace sum of two equally sized spans.</summary>
-    /// <param name="span1">First summand and target.</param>
-    /// <param name="span2">Second summand.</param>
-    public static void Add(this Span<double> span1, Span<double> span2)
-    {
-        ref double a = ref MM.GetReference(span1);
-        ref double b = ref MM.GetReference(span2);
-        nuint i = 0;
-        if (V8.IsHardwareAccelerated && span1.Length >= V8d.Count)
-            for (nuint top = (nuint)(span1.Length & Simd.MASK8); i < top; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) + V8.LoadUnsafe(ref b, i), ref a, i);
-        else if (V4.IsHardwareAccelerated && span1.Length >= V4d.Count)
-            for (nuint top = (nuint)(span1.Length & Simd.MASK4); i < top; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) + V4.LoadUnsafe(ref b, i), ref a, i);
-        for (; i < (nuint)span1.Length; i++)
-            Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
-    }
-
-    /// <summary>Pointwise addition of a scalar to a span.</summary>
-    /// <param name="span">Span summand.</param>
-    /// <param name="scalar">Scalar summand.</param>
+    /// <summary>Pointwise multiplication of a span and a scalar.</summary>
+    /// <param name="span">Span multiplicand.</param>
+    /// <param name="scalar">Scalar multiplier.</param>
     /// <param name="target">Target memory for the operation.</param>
-    public static void Add<T>(this Span<T> span, T scalar, Span<T> target) where T : INumberBase<T>
+    public static void Mul<T>(this Span<T> span, T scalar, Span<T> target) where T : INumberBase<T>
     {
         ref T p = ref MM.GetReference(span);
         ref T q = ref MM.GetReference(target);
@@ -374,20 +719,143 @@ public static class Vec
             Vector512<T> vec = V8.Create(scalar);
             nuint t = (nuint)(target.Length - Vector512<T>.Count);
             for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) + vec, ref q, i);
-            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) + vec, ref q, t);
+                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) * vec, ref q, i);
+            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) * vec, ref q, t);
         }
         else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
         {
             Vector256<T> vec = V4.Create(scalar);
             nuint t = (nuint)(target.Length - Vector256<T>.Count);
             for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) + vec, ref q, i);
-            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) + vec, ref q, t);
+                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) * vec, ref q, i);
+            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) * vec, ref q, t);
         }
         else
             for (int i = 0; i < target.Length; i++)
-                Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) + scalar;
+                Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) * scalar;
+    }
+
+    /// <summary>Pointwise negation of a span.</summary>
+    /// <param name="span">Span to negate.</param>
+    /// <param name="target">Target memory for the operation.</param>
+    public static void Neg<T>(this Span<T> span, Span<T> target) where T : INumberBase<T>
+    {
+        ref T p = ref MM.GetReference(span);
+        ref T q = ref MM.GetReference(target);
+        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
+        {
+            nuint t = (nuint)(target.Length - Vector512<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                V8.StoreUnsafe(-V8.LoadUnsafe(ref p, i), ref q, i);
+            V8.StoreUnsafe(-V8.LoadUnsafe(ref p, t), ref q, t);
+        }
+        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
+        {
+            nuint t = (nuint)(target.Length - Vector256<T>.Count);
+            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                V4.StoreUnsafe(-V4.LoadUnsafe(ref p, i), ref q, i);
+            V4.StoreUnsafe(-V4.LoadUnsafe(ref p, t), ref q, t);
+        }
+        else
+            for (int i = 0; i < target.Length; i++)
+                Unsafe.Add(ref q, i) = -Unsafe.Add(ref p, i);
+    }
+
+    /// <summary>Inplace pointwise negation of a span.</summary>
+    /// <param name="span">Span to negate.</param>
+    public static void Neg<T>(this Span<T> span) where T : INumberBase<T>
+    {
+        ref T p = ref MM.GetReference(span);
+        int i = 0;
+        if (V8.IsHardwareAccelerated && span.Length >= Vector512<T>.Count)
+            for (int top = span.Length & ~(Vector512<T>.Count - 1); i < top;
+                i += Vector512<T>.Count, p = ref Unsafe.Add(ref p, Vector512<T>.Count))
+                V8.StoreUnsafe(-V8.LoadUnsafe(ref p), ref p);
+        else if (V4.IsHardwareAccelerated && span.Length >= Vector256<T>.Count)
+            for (int top = span.Length & ~(Vector256<T>.Count - 1); i < top;
+                i += Vector256<T>.Count, p = ref Unsafe.Add(ref p, Vector256<T>.Count))
+                V4.StoreUnsafe(-V4.LoadUnsafe(ref p), ref p);
+        for (; i < span.Length; i++, p = ref Unsafe.Add(ref p, 1))
+            p = -p;
+    }
+
+    /// <summary>Calculates the product of the items of an array.</summary>
+    /// <param name="values">The array to calculate the product.</param>
+    /// <returns>The product of all array items.</returns>
+    public static T Product<T>(this T[] values) where T : INumberBase<T>
+    {
+        T result = T.MultiplicativeIdentity;
+        ref T p = ref MM.GetArrayDataReference(values);
+        ref T q = ref Unsafe.Add(ref p, values.Length);
+        if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
+        {
+            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector512<T>.Count - 1));
+            Vector512<T> prod = Vector512<T>.One;
+            do
+            {
+                prod *= V8.LoadUnsafe(ref p);
+                p = ref Unsafe.Add(ref p, Vector512<T>.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = (prod.GetLower() * prod.GetUpper()).Product();
+        }
+        else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
+        {
+            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector256<T>.Count - 1));
+            Vector256<T> prod = Vector256<T>.One;
+            do
+            {
+                prod *= V4.LoadUnsafe(ref p);
+                p = ref Unsafe.Add(ref p, Vector256<T>.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = prod.Product();
+        }
+        for (; IsAddressLessThan(ref p, ref q); p = ref Unsafe.Add(ref p, 1))
+            result *= p;
+        return result;
+    }
+
+    /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
+    /// <param name="span">The span to reduce.</param>
+    /// <param name="seed">The initial value.</param>
+    /// <param name="reducer">The reducing function.</param>
+    /// <returns>The final synthesized value.</returns>
+    public static T Reduce<T>(this Span<T> span, T seed, Func<T, T, T> reducer) where T : struct
+    {
+        foreach (T item in span)
+            seed = reducer(seed, item);
+        return seed;
+    }
+
+    /// <summary>Creates a reversed copy of an array.</summary>
+    /// <param name="values">The array to reverse.</param>
+    /// <returns>An independent reversed copy.</returns>
+    public static T[] Reverse<T>(this T[] values) where T : struct
+    {
+        T[] result = (T[])values.Clone();
+        Array.Reverse(result);
+        return result;
+    }
+
+    /// <summary>Creates a new array with sorted values.</summary>
+    /// <param name="values">The array to sort.</param>
+    /// <returns>A new array with sorted values.</returns>
+    public static T[] Sort<T>(this T[] values) where T : INumberBase<T>
+    {
+        T[] result = (T[])values.Clone();
+        Array.Sort(result);
+        return result;
+    }
+
+    /// <summary>Creates a new array with sorted values.</summary>
+    /// <param name="values">The array to sort.</param>
+    /// <returns>A new array with sorted values.</returns>
+    public static T[] SortDescending<T>(this T[] values) where T : IComparable<T>
+    {
+        T[] result = (T[])values.Clone();
+        Array.Sort(result, static (x, y) => y.CompareTo(x));
+        return result;
     }
 
     /// <summary>Pointwise subtraction of two equally sized spans.</summary>
@@ -497,168 +965,74 @@ public static class Vec
                 Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Pointwise negation of a span.</summary>
-    /// <param name="span">Span to negate.</param>
-    /// <param name="target">Target memory for the operation.</param>
-    public static void Neg<T>(this Span<T> span, Span<T> target) where T : INumberBase<T>
+    /// <summary>Calculates the sum of the vector's items.</summary>
+    /// <param name="values">The vector to sum.</param>
+    /// <returns>The sum of all vector's items.</returns>
+    public static T Sum<T>(this T[] values) where T : INumberBase<T>
     {
-        ref T p = ref MM.GetReference(span);
-        ref T q = ref MM.GetReference(target);
-        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
+        T result = T.AdditiveIdentity;
+        ref T p = ref MM.GetArrayDataReference(values);
+        ref T q = ref Unsafe.Add(ref p, values.Length);
+        if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
         {
-            nuint t = (nuint)(target.Length - Vector512<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(-V8.LoadUnsafe(ref p, i), ref q, i);
-            V8.StoreUnsafe(-V8.LoadUnsafe(ref p, t), ref q, t);
+            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector512<T>.Count - 1));
+            Vector512<T> sum = Vector512<T>.Zero;
+            do
+            {
+                sum += V8.LoadUnsafe(ref p);
+                p = ref Unsafe.Add(ref p, Vector512<T>.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = V8.Sum(sum);
         }
-        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
+        else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
         {
-            nuint t = (nuint)(target.Length - Vector256<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(-V4.LoadUnsafe(ref p, i), ref q, i);
-            V4.StoreUnsafe(-V4.LoadUnsafe(ref p, t), ref q, t);
+            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector256<T>.Count - 1));
+            Vector256<T> sum = Vector256<T>.Zero;
+            do
+            {
+                sum += V4.LoadUnsafe(ref p);
+                p = ref Unsafe.Add(ref p, Vector256<T>.Count);
+            }
+            while (IsAddressLessThan(ref p, ref last));
+            result = V4.Sum(sum);
         }
-        else
-            for (int i = 0; i < target.Length; i++)
-                Unsafe.Add(ref q, i) = -Unsafe.Add(ref p, i);
-    }
-
-    /// <summary>Inplace pointwise negation of a span.</summary>
-    /// <param name="span">Span to negate.</param>
-    public static void Neg<T>(this Span<T> span) where T : INumberBase<T>
-    {
-        ref T p = ref MM.GetReference(span);
-        int i = 0;
-        if (V8.IsHardwareAccelerated && span.Length >= Vector512<T>.Count)
-            for (int top = span.Length & ~(Vector512<T>.Count - 1); i < top;
-                i += Vector512<T>.Count, p = ref Unsafe.Add(ref p, Vector512<T>.Count))
-                V8.StoreUnsafe(-V8.LoadUnsafe(ref p), ref p);
-        else if (V4.IsHardwareAccelerated && span.Length >= Vector256<T>.Count)
-            for (int top = span.Length & ~(Vector256<T>.Count - 1); i < top;
-                i += Vector256<T>.Count, p = ref Unsafe.Add(ref p, Vector256<T>.Count))
-                V4.StoreUnsafe(-V4.LoadUnsafe(ref p), ref p);
-        for (; i < span.Length; i++, p = ref Unsafe.Add(ref p, 1))
-            p = -p;
-    }
-
-    /// <summary>Pointwise multiplication of two equally sized spans.</summary>
-    /// <param name="span1">Span multiplicand.</param>
-    /// <param name="span2">Span multiplier.</param>
-    /// <returns>The pointwise multiplication of the two arguments.</returns>
-    public static T[] Mul<T>(this Span<T> span1, Span<T> span2) where T : INumberBase<T>
-    {
-        T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
-        ref T a = ref MM.GetReference(span1);
-        ref T b = ref MM.GetReference(span2);
-        ref T c = ref MM.GetArrayDataReference(result);
-        if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
-        {
-            nuint t = (nuint)(result.Length - Vector512<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) * V8.LoadUnsafe(ref b, i), ref c, i);
-            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) * V8.LoadUnsafe(ref b, t), ref c, t);
-        }
-        else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
-        {
-            nuint t = (nuint)(result.Length - Vector256<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) * V4.LoadUnsafe(ref b, i), ref c, i);
-            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) * V4.LoadUnsafe(ref b, t), ref c, t);
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) * Unsafe.Add(ref b, i);
+        for (; IsAddressLessThan(ref p, ref q); p = ref Unsafe.Add(ref p, 1))
+            result += p;
         return result;
     }
 
-    /// <summary>Pointwise multiplication of a span and a scalar.</summary>
-    /// <param name="span">Span multiplicand.</param>
-    /// <param name="scalar">Scalar multiplier.</param>
-    /// <param name="target">Target memory for the operation.</param>
-    public static void Mul<T>(this Span<T> span, T scalar, Span<T> target) where T : INumberBase<T>
+    /// <summary>Calculates the trace of a 1D-array.</summary>
+    /// <param name="values">A 1D-array.</param>
+    /// <param name="rows">Number of rows.</param>
+    /// <param name="cols">Number of columns.</param>
+    /// <returns>The sum of the cells in the main diagonal.</returns>
+    public static double Trace(this double[] values, int rows, int cols)
     {
-        ref T p = ref MM.GetReference(span);
-        ref T q = ref MM.GetReference(target);
-        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
-        {
-            Vector512<T> vec = V8.Create(scalar);
-            nuint t = (nuint)(target.Length - Vector512<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) * vec, ref q, i);
-            V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) * vec, ref q, t);
-        }
-        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
-        {
-            Vector256<T> vec = V4.Create(scalar);
-            nuint t = (nuint)(target.Length - Vector256<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) * vec, ref q, i);
-            V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) * vec, ref q, t);
-        }
-        else
-            for (int i = 0; i < target.Length; i++)
-                Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) * scalar;
+        if (values is null)
+            return 0;
+        double trace = 0;
+        int r = cols + 1, size = Math.Min(rows, cols);
+        for (ref double p = ref MM.GetArrayDataReference(values); size-- > 0; p = ref Unsafe.Add(ref p, r))
+            trace += p;
+        return trace;
     }
 
-    /// <summary>Pointwise division of two equally sized spans.</summary>
-    /// <param name="span1">Span dividend.</param>
-    /// <param name="span2">Span divisor.</param>
-    /// <returns>The pointwise quotient of the two arguments.</returns>
-    public static T[] Div<T>(this Span<T> span1, Span<T> span2) where T : INumberBase<T>
+    /// <summary>Combines the common prefix of two spans.</summary>
+    /// <param name="first">First span to combine.</param>
+    /// <param name="second">Second span to combine.</param>
+    /// <param name="zipper">The combining function.</param>
+    /// <returns>The combining function applied to each pair of items.</returns>
+    public static T[] Zip<T>(this Span<T> first, Span<T> second, Func<T, T, T> zipper) where T : struct
     {
-        T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
-        ref T a = ref MM.GetReference(span1);
-        ref T b = ref MM.GetReference(span2);
-        ref T c = ref MM.GetArrayDataReference(result);
-        if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
-        {
-            nuint t = (nuint)(result.Length - Vector512<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) / V8.LoadUnsafe(ref b, i), ref c, i);
-            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) / V8.LoadUnsafe(ref b, t), ref c, t);
-        }
-        else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
-        {
-            nuint t = (nuint)(result.Length - Vector256<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) / V4.LoadUnsafe(ref b, i), ref c, i);
-            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) / V4.LoadUnsafe(ref b, t), ref c, t);
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) / Unsafe.Add(ref b, i);
-        return result;
-    }
-
-    /// <summary>Pointwise division of two equally sized spans.</summary>
-    /// <param name="span">Span dividend.</param>
-    /// <param name="divisor">Scalar divisor.</param>
-    /// <returns>The pointwise quotient of the two arguments.</returns>
-    public static int[] Div(this Span<int> span, int divisor)
-    {
-        int[] result = GC.AllocateUninitializedArray<int>(span.Length);
-        ref int a = ref MM.GetReference(span);
-        ref int c = ref MM.GetArrayDataReference(result);
-        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
-        {
-            V8i d = V8.Create(divisor);
-            nuint t = (nuint)(result.Length - V8i.Count);
-            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
-                V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) / d, ref c, i);
-            V8.StoreUnsafe(V8.LoadUnsafe(ref a, t) / d, ref c, t);
-        }
-        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
-        {
-            V4i d = V4.Create(divisor);
-            nuint t = (nuint)(result.Length - V4i.Count);
-            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) / d, ref c, i);
-            V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) / d, ref c, t);
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) / divisor;
-        return result;
+        int len = Math.Min(first.Length, second.Length);
+        T[] newValues = GC.AllocateUninitializedArray<T>(len);
+        ref T p = ref MM.GetReference(first);
+        ref T q = ref MM.GetReference(second);
+        ref T r = ref MM.GetArrayDataReference(newValues);
+        for (int i = 0; i < len; i++)
+            Unsafe.Add(ref r, i) = zipper(Unsafe.Add(ref p, i), Unsafe.Add(ref q, i));
+        return newValues;
     }
 
     /// <summary>
@@ -785,338 +1159,6 @@ public static class Vec
         return sum;
     }
 
-    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
-    /// <param name="values">The span to search.</param>
-    /// <param name="value">The value to locate.</param>
-    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-    public static int IndexOf<T>(this ReadOnlySpan<T> values, T value)
-        where T: struct, IEquatable<T>
-    {
-        ref T p = ref MM.GetReference(values);
-        nuint size = (nuint)values.Length;
-        if (V8.IsHardwareAccelerated && size >= (nuint)Vector512<T>.Count)
-        {
-            Vector512<T> v = V8.Create(value);
-            nuint t = size - (nuint)Vector512<T>.Count;
-            ulong mask;
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-            {
-                mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, i), v));
-                if (mask != 0)
-                    return (int)i + BitOperations.TrailingZeroCount(mask);
-            }
-            mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, t), v));
-            if (mask != 0)
-                return (int)t + BitOperations.TrailingZeroCount(mask);
-        }
-        else if (V4.IsHardwareAccelerated && size >= (nuint)Vector256<T>.Count)
-        {
-            Vector256<T> v = V4.Create(value);
-            nuint t = size - (nuint)Vector256<T>.Count;
-            uint mask;
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-            {
-                mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, i), v));
-                if (mask != 0)
-                    return (int)i + BitOperations.TrailingZeroCount(mask);
-            }
-            mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, t), v));
-            if (mask != 0)
-                return (int)t + BitOperations.TrailingZeroCount(mask);
-        }
-        else
-            for (nuint i = 0; i < size; i++)
-                if (Unsafe.Add(ref p, i).Equals(value))
-                    return (int)i;
-        return -1;
-    }
-
-    /// <summary>Gets the absolute values of the array items.</summary>
-    /// <returns>A new array with non-negative items.</returns>
-    public static T[] Abs<T>(this T[] values) where T : struct, INumberBase<T>
-    {
-        T[] result = GC.AllocateUninitializedArray<T>(values.Length);
-        ref T p = ref MM.GetArrayDataReference(values);
-        ref T q = ref MM.GetArrayDataReference(result);
-        if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
-        {
-            nuint t = (nuint)(result.Length - Vector512<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
-            V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
-        }
-        else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
-        {
-            nuint t = (nuint)(result.Length - Vector256<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
-            V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Unsafe.Add(ref q, i) = T.Abs(Unsafe.Add(ref p, i));
-        return result;
-    }
-
-    /// <summary>Checks whether the predicate is satisfied by all items.</summary>
-    /// <param name="span">The span to search.</param>
-    /// <param name="predicate">The predicate to be checked.</param>
-    /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-    public static bool All<T>(this Span<T> span, Func<T, bool> predicate) where T : struct
-    {
-        foreach (T item in span)
-            if (!predicate(item))
-                return false;
-        return true;
-    }
-
-    /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
-    /// <param name="span">The span to search.</param>
-    /// <param name="predicate">The predicate to be checked.</param>
-    /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-    public static bool Any<T>(this Span<T> span, Func<T, bool> predicate) where T : struct
-    {
-        foreach (T item in span)
-            if (predicate(item))
-                return true;
-        return false;
-    }
-
-    /// <summary>Returns a new array with the distinct values in the span.</summary>
-    /// <remarks>Results are unordered.</remarks>
-    /// <param name="span">The span to transform.</param>
-    /// <returns>A new array with distinct values.</returns>
-    public static T[] Distinct<T>(this Span<T> span) where T : struct =>
-        [.. ((HashSet<T>)([.. span]))];
-
-    /// <summary>Checks two arrays for equality.</summary>
-    /// <param name="array1">First array operand.</param>
-    /// <param name="array2">Second array operand.</param>
-    /// <returns><see langword="true"/> if both array has the same items.</returns>
-    public static bool Eqs<T>(this T[] array1, T[] array2) where T : INumberBase<T>
-    {
-        if (array1.Length != array2.Length)
-            return false;
-        ref T p = ref MM.GetArrayDataReference(array1);
-        ref T q = ref MM.GetArrayDataReference(array2);
-        if (V8.IsHardwareAccelerated && array1.Length >= Vector512<T>.Count)
-        {
-            ref T lstP = ref Unsafe.Add(ref p, array1.Length - Vector512<T>.Count);
-            ref T lstQ = ref Unsafe.Add(ref q, array1.Length - Vector512<T>.Count);
-            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, Vector512<T>.Count),
-                q = ref Unsafe.Add(ref q, Vector512<T>.Count))
-                if (!V8.EqualsAll(V8.LoadUnsafe(ref p), V8.LoadUnsafe(ref q)))
-                    return false;
-            if (!V8.EqualsAll(V8.LoadUnsafe(ref lstP), V8.LoadUnsafe(ref lstQ)))
-                return false;
-        }
-        else if (V4.IsHardwareAccelerated && array1.Length >= Vector256<T>.Count)
-        {
-            ref T lstP = ref Unsafe.Add(ref p, array1.Length - Vector256<T>.Count);
-            ref T lstQ = ref Unsafe.Add(ref q, array1.Length - Vector256<T>.Count);
-            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, Vector256<T>.Count),
-                q = ref Unsafe.Add(ref q, Vector256<T>.Count))
-                if (!V4.EqualsAll(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q)))
-                    return false;
-            if (!V4.EqualsAll(V4.LoadUnsafe(ref lstP), V4.LoadUnsafe(ref lstQ)))
-                return false;
-        }
-        else
-            for (int i = 0; i < array1.Length; i++)
-                if (Unsafe.Add(ref p, i) != Unsafe.Add(ref q, i))
-                    return false;
-        return true;
-    }
-
-    /// <summary>Creates a new array by filtering items with the given predicate.</summary>
-    /// <param name="values">The array to filter.</param>
-    /// <param name="predicate">The predicate to evaluate.</param>
-    /// <returns>A new array with the filtered items.</returns>
-    public static T[] Filter<T>(this T[] values, Func<T, bool> predicate) where T : struct
-    {
-        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
-        int j = 0;
-        foreach (T value in values)
-            if (predicate(value))
-                newValues[j++] = value;
-        return j == 0 ? [] : j == values.Length ? values : newValues[..j];
-    }
-
-    /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
-    /// <remarks>This method can save an intermediate buffer and one iteration.</remarks>
-    /// <param name="values">The array to transform.</param>
-    /// <param name="predicate">The predicate to evaluate.</param>
-    /// <param name="mapper">The mapping function.</param>
-    /// <returns>A new array with the filtered items.</returns>
-    public static T[] FilterMap<T>(this T[] values, Func<T, bool> predicate, Func<T, T> mapper) where T : struct
-    {
-        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
-        int j = 0;
-        foreach (T value in values)
-            if (predicate(value))
-                newValues[j++] = mapper(value);
-        return j == 0 ? [] : j == values.Length ? values : newValues[..j];
-    }
-
-    /// <summary>
-    /// Creates a new array by transforming each item with the given function.
-    /// </summary>
-    /// <param name="values">The array to transform.</param>
-    /// <param name="mapper">The mapping function.</param>
-    /// <returns>A new array with the transformed content.</returns>
-    public static T[] Map<T>(this T[] values, Func<T, T> mapper) where T : struct
-    {
-        T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
-        ref T p = ref MM.GetArrayDataReference(values);
-        ref T q = ref MM.GetArrayDataReference(newValues);
-        int i = 0;
-        for (int size = newValues.Length & (~3); i < size; i += 4)
-        {
-            var (a, b, c, d) = (mapper(Unsafe.Add(ref p, i)), mapper(Unsafe.Add(ref p, i + 1)),
-                mapper(Unsafe.Add(ref p, i + 2)), mapper(Unsafe.Add(ref p, i + 3)));
-            Unsafe.Add(ref q, i) = a;
-            Unsafe.Add(ref q, i + 1) = b;
-            Unsafe.Add(ref q, i + 2) = c;
-            Unsafe.Add(ref q, i + 3) = d;
-        }
-        for (; i < newValues.Length; i++)
-            Unsafe.Add(ref q, i) = mapper(Unsafe.Add(ref p, i));
-        return newValues;
-    }
-
-    /// <summary>Calculates the product of the items of an array.</summary>
-    /// <param name="values">The array to calculate the product.</param>
-    /// <returns>The product of all array items.</returns>
-    public static T Product<T>(this T[] values) where T: INumberBase<T>
-    {
-        T result = T.MultiplicativeIdentity;
-        ref T p = ref MM.GetArrayDataReference(values);
-        ref T q = ref Unsafe.Add(ref p, values.Length);
-        if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
-        {
-            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector512<T>.Count - 1));
-            Vector512<T> prod = Vector512<T>.One;
-            do
-            {
-                prod *= V8.LoadUnsafe(ref p);
-                p = ref Unsafe.Add(ref p, Vector512<T>.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = (prod.GetLower() * prod.GetUpper()).Product();
-        }
-        else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
-        {
-            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector256<T>.Count - 1));
-            Vector256<T> prod = Vector256<T>.One;
-            do
-            {
-                prod *= V4.LoadUnsafe(ref p);
-                p = ref Unsafe.Add(ref p, Vector256<T>.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = prod.Product();
-        }
-        for (; IsAddressLessThan(ref p, ref q); p = ref Unsafe.Add(ref p, 1))
-            result *= p;
-        return result;
-    }
-
-    /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
-    /// <param name="span">The span to reduce.</param>
-    /// <param name="seed">The initial value.</param>
-    /// <param name="reducer">The reducing function.</param>
-    /// <returns>The final synthesized value.</returns>
-    public static T Reduce<T>(this Span<T> span, T seed, Func<T, T, T> reducer) where T : struct
-    {
-        foreach (T item in span)
-            seed = reducer(seed, item);
-        return seed;
-    }
-
-    /// <summary>Creates a reversed copy of an array.</summary>
-    /// <param name="values">The array to reverse.</param>
-    /// <returns>An independent reversed copy.</returns>
-    public static T[] Reverse<T>(this T[] values) where T : struct
-    {
-        T[] result = (T[])values.Clone();
-        Array.Reverse(result);
-        return result;
-    }
-
-    /// <summary>Creates a new array with sorted values.</summary>
-    /// <param name="values">The array to sort.</param>
-    /// <returns>A new array with sorted values.</returns>
-    public static T[] Sort<T>(this T[] values) where T : INumberBase<T>
-    {
-        T[] result = (T[])values.Clone();
-        Array.Sort(result);
-        return result;
-    }
-
-    /// <summary>Creates a new array with sorted values.</summary>
-    /// <param name="values">The array to sort.</param>
-    /// <returns>A new array with sorted values.</returns>
-    public static T[] SortDescending<T>(this T[] values) where T : IComparable<T>
-    {
-        T[] result = (T[])values.Clone();
-        Array.Sort(result, static (x, y) => y.CompareTo(x));
-        return result;
-    }
-
-    /// <summary>Calculates the sum of the vector's items.</summary>
-    /// <param name="values">The vector to sum.</param>
-    /// <returns>The sum of all vector's items.</returns>
-    public static T Sum<T>(this T[] values) where T : INumberBase<T>
-    {
-        T result = T.AdditiveIdentity;
-        ref T p = ref MM.GetArrayDataReference(values);
-        ref T q = ref Unsafe.Add(ref p, values.Length);
-        if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
-        {
-            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector512<T>.Count - 1));
-            Vector512<T> sum = Vector512<T>.Zero;
-            do
-            {
-                sum += V8.LoadUnsafe(ref p);
-                p = ref Unsafe.Add(ref p, Vector512<T>.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = V8.Sum(sum);
-        }
-        else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
-        {
-            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector256<T>.Count - 1));
-            Vector256<T> sum = Vector256<T>.Zero;
-            do
-            {
-                sum += V4.LoadUnsafe(ref p);
-                p = ref Unsafe.Add(ref p, Vector256<T>.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            result = V4.Sum(sum);
-        }
-        for (; IsAddressLessThan(ref p, ref q); p = ref Unsafe.Add(ref p, 1))
-            result += p;
-        return result;
-    }
-
-    /// <summary>Combines the common prefix of two spans.</summary>
-    /// <param name="first">First span to combine.</param>
-    /// <param name="second">Second span to combine.</param>
-    /// <param name="zipper">The combining function.</param>
-    /// <returns>The combining function applied to each pair of items.</returns>
-    public static T[] Zip<T>(this Span<T> first, Span<T> second, Func<T, T, T> zipper) where T : struct
-    {
-        int len = Math.Min(first.Length, second.Length);
-        T[] newValues = GC.AllocateUninitializedArray<T>(len);
-        ref T p = ref MM.GetReference(first);
-        ref T q = ref MM.GetReference(second);
-        ref T r = ref MM.GetArrayDataReference(newValues);
-        for (int i = 0; i < len; i++)
-            Unsafe.Add(ref r, i) = zipper(Unsafe.Add(ref p, i), Unsafe.Add(ref q, i));
-        return newValues;
-    }
-
     /// <summary>In-place transposition of a square matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
@@ -1206,48 +1248,6 @@ public static class Vec
                 b += size;
             }
         }
-    }
-
-    /// <summary>Computes the maximum difference between two arrays.</summary>
-    /// <remarks>Arrays can be of different lengths.</remarks>
-    /// <param name="first">First array.</param>
-    /// <param name="second">Second array.</param>
-    /// <returns>The max-norm of the vector difference.</returns>
-    public static double Distance(this double[] first, double[] second)
-    {
-        int len = Math.Min(first.Length, second.Length);
-        if (V8.IsHardwareAccelerated && len >= V8d.Count)
-        {
-            ref double p = ref MM.GetArrayDataReference(first);
-            ref double q = ref MM.GetArrayDataReference(second);
-            ref double lastp = ref Unsafe.Add(ref p, len - V8d.Count);
-            ref double lastq = ref Unsafe.Add(ref q, len - V8d.Count);
-            V8d vm = V8d.Zero;
-            for (; IsAddressLessThan(ref p, ref lastp); p = ref Unsafe.Add(ref p, V8d.Count),
-                q = ref Unsafe.Add(ref q, V8d.Count))
-                vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p) - V8.LoadUnsafe(ref q)));
-            return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref lastp) - V8.LoadUnsafe(ref lastq))).Max();
-        }
-        if (V4.IsHardwareAccelerated && len >= V4d.Count)
-        {
-            ref double p = ref MM.GetArrayDataReference(first);
-            ref double q = ref MM.GetArrayDataReference(second);
-            ref double lastp = ref Unsafe.Add(ref p, len - V4d.Count);
-            ref double lastq = ref Unsafe.Add(ref q, len - V4d.Count);
-            V4d vm = V4d.Zero;
-            for (; IsAddressLessThan(ref p, ref lastp); p = ref Unsafe.Add(ref p, V4d.Count),
-                q = ref Unsafe.Add(ref q, V4d.Count))
-                vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p) - V4.LoadUnsafe(ref q)));
-            return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref lastp) - V4.LoadUnsafe(ref lastq))).Max();
-        }
-        double max = 0;
-        for (int i = 0; i < len; i++)
-        {
-            double v = Math.Abs(first[i] - second[i]);
-            if (v > max)
-                max = v;
-        }
-        return max;
     }
 
     /// <summary>Gets a text representation of an array.</summary>
