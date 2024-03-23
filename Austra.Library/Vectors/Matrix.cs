@@ -1441,6 +1441,15 @@ public readonly struct Matrix :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Any(Func<double, bool> predicate) => values.AsSpan().Any(predicate);
 
+    /// <summary>Calculates the sum of the matrix cells.</summary>
+    /// <returns>The sum of all matrix cells.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public double Sum()
+    {
+        Contract.Requires(IsInitialized);
+        return values.Sum();
+    }
+
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>
     /// <param name="other">The matrix to be compared.</param>
     /// <returns><see langword="true"/> if the second matrix has the same values.</returns>

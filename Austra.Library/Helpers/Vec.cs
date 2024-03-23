@@ -594,11 +594,11 @@ public static class Vec
         ref T p = ref MM.GetReference(span);
         int i = 0;
         if (V8.IsHardwareAccelerated && span.Length >= Vector512<T>.Count)
-            for (int top = span.Length & (0x7FFF_FFFF ^ (Vector512<T>.Count - 1)); i < top;
+            for (int top = span.Length & ~(Vector512<T>.Count - 1); i < top;
                 i += Vector512<T>.Count, p = ref Unsafe.Add(ref p, Vector512<T>.Count))
                 V8.StoreUnsafe(-V8.LoadUnsafe(ref p), ref p);
         else if (V4.IsHardwareAccelerated && span.Length >= Vector256<T>.Count)
-            for (int top = span.Length & (0x7FFF_FFFF ^ (Vector256<T>.Count - 1)); i < top;
+            for (int top = span.Length & ~(Vector256<T>.Count - 1); i < top;
                 i += Vector256<T>.Count, p = ref Unsafe.Add(ref p, Vector256<T>.Count))
                 V4.StoreUnsafe(-V4.LoadUnsafe(ref p), ref p);
         for (; i < span.Length; i++, p = ref Unsafe.Add(ref p, 1))
@@ -1137,8 +1137,7 @@ public static class Vec
         ref T q = ref Unsafe.Add(ref p, values.Length);
         if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
         {
-            ref T last = ref Unsafe.Add(ref p,
-                values.Length & (0x07FFF_FFFF ^ (Vector512<T>.Count - 1)));
+            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector512<T>.Count - 1));
             Vector512<T> sum = Vector512<T>.Zero;
             do
             {
@@ -1150,8 +1149,7 @@ public static class Vec
         }
         else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
         {
-            ref T last = ref Unsafe.Add(ref p,
-                values.Length & (0x07FFF_FFFF ^ (Vector256<T>.Count - 1)));
+            ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector256<T>.Count - 1));
             Vector256<T> sum = Vector256<T>.Zero;
             do
             {

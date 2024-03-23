@@ -463,6 +463,15 @@ public readonly struct RMatrix :
         return min;
     }
 
+    /// <summary>Calculates the sum of the matrix cells.</summary>
+    /// <returns>The sum of all matrix cells.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public double Sum()
+    {
+        Contract.Requires(IsInitialized);
+        return values.Sum();
+    }
+
     /// <summary>Multiplies this matrix by the transposed argument.</summary>
     /// <param name="m">Second operand.</param>
     /// <returns>The multiplication by the transposed argument.</returns>

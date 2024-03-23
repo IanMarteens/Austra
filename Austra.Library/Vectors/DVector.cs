@@ -989,10 +989,12 @@ public readonly struct DVector :
 
     /// <summary>Computes the mean of the vector's items.</summary>
     /// <returns><code>this.Sum() / this.Length</code></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double Mean() => Sum() / Length;
 
     /// <summary>Calculates the product of the vector's items.</summary>
     /// <returns>The product of all vector's items.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double Product()
     {
         Contract.Requires(IsInitialized);
@@ -1009,18 +1011,22 @@ public readonly struct DVector :
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DVector Reverse() => values.Reverse();
 
     /// <summary>Returns a new vector with sorted values.</summary>
     /// <returns>A new vector with sorted values.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DVector Sort() => values.Sort();
 
     /// <summary>Returns a new vector with sorted values.</summary>
     /// <returns>A new vector with sorted values.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DVector SortDescending() => values.SortDescending();
 
     /// <summary>Calculates the sum of the vector's items.</summary>
     /// <returns>The sum of all vector's items.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double Sum()
     {
         Contract.Requires(IsInitialized);
