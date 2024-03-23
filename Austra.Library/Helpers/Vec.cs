@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Austra.Library.Helpers;
+﻿namespace Austra.Library.Helpers;
 
 /// <summary>Implements common matrix and vector operations.</summary>
 /// <remarks>
