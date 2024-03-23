@@ -35,74 +35,52 @@ public static class Simd
         return x.ToScalar() * x.GetElement(1);
     }
 
-    /// <summary>Gets the maximum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with eight doubles.</param>
+    /// <summary>Gets the maximum component in a vector register.</summary>
+    /// <param name="v">A intrinsics vector with 512 bits.</param>
     /// <returns>The maximum component.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Max(this V8d v) =>
-        Math.Max(v.GetLower().Max(), v.GetUpper().Max());
+    internal static T Max<T>(this Vector512<T> v) where T: INumber<T> =>
+        T.Max(v.GetLower().Max(), v.GetUpper().Max());
 
-    /// <summary>Gets the maximum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with sixteen doubles.</param>
+    /// <summary>Gets the maximum component in a vector register.</summary>
+    /// <param name="v">A intrinsics vector with 256 bits.</param>
     /// <returns>The maximum component.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static int Max(this V8i v) =>
-        Math.Max(v.GetLower().Max(), v.GetUpper().Max());
-
-    /// <summary>Gets the maximum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with four doubles.</param>
-    /// <returns>The maximum component.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Max(this V4d v)
+    internal unsafe static T Max<T>(this Vector256<T> v) where T: INumber<T>
     {
-        Vector128<double> x = Vector128.Max(v.GetLower(), v.GetUpper());
-        return Math.Max(x.ToScalar(), x.GetElement(1));
+        Vector128<T> x = Vector128.Max(v.GetLower(), v.GetUpper());
+#pragma warning disable CS8500
+        if (sizeof(T) == sizeof(int))
+        {
+            Vector64<T> y = Vector64.Max(x.GetLower(), x.GetUpper());
+            return T.Max(y.ToScalar(), y.GetElement(1));
+        }
+#pragma warning restore CS8500
+        return T.Max(x.ToScalar(), x.GetElement(1));
     }
 
-    /// <summary>Gets the maximum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with eight integers.</param>
-    /// <returns>The maximum component.</returns>
+    /// <summary>Gets the minimum component in a vector register.</summary>
+    /// <param name="v">A intrinsics vector with 512 bits.</param>
+    /// <returns>The minimum component.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static int Max(this V4i v)
+    internal static T Min<T>(this Vector512<T> v) where T : INumber<T> =>
+        T.Min(v.GetLower().Min(), v.GetUpper().Min());
+
+    /// <summary>Gets the minimum component in a vector register.</summary>
+    /// <param name="v">A intrinsics vector with 256 bits.</param>
+    /// <returns>The minimum component.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal unsafe static T Min<T>(this Vector256<T> v) where T : INumber<T>
     {
-        Vector128<int> x = Vector128.Max(v.GetLower(), v.GetUpper());
-        Vector64<int> y = Vector64.Max(x.GetLower(), x.GetUpper());
-        return Math.Max(y.ToScalar(), y.GetElement(1));
-    }
-
-    /// <summary>Gets the maximum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with eight doubles.</param>
-    /// <returns>The maximum component.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Min(this V8d v) =>
-        Math.Min(v.GetLower().Min(), v.GetUpper().Min());
-
-    /// <summary>Gets the maximum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with sixteen integers.</param>
-    /// <returns>The maximum component.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static int Min(this V8i v) =>
-        Math.Min(v.GetLower().Min(), v.GetUpper().Min());
-
-    /// <summary>Gets the minimum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with four doubles.</param>
-    /// <returns>The maximum component.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double Min(this V4d v)
-    {
-        Vector128<double> x = Vector128.Min(v.GetLower(), v.GetUpper());
-        return Math.Min(x.ToScalar(), x.GetElement(1));
-    }
-
-    /// <summary>Gets the minimum component in a vector.</summary>
-    /// <param name="v">A intrinsics vector with eight integers.</param>
-    /// <returns>The maximum component.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static int Min(this V4i v)
-    {
-        Vector128<int> x = Vector128.Min(v.GetLower(), v.GetUpper());
-        Vector64<int> y = Vector64.Min(x.GetLower(), x.GetUpper());
-        return Math.Min(y.ToScalar(), y.GetElement(1));
+        Vector128<T> x = Vector128.Min(v.GetLower(), v.GetUpper());
+#pragma warning disable CS8500
+        if (sizeof(T) == sizeof(int))
+        {
+            Vector64<T> y = Vector64.Min(x.GetLower(), x.GetUpper());
+            return T.Min(y.ToScalar(), y.GetElement(1));
+        }
+#pragma warning restore CS8500
+        return T.Min(x.ToScalar(), x.GetElement(1));
     }
 
     /// <summary>

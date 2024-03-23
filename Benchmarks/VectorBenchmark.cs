@@ -47,7 +47,7 @@ public class VectorBenchmark : BenchmarkControl
     //[Benchmark]
     public double AustraDotProduct() => cv6 * cv7;
 
-    [Benchmark]
+    //[Benchmark]
     public double AustraVectorProduct() => cv5.Product();
 
     //[Benchmark]
@@ -115,4 +115,7 @@ public class VectorBenchmark : BenchmarkControl
 
     //[Benchmark]
     public DVector AustraVectorDistinct() => cv7.Distinct();
+
+    [Benchmark]
+    public double AustraVectorMax() => cv7.Max();
 }
