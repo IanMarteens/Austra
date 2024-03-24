@@ -70,16 +70,18 @@ public static class Vec
     /// <summary>Pointwise inplace sum of two equally sized spans.</summary>
     /// <param name="span1">First summand and target.</param>
     /// <param name="span2">Second summand.</param>
-    public static void Add(this Span<double> span1, Span<double> span2)
+    public static void Add<T>(this Span<T> span1, Span<T> span2) where T: INumberBase<T>
     {
-        ref double a = ref MM.GetReference(span1);
-        ref double b = ref MM.GetReference(span2);
+        ref T a = ref MM.GetReference(span1);
+        ref T b = ref MM.GetReference(span2);
         nuint i = 0;
-        if (V8.IsHardwareAccelerated && span1.Length >= V8d.Count)
-            for (nuint top = (nuint)(span1.Length & Simd.MASK8); i < top; i += (nuint)V8d.Count)
+        if (V8.IsHardwareAccelerated && span1.Length >= Vector512<T>.Count)
+            for (nuint top = (nuint)(span1.Length & ~(Vector512<T>.Count - 1));
+                i < top; i += (nuint)Vector512<T>.Count)
                 V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) + V8.LoadUnsafe(ref b, i), ref a, i);
-        else if (V4.IsHardwareAccelerated && span1.Length >= V4d.Count)
-            for (nuint top = (nuint)(span1.Length & Simd.MASK4); i < top; i += (nuint)V4d.Count)
+        else if (V4.IsHardwareAccelerated && span1.Length >= Vector256<T>.Count)
+            for (nuint top = (nuint)(span1.Length & ~(Vector256<T>.Count - 1));
+                i < top; i += (nuint)Vector256<T>.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) + V4.LoadUnsafe(ref b, i), ref a, i);
         for (; i < (nuint)span1.Length; i++)
             Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
@@ -890,16 +892,18 @@ public static class Vec
     /// <summary>Pointwise inplace subtraction of two equally sized spans.</summary>
     /// <param name="span1">Minuend and target.</param>
     /// <param name="span2">Subtrahend.</param>
-    public static void Sub(this Span<double> span1, Span<double> span2)
+    public static void Sub<T>(this Span<T> span1, Span<T> span2) where T: INumberBase<T>
     {
-        ref double a = ref MM.GetReference(span1);
-        ref double b = ref MM.GetReference(span2);
+        ref T a = ref MM.GetReference(span1);
+        ref T b = ref MM.GetReference(span2);
         nuint i = 0;
-        if (V8.IsHardwareAccelerated && span1.Length >= V8d.Count)
-            for (nuint top = (nuint)(span1.Length & Simd.MASK8); i < top; i += (nuint)V8d.Count)
+        if (V8.IsHardwareAccelerated && span1.Length >= Vector512<T>.Count)
+            for (nuint top = (nuint)(span1.Length & ~(Vector512<T>.Count - 1)); i < top;
+                i += (nuint)Vector512<T>.Count)
                 V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) - V8.LoadUnsafe(ref b, i), ref a, i);
-        else if (V4.IsHardwareAccelerated && span1.Length >= V4d.Count)
-            for (nuint top = (nuint)(span1.Length & Simd.MASK4); i < top; i += (nuint)V4d.Count)
+        else if (V4.IsHardwareAccelerated && span1.Length >= Vector256<T>.Count)
+            for (nuint top = (nuint)(span1.Length & ~(Vector256<T>.Count - 1));
+                i < top; i += (nuint)Vector256<T>.Count)
                 V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) - V4.LoadUnsafe(ref b, i), ref a, i);
         for (; i < (nuint)span1.Length; i++)
             Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
