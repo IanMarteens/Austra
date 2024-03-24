@@ -764,7 +764,7 @@ public readonly struct CVector :
     public Complex Sum()
     {
         Contract.Requires(IsInitialized);
-        return new(new DVector(re).Sum(), new DVector(im).Sum());
+        return new(re.Sum(), im.Sum());
     }
 
     /// <summary>Calculates the product of the vector's items.</summary>
@@ -1146,14 +1146,12 @@ public readonly struct CVector :
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>
     /// <returns><see langword="true"/> if the vector argument has the same items.</returns>
-    public bool Equals(CVector other) =>
-        new DVector(re).Equals(other.re) && new DVector(im).Equals(other.im);
+    public bool Equals(CVector other) => re.Eqs(other.re) && im.Eqs(other.im);
 
     /// <summary>Checks if the provided argument is a complex vector with the same values.</summary>
     /// <param name="obj">The object to be compared.</param>
     /// <returns><see langword="true"/> if the argument is a vector with the same items.</returns>
-    public override bool Equals(object? obj) =>
-        obj is CVector vector && Equals(vector);
+    public override bool Equals(object? obj) => obj is CVector vector && Equals(vector);
 
     /// <summary>Returns the hashcode for this complex vector.</summary>
     /// <returns>A hashcode summarizing the content of the vector.</returns>
