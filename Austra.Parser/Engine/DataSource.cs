@@ -108,9 +108,18 @@ public interface IDataSource
     /// <returns>Either a list from the pool or a newly created one.</returns>
     List<Expression> Rent(int length);
 
+    /// <summary>Gets a list of parameter expressions from the pool, or creates a new one.</summary>
+    /// <param name="length">Preferred list capacity, when creating anew.</param>
+    /// <returns>Either a list from the pool or a newly created one.</returns>
+    List<ParameterExpression> RentParams(int length);
+
     /// <summary>Returns a list to the pool. The list is cleared here.</summary>
     /// <param name="list">The expression list for recycling.</param>
     public void Return(List<Expression> list);
+
+    /// <summary>Returns a list to the pool. The list is cleared here.</summary>
+    /// <param name="list">The expression list for recycling.</param>
+    public void ReturnParams(List<ParameterExpression> list);
 
     /// <summary>References a listener for variable changes in the session scope.</summary>
     /// <remarks>
@@ -151,6 +160,8 @@ public class DataSource : IDataSource
     private readonly Dictionary<string, Expression> memos = [];
     /// <summary>An expression list pool.</summary>
     private readonly Stack<List<Expression>> listPool = new(4);
+    /// <summary>An parameter expression list pool.</summary>
+    private readonly Stack<List<ParameterExpression>> paramListPool = new(4);
     /// <summary>Synchronizes access to definitions.</summary>
     private readonly object defLock = new();
 
@@ -390,12 +401,26 @@ public class DataSource : IDataSource
     public List<Expression> Rent(int length) =>
         listPool.Count == 0 ? new(length) : listPool.Pop();
 
+    /// <summary>Gets a list of parameter expressions from the pool, or creates a new one.</summary>
+    /// <param name="length">Preferred list capacity, when creating anew.</param>
+    /// <returns>Either a list from the pool or a newly created one.</returns>
+    public List<ParameterExpression> RentParams(int length) =>
+        paramListPool.Count == 0 ? new(length) : paramListPool.Pop();
+
     /// <summary>Returns a list to the pool. The list is cleared here.</summary>
     /// <param name="list">The expression list for recycling.</param>
     public void Return(List<Expression> list)
     {
         list.Clear();
         listPool.Push(list);
+    }
+
+    /// <summary>Returns a list to the pool. The list is cleared here.</summary>
+    /// <param name="list">The expression list for recycling.</param>
+    public void ReturnParams(List<ParameterExpression> list)
+    {
+        list.Clear();
+        paramListPool.Push(list);
     }
 
     /// <summary>References a listener for variable changes in the session scope.</summary>

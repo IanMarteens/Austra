@@ -486,6 +486,16 @@ public abstract partial class NSequence
         /// <returns>A sequence with unique values.</returns>
         public sealed override NSequence Distinct() => this;
 
+        /// <summary>Gets the product of all the values in the sequence as a long integer.</summary>
+        /// <returns>The product of all the values in the sequence.</returns>
+        public override long LongProduct()
+        {
+            long result = 1;
+            for (int curr = first; curr <= last; curr += step)
+                result *= curr;
+            return result;
+        }
+
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>
         /// <returns><see langword="true"/>, when there is a next number.</returns>
@@ -591,6 +601,16 @@ public abstract partial class NSequence
             ? new GridSequenceDesc(first + gs.first, step + gs.step,
                 length < gs.length ? min + gs[length - 1] : this[gs.length - 1] + gs.min)
             : Zip(other, (x, y) => x + y);
+
+        /// <summary>Gets the product of all the values in the sequence as a long integer.</summary>
+        /// <returns>The product of all the values in the sequence.</returns>
+        public override long LongProduct()
+        {
+            long result = 1;
+            for (int curr = first; curr >= last; curr -= step)
+                result *= curr;
+            return result;
+        }
 
         /// <summary>Gets the next number in the sequence.</summary>
         /// <param name="value">The next number in the sequence.</param>

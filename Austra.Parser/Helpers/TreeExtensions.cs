@@ -1,5 +1,4 @@
-﻿
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>Extension methods for <see cref="Expression"/>.</summary>
 internal static class TreeExtensions

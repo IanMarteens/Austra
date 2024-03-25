@@ -78,12 +78,12 @@ internal sealed partial class Parser : Scanner, IDisposable
     private readonly Dictionary<string, ParameterExpression> prolog =
         new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Prolog locals, for caching parameter definitions.</summary>
-    private readonly List<ParameterExpression> proLocals = new(8);
+    private readonly List<ParameterExpression> proLocals;
     /// <summary>Prolog local asignment expressions.</summary>
     private readonly List<Expression> proExpressions;
 
     /// <summary>All top-level locals, from LET clauses.</summary>
-    private readonly List<ParameterExpression> letLocals = new(8);
+    private readonly List<ParameterExpression> letLocals;
     /// <summary>Top-level local asignment expressions.</summary>
     private readonly List<Expression> letExpressions;
     /// <summary>Transient local variable definitions.</summary>
@@ -119,8 +119,10 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <param name="source">Environment variables.</param>
     /// <param name="text">Text of the formula.</param>
     public Parser(Bindings bindings, IDataSource source, string text) : base(text) =>
-        (this.bindings, this.source, lambdaBlock, proExpressions, letExpressions, setExpressions)
-            = (bindings, source, bindings.LambdaBlock, source.Rent(8), source.Rent(8), source.Rent(8));
+        (this.bindings, this.source, lambdaBlock, proExpressions, letExpressions, setExpressions,
+            proLocals, letLocals)
+            = (bindings, source, bindings.LambdaBlock, source.Rent(8), source.Rent(8), source.Rent(8),
+                source.RentParams(8), source.RentParams(8));
 
     /// <summary>Returns allocated resources to the pool, in the data source.</summary>
     public void Dispose()
@@ -129,6 +131,8 @@ internal sealed partial class Parser : Scanner, IDisposable
         source.Return(setExpressions);
         source.Return(letExpressions);
         source.Return(proExpressions);
+        source.ReturnParams(letLocals);
+        source.ReturnParams(proLocals);
     }
 
     /// <summary>Compiles a list of statements into a block expression.</summary>

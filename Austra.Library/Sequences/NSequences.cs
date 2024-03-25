@@ -311,6 +311,16 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         return new VectorSequence(a1.AsSpan(size).Div(a2.AsSpan(size)));
     }
 
+    /// <summary>Gets the product of all the values in the sequence as a long integer.</summary>
+    /// <returns>The product of all the values in the sequence.</returns>
+    public virtual long LongProduct()
+    {
+        long result = 1;
+        while (Next(out int value))
+            result *= value;
+        return result;
+    }
+
     /// <summary>Gets all statistics from the values in the secuence.</summary>
     /// <returns>Simple statistics of all the values in the sequence.</returns>
     public virtual Accumulator Stats()
