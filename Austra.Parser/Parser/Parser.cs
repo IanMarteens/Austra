@@ -732,9 +732,14 @@ internal sealed partial class Parser : Scanner, IDisposable
                     Expression e2 = ParseAdditiveMultiplicative();
                     if (e1.Type != e2.Type)
                     {
-                        if (!IsArithmetic(e1) || !IsArithmetic(e2))
+                        if (e1.Type == typeof(int) && e2.Type == typeof(long))
+                            e1 = ToLong(e1);
+                        else if (e2.Type == typeof(int) && e1.Type == typeof(long))
+                            e2 = ToLong(e2);
+                        else if (!IsArithmetic(e1) || !IsArithmetic(e2))
                             throw Error("Comparison operators are not compatible", pos);
-                        (e1, e2) = (ToDouble(e1), ToDouble(e2));
+                        else
+                            (e1, e2) = (ToDouble(e1), ToDouble(e2));
                     }
                     try
                     {
@@ -806,8 +811,13 @@ internal sealed partial class Parser : Scanner, IDisposable
                         : throw Error("Invalid operator", opMPos);
                 else
                 {
-                    if (e2.Type != e3.Type && !IsIntVecOrSeq(e2) && !IsIntVecOrSeq(e3))
-                        (e2, e3) = (ToDouble(e2), ToDouble(e3));
+                    if (e2.Type != e3.Type)
+                        if (e2.Type == typeof(int) && e3.Type == typeof(long))
+                            e2 = ToLong(e2);
+                        else if (e3.Type == typeof(int) && e2.Type == typeof(long))
+                            e3 = ToLong(e3);
+                        else if (!IsIntVecOrSeq(e2) && !IsIntVecOrSeq(e3))
+                            (e2, e3) = (ToDouble(e2), ToDouble(e3));
                     try
                     {
                         // Try to optimize matrix transpose multiplying a vector.
@@ -853,8 +863,12 @@ internal sealed partial class Parser : Scanner, IDisposable
             }
             if (e1 is null)
                 e1 = e2;
-            else if (opAdd == Token.Plus && e1.Type == typeof(string))
+            else if (opAdd == Token.Plus
+                && (e1.Type == typeof(string) || e2.Type == typeof(string)))
             {
+                if (e1.Type != typeof(string))
+                    e1 = Expression.Call(e1,
+                        e1.Type.GetMethod(nameof(ToString), [])!);
                 if (e2.Type != typeof(string))
                     e2 = Expression.Call(e2,
                         e2.Type.GetMethod(nameof(ToString), [])!);
@@ -862,10 +876,14 @@ internal sealed partial class Parser : Scanner, IDisposable
             }
             else
             {
-                if (e1.Type != e2.Type &&
-                    !IsIntVecOrSeq(e1) && !IsIntVecOrSeq(e2) &&
-                    e1.Type != typeof(Date) && e2.Type != typeof(Date))
-                    (e1, e2) = (ToDouble(e1), ToDouble(e2));
+                if (e1.Type != e2.Type)
+                    if (e1.Type == typeof(int) && e2.Type == typeof(long))
+                        e1 = ToLong(e1);
+                    else if (e2.Type == typeof(int) && e1.Type == typeof(long))
+                        e2 = ToLong(e2);
+                    else if (!IsIntVecOrSeq(e1) && !IsIntVecOrSeq(e2)
+                            && e1.Type != typeof(Date) && e2.Type != typeof(Date))
+                        (e1, e2) = (ToDouble(e1), ToDouble(e2));
                 try
                 {
                     if (e1.Type == e2.Type && e2.Type == typeof(DVector))
@@ -1031,7 +1049,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         Token k = kind;
         Move();
         Expression e1 = k == Token.Caret ? ParseFactor() : Expression.Constant(2);
-        if (IsArithmetic(e) && IsArithmetic(e1))
+        if (IsNumeric(e) && IsNumeric(e1))
             return OptimizePowerOf() ? e : Expression.Power(ToDouble(e), ToDouble(e1));
         if (e.Type == typeof(Complex))
         {
@@ -1749,7 +1767,9 @@ internal sealed partial class Parser : Scanner, IDisposable
             ? e
             : expected == typeof(double) && e.Type == typeof(int)
             ? IntToDouble(e)
-            : expected == typeof(Complex) && IsArithmetic(e)
+            : expected == typeof(long) && e.Type == typeof(int)
+            ? ToLong(e)
+            : expected == typeof(Complex) && IsNumeric(e)
             ? Expression.Convert(ToDouble(e), typeof(Complex))
             : throw Error($"Expected {expected.Name}");
     }
@@ -2387,6 +2407,11 @@ internal sealed partial class Parser : Scanner, IDisposable
     private static bool IsArithmetic(Expression e) =>
         e.Type == typeof(int) || e.Type == typeof(double);
 
+    /// <summary>Checks if the expression's type0 is either a double, an integer or a long.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsNumeric(Expression e) =>
+        e.Type == typeof(int) || e.Type == typeof(double) || e.Type == typeof(long);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsMatrix(Expression e) =>
         e.Type.IsAssignableTo(typeof(IMatrix));
@@ -2400,17 +2425,29 @@ internal sealed partial class Parser : Scanner, IDisposable
         e.Type == typeof(NVector) || e.Type == typeof(NSequence);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Expression ToLong(Expression e) =>
+        e.Type == typeof(int)
+        ? (e is ConstantExpression { Value: int v }
+            ? (Expression)Expression.Constant((long)v)
+            : Expression.Convert(e, typeof(long)))
+        : e;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Expression ToDouble(Expression e) =>
-        e.Type != typeof(int)
-        ? e
-        : e is ConstantExpression constExpr
-        ? Expression.Constant((double)(int)constExpr.Value!)
-        : Expression.Convert(e, typeof(double));
+        e.Type == typeof(int)
+        ? (e is ConstantExpression { Value: int i }
+            ? (Expression)Expression.Constant((double)i)
+            : Expression.Convert(e, typeof(double)))
+        : e.Type == typeof(long)
+        ? (e is ConstantExpression { Value: long li }
+            ? (Expression)Expression.Constant((double)li)
+            : Expression.Convert(e, typeof(double)))
+        : e;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Expression IntToDouble(Expression e) =>
-        e is ConstantExpression constExpr
-        ? Expression.Constant((double)(int)constExpr.Value!)
+        e is ConstantExpression { Value: int i }
+        ? Expression.Constant((double)i)
         : Expression.Convert(e, typeof(double));
 
     private static bool DifferentTypes(ref Expression e1, ref Expression e2)
@@ -2421,6 +2458,10 @@ internal sealed partial class Parser : Scanner, IDisposable
                 e2 = Expression.Convert(e2, typeof(Complex));
             else if (e2.Type == typeof(Complex) && IsArithmetic(e1))
                 e1 = Expression.Convert(e1, typeof(Complex));
+            else if (e1.Type == typeof(int) && e2.Type == typeof(long))
+                e1 = ToLong(e1);
+            else if (e2.Type == typeof(int) && e1.Type == typeof(long))
+                e2 = ToLong(e2);
             else
             {
                 if (!IsArithmetic(e1) || !IsArithmetic(e2))
