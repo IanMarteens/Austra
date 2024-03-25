@@ -32,7 +32,7 @@ public readonly struct NVector :
 
     /// <summary>Creates a vector of a given size.</summary>
     /// <param name="size">Vector length.</param>
-    public NVector(int size) => values = size == 0 ? []: new int[size];
+    public NVector(int size) => values = size == 0 ? [] : new int[size];
 
     /// <summary>Initializes a vector from an array.</summary>
     /// <param name="values">The components of the vector.</param>
@@ -546,6 +546,28 @@ public readonly struct NVector :
 
         int result = Vec.IndexOf(new ReadOnlySpan<int>(values, from, Length - from), value);
         return result >= 0 ? result + from : -1;
+    }
+
+    /// <summary>Calculates the product of the vector's items as a long integer.</summary>
+    /// <returns>The product of all vector's items.</returns>
+    public long LongProduct()
+    {
+        ref int p = ref MM.GetArrayDataReference(values);
+        long product = 1;
+        nuint i = 0;
+        if (Avx.IsSupported && Length >= V4i.Count)
+        {
+            Vector256<long> result = Vector256<long>.One;
+            for (nuint top = (nuint)(Length & Simd.MASK8); i < top; i += (nuint)V4i.Count)
+            {
+                var (lower, upper) = V4.Widen(V4.LoadUnsafe(ref p, i));
+                result *= lower * upper;
+            }
+            product = result.Product();
+        }
+        for (; i < (nuint)values.Length; i++)
+            product *= Add(ref p, i);
+        return product;
     }
 
     /// <summary>

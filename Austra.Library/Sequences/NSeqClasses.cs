@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using System.Collections.Generic;
+
+namespace Austra.Library;
 
 /// <summary>Represents any sequence returning integer values.</summary>
 public abstract partial class NSequence
@@ -699,6 +701,10 @@ public abstract partial class NSequence
         /// <summary>Gets the product of all the values in the sequence.</summary>
         /// <returns>The product of all the values in the sequence.</returns>
         public override int Product() => source.Product();
+
+        /// <summary>Gets the product of all the values in the sequence as a long integer.</summary>
+        /// <returns>The product of all the values in the sequence.</returns>
+        public override long LongProduct() => source.LongProduct();
 
         /// <summary>Checks the sequence has a storage.</summary>
         protected override bool HasStorage => true;
