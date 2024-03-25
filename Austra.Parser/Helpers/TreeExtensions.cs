@@ -1,4 +1,5 @@
-﻿namespace Austra.Parser;
+﻿
+namespace Austra.Parser;
 
 /// <summary>Extension methods for <see cref="Expression"/>.</summary>
 internal static class TreeExtensions
@@ -12,9 +13,12 @@ internal static class TreeExtensions
             LambdaExpression lambda => $"({string.Join(", ", lambda.Parameters.Select(p => p.Name))} => {AsString(lambda.Body)})",
             UnaryExpression { NodeType: ExpressionType.Convert, Type: var t, Operand: var operand } => $"({t.Name}){AsString(operand)}",
             BlockExpression b => Describe(b),
-            MethodCallExpression m => $"{m.Method.Name}({string.Join(", ", m.Arguments.Select(AsString))})",
+            MethodCallExpression m => $"{DescribeInstance(m.Object)}{m.Method.Name}({string.Join(", ", m.Arguments.Select(AsString))})",
             _ => e.ToString(),
         };
+
+    private static string DescribeInstance(Expression? e) =>
+        e is null ? "" : $"{AsString(e)}.";
 
     private static string DescribeVariables(BlockExpression b) =>
         string.Join(", ", b.Variables.Select(v => $"{v.Type.Name} {v.Name}"));
