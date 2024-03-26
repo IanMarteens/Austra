@@ -2458,9 +2458,9 @@ internal sealed partial class Parser : Scanner, IDisposable
     {
         if (e1.Type != e2.Type)
         {
-            if (e1.Type == typeof(Complex) && IsArithmetic(e2))
+            if (e1.Type == typeof(Complex) && IsNumeric(e2))
                 e2 = Expression.Convert(e2, typeof(Complex));
-            else if (e2.Type == typeof(Complex) && IsArithmetic(e1))
+            else if (e2.Type == typeof(Complex) && IsNumeric(e1))
                 e1 = Expression.Convert(e1, typeof(Complex));
             else if (e1.Type == typeof(int) && e2.Type == typeof(long))
                 e1 = ToLong(e1);
