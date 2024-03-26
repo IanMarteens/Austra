@@ -435,6 +435,9 @@ internal sealed class Bindings
                 new("trace", "Gets the sum of the main diagonal"),
                 new("redim(", "Creates a new matrix with a different size"),
             ],
+            [typeof(long)] = [
+                new("toInt", "Converts this long integer to an integer"),
+            ],
             [typeof(LU)] = [
                 new("det", "Gets the determinant of the decomposed matrix"),
                 new("lower", "Gets the lower triangular matrix of the LU decomposition"),

@@ -200,7 +200,7 @@ public partial class AustraEngine : IAustraEngine
         using Parser parser = CreateParser(formula);
         Stopwatch sw = Stopwatch.StartNew();
         Expression<Action<IDataSource>> expression =
-            Source.CreateLambda(parser.ParseStatement());
+            Source.CreateLambda(parser.Parse());
         sw.Stop();
         if (DebugFormulas)
             LastFormula = expression.AsString();

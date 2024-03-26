@@ -137,7 +137,7 @@ internal sealed partial class Parser : Scanner, IDisposable
 
     /// <summary>Compiles a list of statements into a block expression.</summary>
     /// <returns>A block expression.</returns>
-    public Expression ParseStatement()
+    public Expression Parse()
     {
         for (; kind != Token.Eof; Move())
         {
@@ -164,6 +164,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         {
             letExpressions.InsertRange(0, proExpressions);
             letLocals.AddRange(proLocals);
+            return Expression.Block(letLocals, letExpressions);
         }
         return letExpressions.Count switch
         {
@@ -290,6 +291,10 @@ internal sealed partial class Parser : Scanner, IDisposable
         return result;
     }
 
+    /// <summary>Gets the list of parameters for a lambda expression up to a position.</summary>
+    /// <remarks>Called by <see cref="Bindings"/> for Code Completion.</remarks>
+    /// <param name="position">Last valid position in text.</param>
+    /// <returns>The list of formal parameters of a lambda function.</returns>
     public List<ParameterExpression> ParseLambdaContext(int position)
     {
         try
@@ -1597,7 +1602,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     {
         if (!bindings.TryGetProperty(e.Type, id, out MethodInfo? mInfo))
         {
-            if (e.Type == typeof(double))
+            if (e.Type == typeof(double) || e.Type == typeof(long))
             {
                 if (id.Equals("toint", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1769,8 +1774,8 @@ internal sealed partial class Parser : Scanner, IDisposable
             expected == typeof(Series<Date>) && e.Type == typeof(Series) ||
             expected.IsClass && e.Type.IsAssignableTo(expected)
             ? e
-            : expected == typeof(double) && e.Type == typeof(int)
-            ? IntToDouble(e)
+            : expected == typeof(double) && (e.Type == typeof(int) || e.Type == typeof(long))
+            ? ToDouble(e)
             : expected == typeof(long) && e.Type == typeof(int)
             ? ToLong(e)
             : expected == typeof(Complex) && IsNumeric(e)
@@ -1835,7 +1840,8 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Type? act = args[^1].Type, form = md.Args[^1].GetElementType();
                     if (md.ExpectedArgs != int.MaxValue ||
-                        form != act && (form != typeof(double) || act != typeof(int)))
+                        form != act &&
+                        (form != typeof(double) || act != typeof(int) && act != typeof(long)))
                         mask &= ~m;
                 }
             for (int bits = PopCount((uint)mask); bits > 1;)
@@ -1849,7 +1855,8 @@ internal sealed partial class Parser : Scanner, IDisposable
                         mask &= ~(1 << mth2);
                     else if (t0 == tm2)
                         mask &= ~(1 << mth1);
-                    else if (t0 == typeof(int))
+                    else if (IsInteger(t0))
+                        // Favor double over Complex where actual parameter is integer.
                         if (tm1 == typeof(double))
                             mask &= ~(1 << mth2);
                         else if (tm2 == typeof(double))
@@ -1879,10 +1886,10 @@ internal sealed partial class Parser : Scanner, IDisposable
             Type expected = mth.Args[i], actual = args[i].Type;
             if (actual != expected)
             {
-                if (expected == typeof(double) && actual == typeof(int))
-                    args[i] = IntToDouble(args[i]);
+                if (expected == typeof(double) && IsInteger(actual))
+                    args[i] = ToDouble(args[i]);
                 else if (expected == typeof(Complex) &&
-                    (actual == typeof(int) || actual == typeof(double)))
+                    (IsInteger(actual) || actual == typeof(double)))
                     args[i] = Expression.Convert(ToDouble(args[i]), typeof(Complex));
                 else if (expected.IsArray && expected.GetElementType() is Type et)
                 {
@@ -1906,10 +1913,14 @@ internal sealed partial class Parser : Scanner, IDisposable
         return result;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool IsInteger(Type type) =>
+            type == typeof(int) || type == typeof(long);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool CanConvert(Type actual, Type expected) =>
             expected == actual ||
-            expected == typeof(double) && actual == typeof(int) ||
-            expected == typeof(Complex) && (actual == typeof(double) || actual == typeof(int)) ||
+            expected == typeof(double) && IsInteger(actual) ||
+            expected == typeof(Complex) && (actual == typeof(double) || IsInteger(actual)) ||
             expected.IsArray && expected.GetElementType() is var et
                 && (actual == et || et == typeof(double) && actual == typeof(int));
     }
