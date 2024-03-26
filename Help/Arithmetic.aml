@@ -5,10 +5,11 @@
       <para>AUSTRA arithmetic is basically the same as on most programming languages. The language supports:</para>
       <list class="bullet">
         <listItem><para>32 bits integers, represented by the <codeInline>int</codeInline> type.</para></listItem>
+        <listItem><para>64 bits integers, represented by the <codeInline>long</codeInline> type.</para></listItem>
         <listItem><para>64 bits double-precision reals, represented by the <codeInline>double</codeInline> type.</para></listItem>
         <listItem><para>2x64 bits double-precision complex values, represented by the <codeInline>complex</codeInline> type.</para></listItem>
       </list>
-      <para>Smaller arithmetic types are automatically converted to bigger types when required: <codeInline>int</codeInline> to <codeInline>double</codeInline>, <codeInline>double</codeInline> to <codeInline>complex</codeInline>, and even <codeInline>int</codeInline> to <codeInline>complex</codeInline>. Double values can be converted into integer values using the <codeInline>toInt</codeInline> property, as in <codeInline>pi.toInt</codeInline>.</para>
+      <para>Smaller arithmetic types are automatically converted to bigger types when required: <codeInline>int</codeInline> to <codeInline>double</codeInline>, <codeInline>double</codeInline> to <codeInline>complex</codeInline>, and even <codeInline>int</codeInline> to <codeInline>complex</codeInline>. Double and long integer values can be converted into integer values using the <codeInline>toInt</codeInline> property, as in <codeInline>pi.toInt</codeInline>.</para>
     </introduction>
     <section address="Section1">
       <title>Operators</title>

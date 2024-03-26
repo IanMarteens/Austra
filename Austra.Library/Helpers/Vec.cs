@@ -12,6 +12,8 @@ public static class Vec
     public static int TERMINAL_COLUMNS { get; set; } = 80;
 
     /// <summary>Gets the absolute values of the array items.</summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
+    /// <param name="values">The array to transform.</param>
     /// <returns>A new array with non-negative items.</returns>
     public static T[] Abs<T>(this T[] values) where T : struct, INumberBase<T>
     {
@@ -39,6 +41,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise sum of two equally sized spans.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span1">First summand.</param>
     /// <param name="span2">Second summand.</param>
     /// <param name="target">The span to receive the sum of the first two argument.</param>
@@ -68,6 +71,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise inplace sum of two equally sized spans.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span1">First summand and target.</param>
     /// <param name="span2">Second summand.</param>
     public static void Add<T>(this Span<T> span1, Span<T> span2) where T: INumberBase<T>
@@ -88,6 +92,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise addition of a scalar to a span.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span">Span summand.</param>
     /// <param name="scalar">Scalar summand.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -117,6 +122,7 @@ public static class Vec
     }
 
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
+    /// <typeparam name="T">The type of the span.</typeparam>
     /// <param name="span">The span to search.</param>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
@@ -191,6 +197,7 @@ public static class Vec
     }
 
     /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
+    /// <typeparam name="T">The type of the span.</typeparam>
     /// <param name="span">The span to search.</param>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
@@ -406,6 +413,7 @@ public static class Vec
     }
 
     /// <summary>Returns a new array with the distinct values in the span.</summary>
+    /// <typeparam name="T">The type of the span.</typeparam>
     /// <remarks>Results are unordered.</remarks>
     /// <param name="span">The span to transform.</param>
     /// <returns>A new array with distinct values.</returns>
@@ -413,6 +421,7 @@ public static class Vec
         [.. ((HashSet<T>)([.. span]))];
 
     /// <summary>Pointwise division of two equally sized spans.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span1">Span dividend.</param>
     /// <param name="span2">Span divisor.</param>
     /// <returns>The pointwise quotient of the two arguments.</returns>
@@ -442,7 +451,7 @@ public static class Vec
         return result;
     }
 
-    /// <summary>Pointwise division of two equally sized spans.</summary>
+    /// <summary>Pointwise division of a span by an integer.</summary>
     /// <param name="span">Span dividend.</param>
     /// <param name="divisor">Scalar divisor.</param>
     /// <returns>The pointwise quotient of the two arguments.</returns>
@@ -474,6 +483,7 @@ public static class Vec
     }
 
     /// <summary>Checks two arrays for equality.</summary>
+    /// <typeparam name="T">The type of the arrays.</typeparam>
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>
     /// <returns><see langword="true"/> if both array has the same items.</returns>
@@ -513,6 +523,7 @@ public static class Vec
     }
 
     /// <summary>Creates a new array by filtering items with the given predicate.</summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to filter.</param>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <returns>A new array with the filtered items.</returns>
@@ -528,6 +539,7 @@ public static class Vec
 
     /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
     /// <remarks>This method can save an intermediate buffer and one iteration.</remarks>
+    /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to transform.</param>
     /// <param name="predicate">The predicate to evaluate.</param>
     /// <param name="mapper">The mapping function.</param>
@@ -543,6 +555,7 @@ public static class Vec
     }
 
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+    /// <typeparam name="T">The type of the span.</typeparam>
     /// <param name="values">The span to search.</param>
     /// <param name="value">The value to locate.</param>
     /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
@@ -591,6 +604,7 @@ public static class Vec
     /// <summary>
     /// Creates a new array by transforming each item with the given function.
     /// </summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to transform.</param>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new array with the transformed content.</returns>
@@ -615,6 +629,7 @@ public static class Vec
     }
 
     /// <summary>Gets the item with the maximum value in the array.</summary>
+    /// <typeparam name="T">The type of the span.</typeparam>
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -647,6 +662,7 @@ public static class Vec
     }
 
     /// <summary>Gets the item with the minimum value in the array.</summary>
+    /// <typeparam name="T">The type of the span.</typeparam>
     /// <param name="values">Array with data.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -679,6 +695,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise multiplication of two equally sized spans.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span1">Span multiplicand.</param>
     /// <param name="span2">Span multiplier.</param>
     /// <returns>The pointwise multiplication of the two arguments.</returns>
@@ -709,6 +726,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise multiplication of a span and a scalar.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span">Span multiplicand.</param>
     /// <param name="scalar">Scalar multiplier.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -738,6 +756,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise negation of a span.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span">Span to negate.</param>
     /// <param name="target">Target memory for the operation.</param>
     public static void Neg<T>(this Span<T> span, Span<T> target) where T : INumberBase<T>
@@ -764,6 +783,7 @@ public static class Vec
     }
 
     /// <summary>Inplace pointwise negation of a span.</summary>
+    /// <typeparam name="T">The type of the span.</typeparam>
     /// <param name="span">Span to negate.</param>
     public static void Neg<T>(this Span<T> span) where T : INumberBase<T>
     {
@@ -782,6 +802,7 @@ public static class Vec
     }
 
     /// <summary>Calculates the product of the items of an array.</summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to calculate the product.</param>
     /// <returns>The product of all array items.</returns>
     public static T Product<T>(this T[] values) where T : INumberBase<T>
@@ -819,6 +840,7 @@ public static class Vec
     }
 
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
+    /// <typeparam name="T">The type of the span.</typeparam>
     /// <param name="span">The span to reduce.</param>
     /// <param name="seed">The initial value.</param>
     /// <param name="reducer">The reducing function.</param>
@@ -831,6 +853,7 @@ public static class Vec
     }
 
     /// <summary>Creates a reversed copy of an array.</summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to reverse.</param>
     /// <returns>An independent reversed copy.</returns>
     public static T[] Reverse<T>(this T[] values) where T : struct
@@ -841,6 +864,7 @@ public static class Vec
     }
 
     /// <summary>Creates a new array with sorted values.</summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to sort.</param>
     /// <returns>A new array with sorted values.</returns>
     public static T[] Sort<T>(this T[] values) where T : INumberBase<T>
@@ -851,6 +875,7 @@ public static class Vec
     }
 
     /// <summary>Creates a new array with sorted values.</summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to sort.</param>
     /// <returns>A new array with sorted values.</returns>
     public static T[] SortDescending<T>(this T[] values) where T : IComparable<T>
@@ -861,6 +886,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise subtraction of two equally sized spans.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span1">Minuend.</param>
     /// <param name="span2">Subtrahend.</param>
     /// <param name="target">The span to receive the result.</param>
@@ -890,6 +916,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise inplace subtraction of two equally sized spans.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span1">Minuend and target.</param>
     /// <param name="span2">Subtrahend.</param>
     public static void Sub<T>(this Span<T> span1, Span<T> span2) where T: INumberBase<T>
@@ -910,6 +937,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise subtraction of a scalar from a span.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span">Array minuend.</param>
     /// <param name="scalar">Scalar subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -940,6 +968,7 @@ public static class Vec
     }
 
     /// <summary>Pointwise subtraction of a span from a scalar.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
     /// <param name="target">Target memory for the operation.</param>
@@ -970,6 +999,7 @@ public static class Vec
     }
 
     /// <summary>Calculates the sum of the vector's items.</summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The vector to sum.</param>
     /// <returns>The sum of all vector's items.</returns>
     public static T Sum<T>(this T[] values) where T : INumberBase<T>
@@ -1023,6 +1053,7 @@ public static class Vec
     }
 
     /// <summary>Combines the common prefix of two spans.</summary>
+    /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="first">First span to combine.</param>
     /// <param name="second">Second span to combine.</param>
     /// <param name="zipper">The combining function.</param>
