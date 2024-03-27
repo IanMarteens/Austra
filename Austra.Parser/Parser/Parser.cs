@@ -136,25 +136,27 @@ internal sealed partial class Parser : Scanner, IDisposable
     }
 
     /// <summary>Compiles a list of statements into a block expression.</summary>
+    /// <remarks>This is the entry point for </remarks>
     /// <returns>A block expression.</returns>
     public Expression Parse()
     {
         for (; kind != Token.Eof; Move())
         {
-            if (kind != Token.Semicolon)
-                if (kind != Token.Set)
+            if (kind == Token.Semicolon)
+                continue;
+            else if (kind == Token.Set)
+                letExpressions.Add(ParseAssignment());
+            else
+            {
+                int from = start;
+                Expression e = ParseFormula("", true);
+                if (e is not ConstantExpression { Value: null })
                 {
-                    int from = start;
-                    Expression e = ParseFormula("", true);
-                    if (e is not ConstantExpression { Value: null })
-                    {
-                        int to = kind == Token.Eof ? start + 1 : start;
-                        letExpressions.Add(source.GetEnqueueExpression(e));
-                        source.Listener?.EnqueueRange(new Range(from, to));
-                    }
+                    int to = kind == Token.Eof ? start + 1 : start;
+                    letExpressions.Add(source.GetEnqueueExpression(e));
+                    source.Listener?.EnqueueRange(new Range(from, to));
                 }
-                else
-                    letExpressions.Add(ParseAssignment());
+            }
             if (kind != Token.Semicolon)
                 break;
         }
@@ -197,25 +199,32 @@ internal sealed partial class Parser : Scanner, IDisposable
             if (kind == Token.LPar)
             {
                 List<ParameterExpression> parameters = ParseParameters();
-                if (kind == Token.Colon)
+                try
                 {
-                    Type retType = ParseTypeRef();
-                    currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), defName);
-                    CheckAndMove(Token.Eq, "= expected");
-                    isParsingDefinition = true;
-                    e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
-                    if (isDefRecursive)
+                    if (kind == Token.Colon)
                     {
-                        e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
-                        e = Expression.Lambda(Expression.Invoke(e, parameters), parameters);
+                        Type retType = ParseTypeRef();
+                        currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), defName);
+                        CheckAndMove(Token.Eq, "= expected");
+                        isParsingDefinition = true;
+                        e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
+                        if (isDefRecursive)
+                        {
+                            e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
+                            e = Expression.Lambda(Expression.Invoke(e, parameters), parameters);
+                        }
+                    }
+                    else
+                    {
+                        CheckAndMove(Token.Eq, "= expected");
+                        isParsingDefinition = true;
+                        e = ParseFormula("", false, false, true);
+                        e = lambdaBlock.Create(this, e, e.Type);
                     }
                 }
-                else
+                finally
                 {
-                    CheckAndMove(Token.Eq, "= expected");
-                    isParsingDefinition = true;
-                    e = ParseFormula("", false, false, true);
-                    e = lambdaBlock.Create(this, e, e.Type);
+                    source.ReturnParams(parameters);
                 }
             }
             else
@@ -334,29 +343,36 @@ internal sealed partial class Parser : Scanner, IDisposable
             int s0 = start;
             // A local function definition.
             List<ParameterExpression> parameters = ParseParameters();
-            if (kind == Token.Colon)
+            try
             {
-                Type retType = ParseTypeRef();
-                currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), defName);
-                paramText = text[s0..start];
-                CheckAndMove(Token.Eq, "= expected");
-                first = start;
-                isParsingDefinition = true;
-                e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
-                if (isDefRecursive)
+                if (kind == Token.Colon)
                 {
-                    e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
-                    e = Expression.Lambda(Expression.Invoke(e, parameters), true, parameters);
+                    Type retType = ParseTypeRef();
+                    currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), defName);
+                    paramText = text[s0..start];
+                    CheckAndMove(Token.Eq, "= expected");
+                    first = start;
+                    isParsingDefinition = true;
+                    e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
+                    if (isDefRecursive)
+                    {
+                        e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
+                        e = Expression.Lambda(Expression.Invoke(e, parameters), true, parameters);
+                    }
+                }
+                else
+                {
+                    paramText = text[s0..start];
+                    CheckAndMove(Token.Eq, "= expected");
+                    first = start;
+                    isParsingDefinition = true;
+                    e = ParseFormula("", false, false, true);
+                    e = lambdaBlock.Create(this, e, e.Type);
                 }
             }
-            else
+            finally
             {
-                paramText = text[s0..start];
-                CheckAndMove(Token.Eq, "= expected");
-                first = start;
-                isParsingDefinition = true;
-                e = ParseFormula("", false, false, true);
-                e = lambdaBlock.Create(this, e, e.Type);
+                source.ReturnParams(parameters);
             }
         }
         else
@@ -491,22 +507,29 @@ internal sealed partial class Parser : Scanner, IDisposable
             {
                 // A local function definition.
                 List<ParameterExpression> parameters = ParseParameters();
-                if (kind == Token.Colon)
+                try
                 {
-                    Type retType = ParseTypeRef();
-                    le = Expression.Variable(BindResultType(parameters, retType), localId);
-                    localLambdas[localId] = le;
-                    CheckAndMove(Token.Eq, "= expected");
-                    init = ParseFormula("", false, false, true);
-                    init = lambdaBlock.Create(this, init, retType);
+                    if (kind == Token.Colon)
+                    {
+                        Type retType = ParseTypeRef();
+                        le = Expression.Variable(BindResultType(parameters, retType), localId);
+                        localLambdas[localId] = le;
+                        CheckAndMove(Token.Eq, "= expected");
+                        init = ParseFormula("", false, false, true);
+                        init = lambdaBlock.Create(this, init, retType);
+                    }
+                    else
+                    {
+                        CheckAndMove(Token.Eq, "= expected");
+                        init = ParseFormula("", false, false, true);
+                        init = lambdaBlock.Create(this, init, init.Type);
+                        le = Expression.Variable(init.Type, localId);
+                        localLambdas[localId] = le;
+                    }
                 }
-                else
+                finally
                 {
-                    CheckAndMove(Token.Eq, "= expected");
-                    init = ParseFormula("", false, false, true);
-                    init = lambdaBlock.Create(this, init, init.Type);
-                    le = Expression.Variable(init.Type, localId);
-                    localLambdas[localId] = le;
+                    source.ReturnParams(parameters);
                 }
             }
             else
@@ -527,7 +550,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     {
         parsingLambdaHeader = true;
         Move();
-        List<ParameterExpression> result = new(4);
+        List<ParameterExpression> result = source.RentParams(4);
         List<string> names = new(4);
         while (true)
         {
@@ -1607,7 +1630,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 if (id.Equals("toint", StringComparison.OrdinalIgnoreCase))
                 {
                     Move();
-                    return Expression.Convert(e, typeof(int));
+                    return Expression.ConvertChecked(e, typeof(int));
                 }
             }
             else if (e.Type == typeof(int))
@@ -2156,6 +2179,28 @@ internal sealed partial class Parser : Scanner, IDisposable
         }
         source.Return(items);
         return result;
+
+        MethodCallExpression ParseIntGenerator(Expression first)
+        {
+            Expression? middle = ParseLightConditional();
+            Expression? last = null;
+            if (kind == Token.Range)
+            {
+                Move();
+                last = ParseLightConditional();
+            }
+            else
+                (middle, last) = (null, middle);
+            if (last!.Type != typeof(int))
+                throw Error("Range bounds must be of the same type");
+            if (middle is not null && middle.Type != typeof(int))
+                throw Error("Range step must be an integer");
+            return middle != null
+                ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+                    Type.EmptyTypes, first, middle, last)
+                : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+                    Type.EmptyTypes, first, last);
+        }
     }
 
     /// <summary>Parses a list comprehension expression.</summary>
@@ -2302,28 +2347,6 @@ internal sealed partial class Parser : Scanner, IDisposable
                     Type.EmptyTypes, first, middle, last)
                 : Expression.Call(typeof(DSequence), nameof(DSequence.Create),
                     Type.EmptyTypes, first, last);
-    }
-
-    private MethodCallExpression ParseIntGenerator(Expression first)
-    {
-        Expression? middle = ParseLightConditional();
-        Expression? last = null;
-        if (kind == Token.Range)
-        {
-            Move();
-            last = ParseLightConditional();
-        }
-        else
-            (middle, last) = (null, middle);
-        if (last!.Type != typeof(int))
-            throw Error("Range bounds must be of the same type");
-        if (middle is not null && middle.Type != typeof(int))
-            throw Error("Range step must be an integer");
-        return middle != null
-            ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
-                Type.EmptyTypes, first, middle, last)
-            : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
-                Type.EmptyTypes, first, last);
     }
 
     private Expression ParseIdBang()

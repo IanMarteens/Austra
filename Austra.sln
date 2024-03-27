@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		README.md = README.md
+		simd.md = simd.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Austra.Parser", "Austra.Parser\Austra.Parser.csproj", "{90AC1D4D-A4E6-44FD-B9CE-F1124464A8D6}"

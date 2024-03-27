@@ -15,11 +15,13 @@ The Austra library deals with common numeric algorithms, such as vector and matr
 
 Why yet another numeric library?
 * The managed implementation has been __thoroughly tested and optimized__.
-* Even if you will not use Austra in your code, the repository is __an excellent cheat sheet__ for numeric algorithms and AVX/AVX2/AVX512 optimizations. In fact, I am currently writing a book (Unsafe C#, as provisional title) on the techniques commonly used for numeric computations in .NET/C#.
+* Even if you will not use Austra in your code, the repository is __an excellent cheat sheet__ for numeric algorithms and [AVX/AVX2/AVX512](simd.md) optimizations. In fact, I am currently writing a book (Unsafe C#, as provisional title) on the techniques commonly used for numeric computations in .NET/C#.
 * Austra targets a useful __sweet spot__. I started writing this library when dealing with a financial application that used squared matrices in the order of 32-128 rows and columns. In this range of problems, AVX + pointers provide the faster solutions, without losing precision, and without needing any third-party low-level provider.
 * Austra is a library _plus_ a language. It is easier to try the functionality through the language, and then use the library directly in your code.
 
 More sophisticated use cases are also supported. For instance, your final customer may need customizable expressions in an application. Austra can then be used as a __scripting engine__ for your application, with a quite simple syntax and little overhead.
+
+If your main interest is SIMD optimizations in .NET, you may want to read the [SIMD.md](simd.md) file.
 
 ## How to give the language a try
 

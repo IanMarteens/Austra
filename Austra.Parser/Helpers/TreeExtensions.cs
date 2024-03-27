@@ -10,7 +10,10 @@ internal static class TreeExtensions
         e switch
         {
             LambdaExpression lambda => $"({string.Join(", ", lambda.Parameters.Select(p => p.Name))} => {AsString(lambda.Body)})",
-            UnaryExpression { NodeType: ExpressionType.Convert, Type: var t, Operand: var operand } => $"({t.Name}){AsString(operand)}",
+            UnaryExpression { 
+                NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked,
+                Type: var t, 
+                Operand: var operand } => $"({t.Name}){AsString(operand)}",
             BlockExpression b => Describe(b),
             MethodCallExpression m => $"{DescribeInstance(m.Object)}{m.Method.Name}({string.Join(", ", m.Arguments.Select(AsString))})",
             _ => e.ToString(),
