@@ -45,6 +45,8 @@ The online Austra help covers both the library and the language, and is availabl
 
 ## Last changes
 
+* Support for 64 bits integers.
+* Date vectors. Time series arguments are available now as date vectors.
 * Functions! We have user-defined functions now. Even recursive ones.
 * Sequences of numeric values have been fully implemented, using the `seq`, `cseq` and `iseq` classes. They are very similar to C#'s `IEnumerable` and LINQ. They can be converted to vectors and can use a vector as their source of data.
 * Moving Average models can be generated and estimated.
@@ -59,7 +61,6 @@ Most compelling needs are, not necessarily in that order:
 * We should have control on formatting output and sending it to external files (Excel, JSON, CSV). It could be interesting formatting some kind of outputs to C# format, for retrofitting.
 * Connectors, to access external data sources with real time series, such as stock prices, meteorological data, etc.
 * More matrix decompositions (SVD, e.g.).
-* Support for 64 bits integers.
 
 In fact, we already have code for storing series in SQL Server, and it will be added to the repository in the near future, after some cleaning.
 

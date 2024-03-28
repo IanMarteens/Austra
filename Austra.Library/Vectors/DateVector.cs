@@ -116,9 +116,7 @@ public readonly struct DateVector :
     public static implicit operator DateVector(Date[] values) => new(values);
 
     /// <summary>Explicit conversion from vector to array.</summary>
-    /// <remarks>
-    /// Use carefully: it returns the underlying component array.
-    /// </remarks>
+    /// <remarks>Use it carefully: it returns the underlying component array.</remarks>
     /// <param name="v">The original vector.</param>
     /// <returns>The underlying component array.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
