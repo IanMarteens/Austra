@@ -72,9 +72,14 @@ public sealed class Random256
     }
 
     /// <summary>Produces four values in the range [0, 1).</summary>
-    /// <returns>An AVX512 vector of double precision reals.</returns>
+    /// <returns>An AVX256 vector of double precision reals.</returns>
     public V4d NextDouble() =>
         V4.ConvertToDouble(NextUInt64() >> 11) * V4.Create(NORM);
+
+    /// <summary>Produces eight random unsigned integers.</summary>
+    /// <returns>An AVX256 vector of unsigned integers.</returns>
+    public Vector256<uint> NextUInt32() =>
+        Vector256.Narrow(NextUInt64() >> 32, NextUInt64() >> 32);
 
     /// <summary>Produces four values from the standard normal distribution.</summary>
     /// <returns>An AVX256 vector of double precision reals.</returns>
@@ -160,6 +165,11 @@ public sealed class Random512
     /// <summary>Produces eight values in the range [0, 1).</summary>
     /// <returns>An AVX512 vector of double precision reals.</returns>
     public V8d NextDouble() => V8.ConvertToDouble(NextUInt64() >> 11) * V8.Create(NORM);
+
+    /// <summary>Produces sixteen random unsigned integers.</summary>
+    /// <returns>An AVX512 vector of unsigned integers.</returns>
+    public Vector512<uint> NextUInt32() =>
+        Vector512.Narrow(NextUInt64() >> 32, NextUInt64() >> 32);
 
     /// <summary>Produces eight values from the standard normal distribution.</summary>
     /// <returns>An AVX512 vector of double precision reals.</returns>
