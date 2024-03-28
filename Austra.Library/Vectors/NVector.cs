@@ -263,7 +263,7 @@ public readonly struct NVector :
     public int Maximum()
     {
         Contract.Requires(IsInitialized);
-        return values.Max();
+        return Vec.Max(values.AsSpan());
     }
 
     /// <summary>Gets the item with the minimum value.</summary>
@@ -271,7 +271,7 @@ public readonly struct NVector :
     public int Minimum()
     {
         Contract.Requires(IsInitialized);
-        return values.Min();
+        return Vec.Min(values.AsSpan());
     }
 
     /// <summary>Adds two vectors.</summary>
@@ -605,7 +605,7 @@ public readonly struct NVector :
     /// <param name="reducer">The reducing function.</param>
     /// <returns>The final synthesized value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double Reduce(int seed, Func<int, int, int> reducer) =>
+    public int Reduce(int seed, Func<int, int, int> reducer) =>
         values.AsSpan().Reduce(seed, reducer);
 
     /// <summary>Creates a reversed copy of the vector.</summary>

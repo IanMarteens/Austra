@@ -487,7 +487,8 @@ public static class Vec
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>
     /// <returns><see langword="true"/> if both array has the same items.</returns>
-    public static bool Eqs<T>(this T[] array1, T[] array2) where T : INumberBase<T>
+    public static bool Eqs<T>(this T[] array1, T[] array2)
+        where T : IEquatable<T>, IEqualityOperators<T, T, bool>
     {
         if (array1.Length != array2.Length)
             return false;
@@ -867,7 +868,7 @@ public static class Vec
     /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to sort.</param>
     /// <returns>A new array with sorted values.</returns>
-    public static T[] Sort<T>(this T[] values) where T : INumberBase<T>
+    public static T[] Sort<T>(this T[] values) where T : IComparable<T>
     {
         T[] result = (T[])values.Clone();
         Array.Sort(result);
