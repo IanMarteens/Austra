@@ -195,47 +195,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 Move();
                 CheckAndMove(Token.Str, "Definition description expected");
             }
-            Expression e;
-            if (kind == Token.LPar)
-            {
-                List<ParameterExpression> parameters = ParseParameters();
-                try
-                {
-                    if (kind == Token.Colon)
-                    {
-                        Type retType = ParseTypeRef();
-                        currentDefinitionLambda = Expression.Variable(BindResultType(parameters, retType), defName);
-                        CheckAndMove(Token.Eq, "= expected");
-                        isParsingDefinition = true;
-                        e = lambdaBlock.Create(this, ParseFormula("", false, false, true), retType);
-                        if (isDefRecursive)
-                        {
-                            e = Expression.Block([currentDefinitionLambda], Expression.Assign(currentDefinitionLambda, e));
-                            e = Expression.Lambda(Expression.Invoke(e, parameters), parameters);
-                        }
-                    }
-                    else
-                    {
-                        CheckAndMove(Token.Eq, "= expected");
-                        isParsingDefinition = true;
-                        e = ParseFormula("", false, false, true);
-                        e = lambdaBlock.Create(this, e, e.Type);
-                    }
-                }
-                finally
-                {
-                    source.ReturnParams(parameters);
-                }
-            }
-            else
-            {
-                CheckAndMove(Token.Eq, "= expected");
-                isParsingDefinition = true;
-                e = ParseFormula("", false);
-            }
-            return kind != Token.Eof
-                ? throw Error("Extra input after expression")
-                : ([e.Type]);
+            return [ParseDefBody(defName, out _, out _).Type];
         }
         List<Type> result = new(8);
         for (; kind != Token.Eof; Move())
@@ -314,37 +274,16 @@ internal sealed partial class Parser : Scanner, IDisposable
         return parsingLambdaHeader ? ([]) : lambdaBlock.GatherParameters();
     }
 
-    /// <summary>Parses a definition and adds it to the source.</summary>
-    /// <returns>A new definition, on success.</returns>
-    public Definition ParseDefinition()
+    private Expression ParseDefBody(string defName, out int first, out string paramText)
     {
-        CheckAndMove(Token.Def, "DEF expected");
-        if (kind != Token.Id && kind != Token.Functor)
-            throw Error("Definition name expected");
-        string defName = id;
-        if (source.GetDefinition(defName) != null ||
-            source[defName] != null)
-            throw Error($"{defName} already in use");
-        Move();
-        string description = "";
-        if (kind == Token.Colon)
-        {
-            Move();
-            if (kind != Token.Str)
-                throw Error("Definition description expected");
-            description = id;
-            Move();
-        }
         Expression e;
-        int first;
-        string paramText = "";
         if (kind == Token.LPar)
         {
-            int s0 = start;
             // A local function definition.
             List<ParameterExpression> parameters = ParseParameters();
             try
             {
+                int s0 = start;
                 if (kind == Token.Colon)
                 {
                     Type retType = ParseTypeRef();
@@ -377,6 +316,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         }
         else
         {
+            paramText = "";
             CheckAndMove(Token.Eq, "= expected");
             first = start;
             isParsingDefinition = true;
@@ -386,6 +326,31 @@ internal sealed partial class Parser : Scanner, IDisposable
             Move();
         if (kind != Token.Eof)
             throw Error("Extra input after expression");
+        return e;
+    }
+
+    /// <summary>Parses a definition and adds it to the source.</summary>
+    /// <returns>A new definition, on success.</returns>
+    public Definition ParseDefinition()
+    {
+        CheckAndMove(Token.Def, "DEF expected");
+        if (kind != Token.Id && kind != Token.Functor)
+            throw Error("Definition name expected");
+        string defName = id;
+        if (source.GetDefinition(defName) != null ||
+            source[defName] != null)
+            throw Error($"{defName} already in use");
+        Move();
+        string description = "";
+        if (kind == Token.Colon)
+        {
+            Move();
+            if (kind != Token.Str)
+                throw Error("Definition description expected");
+            description = id;
+            Move();
+        }
+        Expression e = ParseDefBody(defName, out int first, out string paramText);
         if (e.Type == typeof(Series))
             e = typeof(Series).Call(e, nameof(Series.SetName), Expression.Constant(defName));
         if (proLocals.Count > 0)
