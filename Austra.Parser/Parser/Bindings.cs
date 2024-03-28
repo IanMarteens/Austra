@@ -62,6 +62,7 @@ internal sealed class Bindings
             ["bool"] = typeof(bool),
             ["vec"] = typeof(DVector),
             ["cvec"] = typeof(CVector),
+            ["dvec"] = typeof(DateVector),
             ["ivec"] = typeof(NVector),
             ["seq"] = typeof(DSequence),
             ["cseq"] = typeof(CSequence),
@@ -76,6 +77,7 @@ internal sealed class Bindings
     [
         new("cseq::", "Allows access to complex sequence constructors"),
         new("cvec::", "Allows access to complex vector constructors"),
+        new("dvec::", "Allows access to date vector constructors"),
         new("iseq::", "Allows access to integer sequence constructors"),
         new("ivec::", "Allows access to integer vector constructors"),
         new("math::", "Allows access to mathematical functions"),
@@ -102,6 +104,9 @@ internal sealed class Bindings
                 new("new(", "Create a complex vector given a size and an optional lambda"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
                 new("random(", "Creates a random complex vector given a length"),
+            ],
+            ["dvec"] = [
+                new("new(", "Create a date vector"),
             ],
             ["iseq"] = [
                 new("new(", "Creates an integer sequence either from a range, a range and a step, or a vector"),
@@ -380,6 +385,25 @@ internal sealed class Bindings
                 new("reduce(", "Reduces a vector to a single value"),
                 new("zip(", "Combines two vectors"),
             ],
+            [typeof(DateVector)] = [
+                new("distinct", "Gets a new vector with distinct values"),
+                new("first", "Gets the first item from the vector"),
+                new("last", "Gets the last item from the vector"),
+                new("length", "Gets the number of items"),
+                new("max", "Gets the maximum  value"),
+                new("min", "Gets the minimum value"),
+                new("reverse", "Gets a reversed copy"),
+                new("sort", "Gets a new vector with sorted values"),
+                new("sortDesc", "Gets a new vector with sorted values in descending order"),
+                new("all(x => ", "Universal operator"),
+                new("any(x => ", "Existential operator"),
+                new("filter(x => ", "Filters items by value"),
+                new("find(", "Finds the indexes of all ocurrences of a value"),
+                new("indexOf(", "Returns the index where a value is stored"),
+                new("map(x => ", "Pointwise transformation of vector items"),
+                new("reduce(", "Reduces a vector to a single value"),
+                new("zip(", "Combines two integer vectors"),
+            ],
             [typeof(EVD)] = [
                 new("d", "Gets a quasi-diagonal real matrix with all eigenvalues"),
                 new("rank", "Gets the rank of the original matrix"),
@@ -587,6 +611,7 @@ internal sealed class Bindings
                 new("amax", "Gets the maximum absolute value"),
                 new("amin", "Gets the minimum absolute value"),
                 new("count", "Gets the number of points"),
+                new("dates", "Gets the underlying vector of dates"),
                 new("fft", "Performs a Fast Fourier Transform"),
                 new("first", "Gets the first point"),
                 new("fit", "Gets coefficients for a linear fit"),
@@ -695,6 +720,11 @@ internal sealed class Bindings
                 typeof(CVector).MD(NArg),
                 typeof(CVector).MD(typeof(int), typeof(Func<int, Complex>)),
                 typeof(CVector).MD(typeof(int), typeof(Func<int, CVector, Complex>))),
+            ["dvec.new"] = new(
+                typeof(DateVector).MD(typeof(int), typeof(Date)),
+                typeof(DateVector).MD(typeof(int), typeof(Date), typeof(Date)),
+                typeof(DateVector).MD(typeof(int), typeof(Func<int, Date>)),
+                typeof(DateVector).MD(typeof(int), typeof(Func<int, DateVector, Date>))),
             ["cvec.nrandom"] = new(
                 typeof(CVector).MD(typeof(int), typeof(NormalRandom))),
             ["cvec.random"] = new(
@@ -1070,6 +1100,17 @@ internal sealed class Bindings
             [new(typeof(DVector), "stats")] = typeof(DVector).Get(nameof(DVector.Stats)),
             [new(typeof(DVector), "sum")] = typeof(DVector).Get(nameof(DVector.Sum)),
 
+            [new(typeof(DateVector), "distinct")] = typeof(DateVector).Get(nameof(DateVector.Distinct)),
+            [new(typeof(DateVector), "first")] = typeof(DateVector).Prop(nameof(DateVector.First)),
+            [new(typeof(DateVector), "last")] = typeof(DateVector).Prop(nameof(DateVector.Last)),
+            [new(typeof(DateVector), "length")] = typeof(DateVector).Prop(nameof(DateVector.Length)),
+            [new(typeof(DateVector), "max")] = typeof(DateVector).Get(nameof(DateVector.Maximum)),
+            [new(typeof(DateVector), "min")] = typeof(DateVector).Get(nameof(DateVector.Minimum)),
+            [new(typeof(DateVector), "reverse")] = typeof(DateVector).Get(nameof(DateVector.Reverse)),
+            [new(typeof(DateVector), "sort")] = typeof(DateVector).Get(nameof(DateVector.Sort)),
+            [new(typeof(DateVector), "sortdesc")] = typeof(DateVector).Get(nameof(DateVector.SortDescending)),
+            [new(typeof(DateVector), "sortdescending")] = typeof(DateVector).Get(nameof(DateVector.SortDescending)),
+
             [new(typeof(EVD), "d")] = typeof(EVD).Prop(nameof(EVD.D)),
             [new(typeof(EVD), "det")] = typeof(EVD).Get(nameof(EVD.Determinant)),
             [new(typeof(EVD), "rank")] = typeof(EVD).Get(nameof(EVD.Rank)),
@@ -1235,6 +1276,7 @@ internal sealed class Bindings
             [new(typeof(Series), "amax")] = typeof(Series).Get(nameof(Series.AbsMax)),
             [new(typeof(Series), "amin")] = typeof(Series).Get(nameof(Series.AbsMin)),
             [new(typeof(Series), "count")] = typeof(Series).Prop(nameof(Series.Count)),
+            [new(typeof(Series), "dates")] = typeof(Series).Prop(nameof(Series.Dates)),
             [new(typeof(Series), "fft")] = typeof(Series).Get(nameof(Series.Fft)),
             [new(typeof(Series), "first")] = typeof(Series).Prop(nameof(Series.First)),
             [new(typeof(Series), "fit")] = typeof(Series).Get(nameof(Series.Fit)),
@@ -1316,6 +1358,13 @@ internal sealed class Bindings
             [new(typeof(DateSpline), "derivative")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
             [new(typeof(DateSpline), "deriv")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
             [new(typeof(DateSpline), "der")] = typeof(DateSpline).Get(nameof(DateSpline.Derivative)),
+
+            [new(typeof(DateVector), "all")] = typeof(DateVector).Get(nameof(DateVector.All)),
+            [new(typeof(DateVector), "any")] = typeof(DateVector).Get(nameof(DateVector.Any)),
+            [new(typeof(DateVector), "filter")] = typeof(DateVector).Get(nameof(DateVector.Filter)),
+            [new(typeof(DateVector), "map")] = typeof(DateVector).Get(nameof(DateVector.Map)),
+            [new(typeof(DateVector), "reduce")] = typeof(DateVector).Get(nameof(DateVector.Reduce)),
+            [new(typeof(DateVector), "zip")] = typeof(DateVector).Get(nameof(DateVector.Zip)),
 
             [new(typeof(DSequence), "all")] = typeof(DSequence).Get(nameof(DSequence.All)),
             [new(typeof(DSequence), "any")] = typeof(DSequence).Get(nameof(DSequence.Any)),
@@ -1428,6 +1477,12 @@ internal sealed class Bindings
             [new(typeof(DVector), "indexof")] = new(
                 typeof(DVector).MD(nameof(DVector.IndexOf), DArg),
                 typeof(DVector).MD(nameof(DVector.IndexOf), typeof(double), typeof(int))),
+            [new(typeof(DateVector), "find")] = new(
+                typeof(DateVector).MD(nameof(DateVector.Find), typeof(Date)),
+                typeof(DateVector).MD(nameof(DateVector.Find), typeof(Func<Date, bool>))),
+            [new(typeof(DateVector), "indexof")] = new(
+                typeof(DateVector).MD(nameof(DateVector.IndexOf), typeof(Date)),
+                typeof(DateVector).MD(nameof(DateVector.IndexOf), typeof(Date), typeof(int))),
             [new(typeof(LMatrix), "redim")] = new(
                 typeof(LMatrix).MD(nameof(LMatrix.Redim), NArg),
                 typeof(LMatrix).MD(nameof(LMatrix.Redim), NNArg)),

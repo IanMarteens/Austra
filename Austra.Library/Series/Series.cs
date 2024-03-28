@@ -85,6 +85,10 @@ public sealed class Series : Series<Date>,
     public Series SetName(string newName) =>
         new(newName, Ticker, values, this) { Tag = Tag };
 
+    /// <summary>Gets dates from the series as a vector.</summary>
+    [JsonIgnore]
+    public DateVector Dates => new(args);
+
     /// <summary>Creates a new series based in the returns.</summary>
     /// <returns>A derived series with one less point.</returns>
     public new Series AsReturns()

@@ -726,6 +726,10 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Move();
                     Expression e2 = ParseAdditiveMultiplicative();
+                    if (e2.Type == typeof(DateVector))
+                        return e1.Type != typeof(Date)
+                            ? throw Error("Left side of membership operator must be a date", pos)
+                            : Expression.Call(e2, e2.Type.Get(nameof(DateVector.Contains)), e1);
                     if (IsIntVecOrSeq(e2))
                         return e1.Type != typeof(int)
                             ? throw Error("Left side of membership operator must be an integer", pos)
@@ -2460,7 +2464,8 @@ internal sealed partial class Parser : Scanner, IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsIntVecOrSeq(Expression e) =>
-        e.Type == typeof(NVector) || e.Type == typeof(NSequence);
+        e.Type == typeof(NVector) || e.Type == typeof(NSequence)
+        || e.Type == typeof(DateVector);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Expression ToLong(Expression e) =>

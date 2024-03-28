@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Simple taxonomy for series.</summary>
 public enum SeriesType

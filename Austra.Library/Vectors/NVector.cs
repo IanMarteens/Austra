@@ -258,22 +258,6 @@ public readonly struct NVector :
         Array.Copy(values, dest.values, Length);
     }
 
-    /// <summary>Gets the item with the maximum value.</summary>
-    /// <returns>The item with the maximum value.</returns>
-    public int Maximum()
-    {
-        Contract.Requires(IsInitialized);
-        return Vec.Max(values.AsSpan());
-    }
-
-    /// <summary>Gets the item with the minimum value.</summary>
-    /// <returns>The item with the minimum value.</returns>
-    public int Minimum()
-    {
-        Contract.Requires(IsInitialized);
-        return Vec.Min(values.AsSpan());
-    }
-
     /// <summary>Adds two vectors.</summary>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
@@ -521,12 +505,12 @@ public readonly struct NVector :
     /// <summary>Returns all indexes containing ocurrences of a value.</summary>
     /// <param name="value">Value to find.</param>
     /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(int value) => NSequence.Iterate((int[])this, value);
+    public NSequence Find(int value) => NSequence.Iterate(values, value);
 
     /// <summary>Returns all indexes satisfying a condition.</summary>
     /// <param name="condition">The condition to be satisfied.</param>
     /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(Func<int, bool> condition) => NSequence.Iterate((int[])this, condition);
+    public NSequence Find(Func<int, bool> condition) => NSequence.Iterate(values, condition);
 
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="value">The value to locate.</param>
@@ -590,6 +574,22 @@ public readonly struct NVector :
         for (int i = 0; i < newValues.Length; i++)
             newValues[i] = mapper(Add(ref p, i));
         return newValues;
+    }
+
+    /// <summary>Gets the item with the maximum value.</summary>
+    /// <returns>The item with the maximum value.</returns>
+    public int Maximum()
+    {
+        Contract.Requires(IsInitialized);
+        return Vec.Max(values.AsSpan());
+    }
+
+    /// <summary>Gets the item with the minimum value.</summary>
+    /// <returns>The item with the minimum value.</returns>
+    public int Minimum()
+    {
+        Contract.Requires(IsInitialized);
+        return Vec.Min(values.AsSpan());
     }
 
     /// <summary>Calculates the product of the vector's items.</summary>

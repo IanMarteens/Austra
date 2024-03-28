@@ -38,6 +38,18 @@ public readonly struct DateVector :
             values[i] = f(i);
     }
 
+    /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
+    /// <param name="size">Size of the vector.</param>
+    /// <param name="from">Inclusive lower bound for the random values.</param>
+    /// <param name="to">Exclusive pper bound for the random values.</param>
+    public DateVector(int size, Date from, Date to)
+    {
+        values = GC.AllocateUninitializedArray<Date>(size);
+        Random rnd = Random.Shared;
+        for (int i = 0; i < values.Length; i++)
+            values[i] = new((uint)rnd.Next((int)(uint)from, (int)(uint)to));
+    }
+
     /// <summary>Creates a vector using a formula to fill its items.</summary>
     /// <param name="size">The size of the vector.</param>
     /// <param name="f">A function defining item content.</param>
@@ -177,6 +189,14 @@ public readonly struct DateVector :
     /// <summary>Gets the last value in the vector.</summary>
     public Date Last => values[^1];
 
+    /// <summary>Casts a vector of dates to a new type.</summary>
+    /// <typeparam name="T">The new type of the returned span.</typeparam>
+    /// <param name="values">The array to cast.</param>
+    /// <returns>A reinterpreted span.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Span<T> Cast<T>(Date[] values) where T : unmanaged =>
+        MM.Cast<Date, T>(values.AsSpan());
+
     /// <summary>Adds a vector of integers to a vector of dates.</summary>
     /// <param name="v1">A date vector operand.</param>
     /// <param name="v2">A vector of integers operand.</param>
@@ -189,7 +209,7 @@ public readonly struct DateVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         Date[] result = GC.AllocateUninitializedArray<Date>(v1.Length);
-        MM.Cast<Date, int>(v1.values.AsSpan()).Add((int[])v2, MM.Cast<Date, int>(result.AsSpan()));
+        Cast<int>(v1.values).Add((int[])v2, Cast<int>(result));
         return result;
     }
 
@@ -202,9 +222,16 @@ public readonly struct DateVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         Date[] result = GC.AllocateUninitializedArray<Date>(v.Length);
-        MM.Cast<Date, int>(v.values.AsSpan()).Add(d, MM.Cast<Date, int>(result.AsSpan()));
+        Cast<int>(v.values).Add(d, Cast<int>(result));
         return result;
     }
+
+    /// <summary>Adds a scalar to a vector.</summary>
+    /// <param name="d">A scalar summand.</param>
+    /// <param name="v">A vector summand.</param>
+    /// <returns>The scalar is added to each vector's item.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DateVector operator +(int d, DateVector v) => v + d;
 
     /// <summary>Subtracts two vectors.</summary>
     /// <param name="v1">First vector operand.</param>
@@ -218,7 +245,7 @@ public readonly struct DateVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
-        MM.Cast<Date, int>(v1.values.AsSpan()).Sub(MM.Cast<Date, int>(v2.values.AsSpan()), result);
+        Cast<int>(v1.values).Sub(Cast<int>(v2.values), result);
         return result;
     }
 
@@ -231,7 +258,20 @@ public readonly struct DateVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         Date[] result = GC.AllocateUninitializedArray<Date>(v.Length);
-        MM.Cast<Date, int>(v.values.AsSpan()).Sub(d, MM.Cast<Date, int>(result.AsSpan()));
+        Cast<int>(v.values).Sub(d, Cast<int>(result));
+        return result;
+    }
+
+    /// <summary>Subtracts a scalar date from a vector.</summary>
+    /// <param name="v">The vector operand.</param>
+    /// <param name="d">The scalar operand.</param>
+    /// <returns>The scalar is subtracted from each vector's item.</returns>
+    public static NVector operator -(DateVector v, Date d)
+    {
+        Contract.Requires(v.IsInitialized);
+        Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
+        int[] result = GC.AllocateUninitializedArray<int>(v.Length);
+        Cast<int>(v.values).Sub((int)(uint)d, result);
         return result;
     }
 
@@ -271,12 +311,12 @@ public readonly struct DateVector :
     /// <summary>Returns all indexes containing ocurrences of a value.</summary>
     /// <param name="value">Value to find.</param>
     /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(Date value) => NSequence.Iterate((Date[])this, value);
+    public NSequence Find(Date value) => NSequence.Iterate(values, value);
 
     /// <summary>Returns all indexes satisfying a condition.</summary>
     /// <param name="condition">The condition to be satisfied.</param>
     /// <returns>An integer sequences with all found indexes.</returns>
-    public NSequence Find(Func<Date, bool> condition) => NSequence.Iterate((Date[])this, condition);
+    public NSequence Find(Func<Date, bool> condition) => NSequence.Iterate(values, condition);
 
     /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
     /// <param name="value">The value to locate.</param>
@@ -294,7 +334,7 @@ public readonly struct DateVector :
         Contract.Requires(from >= 0 && from < Length);
         Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
 
-        int result = Vec.IndexOf(new ReadOnlySpan<Date>(values, from, Length - from), value);
+        int result = Vec.IndexOf(Cast<uint>(values)[from..], (uint)value);
         return result >= 0 ? result + from : -1;
     }
 
@@ -305,6 +345,22 @@ public readonly struct DateVector :
     /// <returns>A new vector with the transformed content.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DateVector Map(Func<Date, Date> mapper) => values.Map(mapper);
+
+    /// <summary>Gets the item with the maximum value.</summary>
+    /// <returns>The item with the maximum value.</returns>
+    public Date Maximum()
+    {
+        Contract.Requires(IsInitialized);
+        return new(Cast<uint>(values).Max());
+    }
+
+    /// <summary>Gets the item with the minimum value.</summary>
+    /// <returns>The item with the minimum value.</returns>
+    public Date Minimum()
+    {
+        Contract.Requires(IsInitialized);
+        return new(Cast<uint>(values).Max());
+    }
 
     /// <summary>Creates an aggregate value by applying the reducer to each item.</summary>
     /// <param name="seed">The initial value.</param>
