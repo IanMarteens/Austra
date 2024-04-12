@@ -139,6 +139,29 @@ public readonly struct Date :
         }
     }
 
+    /// <summary>Extracts the year and month in a single call.</summary>
+    /// <remarks>It only saves a division.</remarks>
+    /// <param name="year">The year of the date.</param>
+    /// <param name="month">The month of the date.</param>
+    public void Deconstruct(out int year, out int month)
+    {
+        // y100 = number of whole 100-year periods since 3/1/0000
+        // r1 = (day number within 100-year period) * 4
+        (uint y100, uint r1) = Math.DivRem(((date * 4) | 3U) + 1224, DaysPer400Years);
+        ulong u2 = (ulong)Math.BigMul((int)EafMultiplier, (int)r1 | 3);
+        ushort daySinceMarch1 = (ushort)((uint)u2 / EafDivider);
+        int n3 = 2141 * daySinceMarch1 + 197913;
+        year = (int)(100 * y100 + (uint)(u2 >> 32));
+        // Compute month and day
+        month = (ushort)(n3 >> 16);
+        // Rollover December 31
+        if (daySinceMarch1 >= March1BasedDayOfNewYear)
+        {
+            ++year;
+            month -= 12;
+        }
+    }
+
     /// <summary>Gets the day of week, being 0 the code for a Sunday.</summary>
     public DayOfWeek DayOfWeek => (DayOfWeek)((date + 1) % 7);
 
