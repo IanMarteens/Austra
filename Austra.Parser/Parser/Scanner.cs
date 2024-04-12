@@ -468,7 +468,7 @@ internal class Scanner
             throw new AstException("Invalid day of month", position);
         if (!TryParseMonthYear(text[(i + 1)..], out Date date))
             throw new AstException("Invalid month or year", position + i + 1);
-        (int y, int m, int _) = date;
+        (int y, int m) = date;
         return day <= Date.DaysInMonth(y, m) ? date + day - 1
             : throw new AstException("Invalid day of month", position);
     }
