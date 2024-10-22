@@ -1223,6 +1223,12 @@ internal sealed partial class Parser : Scanner, IDisposable
                             return e1;
                         }
                     }
+                    else if (kind >= Token.Plus && kind <= Token.Element &&
+                        bindings.IsClassOperator(className, kind, out Expression? e2))
+                    {
+                        Move();
+                        return e2;
+                    }   
                     e = kind != Token.Functor
                         ? throw Error("Method name expected")
                         : className == "math"
@@ -1541,6 +1547,15 @@ internal sealed partial class Parser : Scanner, IDisposable
                     && GetLambdaFromFunctionName("math." + saveId, out lambda))
                     return lambda;
                 lambdaBlock.Add(Expression.Parameter(t1, saveId));
+            }
+            else if (kind == Token.ClassName)
+            {
+                string className = id.ToLower();
+                SkipFunctor();
+                if (!bindings.IsClassOperator(className, kind, out Expression? e))
+                    throw Error("Operator expected after class reference");
+                Move();
+                return e;
             }
             else
             {

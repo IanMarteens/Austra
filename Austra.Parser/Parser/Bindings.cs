@@ -1522,6 +1522,21 @@ internal sealed class Bindings
             nameof(DVector.Combine2), nameof(DVector.Combine)
         }.ToFrozenSet();
 
+    private readonly Dictionary<ClassOp, Expression> classOperators =
+        new()
+        {
+            [new ClassOp("real", Token.Plus)] = (double x, double y) => x + y,
+            [new ClassOp("real", Token.Minus)] = (double x, double y) => x - y,
+            [new ClassOp("real", Token.Times)] = (double x, double y) => x * y,
+            [new ClassOp("real", Token.Div)] = (double x, double y) => x / y,
+            [new ClassOp("real", Token.Mod)] = (double x, double y) => x % y,
+            [new ClassOp("int", Token.Plus)] = (int x, int y) => x + y,
+            [new ClassOp("int", Token.Minus)] = (int x, int y) => x - y,
+            [new ClassOp("int", Token.Times)] = (int x, int y) => x * y,
+            [new ClassOp("int", Token.Div)] = (int x, int y) => x / y,
+            [new ClassOp("int", Token.Mod)] = (int x, int y) => x % y,
+        };
+
     /// <summary>Get root expressions for code completion.</summary>
     /// <returns>Class names, global methods and a couple of statement prefixes.</returns>
     public Member[] GetGlobalRoots() =>
@@ -1537,6 +1552,9 @@ internal sealed class Bindings
     public bool IsClassName(string identifier) => classMembers.ContainsKey(identifier);
 
     public bool IsOptimizableCall(string identifier) => optimizableCalls.Contains(identifier);
+
+    public bool IsClassOperator(string identifier, Token op, [MaybeNullWhen(false)] out Expression e) =>
+        classOperators.TryGetValue(new ClassOp(identifier, op), out e);
 
     /// <summary>Gets a list of members for a given type.</summary>
     /// <param name="source">A data source.</param>
@@ -1821,6 +1839,11 @@ internal sealed class Bindings
     /// <param name="Type">The type.</param>
     /// <param name="Id">Name of a member of the type.</param>
     private readonly record struct TypeId(Type Type, string Id);
+
+    /// <summary>Represents a dictionary key with a class name and a binary operator.</summary>
+    /// <param name="ClassName">The name of the class</param>
+    /// <param name="Operator">A binary operator.</param>
+    private readonly record struct ClassOp(string ClassName, Token Operator);
 }
 
 /// <summary>Represents a single method overload.</summary>

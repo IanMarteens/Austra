@@ -356,6 +356,11 @@ public readonly struct Date :
     /// <param name="d">The date to convert.</param>
     /// <returns>The date and time representation of this date.</returns>
     public static explicit operator DateTime(Date d) => new(d.date * TicksPerDay);
+    /// <summary>Converts a date into a standard date-only struct.</summary>
+    /// <param name="d">The date to convert.</param>
+    /// <returns>The date only standard representation of this date.</returns>
+    public static explicit operator DateOnly(Date d) =>
+        DateOnly.FromDateTime(new(d.date * TicksPerDay));
     /// <summary>Converts a date and time into a date.</summary>
     /// <param name="d">The date-time to convert.</param>
     /// <returns>The date part of the date and time.</returns>

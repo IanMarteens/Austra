@@ -103,6 +103,8 @@ public enum Token
     Le,
     /// <summary>The greater-or-equal operator.</summary>
     Ge,
+    /// <summary>The ∈ operator.</summary>
+    Element,
     /// <summary>The arrow =&gt;, for defining lambda functions.</summary>
     Arrow,
     /// <summary>A multiplied variable.</summary>
@@ -113,8 +115,6 @@ public enum Token
     MultVarI,
     /// <summary>Identifier plus bang, for avoiding memoization.</summary>
     IdBang,
-    /// <summary>The ∈ operator.</summary>
-    Element,
     /// <summary>Universal qualifier (all, ∀).</summary>
     All,
     /// <summary>Existential qualifier (any, ∃).</summary>
