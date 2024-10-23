@@ -71,6 +71,20 @@ prices.map(x => min(x, 1000))
         <para><codeInline>zip</codeInline> can act on arguments with different lengths, so it only acts in the common part of both. It generates a new series, vector or sequence, and each item will be the combined value created by the lambda function. In the above example, it will be the maximum price for each common date.</para>
       </content>
     </section>
+	  <section address="opfree">
+	  	<title>Binary operators as lambdas</title>
+	  	<content>
+	  	  <para>You can also use a binary operator as a shortcut for a lambda definition. This code uses the <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference> method on a sequence of integers for summing all items in the sequence:</para>
+	  	  <code language="Austra">
+iseq(1, 10).reduce(0, (x, y) =&gt; x + y)
+	  	  </code>
+	  	  <para>You can substitute the lambda definition with a reference to the binary operator, including its class name:</para>
+	  	  <code language="Austra">
+iseq(1, 10).reduce(0, <markup><b><font color="DarkCyan">int::</font></b></markup>+)
+	  	  </code>
+	  	  <para>This trick, so far, only works with binary operators.</para>
+	  	</content>
+	  </section>
     <section address="capture">
       <title>Captured variables</title>
       <content>
