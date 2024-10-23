@@ -27,7 +27,7 @@
         </Keywords>
 		
 		<Rule fontWeight="bold" foreground="DarkCyan">
-			\b(math|matrix|vec|cvec|dvec|ivec|seq|cseq|iseq|series|model|spline)(?=\:\:)\b
+			\b(math|matrix|vec|cvec|dvec|ivec|seq|cseq|iseq|series|model|spline|real|int|long)(?=\:\:)\b
 		</Rule>
 
 		<Rule fontWeight="bold" foreground="RoyalBlue">

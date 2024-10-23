@@ -1530,11 +1530,21 @@ internal sealed class Bindings
             [new ClassOp("real", Token.Times)] = (double x, double y) => x * y,
             [new ClassOp("real", Token.Div)] = (double x, double y) => x / y,
             [new ClassOp("real", Token.Mod)] = (double x, double y) => x % y,
+            [new ClassOp("double", Token.Plus)] = (double x, double y) => x + y,
+            [new ClassOp("double", Token.Minus)] = (double x, double y) => x - y,
+            [new ClassOp("double", Token.Times)] = (double x, double y) => x * y,
+            [new ClassOp("double", Token.Div)] = (double x, double y) => x / y,
+            [new ClassOp("double", Token.Mod)] = (double x, double y) => x % y,
             [new ClassOp("int", Token.Plus)] = (int x, int y) => x + y,
             [new ClassOp("int", Token.Minus)] = (int x, int y) => x - y,
             [new ClassOp("int", Token.Times)] = (int x, int y) => x * y,
             [new ClassOp("int", Token.Div)] = (int x, int y) => x / y,
             [new ClassOp("int", Token.Mod)] = (int x, int y) => x % y,
+            [new ClassOp("long", Token.Plus)] = (long x, long y) => x + y,
+            [new ClassOp("long", Token.Minus)] = (long x, long y) => x - y,
+            [new ClassOp("long", Token.Times)] = (long x, long y) => x * y,
+            [new ClassOp("long", Token.Div)] = (long x, long y) => x / y,
+            [new ClassOp("long", Token.Mod)] = (long x, long y) => x % y,
         };
 
     /// <summary>Get root expressions for code completion.</summary>
