@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net8.0</TargetFramework>
+	  <TargetFramework>net9.0</TargetFramework>
 	  <LangVersion>latest</LangVersion>
 	  <Nullable>enable</Nullable>
 	  <Authors>Ian Marteens</Authors>
@@ -13,11 +13,11 @@
 	  <RepositoryUrl>https://github.com/IanMarteens/Austra</RepositoryUrl>
 	  <PackageId>Austra.Library</PackageId>
 	  <Product>AUSTRA</Product>
-	  <Copyright>Copyright © 2020-2023, by Ian Marteens</Copyright>
+	  <Copyright>Copyright © 2020-2024, by Ian Marteens</Copyright>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <AssemblyVersion>2.5.0</AssemblyVersion>
-	  <FileVersion>2.5.0</FileVersion>
-	  <Version>2.5.0</Version>
+	  <AssemblyVersion>2.6.0</AssemblyVersion>
+	  <FileVersion>2.6.0</FileVersion>
+	  <Version>2.6.0</Version>
 	  <RootNamespace>Austra.Library</RootNamespace>
 	  <AssemblyName>Austra.Library</AssemblyName>
 	  <Title>A high-performance library for linear algebra.</Title>

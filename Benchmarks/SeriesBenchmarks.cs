@@ -23,7 +23,7 @@ public class SeriesBenchmark : BenchmarkControl
         weights = new(values);
     }
 
-    //[Benchmark]
+    [Benchmark]
     public Series AustraCnvRets() =>
         aapl.AsReturns();
 
@@ -31,14 +31,14 @@ public class SeriesBenchmark : BenchmarkControl
     public Series AustraCnvLogs() =>
         aapl.AsLogReturns();
 
-    //[Benchmark]
+    [Benchmark]
     public Series AustraRawCombine() =>
         0.5 * aapl + 0.3 * msft + 0.2 * dax;
 
-    //[Benchmark]
+    [Benchmark]
     public Series AustraOptCombine() =>
         Series.Combine(weights, aapl, msft, dax);
 
-    //[Benchmark]
+    [Benchmark]
     public Series AustraPointMultSeries() => aapl.PointwiseMultiply(msft);
 }
