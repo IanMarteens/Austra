@@ -301,7 +301,7 @@ public sealed class VectorSpline : Spline<double>
     public VectorSpline(double x0, double x1, int segments, Func<double, double> f) :
         base(x0, x1, segments, f, out double[] values) =>
         Original = new Series<double>("Original", null,
-            xs.Reverse().ToArray(), values.Reverse().ToArray(), SeriesType.Raw);
+            [.. xs.Reverse()], [.. values.Reverse()], SeriesType.Raw);
 
     /// <summary>Original series.</summary>
     public Series<double> Original { get; }

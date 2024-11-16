@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using System.Threading;
+
+namespace Austra.Parser;
 
 /// <summary>Listens to variable changes in the session scope.</summary>
 public interface IVariableListener
@@ -163,7 +165,7 @@ public class DataSource : IDataSource
     /// <summary>An parameter expression list pool.</summary>
     private readonly Stack<List<ParameterExpression>> paramListPool = new(4);
     /// <summary>Synchronizes access to definitions.</summary>
-    private readonly object defLock = new();
+    private readonly Lock defLock = new();
 
     /// <summary>Creates an empty datasource.</summary>
     public DataSource() =>

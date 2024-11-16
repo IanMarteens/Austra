@@ -27,7 +27,7 @@ public sealed class Definition
     /// <summary>Gets the expression tree.</summary>
     public Expression Expression { get; }
     /// <summary>Definitions that depends on this one.</summary>
-    public IList<Definition> Children { get; } = new List<Definition>();
+    public IList<Definition> Children { get; } = [];
 
     /// <summary>Internal flag for recursive removal.</summary>
     internal bool Flag { get; set; }

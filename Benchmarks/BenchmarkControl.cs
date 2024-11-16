@@ -6,8 +6,5 @@ public abstract class BenchmarkControl
 
     protected BenchmarkControl() { }
 
-    public static int Configure()
-    {
-        return SIZE;
-    }
+    public static int Configure() => SIZE;
 }

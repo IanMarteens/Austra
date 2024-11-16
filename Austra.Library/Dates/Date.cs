@@ -38,26 +38,26 @@ public readonly struct Date :
     private const int March1BasedDayOfNewYear = 306;
 
     /// <summary>Days before month's first day in a non-leap year.</summary>
-    private static ReadOnlySpan<uint> DaysToMonth365 => new uint[]
-    {
+    private static ReadOnlySpan<uint> DaysToMonth365 =>
+    [
         0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
-    };
+    ];
 
     /// <summary>Days before month's first day in a leap year.</summary>
-    private static ReadOnlySpan<uint> DaysToMonth366 => new uint[]
-    {
+    private static ReadOnlySpan<uint> DaysToMonth366 =>
+    [
         0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366
-    };
+    ];
 
-    private static ReadOnlySpan<byte> DaysInMonth365 => new byte[]
-    {
+    private static ReadOnlySpan<byte> DaysInMonth365 =>
+    [
         31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-    };
+    ];
 
-    private static ReadOnlySpan<byte> DaysInMonth366 => new byte[]
-    {
+    private static ReadOnlySpan<byte> DaysInMonth366 =>
+    [
         31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-    };
+    ];
 
     /// <summary>Number of days since Jan 1st, 1.</summary>
     private readonly uint date;

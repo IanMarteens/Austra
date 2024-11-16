@@ -26,7 +26,7 @@ internal static class CsvLoader
                         headers.Add(new SeriesHeader { Name = name });
                     }
                 if (headers.Count == 0)
-                    return Enumerable.Empty<Series>();
+                    return [];
                 first = false;
             }
             else
@@ -66,7 +66,7 @@ internal static class CsvLoader
             }
         }
         if (dates.Count == 0)
-            return Enumerable.Empty<Series>();
+            return [];
         dates.Reverse();
         var args = dates.ToArray();
         var series = new List<Series>();

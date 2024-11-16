@@ -2,20 +2,13 @@
 
 public class SeqBenchmark: BenchmarkControl
 {
-    private readonly DVector v1;
+    private readonly DVector v1 = new(1024, new Random(133));
     private readonly int size;
-    private readonly DSequence mseq;
-    private readonly DSequence rseq;
-    private readonly NSequence nseq;
+    private readonly DSequence mseq = DSequence.Create(0, 1023, Math.Tau).Map(Math.Sin);
+    private readonly DSequence rseq = DSequence.Random(1024);
+    private readonly NSequence nseq = NSequence.Create(2, 12);
 
-    public SeqBenchmark()
-    {
-        size = Configure();
-        v1 = new DVector(1024, new Random(133));
-        mseq = DSequence.Create(0, 1023, Math.Tau).Map(Math.Sin);
-        rseq = DSequence.Random(1024);
-        nseq = NSequence.Create(2, 12);
-    }
+    public SeqBenchmark() => size = Configure();
 
     [Benchmark]
     public double AustraVSeqSum() => ((DSequence)v1).Sum();

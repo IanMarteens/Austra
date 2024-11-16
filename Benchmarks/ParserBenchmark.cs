@@ -2,13 +2,12 @@
 
 public class ParserBenchmark : BenchmarkControl
 {
-    private readonly IDataSource dataSource;
+    private readonly IDataSource dataSource = new DataSource();
     private readonly AustraEngine engine;
 
     public ParserBenchmark()
     {
         Configure();
-        dataSource = new DataSource();
         engine = new AustraEngine(dataSource);
     }
 

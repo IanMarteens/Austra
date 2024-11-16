@@ -3,8 +3,8 @@
 /// <summary>Contains statistical and other useful math functions.</summary>
 public static partial class Functions
 {
-    private static readonly string[] haikus = new string[]
-    {
+    private static readonly string[] haikus =
+    [
         "古池や　蛙飛び込む　水の音 (Furuike ya/Kawazu tobikomu/Mizu no oto - Basho)",
         "春の海　ひねもすのたり　のたりかな (Haruno-umi Hinemosu-Notari Notarikana - Buson)",
         "痩蛙 負けるな一茶 是にあり (Yase gaeru/Makeruna Issa kore ni ari - Issa)",
@@ -18,7 +18,7 @@ public static partial class Functions
         "書てみたりけしたり果はけしの花 (Kaite mitari/keshitari hate wa/Keshi no hana - Hokushi)",
         "プログラマー コードを書くのが 楽しい仕事 (コパイロット)",
         "So long, and thanks for all the fish. (Douglas Adams)",
-    };
+    ];
 
     /// <summary>Retrieves a random haiku.</summary>
     /// <returns>A random haiku.</returns>

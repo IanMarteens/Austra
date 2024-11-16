@@ -35,26 +35,26 @@ public readonly struct CVector :
     /// <summary>Creates a complex vector for a complex value.</summary>
     /// <param name="value">A complex value.</param>
     public CVector(Complex value) =>
-        (re, im) = (new[] { value.Real }, new[] { value.Imaginary });
+        (re, im) = ([value.Real], [value.Imaginary]);
 
     /// <summary>Creates a complex vector for a real value.</summary>
     /// <param name="value">A real value.</param>
-    public CVector(double value) => (re, im) = (new[] { value }, new double[1]);
+    public CVector(double value) => (re, im) = ([value], new double[1]);
 
     /// <summary>Creates a complex vector from two complex values.</summary>
     /// <param name="v1">First complex value.</param>
     /// <param name="v2">Second complex value.</param>
     public CVector(Complex v1, Complex v2) =>
-        (re, im) = (new[] { v1.Real, v2.Real }, new[] { v1.Imaginary, v2.Imaginary });
+        (re, im) = ([v1.Real, v2.Real], [v1.Imaginary, v2.Imaginary]);
 
     /// <summary>Creates a complex vector from two real values.</summary>
     /// <param name="v1">A real value.</param>
     /// <param name="v2">Second value.</param>
-    public CVector(double v1, double v2) => (re, im) = (new[] { v1, v2 }, new double[2]);
+    public CVector(double v1, double v2) => (re, im) = ([v1, v2], new double[2]);
 
     internal CVector(Complex c1, Complex c2, Complex c3) => (re, im) = (
-        new[] { c1.Real, c2.Real, c3.Real },
-        new[] { c1.Imaginary, c2.Imaginary, c3.Imaginary });
+        [c1.Real, c2.Real, c3.Real],
+        [c1.Imaginary, c2.Imaginary, c3.Imaginary]);
 
     /// <summary>Creates a complex vector from separate component arrays.</summary>
     /// <param name="re">The real components of the vector.</param>

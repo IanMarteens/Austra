@@ -1,16 +1,15 @@
 ﻿namespace Austra.Library.Transforms;
 
 /// <summary>Represents the result of a Fast Fourier Transform.</summary>
-public abstract class FftModel: IIndexable
+/// <remarks>Initializes a FftModel.</remarks>
+/// <param name="spectrum">
+/// The whole spectrum, as returned by <see cref="FFT.Transform(Complex[])"/>.
+/// </param>
+public abstract class FftModel(Complex[] spectrum) : IIndexable
 {
-    /// <summary>Initializes a FftModel.</summary>
-    /// <param name="spectrum">
-    /// The whole spectrum, as returned by <see cref="FFT.Transform(Complex[])"/>.
-    /// </param>
-    protected FftModel(Complex[] spectrum) => Spectrum = new(spectrum);
 
     /// <summary>Gets the result of the FFT as a complex vector.</summary>
-    public CVector Spectrum { get; }
+    public CVector Spectrum { get; } = new(spectrum);
 
     /// <summary>Gets the amplitudes of the spectrum, as a vector of real numbers.</summary>
     public DVector Amplitudes { get; protected set; }
