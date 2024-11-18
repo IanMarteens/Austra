@@ -10,6 +10,11 @@ public abstract partial class DSequence : IFormattable
         /// <summary>The length of the sequence.</summary>
         protected readonly int length = length;
 
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="idx">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        public override double this[Index idx] => this[idx.GetOffset(length)];
+
         /// <summary>Gets the total number of values in the sequence.</summary>
         /// <returns>The total number of values in the sequence.</returns>
         public sealed override int Length() => length;

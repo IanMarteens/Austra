@@ -280,10 +280,10 @@ internal sealed partial class Parser : Scanner, IDisposable
         if (kind == Token.LPar)
         {
             // A local function definition.
+            int s0 = start;
             List<ParameterExpression> parameters = ParseParameters();
             try
             {
-                int s0 = start;
                 if (kind == Token.Colon)
                 {
                     Type retType = ParseTypeRef();
@@ -2000,6 +2000,11 @@ internal sealed partial class Parser : Scanner, IDisposable
                     Move();
                     return ParseIntegerVector();
                 }
+                if (saveId.Equals("date", StringComparison.OrdinalIgnoreCase))
+                {
+                    Move();
+                    return ParseDateVector();
+                }
                 if (saveId.Equals("real", StringComparison.OrdinalIgnoreCase) ||
                     saveId.Equals("double", StringComparison.OrdinalIgnoreCase))
                 {
@@ -2104,8 +2109,8 @@ internal sealed partial class Parser : Scanner, IDisposable
         return result;
     }
 
-    /// <summary>Parses a vector literal.</summary>
-    /// <returns>An expression creating the vector or the matrix.</returns>
+    /// <summary>Parses an integer vector literal.</summary>
+    /// <returns>An expression creating the integer vector.</returns>
     private Expression ParseIntegerVector()
     {
         List<Expression> items = source.Rent(16);
@@ -2185,6 +2190,56 @@ internal sealed partial class Parser : Scanner, IDisposable
                 : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
                     Type.EmptyTypes, first, last);
         }
+    }
+
+    /// <summary>Parses an date vector literal.</summary>
+    /// <returns>An expression creating the date vector.</returns>
+    private Expression ParseDateVector()
+    {
+        List<Expression> items = source.Rent(16);
+        int vectors = 0;
+        for (; ; )
+        {
+            Expression e = ParseLightConditional();
+            if (e.Type == typeof(Date))
+                items.Add(e);
+            else if (e.Type == typeof(DateVector))
+            {
+                vectors++;
+                items.Add(e);
+            }
+            else
+                throw Error("Vector item must be a date");
+            if (kind == Token.Comma)
+                Move();
+            else if (kind == Token.RBra)
+            {
+                Move();
+                break;
+            }
+            else
+                throw Error("Vector item separator expected");
+        }
+        Expression result;
+        if (vectors > 0)
+        {
+            for (int i = 0; vectors < items.Count; vectors++)
+            {
+                for (; items[i].Type == typeof(DateVector); i++) ;
+                int j = i + 1;
+                for (; j < items.Count && items[j].Type != typeof(DateVector); j++) ;
+                int count = j - i;
+                if (count == 1 && items.Count == 2)
+                    return typeof(DateVector).New(items[0], items[1]);
+                items[i] = typeof(DateVector).New(typeof(Date).Make(items.GetRange(i, count)));
+                items.RemoveRange(i + 1, count - 1);
+            }
+            result = typeof(DateVector).New(typeof(DateVector).Make(items));
+        }
+        else
+            result = typeof(DateVector).New(typeof(Date).Make(items));
+        source.Return(items);
+        return result;
     }
 
     /// <summary>Parses a list comprehension expression.</summary>
