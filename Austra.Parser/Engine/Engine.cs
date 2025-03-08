@@ -361,12 +361,11 @@ public partial class AustraEngine : IAustraEngine
     /// <returns>An UTF-8 representation of series and definitions.</returns>
     public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes(
         new DataObject(
-            Source.AllDefinitions
-                .Select(d => new DataDef(d.Name, d.Parameters, d.Text, d.Description))
-                .ToList(),
-            Source.Series.Select(s =>
-                new DataSeries(s.Name, s.Ticker, (int)s.Type, (int)s.Freq, s.Args.ToArray(),
-                    s.EnumValues.ToArray())).ToList()));
+            [.. Source.AllDefinitions
+                .Select(d => new DataDef(d.Name, d.Parameters, d.Text, d.Description))],
+            [.. Source.Series.Select(s =>
+                new DataSeries(s.Name, s.Ticker, (int)s.Type, (int)s.Freq, [.. s.Args],
+                    [.. s.EnumValues]))]));
 
     /// <summary>Deserializes a datasource from an UTF-8 file.</summary>
     /// <param name="fileName">An UTF-8 file previously serialized.</param>

@@ -2590,14 +2590,14 @@ internal sealed partial class Parser : Scanner, IDisposable
         {
             0 => typeof(Func<>).MakeGenericType(retType),
             1 => typeof(Func<,>).MakeGenericType(parameters[0].Type, retType),
-            2 => typeof(Func<,,>).MakeGenericType(parameters.Select(p => p.Type)
-                .Concat([retType]).ToArray()),
-            3 => typeof(Func<,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                .Concat([retType]).ToArray()),
-            4 => typeof(Func<,,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                .Concat([retType]).ToArray()),
-            5 => typeof(Func<,,,,,>).MakeGenericType(parameters.Select(p => p.Type)
-                .Concat([retType]).ToArray()),
+            2 => typeof(Func<,,>).MakeGenericType(
+                [.. parameters.Select(p => p.Type), retType]),
+            3 => typeof(Func<,,,>).MakeGenericType(
+                [.. parameters.Select(p => p.Type), retType]),
+            4 => typeof(Func<,,,,>).MakeGenericType(
+                [.. parameters.Select(p => p.Type), retType]),
+            5 => typeof(Func<,,,,,>).MakeGenericType(
+                [.. parameters.Select(p => p.Type), retType]),
             _ => throw Error("Unsupported number of arguments")
         };
 }

@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace Austra.Library.MVO;
+﻿namespace Austra.Library.MVO;
 
 /// <summary>Represents the result of a simplex algorithm.</summary>
 public class SimplexModel
@@ -23,7 +21,7 @@ public class SimplexModel
         if (constraintRHS.Length != constraintTypes.Length)
             throw new VectorLengthException($"The must be a constraint type for each constraint");
         if (labels == null || labels.Length == 0)
-            labels = Enumerable.Range(0, len).Select(i => i.ToString()).ToArray();
+            labels = [.. Enumerable.Range(0, len).Select(i => i.ToString())];
         else if (labels.Length > len)
             labels = labels[0..len];
         else if (labels.Length < len)

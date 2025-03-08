@@ -42,7 +42,7 @@ internal static class ParserExtensions
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NewExpression New(this Type type, params Expression[] args) =>
-        Expression.New(type.GetConstructor(args.Select(a => a.Type).ToArray())!, args);
+        Expression.New(type.GetConstructor([.. args.Select(a => a.Type)])!, args);
 
     /// <summary>
     /// Gets the parameterless constructor for the specified type and creates a new expression.

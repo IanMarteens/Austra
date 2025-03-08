@@ -165,7 +165,7 @@ public static class Optimizer
             if (ip == null)
                 return null;
             frontier[ip.SourceIndex2] = ip;
-            frontier = frontier.Take(ip.SourceIndex2 + 1).ToArray();
+            frontier = [.. frontier.Take(ip.SourceIndex2 + 1)];
         }
         if (frontier.Length == 1)
             return new(frontier[0], 0);

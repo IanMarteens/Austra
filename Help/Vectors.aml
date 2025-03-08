@@ -2,7 +2,7 @@
 <topic id="aae4328b-9ead-40dc-b407-54e8d0614cd5" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA provides double-precision vectors, identified by the class <codeInline>vec</codeInline>, complex double-precision vectors, <codeInline>cvec</codeInline>, and vectors of integer, <codeInline>ivec</codeInline>. All these data types are implemented using dense storage.</para>
+      <para>AUSTRA provides double-precision vectors, identified by the class <codeInline>vec</codeInline>, complex double-precision vectors, <codeInline>cvec</codeInline>, vectors of integers, <codeInline>ivec</codeInline>, and vectors of dates, <codeInline>dvec</codeInline>. All these data types are implemented using dense storage.</para>
     </introduction>
     <section address="Section1">
       <title>Real vectors</title>
@@ -618,6 +618,19 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 			</content>
 		  </section>
 		</sections>
+      </content>
+    </section>
+    <section address="datevecs">
+      <title>Date vectors</title>
+      <content>
+        <para>Date vectors are implemented by the <codeInline>dvec</codeInline> class. They are mainly intended to support the arguments vector from time series.</para>
+		<para>Date vector literals can be created using this notation:</para>
+		<code language="Austra">
+<markup><font color="DarkGreen">-- Date vector creation.</font><br/>
+<b>let</b></markup> v1 = [<markup><b><font color="DarkCyan">dvec</font></b></markup>:jan2024, feb2024, 4@jul24];
+<markup><font color="DarkGreen">-- Date vector concatenation.</font></markup>
+[<markup><b><font color="DarkCyan">dvec</font></b></markup>:v1, 25@dec24, v1.reverse];
+		</code>
       </content>
     </section>
     <section address="vecidx">

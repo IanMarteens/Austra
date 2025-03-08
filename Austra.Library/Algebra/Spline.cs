@@ -244,8 +244,8 @@ public abstract class Spline<ARG> where ARG : struct
 /// <remarks>Creates an interpolator for a series.</remarks>
 /// <param name="series">The temporal series to interpolate.</param>
 public sealed class DateSpline(Series series) : Spline<Date>(
-    series.Args.Reverse().Take(series.Count).Select(x => (double)x).ToArray(),
-    series.EnumValues.Reverse().Take(series.Count).ToArray())
+    [.. series.Args.Reverse().Take(series.Count).Select(x => (double)x)],
+    [.. series.EnumValues.Reverse().Take(series.Count)])
 {
     /// <summary>Original series.</summary>
     public Series Original { get; } = series;

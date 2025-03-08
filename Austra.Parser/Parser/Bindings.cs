@@ -107,6 +107,7 @@ internal sealed class Bindings
             ],
             ["dvec"] = [
                 new("new(", "Create a date vector"),
+                new("random(", "Create a date vector with random values"),
             ],
             ["iseq"] = [
                 new("new(", "Creates an integer sequence either from a range, a range and a step, or a vector"),
@@ -722,9 +723,10 @@ internal sealed class Bindings
                 typeof(CVector).MD(typeof(int), typeof(Func<int, CVector, Complex>))),
             ["dvec.new"] = new(
                 typeof(DateVector).MD(typeof(int), typeof(Date)),
-                typeof(DateVector).MD(typeof(int), typeof(Date), typeof(Date)),
                 typeof(DateVector).MD(typeof(int), typeof(Func<int, Date>)),
                 typeof(DateVector).MD(typeof(int), typeof(Func<int, DateVector, Date>))),
+            ["dvec.random"] = new(
+                typeof(DateVector).MD(typeof(int), typeof(Date), typeof(Date))),
             ["cvec.nrandom"] = new(
                 typeof(CVector).MD(typeof(int), typeof(NormalRandom))),
             ["cvec.random"] = new(

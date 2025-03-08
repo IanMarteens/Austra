@@ -244,7 +244,7 @@ public sealed partial class RootModel : Entity
                 allVars[defNode.Name] = defNode;
             }
             cList.Insert(0, defs);
-            Classes = new(cList);
+            Classes = [.. cList];
             // Select and expand the first node of the tree.
             defs.IsExpanded = true;
             var selectedVar = Classes.Skip(1).FirstOrDefault();

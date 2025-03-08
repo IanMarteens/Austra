@@ -1296,7 +1296,7 @@ public static class Vec
     {
         if (data.Length == 0)
             return "";
-        string[] cells = data.Select(formatter).ToArray();
+        string[] cells = [.. data.Select(formatter)];
         int width = Math.Max(3, cells.Max(c => c.Length));
         int cols = (TERMINAL_COLUMNS + 2) / (width + 2);
         StringBuilder sb = new(Math.Min(data.Length / cols, 12) * (TERMINAL_COLUMNS + 2));

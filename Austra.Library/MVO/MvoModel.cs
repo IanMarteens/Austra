@@ -25,7 +25,7 @@ public class MvoModel
         LowerLimits = lowerLimits;
         UpperLimits = upperLimits;
         if (labels == null || labels.Length == 0)
-            labels = Enumerable.Range(0, len).Select(i => i.ToString()).ToArray();
+            labels = [.. Enumerable.Range(0, len).Select(i => i.ToString())];
         else if (labels.Length > len)
             labels = labels[0..len];
         else if (labels.Length < len)

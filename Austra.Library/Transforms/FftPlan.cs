@@ -161,7 +161,7 @@ public sealed partial class FftPlan
                 case Op.End:
                     if (indent.Length == 2)
                         continue;
-                    indent = indent.Remove(indent.Length - 2);
+                    indent = indent[..^2];
                     sb.AppendLine(indent + "}");
                     break;
                 default:

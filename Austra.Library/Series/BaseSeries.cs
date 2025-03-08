@@ -81,7 +81,7 @@ public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
     /// <returns>The new series.</returns>
     public static Series<int> Create(string name, string? ticker,
         double[] values, SeriesType type = SeriesType.Raw) =>
-        new(name, ticker, Enumerable.Range(0, values.Length).ToArray(), values, type);
+        new(name, ticker, [.. Enumerable.Range(0, values.Length)], values, type);
 
     /// <summary>Gets the name of the series.</summary>
     public string Name { get; protected set; }

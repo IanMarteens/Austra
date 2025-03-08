@@ -92,7 +92,7 @@ public sealed class LinearSModel : LinearModel<Series>
     /// <param name="predictors">The set of series used as predictors.</param>
     public LinearSModel(Series original, params Series[] predictors) : base(
         original.Prune(predictors.Select(s => s.Count).Min()),
-        predictors.Select(s => s.Name).ToList())
+        [.. predictors.Select(s => s.Name)])
     {
         int size = Original.Count;
         DVector[] rows = new DVector[predictors.Length + 1];
@@ -124,7 +124,7 @@ public sealed class LinearVModel : LinearModel<DVector>
     /// <param name="original">Data to be predicted.</param>
     /// <param name="predictors">The set of vectors used as predictors.</param>
     public LinearVModel(DVector original, params DVector[] predictors) : base(
-        original, Enumerable.Range(1, predictors.Length).Select(i => "v" + i).ToList())
+        original, [.. Enumerable.Range(1, predictors.Length).Select(i => "v" + i)])
     {
         int size = original.Length;
         if (predictors.Any(p => p.Length != size))

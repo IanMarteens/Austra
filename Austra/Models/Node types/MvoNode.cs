@@ -10,16 +10,16 @@ public sealed class MvoNode : VarNode<MvoModel>
         base(formula, value) =>
         // Create the frontier.
         Frontier = new("Frontier", null,
-            Model.Portfolios.Select(p => p.StdDev).ToArray(),
-            Model.Portfolios.Select(p => p.Mean).ToArray(),
+            [.. Model.Portfolios.Select(p => p.StdDev)],
+            [.. Model.Portfolios.Select(p => p.Mean)],
             SeriesType.Raw);
 
     public MvoNode(ClassNode parent, string varName, MvoModel value) :
         base(parent, varName, value) =>
         // Create the frontier.
         Frontier = new("Frontier", null,
-            Model.Portfolios.Select(p => p.StdDev).ToArray(),
-            Model.Portfolios.Select(p => p.Mean).ToArray(),
+            [.. Model.Portfolios.Select(p => p.StdDev)],
+            [.. Model.Portfolios.Select(p => p.Mean)],
             SeriesType.Raw);
 
     public override string TypeName => "MVO Model";

@@ -202,7 +202,7 @@ static void ShowSeriesNames(IDataSource source)
     using (new ColorChanger(ConsoleColor.DarkGray))
     {
         bool hasContent = false;
-        List<Series> allSeries = source.Series.ToList();
+        List<Series> allSeries = [.. source.Series];
         if (allSeries.Count > 0)
         {
             WriteLine($"{allSeries.Count} series:");
@@ -224,9 +224,7 @@ static void ShowSeriesNames(IDataSource source)
             hasContent = true;
         }
         allNames.Add("ans");
-        List<(string name, Type? type)> allVars = source.Variables
-            .Where(t => !allNames.Contains(t.name))
-            .ToList();
+        List<(string name, Type? type)> allVars = [.. source.Variables.Where(t => !allNames.Contains(t.name))];
         if (allVars.Count > 0)
         {
             WriteLine($"{allVars.Count} variables:");
