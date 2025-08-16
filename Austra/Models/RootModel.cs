@@ -39,8 +39,6 @@ public sealed partial class RootModel : Entity
     /// </summary>
     private int historyIndex = -1;
     private string savedHistory = "";
-    private int errorIconSize = 0;
-    private int infoArrowSize = 0;
     private IReadOnlyList<string> overloads = [];
     private int overloadIdx;
 
@@ -204,14 +202,12 @@ public sealed partial class RootModel : Entity
 
     public int ErrorIconSize
     {
-        get => errorIconSize;
-        set => SetField(ref errorIconSize, value);
+        get; set => SetField(ref field, value);
     }
 
     public int InfoArrowSize
     {
-        get => infoArrowSize;
-        set => SetField(ref infoArrowSize, value);
+        get; set => SetField(ref field, value);
     }
 
     /// <summary>

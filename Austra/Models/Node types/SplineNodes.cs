@@ -29,8 +29,6 @@ public abstract class SplineViewModel<T, A> : Entity
 {
     private string newValue = "";
     private string newDerivative = "";
-    private A austraArg = default;
-    private Poly? selected;
 
     protected SplineViewModel(SplineNode<T, A> node) => (Node, Coefficients)
         = (node, Enumerable.Range(0, node.Length).Select(i => new Poly(node.Model, i)).ToList());
@@ -43,8 +41,7 @@ public abstract class SplineViewModel<T, A> : Entity
 
     public Poly? SelectedPoly
     {
-        get => selected;
-        set => SetField(ref selected, value);
+        get; set => SetField(ref field, value);
     }
 
     public string NewValue
@@ -61,8 +58,7 @@ public abstract class SplineViewModel<T, A> : Entity
 
     public A AustraArg
     {
-        get => austraArg;
-        set => SetField(ref austraArg, value);
+        get; set => SetField(ref field, value);
     }
 
     protected void SelectPoly(double arg)

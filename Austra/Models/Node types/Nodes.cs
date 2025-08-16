@@ -6,21 +6,16 @@ namespace Austra;
 /// <param name="name">The name of the node.</param>
 public abstract class NodeBase(string name) : Entity
 {
-    private bool isSelected;
-    private bool isExpanded;
-
     /// <summary>Gets or set whether the corresponding tree node is selected.</summary>
     public bool IsSelected
     {
-        get => isSelected;
-        set => SetField(ref isSelected, value);
+        get; set => SetField(ref field, value);
     }
 
     /// <summary>Gets or set whether the corresponding tree node is expanded.</summary>
     public bool IsExpanded
     {
-        get => isExpanded;
-        set => SetField(ref isExpanded, value);
+        get; set => SetField(ref field, value);
     }
 
     /// <summary>Shows the corresponding view in the main window.</summary>
@@ -43,12 +38,12 @@ public class ClassNode(string className, string type = "Class node") : NodeBase(
     public override string TypeName { get; } = type;
 
     public int Order { get; } = className switch
-        {
-            "Series" => 0,
-            "Matrix" => 1,
-            "Vector" => 2,
-            _ => 3,
-        };
+    {
+        "Series" => 0,
+        "Matrix" => 1,
+        "Vector" => 2,
+        _ => 3,
+    };
 }
 
 /// <summary>Represents an class node grouping AUSTRA definitions.</summary>

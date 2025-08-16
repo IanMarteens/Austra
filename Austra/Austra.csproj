@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net9.0-windows7.0</TargetFramework>
+		<LangVersion>preview</LangVersion>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ApplicationIcon>ak.ico</ApplicationIcon>
@@ -78,7 +79,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+		<PackageReference Include="AvalonEdit" Version="6.3.1.120" />
 		<PackageReference Include="OxyPlot.Wpf" Version="2.2.0" />
 	</ItemGroup>
 

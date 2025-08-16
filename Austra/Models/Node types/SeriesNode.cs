@@ -67,7 +67,6 @@ public sealed class SeriesViewModel : Entity
     private readonly SeriesNode node;
     private readonly OxyPlot.PlotModel model;
     private readonly StackPanel toolBar;
-    private int selectedSeries = 0;
     private int movingPoints = 30;
     private double ewmaLambda = 0.65;
 
@@ -119,14 +118,14 @@ public sealed class SeriesViewModel : Entity
 
     public int SelectedSeries
     {
-        get => selectedSeries;
+        get;
         set
         {
-            if (SetField(ref selectedSeries, value))
+            if (SetField(ref field, value))
             {
                 if (model.Series.Count > 1)
                     model.Series.RemoveAt(1);
-                Series? newSeries = selectedSeries switch
+                Series? newSeries = field switch
                 {
                     1 => node.Model.MovingAvg(MovingPoints),
                     2 => node.Model.MovingStd(MovingPoints),
@@ -135,9 +134,9 @@ public sealed class SeriesViewModel : Entity
                     _ => null,
                 };
                 toolBar.Children[2].Visibility = toolBar.Children[3].Visibility =
-                    selectedSeries is 1 or 2 ? Visibility.Visible : Visibility.Collapsed;
+                    field is 1 or 2 ? Visibility.Visible : Visibility.Collapsed;
                 toolBar.Children[4].Visibility = toolBar.Children[5].Visibility =
-                    selectedSeries is 3 ? Visibility.Visible : Visibility.Collapsed;
+                    field is 3 ? Visibility.Visible : Visibility.Collapsed;
                 if (newSeries != null)
                     model.CreateSeries(newSeries, "Reference");
                 model.ResetAllAxes();
