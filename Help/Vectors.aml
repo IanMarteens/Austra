@@ -627,10 +627,111 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
 		<para>Date vector literals can be created using this notation:</para>
 		<code language="Austra">
 <markup><font color="DarkGreen">-- Date vector creation.</font><br/>
-<b>let</b></markup> v1 = [<markup><b><font color="DarkCyan">dvec</font></b></markup>:jan2024, feb2024, 4@jul24];
+<b>let</b></markup> v1 = [<markup><b><font color="DarkCyan">date</font></b></markup>:jan2024, feb2024, 4@jul24];
+<markup><font color="DarkGreen">-- The type indicator can be omited.</font><br/>
+<b>let</b></markup> v1 = [jan2024, feb2024, 4@jul24];
 <markup><font color="DarkGreen">-- Date vector concatenation.</font></markup>
-[<markup><b><font color="DarkCyan">dvec</font></b></markup>:v1, 25@dec24, v1.reverse];
+[<markup><b><font color="DarkCyan">date</font></b></markup>:v1, 25@dec24, v1.reverse];
 		</code>
+		<sections>
+		  <section address="datevecprop">
+		    <title>Date vector properties</title>
+		    <content>
+		    <para>Date vectors have fewer properties than numerical vectors, just because dates have 
+fewer operations than numbers. For instance, it makes no sense to add all dates in a 
+vector.</para>
+			<table>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>distinct</codeInline></para></entry>
+ 		    	<entry><para>Gets a new vector with the unique values from the original one. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Distinct</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>first</codeInline></para></entry>
+ 		    	<entry><para>Gets the first item in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.DateVector.First</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>last</codeInline></para></entry>
+ 		    	<entry><para>Gets the last item in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.DateVector.Last</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>length</codeInline></para></entry>
+ 		    	<entry><para>Gets the number of values in the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">P:Austra.Library.DateVector.Length</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>max</codeInline></para></entry>
+ 		    	<entry><para>Gets the maximum value from the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Maximum</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>min</codeInline></para></entry>
+ 		    	<entry><para>Gets the minimum values from the vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Minimum</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>reverse</codeInline></para></entry>
+ 		    	<entry><para>Creates a new vector with items in reverse order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Reverse</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>sort</codeInline></para></entry>
+ 		    	<entry><para>Sorts the vector in ascending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Sort</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>sortDesc</codeInline></para></entry>
+ 		    	<entry><para>Sorts the vector in descending order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.SortDescending</codeEntityReference>.</para></entry>
+		  	  </row>
+			</table>
+			</content>
+		  </section>
+		  <section address="datevecmth">
+		    <title>Date vector methods</title>
+		    <content>
+		    <para>These are the methods supported by date vectors:</para>
+			<table>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>all</codeInline></para></entry>
+ 		    	<entry><para>Checks if all items satisfy a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.All(System.Func{Austra.Library.Dates.Date,System.Boolean})</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>any</codeInline></para></entry>
+ 		    	<entry><para>Checks if exists an item satisfying a lambda predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Any(System.Func{Austra.Library.Dates.Date,System.Boolean})</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>filter</codeInline></para></entry>
+ 		    	<entry><para>Filters items by value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Filter(System.Func{Austra.Library.Dates.Date,System.Boolean})</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>map</codeInline></para></entry>
+ 		    	<entry><para>Pointwise transformation of the items in another date vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Map(System.Func{Austra.Library.Dates.Date,Austra.Library.Dates.Date})</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>reduce</codeInline></para></entry>
+ 		    	<entry><para>Reduces all items in a vector to a single date value. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Reduce(Austra.Library.Dates.Date,System.Func{Austra.Library.Dates.Date,Austra.Library.Dates.Date,Austra.Library.Dates.Date})</codeEntityReference>.</para></entry>
+		  	  </row>
+ 		  	  <row>
+ 		    	<entry><para><codeInline>zip</codeInline></para></entry>
+ 		    	<entry><para></para>Combines two date vectors using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateVector.Zip(Austra.Library.DateVector,System.Func{Austra.Library.Dates.Date,Austra.Library.Dates.Date,Austra.Library.Dates.Date})</codeEntityReference>.</entry>
+		  	  </row>
+			</table>
+			</content>
+		  </section>
+		  <section address="dateVecOperators">
+		    <title>Date vector operators</title>
+		    <content>
+			  <para>Date vectors operators match the corresponding date operators:</para>
+			  <table>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>+</codeInline></para></entry>
+ 		    	  <entry><para>Adds a date vector and an integer vector and returns a vector of date. 
+The second operand can also be an integer scalar.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>-</codeInline></para></entry>
+ 		    	  <entry><para>Subtracts two date vectors, returning an integer vector with the difference in days. 
+It can also subtract an integer vector from a date vector to return another vector of dates. 
+In both cases, the second operand can be a scalar.</para></entry>
+		  		</row>
+			  </table>
+		    </content>
+		  </section>
+		</sections>
       </content>
     </section>
     <section address="vecidx">

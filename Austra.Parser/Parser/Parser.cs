@@ -1942,7 +1942,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             Move();
             return typeof(DVector).New(ZeroExpr);
         }
-        // Check if it's a list comprehension.
+        // Check if it's a list comprehension: first, check the universal qualifier ∀.
         if (kind == Token.All)
         {
             int saveCursor = lexCursor;
@@ -1957,6 +1957,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
             }
         }
+        // Now check existential quantifier ∃.
         else if (kind == Token.Any)
         {
             int saveCursor = lexCursor;
@@ -1973,17 +1974,20 @@ internal sealed partial class Parser : Scanner, IDisposable
         }
         else if (kind == Token.Id)
         {
+            // First token is an identifier.
             string saveId = id;
             int saveCursor = lexCursor;
             Move();
             if (kind == Token.Element)
             {
+                // It's a list comprehension without a universal or existential qualifier.
                 id = saveId;
                 lexCursor = saveCursor;
                 return ParseListComprehension("");
             }
             else if (kind == Token.Id)
             {
+                // List comprehension with an explicit universal or existential qualifier.
                 string qual = saveId.ToLower();
                 Move();
                 if (qual is "all" or "any" && kind == Token.Element)
@@ -1995,6 +1999,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             }
             else if (kind == Token.Colon)
             {
+                // It's a vector witn an explicit type.
                 if (saveId.Equals("int", StringComparison.OrdinalIgnoreCase))
                 {
                     Move();
@@ -2020,9 +2025,16 @@ internal sealed partial class Parser : Scanner, IDisposable
         // It's a vector or a matrix constructor.
         List<Expression> items = source.Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
-        for (; ; )
+        for (bool isFirst = true; ; )
         {
+            var (saveId, saveCursor, saveKind) = (id, lexCursor, kind);
             Expression e = ParseLightConditional();
+            if (isFirst && e.Type == typeof(Date))
+            {
+                (id, lexCursor, kind) = (saveId, saveCursor, saveKind);
+                return ParseDateVector();
+            }
+            isFirst = false;
             if (IsArithmetic(e))
                 if (items.Count == 0 && kind == Token.Range)
                 {

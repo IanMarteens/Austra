@@ -22,7 +22,7 @@ public class MatrixTests
     {
         int idx = 1;
         Matrix m = new(size, (i, j) => idx++);
-        Assert.That((m.Transpose().Transpose() - m).AMax(), Is.EqualTo(0));
+        Assert.That((m.Transpose().Transpose() - m).AMax(), Is.Zero);
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public class MatrixTests
         Matrix m = new(size, new NormalRandom());
         Matrix m1 = m.Transpose();
         Vec.Transpose(m.Rows, m.Cols, (double[])m);
-        Assert.That((m - m1).AMax(), Is.EqualTo(0));
+        Assert.That((m - m1).AMax(), Is.Zero);
     }
 
     /// <summary>

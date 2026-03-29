@@ -39,7 +39,7 @@ public class VectorTests
     public void VectorDifference([Values(12, 25, 45)] int size)
     {
         DVector v = new(size, Random.Shared);
-        Assert.That((v - v).Norm(), Is.EqualTo(0));
+        Assert.That((v - v).Norm(), Is.Zero);
     }
 
     /// <summary>
@@ -76,11 +76,11 @@ public class VectorTests
         int i1 = v.IndexOf(Math.PI), i2 = -1;
         if (i1 >= 0)
             i2 = v.IndexOf(Math.PI, i1 + 1);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(i1, Is.EqualTo(index1));
             Assert.That(i2, Is.EqualTo(index2));
-        });
+        }
     }
 
     [Test]
@@ -99,11 +99,11 @@ public class VectorTests
         int i1 = v.IndexOf(Math.PI), i2 = -1;
         if (i1 >= 0)
             i2 = v.IndexOf(Math.PI, i1 + 1);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(i1, Is.EqualTo(index));
             Assert.That(i2, Is.EqualTo(-1));
-        });
+        }
     }
 
     [Test]

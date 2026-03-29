@@ -65,11 +65,11 @@ public class FactorizationTests
     {
         var m = Matrix.Identity(order);
         var chol = m.Cholesky().L;
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(chol.Rows, Is.EqualTo(m.Rows));
             Assert.That(chol.Cols, Is.EqualTo(m.Cols));
-        });
+        }
         for (var i = 0; i < chol.Rows; i++)
             for (var j = 0; j < chol.Cols; j++)
                 Assert.That(chol[i, j], Is.EqualTo(i == j ? 1.0 : 0.0));

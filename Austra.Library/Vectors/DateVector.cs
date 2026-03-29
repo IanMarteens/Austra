@@ -16,6 +16,7 @@ public readonly struct DateVector :
     private readonly Date[] values;
 
     /// <summary>Initializes a vector from an array.</summary>
+    /// <remarks>The inner list is shared with the source.</remarks>
     /// <param name="values">The components of the vector.</param>
     public DateVector(Date[] values) => this.values = values;
 
@@ -231,7 +232,7 @@ public readonly struct DateVector :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DateVector operator +(int d, DateVector v) => v + d;
 
-    /// <summary>Subtracts two vectors.</summary>
+    /// <summary>Subtracts two date vectors.</summary>
     /// <param name="v1">First vector operand.</param>
     /// <param name="v2">Second vector operand.</param>
     /// <returns>The component by component subtraction.</returns>
@@ -245,6 +246,22 @@ public readonly struct DateVector :
         int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
         Cast<int>(v1.values).Sub(Cast<int>(v2.values), result);
         return result;
+    }
+
+    /// <summary>Subtracts an integer vector from a date vector.</summary>
+    /// <param name="v1">First vector operand.</param>
+    /// <param name="v2">Second vector operand.</param>
+    /// <returns>The component by component subtraction.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DateVector operator -(DateVector v1, NVector v2)
+    {
+        Contract.Requires(v1.IsInitialized);
+        Contract.Requires(v2.IsInitialized);
+        if (v1.Length != v2.Length)
+            throw new VectorLengthException();
+        int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
+        Cast<int>(v1.values).Sub(v2.values.AsSpan(), result);
+        return new DateVector(result.Length, i => new Date((uint)result[i]));
     }
 
     /// <summary>Subtracts a scalar from a vector.</summary>
@@ -370,7 +387,7 @@ public readonly struct DateVector :
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
-    public DateVector Reverse() => values.Reverse();
+    public DateVector Reverse() => Vec.Reverse(values);
 
     /// <summary>Returns a new vector with sorted values.</summary>
     /// <returns>A new vector with sorted values.</returns>

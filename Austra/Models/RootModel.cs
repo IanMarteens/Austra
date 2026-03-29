@@ -84,7 +84,7 @@ public sealed partial class RootModel : Entity
     public DelegateCommand OverloadDown { get; }
 
     public DelegateCommand PasteExcelCommand { get; } = new(
-        (object? _) =>
+        _ =>
         {
             string text = Clipboard.GetText();
             StringBuilder sb = new(text.Length);
@@ -101,9 +101,9 @@ public sealed partial class RootModel : Entity
                 Editor.TextArea.Selection.ReplaceSelectionWithText(
                     "[" + sb.ToString() + "]");
         },
-        (object? _) => Clipboard.ContainsText());
+        _ => Clipboard.ContainsText());
 
-    public DelegateCommand FocusEditorCommand { get; } = new((object? _) =>
+    public DelegateCommand FocusEditorCommand { get; } = new(_ =>
     {
         Editor.Focus();
         Editor.SelectAll();
@@ -244,8 +244,7 @@ public sealed partial class RootModel : Entity
             // Select and expand the first node of the tree.
             defs.IsExpanded = true;
             var selectedVar = Classes.Skip(1).FirstOrDefault();
-            if (selectedVar != null)
-                selectedVar.IsExpanded = true;
+            selectedVar?.IsExpanded = true;
             if (!environment.DataSource.Series.Any())
                 AustraDate = "";
             else

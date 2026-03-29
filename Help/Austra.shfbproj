@@ -27,7 +27,7 @@
       <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net8.0\Austra.Parser.xml" />
       <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net8.0\Austra.Parser.dll" />
     </DocumentationSources>
-    <HelpFileFormat>HtmlHelp1</HelpFileFormat>
+    <HelpFileFormat>Website</HelpFileFormat>
     <SyntaxFilters>C#</SyntaxFilters>
     <PresentationStyle>VS2013</PresentationStyle>
     <CleanIntermediates>True</CleanIntermediates>

@@ -1252,8 +1252,8 @@ internal sealed class Bindings
 
             [new(typeof(Polynomial), "area")] = typeof(Polynomial).Prop(nameof(Polynomial.Area)),
 
-            [new(typeof(Point<Date>), "date")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Arg)),
-            [new(typeof(Point<Date>), "value")] = typeof(Point<Date>).Prop(nameof(Point<Date>.Value)),
+            [new(typeof(Point<Date>), "date")] = typeof(Point<Date>).Prop(nameof(Point<>.Arg)),
+            [new(typeof(Point<Date>), "value")] = typeof(Point<Date>).Prop(nameof(Point<>.Value)),
 
             [new(typeof(Portfolio), "lambda")] = typeof(Portfolio).Prop(nameof(Portfolio.Lambda)),
             [new(typeof(Portfolio), "ret")] = typeof(Portfolio).Prop(nameof(Portfolio.Mean)),
@@ -1308,17 +1308,17 @@ internal sealed class Bindings
             [new(typeof(Series), "var")] = typeof(Series).Prop(nameof(Series.Variance)),
             [new(typeof(Series), "varp")] = typeof(Series).Prop(nameof(Series.PopulationVariance)),
 
-            [new(typeof(Series<double>), "stats")] = typeof(Series<double>).Prop(nameof(Series<double>.Stats)),
-            [new(typeof(Series<double>), "first")] = typeof(Series<double>).Prop(nameof(Series<double>.First)),
-            [new(typeof(Series<double>), "last")] = typeof(Series<double>).Prop(nameof(Series<double>.Last)),
-            [new(typeof(Series<double>), "values")] = typeof(Series<double>).Prop(nameof(Series<double>.Values)),
-            [new(typeof(Series<double>), "sum")] = typeof(Series<double>).Get(nameof(Series<double>.Sum)),
+            [new(typeof(Series<double>), "stats")] = typeof(Series<double>).Prop(nameof(Series<>.Stats)),
+            [new(typeof(Series<double>), "first")] = typeof(Series<double>).Prop(nameof(Series<>.First)),
+            [new(typeof(Series<double>), "last")] = typeof(Series<double>).Prop(nameof(Series<>.Last)),
+            [new(typeof(Series<double>), "values")] = typeof(Series<double>).Prop(nameof(Series<>.Values)),
+            [new(typeof(Series<double>), "sum")] = typeof(Series<double>).Get(nameof(Series<>.Sum)),
 
-            [new(typeof(Series<int>), "stats")] = typeof(Series<int>).Prop(nameof(Series<int>.Stats)),
-            [new(typeof(Series<int>), "first")] = typeof(Series<int>).Prop(nameof(Series<int>.First)),
-            [new(typeof(Series<int>), "last")] = typeof(Series<int>).Prop(nameof(Series<int>.Last)),
-            [new(typeof(Series<int>), "values")] = typeof(Series<int>).Prop(nameof(Series<int>.Values)),
-            [new(typeof(Series<int>), "sum")] = typeof(Series<int>).Get(nameof(Series<int>.Sum)),
+            [new(typeof(Series<int>), "stats")] = typeof(Series<int>).Prop(nameof(Series<>.Stats)),
+            [new(typeof(Series<int>), "first")] = typeof(Series<int>).Prop(nameof(Series<>.First)),
+            [new(typeof(Series<int>), "last")] = typeof(Series<int>).Prop(nameof(Series<>.Last)),
+            [new(typeof(Series<int>), "values")] = typeof(Series<int>).Prop(nameof(Series<>.Values)),
+            [new(typeof(Series<int>), "sum")] = typeof(Series<int>).Get(nameof(Series<>.Sum)),
 
             [new(typeof(SimplexModel), "objective")] = typeof(SimplexModel).Prop(nameof(SimplexModel.Objective)),
             [new(typeof(SimplexModel), "value")] = typeof(SimplexModel).Prop(nameof(SimplexModel.Value)),

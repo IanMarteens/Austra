@@ -1012,7 +1012,7 @@ public readonly struct DVector :
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DVector Reverse() => values.Reverse();
+    public DVector Reverse() => Vec.Reverse(values);
 
     /// <summary>Returns a new vector with sorted values.</summary>
     /// <returns>A new vector with sorted values.</returns>

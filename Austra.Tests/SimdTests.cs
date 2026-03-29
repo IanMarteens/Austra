@@ -56,11 +56,11 @@ public class SimdTests
             Math.Cos(v1[4]), Math.Cos(v1[5]), Math.Cos(v1[6]), Math.Cos(v1[7]));
         var d1 = Max(Vector512.Abs(s - s1));
         var d2 = Max(Vector512.Abs(c - c1));
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(d1, Is.LessThan(1E-13));
             Assert.That(d2, Is.LessThan(1E-13));
-        });
+        }
 
         static double Max256(Vector256<double> v)
         {
@@ -75,10 +75,10 @@ public class SimdTests
     public void TestRandom()
     {
         Accumulator acc = new((double[])new DVector(1024, Random.Shared));
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(acc.Minimum, Is.GreaterThanOrEqualTo(0.0));
             Assert.That(acc.Maximum, Is.LessThan(1.0));
-        });
+        }
     }
 }

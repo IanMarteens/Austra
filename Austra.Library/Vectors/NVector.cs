@@ -28,7 +28,7 @@ public readonly struct NVector :
     ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the components of the vector.</summary>
-    private readonly int[] values;
+    internal readonly int[] values;
 
     /// <summary>Creates a vector of a given size.</summary>
     /// <param name="size">Vector length.</param>
@@ -610,7 +610,7 @@ public readonly struct NVector :
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
-    public NVector Reverse() => values.Reverse();
+    public NVector Reverse() => Vec.Reverse(values);
 
     /// <summary>Returns a new vector with sorted values.</summary>
     /// <returns>A new vector with sorted values.</returns>
