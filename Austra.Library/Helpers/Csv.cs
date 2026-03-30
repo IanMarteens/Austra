@@ -1,0 +1,264 @@
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+
+namespace Austra.Library;
+
+/// <summary>Allows configuration and reading from a CSV file.</summary>
+/// <param name="filename">Path to the CSV file.</param>
+public class Csv(string filename)
+{
+    private IFormatProvider formatProvider = CultureInfo.CurrentCulture;
+    /// <summary>
+    /// The separator for this CSV file. By default, this is a comma, but it can be changed to support other formats.
+    /// </summary>
+    private string separator = ",";
+    /// <summary>
+    /// Does this CSV file have a header line? If true, the first line will be ignored when reading.
+    /// </summary>
+    private bool hasHeader;
+    /// <summary>Either the name of the column to filter by, or a null string.</summary>
+    [AllowNull]
+    private string filterColumn;
+    /// <summary>
+    /// Either the index of the column to filter by, or -1 if no index-based filtering is configured.
+    /// </summary>
+    private int filterIndex = -1;
+    /// <summary>
+    /// The value used for filtering, or a null string if no filtering is configured.
+    /// </summary>
+    [AllowNull]
+    private string filterValue;
+
+    /// <summary>
+    /// Mark this CSV file as having a header line. The first line will be ignored when reading.
+    /// </summary>
+    /// <returns>A new instance of this class.</returns>
+    public Csv WithHeader()
+    {
+        var result = MemberwiseClone() as Csv;
+        result!.hasHeader = true;
+        return result;
+    }
+
+    /// <summary>
+    /// Change the separator character for this CSV file.
+    /// </summary>
+    /// <param name="separator">The new separator character.</param>
+    /// <returns>A new instance of this class.</returns>
+    public Csv WithSeparator(string separator)
+    {
+        var result = MemberwiseClone() as Csv;
+        result!.separator = separator;
+        return result;
+    }
+
+    /// <summary>
+    /// Change the format provider for this CSV file. This is used when parsing numeric values.
+    /// </summary>
+    /// <param name="provider">The new format provider.</param>
+    /// <returns>A new instance of this class.</returns>
+    public Csv WithFormat(IFormatProvider provider)
+    {
+        var result = MemberwiseClone() as Csv;
+        result!.formatProvider = provider ?? formatProvider;
+        return result;
+    }
+
+    /// <summary>
+    /// Instructs the reader to only return lines where the value in the specified column matches the provided value.
+    /// This overload implies that the CSV file has a header.
+    /// </summary>
+    /// <param name="columnName">The name of the column,</param>
+    /// <param name="value">The value to match.</param>
+    /// <returns>A new instance of this class.</returns>
+    public Csv WithFilter(string columnName, string value)
+    {
+        var result = MemberwiseClone() as Csv;
+        result!.hasHeader = true;
+        result!.filterColumn = columnName;
+        result!.filterIndex = -1;
+        result!.filterValue = value;
+        return result;
+    }
+
+    /// <summary>
+    /// Instructs the reader to only return lines where the value in the specified column matches the provided value.
+    /// </summary>
+    /// <param name="columnIndex">The index of the filtering column.</param>
+    /// <param name="value">The value to match.</param>
+    /// <returns>A new instance of this class.</returns>
+    public Csv WithFilter(int columnIndex, string value)
+    {
+        var result = MemberwiseClone() as Csv;
+        result!.hasHeader = true;
+        result!.filterColumn = null;
+        result!.filterIndex = columnIndex;
+        result!.filterValue = value;
+        return result;
+    }
+
+    /// <summary>Gets the start and end indices of the value in the specified column.</summary>
+    /// <param name="line">The line to search.</param>
+    /// <param name="columnIndex">The index of the column to search for.</param>
+    /// <returns>The start and end positions.</returns>
+    private (int from, int to) GetColumnBounds(string line, int columnIndex)
+    {
+        int from = 0, i = columnIndex;
+        while (i-- > 0 && from >= 0)
+            from = line.IndexOf(separator, from + 1);
+        if (from < 0)
+            return (-1, -1);
+        from++;
+        int to = line.IndexOf(separator, from);
+        return (from, to < 0 ? line.Length : to);
+    }
+
+    /// <summary>Reads all lines from the configured CSV file.</summary>
+    /// <returns>A sequence of possibly filtered lines.</returns>
+    public IEnumerable<string> Read()
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        bool headerRead = !hasHeader;
+        foreach (string s in System.IO.File.ReadLines(filename))
+        {
+            if (!headerRead)
+            {
+                if (filtering && filterColumn is not null)
+                {
+                    filterIndex = Array.IndexOf(s.Split(separator), filterColumn);
+                    if (filterIndex < 0)
+                    {
+                        filtering = false;
+                    }
+                }
+                // Skip the header line.
+                headerRead = true;
+                continue;
+            }
+            if (filtering)
+            {
+                var (from, to) = GetColumnBounds(s, filterIndex);
+                if (from < 0)
+                    continue;
+                if (s.AsSpan(from, to)
+                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                    yield return s;
+            }
+            else
+                yield return s;
+        }
+    }
+
+    /// <summary>Reads all lines from the configured CSV file.</summary>
+    /// <param name="columnName">The name of a numeric column to return.</param>
+    /// <returns>A sequence of possibly filtered lines.</returns>
+    public IEnumerable<double> Read(string columnName)
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        // Assume that we have a header.
+        bool headerRead = false;
+        int selectedIndex = -1;
+        foreach (string s in System.IO.File.ReadLines(filename))
+        {
+            if (!headerRead)
+            {
+                string[] headers = s.Split(separator);
+                if (filtering && filterColumn is not null)
+                {
+                    filterIndex = Array.IndexOf(headers, filterColumn);
+                    if (filterIndex < 0)
+                    {
+                        filtering = false;
+                    }
+                }
+                selectedIndex = Array.IndexOf(headers, columnName);
+                if (selectedIndex < 0)
+                {
+                    yield break;
+                }
+                // Skip the header line.
+                headerRead = true;
+                continue;
+            }
+            if (filtering)
+            {
+                var (from, to) = GetColumnBounds(s, filterIndex);
+                if (from < 0)
+                    continue;
+                if (s.AsSpan(from, to - from)
+                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    var (from2, to2) = GetColumnBounds(s, selectedIndex);
+                    if (from2 < 0)
+                        continue;
+                    if (!double.TryParse(s.AsSpan(from2, to2 - from2), formatProvider, out double value))
+                        continue;
+                    yield return value;
+                }
+            }
+            else
+            {
+                var (from2, to2) = GetColumnBounds(s, selectedIndex);
+                if (from2 < 0)
+                    continue;
+                if (!double.TryParse(s.AsSpan(from2, to2 - from2), formatProvider, out double value))
+                    continue;
+                yield return value;
+            }
+        }
+    }
+    /// <summary>Reads all lines from the configured CSV file.</summary>
+    /// <param name="columnIndex">The index of a numeric column to return.</param>
+    /// <returns>A sequence of possibly filtered lines.</returns>
+    public IEnumerable<double> Read(int columnIndex)
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        // Assume that we have a header.
+        bool headerRead = !hasHeader;
+        if (columnIndex < 0)
+            yield break;
+        foreach (string s in System.IO.File.ReadLines(filename))
+        {
+            if (!headerRead)
+            {
+                string[] headers = s.Split(separator);
+                if (filtering && filterColumn is not null)
+                {
+                    filterIndex = Array.IndexOf(headers, filterColumn);
+                    if (filterIndex < 0)
+                    {
+                        filtering = false;
+                    }
+                }
+                // Skip the header line.
+                headerRead = true;
+                continue;
+            }
+            if (filtering)
+            {
+                var (from, to) = GetColumnBounds(s, filterIndex);
+                if (from < 0)
+                    continue;
+                if (s.AsSpan(from, to - from)
+                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    var (from2, to2) = GetColumnBounds(s, columnIndex);
+                    if (from2 < 0)
+                        continue;
+                    if (!double.TryParse(s.AsSpan(from2, to2 - from2), formatProvider, out double value))
+                        continue;
+                    yield return value;
+                }
+            }
+            else
+            {
+                var (from2, to2) = GetColumnBounds(s, columnIndex);
+                if (from2 < 0)
+                    continue;
+                if (!double.TryParse(s.AsSpan(from2, to2 - from2), formatProvider, out double value))
+                    continue;
+                yield return value;
+            }
+        }
+    }
+}

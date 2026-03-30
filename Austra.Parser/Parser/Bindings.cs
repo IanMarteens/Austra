@@ -70,6 +70,7 @@ internal sealed class Bindings
             ["matrix"] = typeof(Matrix),
             ["date"] = typeof(Date),
             ["string"] = typeof(string),
+            ["csv"] = typeof(Csv),
         }.ToFrozenDictionary();
 
     /// <summary>Code completion descriptors for root classes.</summary>
@@ -87,6 +88,7 @@ internal sealed class Bindings
         new("series::", "Allows access to series constructors"),
         new("spline::", "Allows access to spline constructors"),
         new("vec::", "Allows access to vector constructors"),
+        new("csv::", "Allows creation and configuration of csv files.")
     ];
 
     /// <summary>Code completion descriptors for class methods or constructors.</summary>
@@ -99,6 +101,9 @@ internal sealed class Bindings
                 new("random(", "Creates a complex sequence from random numbers"),
                 new("repeat(", "Creates a sequence with a repeated value"),
                 new("unfold", "Creates a complex sequence from a seed and a lambda"),
+            ],
+            ["csv"] = [
+                new ("new(", "Creates a CSV file for reading data"),
             ],
             ["cvec"] = [
                 new("new(", "Create a complex vector given a size and an optional lambda"),
@@ -263,6 +268,12 @@ internal sealed class Bindings
                 new("mapReal(x => ", "Transforms the sequence into a sequence of doubles"),
                 new("reduce(", "Combines all values in the sequence into a single value"),
                 new("zip(", "Combines two sequence using a lambda function"),
+            ],
+            [typeof(Csv)] = [
+                new("withHeader", "Indicates that the file has an initial header row"),
+                new("withSeparator", "Assigns a different CSV character separator"),
+                new("withFormat", "Sets a format provider for the CSV file"),
+                new("withFilter", "Sets an equality filter on a column"),
             ],
             [typeof(CVector)] = [
                 new("amax", "Gets the maximum absolute value"),
@@ -696,6 +707,8 @@ internal sealed class Bindings
     private readonly FrozenDictionary<string, MethodList> classMethods =
         new Dictionary<string, MethodList>()
         {
+            ["csv.new"] = new(
+                typeof(Csv).MD(typeof(string))),
             ["cseq.new"] = new(
                 typeof(CSequence).MD(nameof(CSequence.Create),
                     typeof(Complex), typeof(Complex), typeof(int)),
@@ -953,7 +966,9 @@ internal sealed class Bindings
                 typeof(DVector).MD(NArg),
                 typeof(DVector).MD(nameof(DVector.Combine), typeof(DVector), typeof(DVector[])),
                 typeof(DVector).MD(typeof(int), typeof(Func<int, double>)),
-                typeof(DVector).MD(typeof(int), typeof(Func<int, DVector, double>))),
+                typeof(DVector).MD(typeof(int), typeof(Func<int, DVector, double>)),
+                typeof(DVector).MD(typeof(Csv), typeof(string)),
+                typeof(DVector).MD(typeof(Csv), typeof(int))),
             ["vec.nrandom"] = new(
                 typeof(DVector).MD(typeof(int), typeof(NormalRandom))),
             ["vec.random"] = new(
@@ -1018,6 +1033,8 @@ internal sealed class Bindings
             [new(typeof(CSequence), "sum")] = typeof(CSequence).Get(nameof(CSequence.Sum)),
             [new(typeof(CSequence), "tovector")] = typeof(CSequence).GetMethod(
                 nameof(CSequence.ToVector), Type.EmptyTypes)!,
+
+            [new(typeof(Csv), "withheader")] = typeof(Csv).Get(nameof(Csv.WithHeader)),
 
             [new(typeof(CVector), "amax")] = typeof(CVector).Get(nameof(CVector.AbsMax)),
             [new(typeof(CVector), "amin")] = typeof(CVector).Get(nameof(CVector.AbsMin)),
@@ -1344,6 +1361,8 @@ internal sealed class Bindings
             [new(typeof(CSequence), "while")] = typeof(CSequence).Get(nameof(CSequence.While)),
             [new(typeof(CSequence), "zip")] = typeof(CSequence).Get(nameof(CSequence.Zip)),
 
+            [new(typeof(Csv), "withseparator")] = typeof(Csv).Get(nameof(Csv.WithSeparator)),
+
             [new(typeof(CVector), "all")] = typeof(CVector).Get(nameof(CVector.All)),
             [new(typeof(CVector), "any")] = typeof(CVector).Get(nameof(CVector.Any)),
             [new(typeof(CVector), "filter")] = typeof(CVector).Get(nameof(CVector.Filter)),
@@ -1464,6 +1483,9 @@ internal sealed class Bindings
             [new(typeof(CSequence), "until")] = new(
                 typeof(CSequence).MD(nameof(CSequence.Until), typeof(Func<Complex, bool>)),
                 typeof(CSequence).MD(nameof(CSequence.Until), CArg)),
+            [new(typeof(Csv), "withfilter")] = new(
+                typeof(Csv).MD(nameof(Csv.WithFilter), typeof(int), typeof(string)),
+                typeof(Csv).MD(nameof(Csv.WithFilter), typeof(string), typeof(string))),
             [new(typeof(CVector), "find")] = new(
                 typeof(CVector).MD(nameof(CVector.Find), CArg),
                 typeof(CVector).MD(nameof(CVector.Find), typeof(Func<Complex, bool>))),
