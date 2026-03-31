@@ -1361,6 +1361,7 @@ internal sealed class Bindings
             [new(typeof(CSequence), "while")] = typeof(CSequence).Get(nameof(CSequence.While)),
             [new(typeof(CSequence), "zip")] = typeof(CSequence).Get(nameof(CSequence.Zip)),
 
+            [new(typeof(Csv), "withformat")] = typeof(Csv).Get(nameof(Csv.WithFormat)),
             [new(typeof(Csv), "withseparator")] = typeof(Csv).Get(nameof(Csv.WithSeparator)),
 
             [new(typeof(CVector), "all")] = typeof(CVector).Get(nameof(CVector.All)),

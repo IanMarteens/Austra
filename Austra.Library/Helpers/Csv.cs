@@ -55,12 +55,12 @@ public class Csv(string filename)
     /// <summary>
     /// Change the format provider for this CSV file. This is used when parsing numeric values.
     /// </summary>
-    /// <param name="provider">The new format provider.</param>
+    /// <param name="cultureId">The ID of the new format provider.</param>
     /// <returns>A new instance of this class.</returns>
-    public Csv WithFormat(IFormatProvider provider)
+    public Csv WithFormat(string cultureId)
     {
         var result = MemberwiseClone() as Csv;
-        result!.formatProvider = provider ?? formatProvider;
+        result!.formatProvider = new CultureInfo(cultureId);
         return result;
     }
 
@@ -103,8 +103,8 @@ public class Csv(string filename)
     /// <returns>The start and end positions.</returns>
     private (int from, int to) GetColumnBounds(string line, int columnIndex)
     {
-        int from = 0, i = columnIndex;
-        while (i-- > 0 && from >= 0)
+        int from = 0;
+        while (columnIndex-- > 0 && from >= 0)
             from = line.IndexOf(separator, from + 1);
         if (from < 0)
             return (-1, -1);
@@ -188,20 +188,18 @@ public class Csv(string filename)
                 if (s.AsSpan(from, to - from)
                     .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
                 {
-                    var (from2, to2) = GetColumnBounds(s, selectedIndex);
-                    if (from2 < 0)
-                        continue;
-                    if (!double.TryParse(s.AsSpan(from2, to2 - from2), formatProvider, out double value))
+                    (from, to) = GetColumnBounds(s, selectedIndex);
+                    if (from < 0
+                        || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
                         continue;
                     yield return value;
                 }
             }
             else
             {
-                var (from2, to2) = GetColumnBounds(s, selectedIndex);
-                if (from2 < 0)
-                    continue;
-                if (!double.TryParse(s.AsSpan(from2, to2 - from2), formatProvider, out double value))
+                var (from, to) = GetColumnBounds(s, selectedIndex);
+                if (from < 0
+                    || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
                     continue;
                 yield return value;
             }
@@ -242,20 +240,18 @@ public class Csv(string filename)
                 if (s.AsSpan(from, to - from)
                     .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
                 {
-                    var (from2, to2) = GetColumnBounds(s, columnIndex);
-                    if (from2 < 0)
-                        continue;
-                    if (!double.TryParse(s.AsSpan(from2, to2 - from2), formatProvider, out double value))
+                    (from, to) = GetColumnBounds(s, columnIndex);
+                    if (from < 0
+                        || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
                         continue;
                     yield return value;
                 }
             }
             else
             {
-                var (from2, to2) = GetColumnBounds(s, columnIndex);
-                if (from2 < 0)
-                    continue;
-                if (!double.TryParse(s.AsSpan(from2, to2 - from2), formatProvider, out double value))
+                var (from, to) = GetColumnBounds(s, columnIndex);
+                if (from < 0
+                    || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
                     continue;
                 yield return value;
             }
