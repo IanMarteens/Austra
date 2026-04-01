@@ -106,13 +106,13 @@ internal sealed class Bindings
                 new ("new(", "Creates a CSV file for reading data"),
             ],
             ["cvec"] = [
-                new("new(", "Create a complex vector given a size and an optional lambda"),
+                new("new(", "Creates a complex vector given a size and an optional lambda"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
                 new("random(", "Creates a random complex vector given a length"),
             ],
             ["dvec"] = [
-                new("new(", "Create a date vector"),
-                new("random(", "Create a date vector with random values"),
+                new("new(", "Creates a date vector"),
+                new("random(", "Creates a date vector with random values"),
             ],
             ["iseq"] = [
                 new("new(", "Creates an integer sequence either from a range, a range and a step, or a vector"),
@@ -200,7 +200,7 @@ internal sealed class Bindings
                 new("new(", "Creates a new interpolator either from two vectors, a series, or from a function"),
             ],
             ["vec"] = [
-                new("new(", "Create a vector given a length and an optional lambda"),
+                new("new(", "Creates a vector given a length and an optional lambda"),
                 new("ones(", "Creates a vector with ones given a length"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
                 new("random(", "Creates a random vector given a length"),
@@ -737,7 +737,9 @@ internal sealed class Bindings
             ["dvec.new"] = new(
                 typeof(DateVector).MD(typeof(int), typeof(Date)),
                 typeof(DateVector).MD(typeof(int), typeof(Func<int, Date>)),
-                typeof(DateVector).MD(typeof(int), typeof(Func<int, DateVector, Date>))),
+                typeof(DateVector).MD(typeof(int), typeof(Func<int, DateVector, Date>)),
+                typeof(DateVector).MD(typeof(Csv), typeof(string)),
+                typeof(DateVector).MD(typeof(Csv), typeof(int))),
             ["dvec.random"] = new(
                 typeof(DateVector).MD(typeof(int), typeof(Date), typeof(Date))),
             ["cvec.nrandom"] = new(

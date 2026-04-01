@@ -98,12 +98,12 @@ public class Csv(string filename)
     }
 
     /// <summary>Gets the start and end indices of the value in the specified column.</summary>
+    /// <param name="from">The index to start searching from.</param>
     /// <param name="line">The line to search.</param>
     /// <param name="columnIndex">The index of the column to search for.</param>
     /// <returns>The start and end positions.</returns>
-    private (int from, int to) GetColumnBounds(string line, int columnIndex)
+    private (int from, int to) GetColumnBounds(int from, string line, int columnIndex)
     {
-        int from = 0;
         while (columnIndex-- > 0 && from >= 0)
             from = line.IndexOf(separator, from + 1);
         if (from < 0)
@@ -137,7 +137,7 @@ public class Csv(string filename)
             }
             if (filtering)
             {
-                var (from, to) = GetColumnBounds(s, filterIndex);
+                var (from, to) = GetColumnBounds(0, s, filterIndex);
                 if (from < 0)
                     continue;
                 if (s.AsSpan(from, to)
@@ -182,13 +182,13 @@ public class Csv(string filename)
             }
             if (filtering)
             {
-                var (from, to) = GetColumnBounds(s, filterIndex);
+                var (from, to) = GetColumnBounds(0, s, filterIndex);
                 if (from < 0)
                     continue;
                 if (s.AsSpan(from, to - from)
                     .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
                 {
-                    (from, to) = GetColumnBounds(s, selectedIndex);
+                    (from, to) = GetColumnBounds(0, s, selectedIndex);
                     if (from < 0
                         || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
                         continue;
@@ -197,7 +197,7 @@ public class Csv(string filename)
             }
             else
             {
-                var (from, to) = GetColumnBounds(s, selectedIndex);
+                var (from, to) = GetColumnBounds(0, s, selectedIndex);
                 if (from < 0
                     || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
                     continue;
@@ -205,6 +205,7 @@ public class Csv(string filename)
             }
         }
     }
+
     /// <summary>Reads all lines from the configured CSV file.</summary>
     /// <param name="columnIndex">The index of a numeric column to return.</param>
     /// <returns>A sequence of possibly filtered lines.</returns>
@@ -234,13 +235,13 @@ public class Csv(string filename)
             }
             if (filtering)
             {
-                var (from, to) = GetColumnBounds(s, filterIndex);
+                var (from, to) = GetColumnBounds(0, s, filterIndex);
                 if (from < 0)
                     continue;
                 if (s.AsSpan(from, to - from)
                     .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
                 {
-                    (from, to) = GetColumnBounds(s, columnIndex);
+                    (from, to) = GetColumnBounds(0, s, columnIndex);
                     if (from < 0
                         || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
                         continue;
@@ -249,11 +250,121 @@ public class Csv(string filename)
             }
             else
             {
-                var (from, to) = GetColumnBounds(s, columnIndex);
+                var (from, to) = GetColumnBounds(0, s, columnIndex);
                 if (from < 0
                     || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
                     continue;
                 yield return value;
+            }
+        }
+    }
+
+    /// <summary>Reads all lines from the configured CSV file.</summary>
+    /// <param name="columnName">The name of a numeric column to return.</param>
+    /// <returns>A sequence of possibly filtered lines.</returns>
+    public IEnumerable<Date> ReadDates(string columnName)
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        // Assume that we have a header.
+        bool headerRead = false;
+        int selectedIndex = -1;
+        foreach (string s in System.IO.File.ReadLines(filename))
+        {
+            if (!headerRead)
+            {
+                string[] headers = s.Split(separator);
+                if (filtering && filterColumn is not null)
+                {
+                    filterIndex = Array.IndexOf(headers, filterColumn);
+                    if (filterIndex < 0)
+                    {
+                        filtering = false;
+                    }
+                }
+                selectedIndex = Array.IndexOf(headers, columnName);
+                if (selectedIndex < 0)
+                {
+                    yield break;
+                }
+                // Skip the header line.
+                headerRead = true;
+                continue;
+            }
+            if (filtering)
+            {
+                var (from, to) = GetColumnBounds(0, s, filterIndex);
+                if (from < 0)
+                    continue;
+                if (s.AsSpan(from, to - from)
+                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    (from, to) = GetColumnBounds(0, s, selectedIndex);
+                    if (from < 0
+                        || !DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out DateTime value))
+                        continue;
+                    yield return (Date)value;
+                }
+            }
+            else
+            {
+                var (from, to) = GetColumnBounds(0, s, selectedIndex);
+                if (from < 0
+                    || !DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out DateTime value))
+                    continue;
+                yield return (Date)value;
+            }
+        }
+    }
+
+    /// <summary>Reads all lines from the configured CSV file.</summary>
+    /// <param name="columnIndex">The index of a numeric column to return.</param>
+    /// <returns>A sequence of possibly filtered lines.</returns>
+    public IEnumerable<Date> ReadDates(int columnIndex)
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        // Assume that we have a header.
+        bool headerRead = !hasHeader;
+        if (columnIndex < 0)
+            yield break;
+        foreach (string s in System.IO.File.ReadLines(filename))
+        {
+            if (!headerRead)
+            {
+                string[] headers = s.Split(separator);
+                if (filtering && filterColumn is not null)
+                {
+                    filterIndex = Array.IndexOf(headers, filterColumn);
+                    if (filterIndex < 0)
+                    {
+                        filtering = false;
+                    }
+                }
+                // Skip the header line.
+                headerRead = true;
+                continue;
+            }
+            if (filtering)
+            {
+                var (from, to) = GetColumnBounds(0, s, filterIndex);
+                if (from < 0)
+                    continue;
+                if (s.AsSpan(from, to - from)
+                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    (from, to) = GetColumnBounds(0, s, columnIndex);
+                    if (from < 0
+                        || !DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out DateTime value))
+                        continue;
+                    yield return (Date)value;
+                }
+            }
+            else
+            {
+                var (from, to) = GetColumnBounds(0, s, columnIndex);
+                if (from < 0
+                    || !DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out DateTime value))
+                    continue;
+                yield return (Date)value;
             }
         }
     }

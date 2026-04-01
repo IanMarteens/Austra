@@ -104,6 +104,22 @@ public readonly struct DateVector :
         }
     }
 
+    /// <summary>
+    /// Creates a vector by reading a column from a CSV file. The column is identified by its name.
+    /// </summary>
+    /// <param name="csvFile">The CSV file.</param>
+    /// <param name="columnName">The name of the read column.</param>
+    public DateVector(Csv csvFile, string columnName) =>
+        values = [.. csvFile.ReadDates(columnName)];
+
+    /// <summary>
+    /// Creates a vector by reading a column from a CSV file. The column is identified by its name.
+    /// </summary>
+    /// <param name="csvFile">The CSV file.</param>
+    /// <param name="columnIndex">The position of the read column.</param>
+    public DateVector(Csv csvFile, int columnIndex) =>
+        values = [.. csvFile.ReadDates(columnIndex)];
+
     /// <summary>Creates an identical vector.</summary>
     /// <remarks>This operation does not share the internal storage.</remarks>
     /// <returns>A deep clone of the instance.</returns>
