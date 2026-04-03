@@ -174,7 +174,17 @@ public class Csv
         }
     }
 
-    private bool TryParse(string s, int columnIndex, bool filtering, out double value)
+    /// <summary>
+    /// Filters and project a substring and converts it to a provided type.
+    /// </summary>
+    /// <typeparam name="T">The conversion target type.</typeparam>
+    /// <param name="s">The line being analyzed.</param>
+    /// <param name="columnIndex">Index of the column to extract.</param>
+    /// <param name="filtering">Do we have a filter?</param>
+    /// <param name="value">The result value, when successful.</param>
+    /// <returns>True when succeeds.</returns>
+    private bool TryParse<T>(string s, int columnIndex, bool filtering, out T value)
+        where T : struct, ISpanParsable<T>
     {
         value = default;
         if (filtering)
@@ -185,7 +195,7 @@ public class Csv
             {
                 (from, to) = GetColumnBounds(0, s, columnIndex);
                 return from >= 0
-                    && double.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
+                    && T.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
             }
             return false;
         }
@@ -193,7 +203,7 @@ public class Csv
         {
             var (from, to) = GetColumnBounds(0, s, columnIndex);
             return from >= 0
-                && double.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
+                && T.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
         }
     }
 
@@ -264,30 +274,6 @@ public class Csv
                 yield return value;
         }
     }
-
-    private bool TryParse(string s, int columnIndex, bool filtering, out DateTime value)
-    {
-        value = default;
-        if (filtering)
-        {
-            var (from, to) = GetColumnBounds(0, s, filterIndex);
-            if (from >= 0 && s.AsSpan(from, to - from)
-                .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
-            {
-                (from, to) = GetColumnBounds(0, s, columnIndex);
-                return from >= 0
-                    && DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
-            }
-            return false;
-        }
-        else
-        {
-            var (from, to) = GetColumnBounds(0, s, columnIndex);
-            return from >= 0
-                && DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
-        }
-    }
-
 
     /// <summary>Reads all lines from the configured CSV file.</summary>
     /// <param name="columnName">The name of a numeric column to return.</param>
