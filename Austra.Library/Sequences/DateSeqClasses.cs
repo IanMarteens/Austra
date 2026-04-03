@@ -319,6 +319,182 @@ public abstract partial class DateSequence
             return this;
         }
     }
+    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <remarks><c>first &lt;= last</c></remarks>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="step">Distance between sequence values.</param>
+    /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
+    private class GridSequence(Date first, int step, Date last) :
+        FixLengthSequence(Abs(last - first) / step + 1)
+    {
+        /// <summary>The first value in the sequence.</summary>
+        protected readonly Date first = first;
+        /// <summary>The last value in the sequence.</summary>
+        protected readonly Date last = last;
+        /// <summary>The step of the sequence.</summary>
+        protected readonly int step = step;
+        /// <summary>
+        /// Maximum value in the sequence, which is the last value rounded down to the step.
+        /// </summary>
+        private readonly Date max = first + ((last - first) / step) * step;
+        /// <summary>Current value.</summary>
+        protected Date current = first;
+
+        /// <summary>
+        /// Resets the sequence by setting the next value to <see cref="first"/>.
+        /// </summary>
+        /// <returns>Echoes this sequence.</returns>
+        public sealed override DateSequence Reset()
+        {
+            current = first;
+            return this;
+        }
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override Date this[int index] =>
+            (uint)index < length ? first + index * step : throw new IndexOutOfRangeException();
+
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DateSequence this[Range range]
+        {
+            get
+            {
+                (int offset, int length) = range.GetOffsetAndLength(Length());
+                return new GridSequence(
+                    first + offset * step, step, first + (offset + length - 1) * step);
+            }
+        }
+
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(Date value) =>
+            value <= max && value >= first && (value - first) % step == 0;
+
+        /// <summary>Sorts the content of this sequence.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence Sort() => this;
+
+        /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence SortDescending() => new GridSequenceDesc(max, step, first);
+
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
+        public override Date First() => first;
+
+        /// <summary>Gets the last value in the sequence.</summary>
+        /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
+        public override Date Last() => max;
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override Date Min() => first;
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override Date Max() => max;
+
+        /// <summary>Gets only the unique values in this sequence.</summary>
+        /// <remarks>This sequence has always unique values.</remarks>
+        /// <returns>A sequence with unique values.</returns>
+        public sealed override DateSequence Distinct() => this;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Date value)
+        {
+            if (current <= last)
+            {
+                value = current;
+                current += step;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <remarks><c>first &gt;= last</c></remarks>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="step">Distance between sequence values.</param>
+    /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
+    private sealed class GridSequenceDesc(Date first, int step, Date last) :
+        GridSequence(first, step, last)
+    {
+        /// <summary>
+        /// Last actual value in the sequence, which is the last value rounded up to the step.
+        /// </summary>
+        private readonly Date min = first - step * (Abs(last - first) / step);
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override Date this[int index] =>
+            (uint)index < length ? first - index * step : throw new IndexOutOfRangeException();
+
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(Date value) =>
+            value >= min && value <= first && (value - min) % step == 0;
+
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DateSequence this[Range range]
+        {
+            get
+            {
+                (int offset, int length) = range.GetOffsetAndLength(Length());
+                return new GridSequenceDesc(
+                    first - offset * step, step, first - (offset + length - 1) * step);
+            }
+        }
+
+        /// <summary>Sorts the content of this sequence.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence Sort() => new GridSequence(min, step, first);
+
+        /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence SortDescending() => this;
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override Date Min() => min;
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override Date Max() => first;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Date value)
+        {
+            if (current >= last)
+            {
+                value = current;
+                current -= step;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
 
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>

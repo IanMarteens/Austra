@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using Austra.Library;
+
+namespace Austra.Parser;
 
 /// <summary>A symbol table for predefined classes and methods.</summary>
 /// <remarks>
@@ -66,6 +68,7 @@ internal sealed class Bindings
             ["ivec"] = typeof(NVector),
             ["seq"] = typeof(DSequence),
             ["cseq"] = typeof(CSequence),
+            ["dseq"] = typeof(DateSequence),
             ["iseq"] = typeof(NSequence),
             ["matrix"] = typeof(Matrix),
             ["date"] = typeof(Date),
@@ -78,6 +81,7 @@ internal sealed class Bindings
     [
         new("cseq::", "Allows access to complex sequence constructors"),
         new("cvec::", "Allows access to complex vector constructors"),
+        new("dseq::", "Allows access to date sequence constructors"),
         new("dvec::", "Allows access to date vector constructors"),
         new("iseq::", "Allows access to integer sequence constructors"),
         new("ivec::", "Allows access to integer vector constructors"),
@@ -113,6 +117,11 @@ internal sealed class Bindings
             ["dvec"] = [
                 new("new(", "Creates a date vector"),
                 new("random(", "Creates a date vector with random values"),
+            ],
+            ["dseq"] = [
+                new("new(", "Creates a date sequence either from a range, a range and a step, or a vector"),
+                new("repeat(", "Creates a sequence with a repeated value"),
+                new("unfold", "Creates a date sequence from a seed and a lambda"),
             ],
             ["iseq"] = [
                 new("new(", "Creates an integer sequence either from a range, a range and a step, or a vector"),
@@ -397,6 +406,26 @@ internal sealed class Bindings
                 new("reduce(", "Reduces a vector to a single value"),
                 new("zip(", "Combines two vectors"),
             ],
+            [typeof(DateSequence)] = [
+                new("distinct", "Get the unique values in the sequence"),
+                new("first", "Gets the first value in the sequence"),
+                new("last", "Gets the last value in the sequence"),
+                new("length", "Gets the number of values in the sequence"),
+                new("max", "Gets the maximum value from the sequence"),
+                new("min", "Gets the minimum value from the sequence"),
+                new("plot", "Plots this sequence"),
+                new("sort", "Sorts the sequence in ascending order"),
+                new("sortDesc", "Sorts the sequence in descending order"),
+                new("toVector", "Converts the sequence to a vector"),
+                new("all(x => ", "Universal operator"),
+                new("any(x => ", "Existential operator"),
+                new("filter(x => ", "Filters the sequence according to a predicate"),
+                new("map(x => ", "Transforms the sequence according to a mapping function"),
+                new("reduce(", "Combines all values in the sequence into a single value"),
+                new("until(x => ", "Gets a subsequence until a predicate is satisfied"),
+                new("while(x => ", "Gets a subsequence while a predicate is satisfied"),
+                new("zip(", "Combines two sequences using a lambda function"),
+            ],
             [typeof(DateVector)] = [
                 new("distinct", "Gets a new vector with distinct values"),
                 new("first", "Gets the first item from the vector"),
@@ -414,7 +443,7 @@ internal sealed class Bindings
                 new("indexOf(", "Returns the index where a value is stored"),
                 new("map(x => ", "Pointwise transformation of vector items"),
                 new("reduce(", "Reduces a vector to a single value"),
-                new("zip(", "Combines two integer vectors"),
+                new("zip(", "Combines two date vectors"),
             ],
             [typeof(EVD)] = [
                 new("d", "Gets a quasi-diagonal real matrix with all eigenvalues"),
@@ -746,6 +775,19 @@ internal sealed class Bindings
                 typeof(CVector).MD(typeof(int), typeof(NormalRandom))),
             ["cvec.random"] = new(
                 typeof(CVector).MD(typeof(int), typeof(Random))),
+            ["dseq.new"] = new(
+                typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(Date)]),
+                typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(int), typeof(Date)]),
+                typeof(DateSequence).MD(nameof(DateSequence.Create), typeof(DateVector))),
+            ["dseq.repeat"] = new(
+                typeof(DateSequence).MD(nameof(DateSequence.Repeat), typeof(int), typeof(Date))),
+            ["dseq.unfold"] = new(
+                typeof(DateSequence).MD(nameof(DateSequence.Unfold),
+                    typeof(int), typeof(Date), typeof(Func<Date, Date>)),
+                typeof(DateSequence).MD(nameof(DateSequence.Unfold),
+                    typeof(int), typeof(Date), typeof(Func<int, Date, Date>)),
+                typeof(DateSequence).MD(nameof(DateSequence.Unfold),
+                    typeof(int), typeof(Date), typeof(Date), typeof(Func<Date, Date, Date>))),
             ["iseq.new"] = new(
                 typeof(NSequence).MD(nameof(NSequence.Create), NNArg),
                 typeof(NSequence).MD(nameof(NSequence.Create), [.. NNArg, typeof(int)]),
@@ -1121,6 +1163,18 @@ internal sealed class Bindings
             [new(typeof(DVector), "stats")] = typeof(DVector).Get(nameof(DVector.Stats)),
             [new(typeof(DVector), "sum")] = typeof(DVector).Get(nameof(DVector.Sum)),
 
+            [new(typeof(DateSequence), "distinct")] = typeof(DateSequence).Get(nameof(DateSequence.Distinct)),
+            [new(typeof(DateSequence), "first")] = typeof(DateSequence).Get(nameof(DateSequence.First)),
+            [new(typeof(DateSequence), "last")] = typeof(DateSequence).Get(nameof(DateSequence.Last)),
+            [new(typeof(DateSequence), "length")] = typeof(DateSequence).Get(nameof(DateSequence.Length)),
+            [new(typeof(DateSequence), "max")] = typeof(DateSequence).Get(nameof(DateSequence.Max)),
+            [new(typeof(DateSequence), "min")] = typeof(DateSequence).Get(nameof(DateSequence.Min)),
+            [new(typeof(DateSequence), "plot")] = typeof(DateSequence).Get(nameof(DateSequence.Plot)),
+            [new(typeof(DateSequence), "sort")] = typeof(DateSequence).Get(nameof(DateSequence.Sort)),
+            [new(typeof(DateSequence), "sortasc")] = typeof(DateSequence).Get(nameof(DateSequence.Sort)),
+            [new(typeof(DateSequence), "sortdesc")] = typeof(DateSequence).Get(nameof(DateSequence.SortDescending)),
+            [new(typeof(DateSequence), "tovector")] = typeof(DateSequence).Get(nameof(DateSequence.ToVector)),
+
             [new(typeof(DateVector), "distinct")] = typeof(DateVector).Get(nameof(DateVector.Distinct)),
             [new(typeof(DateVector), "first")] = typeof(DateVector).Prop(nameof(DateVector.First)),
             [new(typeof(DateVector), "last")] = typeof(DateVector).Prop(nameof(DateVector.Last)),
@@ -1390,6 +1444,14 @@ internal sealed class Bindings
             [new(typeof(DateVector), "reduce")] = typeof(DateVector).Get(nameof(DateVector.Reduce)),
             [new(typeof(DateVector), "zip")] = typeof(DateVector).Get(nameof(DateVector.Zip)),
 
+            [new(typeof(DateSequence), "all")] = typeof(NSequence).Get(nameof(NSequence.All)),
+            [new(typeof(DateSequence), "any")] = typeof(NSequence).Get(nameof(NSequence.Any)),
+            [new(typeof(DateSequence), "filter")] = typeof(NSequence).Get(nameof(NSequence.Filter)),
+            [new(typeof(DateSequence), "map")] = typeof(NSequence).Get(nameof(NSequence.Map)),
+            [new(typeof(DateSequence), "reduce")] = typeof(NSequence).Get(nameof(NSequence.Reduce)),
+            [new(typeof(DateSequence), "while")] = typeof(NSequence).Get(nameof(NSequence.While)),
+            [new(typeof(DateSequence), "zip")] = typeof(NSequence).Get(nameof(NSequence.Zip)),
+
             [new(typeof(DSequence), "all")] = typeof(DSequence).Get(nameof(DSequence.All)),
             [new(typeof(DSequence), "any")] = typeof(DSequence).Get(nameof(DSequence.Any)),
             [new(typeof(DSequence), "ar")] = typeof(DSequence).Get(nameof(DSequence.AutoRegression)),
@@ -1504,6 +1566,9 @@ internal sealed class Bindings
             [new(typeof(DVector), "indexof")] = new(
                 typeof(DVector).MD(nameof(DVector.IndexOf), DArg),
                 typeof(DVector).MD(nameof(DVector.IndexOf), typeof(double), typeof(int))),
+            [new(typeof(DateSequence), "until")] = new(
+                typeof(DateSequence).MD(nameof(DateSequence.Until), typeof(Func<Date, bool>)),
+                typeof(DateSequence).MD(nameof(DateSequence.Until), DArg)),
             [new(typeof(DateVector), "find")] = new(
                 typeof(DateVector).MD(nameof(DateVector.Find), typeof(Date)),
                 typeof(DateVector).MD(nameof(DateVector.Find), typeof(Func<Date, bool>))),

@@ -64,6 +64,9 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>Method for cloning integer sequences.</summary>
     private static readonly MethodInfo NSeqClone =
         typeof(NSequence).GetMethod(nameof(NSequence.Clone))!;
+    /// <summary>Method for cloning date sequences.</summary>
+    private static readonly MethodInfo DateSeqClone =
+        typeof(DateSequence).GetMethod(nameof(DateSequence.Clone))!;
 
     /// <summary>Predefined classes and methods.</summary>
     private readonly Bindings bindings;
@@ -691,10 +694,10 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Move();
                     Expression e2 = ParseAdditiveMultiplicative();
-                    if (e2.Type == typeof(DateVector))
+                    if (IsDateVecOrSeq(e2))
                         return e1.Type != typeof(Date)
                             ? throw Error("Left side of membership operator must be a date", pos)
-                            : Expression.Call(e2, e2.Type.Get(nameof(DateVector.Contains)), e1);
+                            : Expression.Call(e2, e2.Type.Get(nameof(DateSequence.Contains)), e1);
                     if (IsIntVecOrSeq(e2))
                         return e1.Type != typeof(int)
                             ? throw Error("Left side of membership operator must be an integer", pos)
@@ -1228,7 +1231,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     {
                         Move();
                         return e2;
-                    }   
+                    }
                     e = kind != Token.Functor
                         ? throw Error("Method name expected")
                         : className == "math"
@@ -2025,7 +2028,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         // It's a vector or a matrix constructor.
         List<Expression> items = source.Rent(16);
         int period = 0, lastPeriod = 0, vectors = 0, matrices = 0;
-        for (bool isFirst = true; ; )
+        for (bool isFirst = true; ;)
         {
             var (saveId, saveCursor, saveKind) = (id, lexCursor, kind);
             Expression e = ParseLightConditional();
@@ -2140,6 +2143,16 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
                 else
                     items.Add(e);
+            else if (e.Type == typeof(Date))
+                if (items.Count == 0 && kind == Token.Range)
+                {
+                    Move();
+                    e = ParseDateGenerator(e);
+                    CheckAndMove(Token.RBra, "] expected in sequence generator");
+                    return e;
+                }
+                else
+                    items.Add(e);
             else if (e.Type == typeof(NVector))
             {
                 vectors++;
@@ -2202,6 +2215,28 @@ internal sealed partial class Parser : Scanner, IDisposable
                 : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
                     Type.EmptyTypes, first, last);
         }
+
+        MethodCallExpression ParseDateGenerator(Expression first)
+        {
+            Expression? middle = ParseLightConditional();
+            Expression? last = null;
+            if (kind == Token.Range)
+            {
+                Move();
+                last = ParseLightConditional();
+            }
+            else
+                (middle, last) = (null, middle);
+            if (last!.Type != typeof(Date))
+                throw Error("Range bounds must be of the same type");
+            if (middle is not null && middle.Type != typeof(int))
+                throw Error("Range step must be an integer");
+            return middle != null
+                ? Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
+                    Type.EmptyTypes, first, middle, last)
+                : Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
+                    Type.EmptyTypes, first, last);
+        }
     }
 
     /// <summary>Parses an date vector literal.</summary>
@@ -2214,7 +2249,15 @@ internal sealed partial class Parser : Scanner, IDisposable
         {
             Expression e = ParseLightConditional();
             if (e.Type == typeof(Date))
-                items.Add(e);
+                if (items.Count == 0 && kind == Token.Range)
+                {
+                    Move();
+                    e = ParseDateGenerator(e);
+                    CheckAndMove(Token.RBra, "] expected in sequence generator");
+                    return e;
+                }
+                else
+                    items.Add(e);
             else if (e.Type == typeof(DateVector))
             {
                 vectors++;
@@ -2252,6 +2295,28 @@ internal sealed partial class Parser : Scanner, IDisposable
             result = typeof(DateVector).New(typeof(Date).Make(items));
         source.Return(items);
         return result;
+
+        MethodCallExpression ParseDateGenerator(Expression first)
+        {
+            Expression? middle = ParseLightConditional();
+            Expression? last = null;
+            if (kind == Token.Range)
+            {
+                Move();
+                last = ParseLightConditional();
+            }
+            else
+                (middle, last) = (null, middle);
+            if (last!.Type != typeof(Date))
+                throw Error("Range bounds must be of the same type");
+            if (middle is not null && middle.Type != typeof(int))
+                throw Error("Range step must be an integer");
+            return middle != null
+                ? Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
+                    Type.EmptyTypes, first, middle, last)
+                : Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
+                    Type.EmptyTypes, first, last);
+        }
     }
 
     /// <summary>Parses a list comprehension expression.</summary>
@@ -2354,13 +2419,15 @@ internal sealed partial class Parser : Scanner, IDisposable
             ? (e.Type, typeof(int))
             : e.Type == typeof(CVector) || e.Type == typeof(CSequence)
             ? (e.Type, typeof(Complex))
+            : e.Type == typeof(DateVector) || e.Type == typeof(DateSequence)
+            ? (e.Type, typeof(Date))
             : throw Error("Invalid sequence type");
     }
 
     private Expression ParseGenerator()
     {
         Expression first = ParseLightConditional();
-        if (!IsArithmetic(first))
+        if (!IsArithmetic(first) && first.Type != typeof(Date))
             return first;
         // It may be a range expression.
         CheckAndMove(Token.Range, "Expected range in list comprehension");
@@ -2387,7 +2454,13 @@ internal sealed partial class Parser : Scanner, IDisposable
                     : throw Error("Range bounds must be of the same type");
         if (middle is not null && middle.Type != typeof(int))
             throw Error("Range step must be an integer");
-        return first.Type == typeof(int)
+        return first.Type == typeof(Date)
+            ? middle != null
+                ? Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
+                    Type.EmptyTypes, first, middle, last)
+                : Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
+                    Type.EmptyTypes, first, last)
+            : first.Type == typeof(int)
             ? middle != null
                 ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
                     Type.EmptyTypes, first, middle, last)
@@ -2428,6 +2501,8 @@ internal sealed partial class Parser : Scanner, IDisposable
                 ? Expression.Call(local, CSeqClone)
                 : local.Type == typeof(NSequence)
                 ? Expression.Call(local, NSeqClone)
+                : local.Type == typeof(DateSequence)
+                ? Expression.Call(local, DateSeqClone)
                 : local;
         // Check macro definitions.
         Definition? def = source.GetDefinition(ident);
@@ -2456,6 +2531,8 @@ internal sealed partial class Parser : Scanner, IDisposable
                 ? Expression.Call(e, CSeqClone)
                 : e.Type.IsAssignableTo(typeof(NSequence))
                 ? Expression.Call(e, NSeqClone)
+                : e.Type.IsAssignableTo(typeof(DateSequence))
+                ? Expression.Call(e, DateSeqClone)
                 : e;
         }
         if (TryParseMonthYear(ident, out Date d))
@@ -2513,6 +2590,10 @@ internal sealed partial class Parser : Scanner, IDisposable
     private static bool IsIntVecOrSeq(Expression e) =>
         e.Type == typeof(NVector) || e.Type == typeof(NSequence)
         || e.Type == typeof(DateVector);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsDateVecOrSeq(Expression e) =>
+        e.Type == typeof(DateVector) || e.Type == typeof(DateSequence);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Expression ToLong(Expression e) =>

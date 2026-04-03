@@ -2,11 +2,28 @@
 
 /// <summary>Represents any sequence returning Austra dates.</summary>
 public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
-    //IFormattable,
+    IFormattable,
     IEquatable<DateSequence>,
     IEqualityOperators<DateSequence, DateSequence, bool>,
     IIndexable
 {
+    /// <summary>Creates a sequence from a range.</summary>
+    /// <param name="first">The first value in the sequence.</param>
+    /// <param name="last">The last value in the sequence.</param>
+    /// <returns>A sequence returning a range of values.</returns>
+    public static DateSequence Create(Date first, Date last) => first <= last
+        ? new GridSequence(first, 1, last)
+        : new GridSequenceDesc(first, 1, last);
+
+    /// <summary>Creates a sequence from a range and a step.</summary>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="step">Distance between sequence values.</param>
+    /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
+    /// <returns>A sequence returning a range of values.</returns>
+    public static DateSequence Create(Date first, int step, Date last) => first <= last
+        ? new GridSequence(first, step, last)
+        : new GridSequenceDesc(first, step, last);
+
     /// <summary>Creates a date sequence from a vector.</summary>
     /// <param name="values">The vector containing the sequence's dates.</param>
     /// <returns>The sequence encapsulating the vector.</returns>
@@ -184,4 +201,19 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     /// <summary>Creates a plot for this sequence.</summary>
     /// <returns>A plot containing a frozen vector as its dataset.</returns>
     public Plot<DateVector> Plot() => new(ToVector());
+
+    /// <summary>Evaluated the sequence and formats it like a <see cref="NVector"/>.</summary>
+    /// <returns>A formated list of double values.</returns>
+    public override string ToString() => ToString("d");
+
+    /// <summary>Gets a textual representation of this sequence.</summary>
+    /// <param name="format">A format specifier.</param>
+    /// <param name="provider">Supplies culture-specific formatting information.</param>
+    /// <returns>Space-separated components.</returns>
+    public string ToString(string? format, IFormatProvider? provider = null)
+    {
+        Date[] values = Materialize();
+        return values.Length == 0 ? "∅" : values.ToString(v => v.ToString(format, provider));
+    }
+
 }
