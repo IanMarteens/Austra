@@ -1,6 +1,4 @@
-﻿using Austra.Library;
-
-namespace Austra.Parser;
+﻿namespace Austra.Parser;
 
 /// <summary>A symbol table for predefined classes and methods.</summary>
 /// <remarks>

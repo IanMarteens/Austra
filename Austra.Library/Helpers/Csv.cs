@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Allows configuration and reading from a CSV file.</summary>
 /// <param name="filename">Path to the CSV file.</param>

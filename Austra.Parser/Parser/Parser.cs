@@ -2203,28 +2203,28 @@ internal sealed partial class Parser : Scanner, IDisposable
                 : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
                     Type.EmptyTypes, first, last);
         }
+    }
 
-        MethodCallExpression ParseDateGenerator(Expression first)
+    private MethodCallExpression ParseDateGenerator(Expression first)
+    {
+        Expression? middle = ParseLightConditional();
+        Expression? last = null;
+        if (kind == Token.Range)
         {
-            Expression? middle = ParseLightConditional();
-            Expression? last = null;
-            if (kind == Token.Range)
-            {
-                Move();
-                last = ParseLightConditional();
-            }
-            else
-                (middle, last) = (null, middle);
-            if (last!.Type != typeof(Date))
-                throw Error("Range bounds must be of the same type");
-            if (middle is not null && middle.Type != typeof(int))
-                throw Error("Range step must be an integer");
-            return middle != null
-                ? Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
-                    Type.EmptyTypes, first, middle, last)
-                : Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
-                    Type.EmptyTypes, first, last);
+            Move();
+            last = ParseLightConditional();
         }
+        else
+            (middle, last) = (null, middle);
+        if (last!.Type != typeof(Date))
+            throw Error("Range bounds must be of the same type");
+        if (middle is not null && middle.Type != typeof(int))
+            throw Error("Range step must be an integer");
+        return middle != null
+            ? Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
+                Type.EmptyTypes, first, middle, last)
+            : Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
+                Type.EmptyTypes, first, last);
     }
 
     /// <summary>Parses an date vector literal.</summary>
@@ -2283,28 +2283,6 @@ internal sealed partial class Parser : Scanner, IDisposable
             result = typeof(DateVector).New(typeof(Date).Make(items));
         source.Return(items);
         return result;
-
-        MethodCallExpression ParseDateGenerator(Expression first)
-        {
-            Expression? middle = ParseLightConditional();
-            Expression? last = null;
-            if (kind == Token.Range)
-            {
-                Move();
-                last = ParseLightConditional();
-            }
-            else
-                (middle, last) = (null, middle);
-            if (last!.Type != typeof(Date))
-                throw Error("Range bounds must be of the same type");
-            if (middle is not null && middle.Type != typeof(int))
-                throw Error("Range step must be an integer");
-            return middle != null
-                ? Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
-                    Type.EmptyTypes, first, middle, last)
-                : Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
-                    Type.EmptyTypes, first, last);
-        }
     }
 
     /// <summary>Parses a list comprehension expression.</summary>

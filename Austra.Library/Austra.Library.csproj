@@ -66,6 +66,7 @@
 		<Using Include="System.Collections" />
 		<Using Include="System.Collections.Generic" />
 		<Using Include="System.Diagnostics.Contracts" />
+		<Using Include="System.Globalization" />
 		<Using Include="System.Linq" />
 		<Using Include="System.Numerics" />
 		<Using Include="System.Runtime.CompilerServices" />
