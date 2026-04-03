@@ -1,9 +1,13 @@
-﻿namespace Austra.Library;
+﻿using System.IO;
+
+namespace Austra.Library;
 
 /// <summary>Allows configuration and reading from a CSV file.</summary>
-/// <param name="filename">Path to the CSV file.</param>
-public class Csv(string filename)
+public class Csv
 {
+    /// <summary>Full path to the CSV file.</summary>
+    private readonly string filename;
+    /// <summary>Format provider used for parsing numeric and date values.</summary>
     private IFormatProvider formatProvider = CultureInfo.CurrentCulture;
     /// <summary>
     /// The separator for this CSV file. By default, this is a comma, but it can be changed to support other formats.
@@ -23,6 +27,32 @@ public class Csv(string filename)
     /// The value used for filtering, or a null string if no filtering is configured.
     /// </summary>
     private string? filterValue;
+
+    /// <summary>Creates a new CSV reader for the specified file.</summary>
+    /// <param name="fileName">Path to the CSV file.</param>
+    public Csv(string fileName)
+    {
+        if (!Path.IsPathFullyQualified(fileName))
+        {
+            string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string f = Path.Combine(documents, fileName);
+            if (File.Exists(f))
+                fileName = f;
+            else
+            {
+                f = Path.Combine(documents, "austra", fileName);
+                if (File.Exists(f))
+                    fileName = f;
+                else
+                {
+                    f = Path.Combine(Environment.CurrentDirectory, fileName);
+                    if (File.Exists(f))
+                        fileName = f;
+                }
+            }
+        }
+        filename = fileName;
+    }
 
     /// <summary>
     /// Mark this CSV file as having a header line. The first line will be ignored when reading.
@@ -114,7 +144,7 @@ public class Csv(string filename)
     {
         bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
         bool headerRead = !hasHeader;
-        foreach (string s in System.IO.File.ReadLines(filename))
+        foreach (string s in File.ReadLines(filename))
         {
             if (!headerRead)
             {
@@ -176,7 +206,7 @@ public class Csv(string filename)
         // Assume that we have a header.
         bool headerRead = false;
         int selectedIndex = -1;
-        foreach (string s in System.IO.File.ReadLines(filename))
+        foreach (string s in File.ReadLines(filename))
         {
             if (!headerRead)
             {
@@ -213,7 +243,7 @@ public class Csv(string filename)
         bool headerRead = !hasHeader;
         if (columnIndex < 0)
             yield break;
-        foreach (string s in System.IO.File.ReadLines(filename))
+        foreach (string s in File.ReadLines(filename))
         {
             if (!headerRead)
             {
@@ -268,7 +298,7 @@ public class Csv(string filename)
         // Assume that we have a header.
         bool headerRead = false;
         int selectedIndex = -1;
-        foreach (string s in System.IO.File.ReadLines(filename))
+        foreach (string s in File.ReadLines(filename))
         {
             if (!headerRead)
             {
@@ -305,7 +335,7 @@ public class Csv(string filename)
         bool headerRead = !hasHeader;
         if (columnIndex < 0)
             yield break;
-        foreach (string s in System.IO.File.ReadLines(filename))
+        foreach (string s in File.ReadLines(filename))
         {
             if (!headerRead)
             {
@@ -325,5 +355,17 @@ public class Csv(string filename)
             if (TryParse(s, columnIndex, filtering, out DateTime value))
                 yield return (Date)value;
         }
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        string result = filename;
+        if (hasHeader)
+            result += ", with headers";
+        result += $", separator: '{separator}'";
+        if (formatProvider is CultureInfo info)
+            result += $", format: {info.DisplayName}";
+        return result;
     }
 }
