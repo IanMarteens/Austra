@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace Austra.Library;
 
@@ -17,8 +16,7 @@ public class Csv(string filename)
     /// </summary>
     private bool hasHeader;
     /// <summary>Either the name of the column to filter by, or a null string.</summary>
-    [AllowNull]
-    private string filterColumn;
+    private string? filterColumn;
     /// <summary>
     /// Either the index of the column to filter by, or -1 if no index-based filtering is configured.
     /// </summary>
@@ -26,8 +24,7 @@ public class Csv(string filename)
     /// <summary>
     /// The value used for filtering, or a null string if no filtering is configured.
     /// </summary>
-    [AllowNull]
-    private string filterValue;
+    private string? filterValue;
 
     /// <summary>
     /// Mark this CSV file as having a header line. The first line will be ignored when reading.
@@ -149,6 +146,29 @@ public class Csv(string filename)
         }
     }
 
+    private bool TryParse(string s, int columnIndex, bool filtering, out double value)
+    {
+        value = default;
+        if (filtering)
+        {
+            var (from, to) = GetColumnBounds(0, s, filterIndex);
+            if (from >= 0 && s.AsSpan(from, to - from)
+                .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+            {
+                (from, to) = GetColumnBounds(0, s, columnIndex);
+                return from >= 0
+                    && double.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
+            }
+            return false;
+        }
+        else
+        {
+            var (from, to) = GetColumnBounds(0, s, columnIndex);
+            return from >= 0
+                && double.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
+        }
+    }
+
     /// <summary>Reads all lines from the configured CSV file.</summary>
     /// <param name="columnName">The name of a numeric column to return.</param>
     /// <returns>A sequence of possibly filtered lines.</returns>
@@ -180,29 +200,8 @@ public class Csv(string filename)
                 headerRead = true;
                 continue;
             }
-            if (filtering)
-            {
-                var (from, to) = GetColumnBounds(0, s, filterIndex);
-                if (from < 0)
-                    continue;
-                if (s.AsSpan(from, to - from)
-                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    (from, to) = GetColumnBounds(0, s, selectedIndex);
-                    if (from < 0
-                        || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
-                        continue;
-                    yield return value;
-                }
-            }
-            else
-            {
-                var (from, to) = GetColumnBounds(0, s, selectedIndex);
-                if (from < 0
-                    || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
-                    continue;
+            if (TryParse(s, selectedIndex, filtering, out double value))
                 yield return value;
-            }
         }
     }
 
@@ -233,31 +232,34 @@ public class Csv(string filename)
                 headerRead = true;
                 continue;
             }
-            if (filtering)
-            {
-                var (from, to) = GetColumnBounds(0, s, filterIndex);
-                if (from < 0)
-                    continue;
-                if (s.AsSpan(from, to - from)
-                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    (from, to) = GetColumnBounds(0, s, columnIndex);
-                    if (from < 0
-                        || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
-                        continue;
-                    yield return value;
-                }
-            }
-            else
-            {
-                var (from, to) = GetColumnBounds(0, s, columnIndex);
-                if (from < 0
-                    || !double.TryParse(s.AsSpan(from, to - from), formatProvider, out double value))
-                    continue;
+            if (TryParse(s, columnIndex, filtering, out double value))
                 yield return value;
-            }
         }
     }
+
+    private bool TryParse(string s, int columnIndex, bool filtering, out DateTime value)
+    {
+        value = default;
+        if (filtering)
+        {
+            var (from, to) = GetColumnBounds(0, s, filterIndex);
+            if (from >= 0 && s.AsSpan(from, to - from)
+                .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+            {
+                (from, to) = GetColumnBounds(0, s, columnIndex);
+                return from >= 0
+                    && DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
+            }
+            return false;
+        }
+        else
+        {
+            var (from, to) = GetColumnBounds(0, s, columnIndex);
+            return from >= 0
+                && DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out value);
+        }
+    }
+
 
     /// <summary>Reads all lines from the configured CSV file.</summary>
     /// <param name="columnName">The name of a numeric column to return.</param>
@@ -290,29 +292,8 @@ public class Csv(string filename)
                 headerRead = true;
                 continue;
             }
-            if (filtering)
-            {
-                var (from, to) = GetColumnBounds(0, s, filterIndex);
-                if (from < 0)
-                    continue;
-                if (s.AsSpan(from, to - from)
-                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    (from, to) = GetColumnBounds(0, s, selectedIndex);
-                    if (from < 0
-                        || !DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out DateTime value))
-                        continue;
-                    yield return (Date)value;
-                }
-            }
-            else
-            {
-                var (from, to) = GetColumnBounds(0, s, selectedIndex);
-                if (from < 0
-                    || !DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out DateTime value))
-                    continue;
+            if (TryParse(s, selectedIndex, filtering, out DateTime value))
                 yield return (Date)value;
-            }
         }
     }
 
@@ -343,29 +324,8 @@ public class Csv(string filename)
                 headerRead = true;
                 continue;
             }
-            if (filtering)
-            {
-                var (from, to) = GetColumnBounds(0, s, filterIndex);
-                if (from < 0)
-                    continue;
-                if (s.AsSpan(from, to - from)
-                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    (from, to) = GetColumnBounds(0, s, columnIndex);
-                    if (from < 0
-                        || !DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out DateTime value))
-                        continue;
-                    yield return (Date)value;
-                }
-            }
-            else
-            {
-                var (from, to) = GetColumnBounds(0, s, columnIndex);
-                if (from < 0
-                    || !DateTime.TryParse(s.AsSpan(from, to - from), formatProvider, out DateTime value))
-                    continue;
+            if (TryParse(s, columnIndex, filtering, out DateTime value))
                 yield return (Date)value;
-            }
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning integer values.</summary>
 public abstract partial class NSequence : Sequence<int, NSequence>,

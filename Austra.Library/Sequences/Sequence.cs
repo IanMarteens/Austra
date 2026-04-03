@@ -3,16 +3,9 @@
 /// <summary>Common base class for all sequences.</summary>
 /// <typeparam name="T">The type for the returned items.</typeparam>
 /// <typeparam name="TSelf">The covariant type of the sequence.</typeparam>
-public abstract class Sequence<T, TSelf>
-    where TSelf : Sequence<T, TSelf>
-    where T :
-        unmanaged,
-        IAdditionOperators<T, T, T>,
-        IAdditiveIdentity<T, T>,
-        ISubtractionOperators<T, T, T>,
-        IMultiplyOperators<T, T, T>,
-        IMultiplicativeIdentity<T, T>,
-        IDivisionOperators<T, T, T>
+public abstract class BaseSequence<T, TSelf>
+    where TSelf: BaseSequence<T, TSelf>
+    where T: unmanaged
 {
     /// <summary>Gets the next item in the sequence.</summary>
     /// <param name="value">The next item in the sequence.</param>
@@ -136,33 +129,6 @@ public abstract class Sequence<T, TSelf>
     /// <returns>A prefix of the original sequence.</returns>
     public abstract TSelf Until(T value);
 
-    /// <summary>Gets the sum of all the values in the sequence.</summary>
-    /// <returns>The sum of all the values in the sequence.</returns>
-    public virtual T Sum()
-    {
-        T total = T.AdditiveIdentity;
-        while (Next(out T value))
-            total += value;
-        Reset();
-        return total;
-    }
-
-    /// <summary>Gets the product of all the values in the sequence.</summary>
-    /// <returns>The product of all the values in the sequence.</returns>
-    public virtual T Product()
-    {
-        if (ContainsZero)
-            return T.AdditiveIdentity;
-        T product = T.MultiplicativeIdentity;
-        while (Next(out T value))
-            product *= value;
-        Reset();
-        return product;
-    }
-
-    /// <summary>Checks if the sequence contains a zero value.</summary>
-    protected virtual bool ContainsZero => false;
-
     /// <summary>Gets the total number of values in the sequence.</summary>
     /// <returns>The total number of values in the sequence.</returns>
     public virtual int Length()
@@ -191,16 +157,6 @@ public abstract class Sequence<T, TSelf>
             saved = value;
         return saved;
     }
-
-    /// <summary>Item by item multiplication of two sequences.</summary>
-    /// <param name="other">The second sequence.</param>
-    /// <returns>A sequence with all the multiplication results.</returns>
-    public abstract TSelf PointwiseMultiply(TSelf other);
-
-    /// <summary>Item by item division of sequences.</summary>
-    /// <param name="other">The second sequence.</param>
-    /// <returns>A sequence with all the quotient results.</returns>
-    public abstract TSelf PointwiseDivide(TSelf other);
 
     /// <summary>Reduces a sequence to a single number.</summary>
     /// <param name="seed">The seed value.</param>
@@ -244,4 +200,56 @@ public abstract class Sequence<T, TSelf>
         Reset();
         return [.. values];
     }
+}
+
+/// <summary>Common base class for all numerical sequences.</summary>
+/// <typeparam name="T">The type for the returned items.</typeparam>
+/// <typeparam name="TSelf">The covariant type of the sequence.</typeparam>
+public abstract class Sequence<T, TSelf> : BaseSequence<T, TSelf>
+    where TSelf : Sequence<T, TSelf>
+    where T :
+        unmanaged,
+        IAdditionOperators<T, T, T>,
+        IAdditiveIdentity<T, T>,
+        ISubtractionOperators<T, T, T>,
+        IMultiplyOperators<T, T, T>,
+        IMultiplicativeIdentity<T, T>,
+        IDivisionOperators<T, T, T>
+{
+    /// <summary>Gets the sum of all the values in the sequence.</summary>
+    /// <returns>The sum of all the values in the sequence.</returns>
+    public virtual T Sum()
+    {
+        T total = T.AdditiveIdentity;
+        while (Next(out T value))
+            total += value;
+        Reset();
+        return total;
+    }
+
+    /// <summary>Gets the product of all the values in the sequence.</summary>
+    /// <returns>The product of all the values in the sequence.</returns>
+    public virtual T Product()
+    {
+        if (ContainsZero)
+            return T.AdditiveIdentity;
+        T product = T.MultiplicativeIdentity;
+        while (Next(out T value))
+            product *= value;
+        Reset();
+        return product;
+    }
+
+    /// <summary>Checks if the sequence contains a zero value.</summary>
+    protected virtual bool ContainsZero => false;
+
+    /// <summary>Item by item multiplication of two sequences.</summary>
+    /// <param name="other">The second sequence.</param>
+    /// <returns>A sequence with all the multiplication results.</returns>
+    public abstract TSelf PointwiseMultiply(TSelf other);
+
+    /// <summary>Item by item division of sequences.</summary>
+    /// <param name="other">The second sequence.</param>
+    /// <returns>A sequence with all the quotient results.</returns>
+    public abstract TSelf PointwiseDivide(TSelf other);
 }
