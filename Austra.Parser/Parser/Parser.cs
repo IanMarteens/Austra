@@ -55,18 +55,6 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>Method for squaring an upper-triangular matrix.</summary>
     private static readonly MethodInfo RMatrixSquare =
         typeof(RMatrix).GetMethod(nameof(RMatrix.Square))!;
-    /// <summary>Method for cloning complex sequences.</summary>
-    private static readonly MethodInfo CSeqClone =
-        typeof(CSequence).GetMethod(nameof(CSequence.Clone))!;
-    /// <summary>Method for cloning real sequences.</summary>
-    private static readonly MethodInfo DSeqClone =
-        typeof(DSequence).GetMethod(nameof(DSequence.Clone))!;
-    /// <summary>Method for cloning integer sequences.</summary>
-    private static readonly MethodInfo NSeqClone =
-        typeof(NSequence).GetMethod(nameof(NSequence.Clone))!;
-    /// <summary>Method for cloning date sequences.</summary>
-    private static readonly MethodInfo DateSeqClone =
-        typeof(DateSequence).GetMethod(nameof(DateSequence.Clone))!;
 
     /// <summary>Predefined classes and methods.</summary>
     private readonly Bindings bindings;
@@ -2495,14 +2483,8 @@ internal sealed partial class Parser : Scanner, IDisposable
             return param;
         // Check the local scope.
         if (locals.TryGetValue(ident, out ParameterExpression? local))
-            return local.Type == typeof(DSequence)
-                ? Expression.Call(local, DSeqClone)
-                : local.Type == typeof(CSequence)
-                ? Expression.Call(local, CSeqClone)
-                : local.Type == typeof(NSequence)
-                ? Expression.Call(local, NSeqClone)
-                : local.Type == typeof(DateSequence)
-                ? Expression.Call(local, DateSeqClone)
+            return local.Type.IsAssignableTo(typeof(BaseSequence<,>))
+                ? Expression.Call(local, local.Type.Get(nameof(BaseSequence<,>.Clone)))
                 : local;
         // Check macro definitions.
         Definition? def = source.GetDefinition(ident);
@@ -2524,17 +2506,9 @@ internal sealed partial class Parser : Scanner, IDisposable
             ?? source.GetExpression(ident, isParsingDefinition)
             ?? ParseGlobals(ident);
         if (e != null)
-        {
-            return e.Type.IsAssignableTo(typeof(DSequence))
-                ? Expression.Call(e, DSeqClone)
-                : e.Type.IsAssignableTo(typeof(CSequence))
-                ? Expression.Call(e, CSeqClone)
-                : e.Type.IsAssignableTo(typeof(NSequence))
-                ? Expression.Call(e, NSeqClone)
-                : e.Type.IsAssignableTo(typeof(DateSequence))
-                ? Expression.Call(e, DateSeqClone)
+            return e.Type.IsAssignableTo(typeof(BaseSequence<,>))
+                ? Expression.Call(e, e.Type.Get(nameof(BaseSequence<,>.Clone)))
                 : e;
-        }
         if (TryParseMonthYear(ident, out Date d))
             return Expression.Constant(d);
         // Check if we tried to reference a SET variable in a DEF.
