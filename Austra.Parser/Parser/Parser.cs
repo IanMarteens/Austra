@@ -1990,7 +1990,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             }
             else if (kind == Token.Colon)
             {
-                // It's a vector witn an explicit type.
+                // It's a vector with an explicit type.
                 if (saveId.Equals("int", StringComparison.OrdinalIgnoreCase))
                 {
                     Move();
@@ -2121,21 +2121,11 @@ internal sealed partial class Parser : Scanner, IDisposable
         for (; ; )
         {
             Expression e = ParseLightConditional();
-            if (e.Type == typeof(int))
+            if (e.Type == typeof(int) || e.Type == typeof(Date))
                 if (items.Count == 0 && kind == Token.Range)
                 {
                     Move();
-                    e = ParseIntGenerator(e);
-                    CheckAndMove(Token.RBra, "] expected in sequence generator");
-                    return e;
-                }
-                else
-                    items.Add(e);
-            else if (e.Type == typeof(Date))
-                if (items.Count == 0 && kind == Token.Range)
-                {
-                    Move();
-                    e = ParseDateGenerator(e);
+                    e = ParseGenerator(e);
                     CheckAndMove(Token.RBra, "] expected in sequence generator");
                     return e;
                 }
@@ -2181,50 +2171,6 @@ internal sealed partial class Parser : Scanner, IDisposable
         }
         source.Return(items);
         return result;
-
-        MethodCallExpression ParseIntGenerator(Expression first)
-        {
-            Expression? middle = ParseLightConditional();
-            Expression? last = null;
-            if (kind == Token.Range)
-            {
-                Move();
-                last = ParseLightConditional();
-            }
-            else
-                (middle, last) = (null, middle);
-            if (last!.Type != typeof(int))
-                throw Error("Range bounds must be of the same type");
-            if (middle is not null && middle.Type != typeof(int))
-                throw Error("Range step must be an integer");
-            return middle != null
-                ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
-                    Type.EmptyTypes, first, middle, last)
-                : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
-                    Type.EmptyTypes, first, last);
-        }
-    }
-
-    private MethodCallExpression ParseDateGenerator(Expression first)
-    {
-        Expression? middle = ParseLightConditional();
-        Expression? last = null;
-        if (kind == Token.Range)
-        {
-            Move();
-            last = ParseLightConditional();
-        }
-        else
-            (middle, last) = (null, middle);
-        if (last!.Type != typeof(Date))
-            throw Error("Range bounds must be of the same type");
-        if (middle is not null && middle.Type != typeof(int))
-            throw Error("Range step must be an integer");
-        return middle != null
-            ? Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
-                Type.EmptyTypes, first, middle, last)
-            : Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
-                Type.EmptyTypes, first, last);
     }
 
     /// <summary>Parses an date vector literal.</summary>
@@ -2240,7 +2186,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 if (items.Count == 0 && kind == Token.Range)
                 {
                     Move();
-                    e = ParseDateGenerator(e);
+                    e = ParseGenerator(e);
                     CheckAndMove(Token.RBra, "] expected in sequence generator");
                     return e;
                 }

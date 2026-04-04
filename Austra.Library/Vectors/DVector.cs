@@ -152,7 +152,7 @@ public readonly struct DVector :
     /// <param name="csvFile">The CSV file.</param>
     /// <param name="columnName">The name of the read column.</param>
     public DVector(Csv csvFile, string columnName) =>
-        values = [.. csvFile.Read(columnName)];
+        values = [.. csvFile.ReadColumn<double>(columnName)];
 
     /// <summary>
     /// Creates a vector by reading a column from a CSV file. The column is identified by its name.
@@ -160,7 +160,7 @@ public readonly struct DVector :
     /// <param name="csvFile">The CSV file.</param>
     /// <param name="columnIndex">The position of the read column.</param>
     public DVector(Csv csvFile, int columnIndex) =>
-        values = [.. csvFile.Read(columnIndex)];
+        values = [.. csvFile.ReadColumn<double>(columnIndex)];
 
     /// <summary>Creates an identical vector.</summary>
     /// <remarks>This operation does not share the internal storage.</remarks>

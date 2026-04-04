@@ -1,4 +1,6 @@
-﻿namespace Austra.Library.Dates;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Austra.Library.Dates;
 
 /// <summary>Represents a date with efficient operations.</summary>
 [JsonConverter(typeof(Date2JsonConverter))]
@@ -10,7 +12,9 @@ public readonly struct Date :
     ISubtractionOperators<Date, int, Date>,
     ISubtractionOperators<Date, Date, int>,
     IIncrementOperators<Date>,
-    IDecrementOperators<Date>
+    IDecrementOperators<Date>,
+    ISpanParsable<Date>,
+    IFormattable
 {
     /// <summary>Number of 100ns ticks per millisecond.</summary>
     private const long TicksPerMillisecond = 10000;
@@ -411,6 +415,28 @@ public readonly struct Date :
         return i >= 0 ?
             new(year + i / 12, i % 12 + 1, day) :
             new(year + (i - 11) / 12, 12 + (i + 1) % 12, day);
+    }
+
+    /// <inheritdoc/>
+    public static Date Parse(ReadOnlySpan<char> s, IFormatProvider? provider) => (Date)DateTime.Parse(s, provider);
+
+    /// <inheritdoc/>
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out Date result)
+    {
+        bool success = DateTime.TryParse(s, provider, out DateTime dt);
+        result = success ? (Date)dt : default;
+        return success;
+    }
+
+    /// <inheritdoc/>
+    public static Date Parse(string s, IFormatProvider? provider) => (Date)DateTime.Parse(s, provider);
+
+    /// <inheritdoc/>
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Date result)
+    {
+        bool success = DateTime.TryParse(s, provider, out DateTime dt);
+        result = success ? (Date)dt : default;
+        return success;
     }
 
     /// <summary>Gets the zero date.</summary>

@@ -210,7 +210,8 @@ public class Csv
     /// <summary>Reads all lines from the configured CSV file.</summary>
     /// <param name="columnName">The name of a numeric column to return.</param>
     /// <returns>A sequence of possibly filtered lines.</returns>
-    public IEnumerable<double> Read(string columnName)
+    public IEnumerable<T> ReadColumn<T>(string columnName)
+        where T : struct, ISpanParsable<T>
     {
         bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
         // Assume that we have a header.
@@ -238,7 +239,7 @@ public class Csv
                 headerRead = true;
                 continue;
             }
-            if (TryParse(s, selectedIndex, filtering, out double value))
+            if (TryParse(s, selectedIndex, filtering, out T value))
                 yield return value;
         }
     }
@@ -246,7 +247,8 @@ public class Csv
     /// <summary>Reads all lines from the configured CSV file.</summary>
     /// <param name="columnIndex">The index of a numeric column to return.</param>
     /// <returns>A sequence of possibly filtered lines.</returns>
-    public IEnumerable<double> Read(int columnIndex)
+    public IEnumerable<T> ReadColumn<T>(int columnIndex)
+        where T : struct, ISpanParsable<T>
     {
         bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
         // Assume that we have a header.
@@ -270,76 +272,8 @@ public class Csv
                 headerRead = true;
                 continue;
             }
-            if (TryParse(s, columnIndex, filtering, out double value))
+            if (TryParse(s, columnIndex, filtering, out T value))
                 yield return value;
-        }
-    }
-
-    /// <summary>Reads all lines from the configured CSV file.</summary>
-    /// <param name="columnName">The name of a numeric column to return.</param>
-    /// <returns>A sequence of possibly filtered lines.</returns>
-    public IEnumerable<Date> ReadDates(string columnName)
-    {
-        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
-        // Assume that we have a header.
-        bool headerRead = false;
-        int selectedIndex = -1;
-        foreach (string s in File.ReadLines(filename))
-        {
-            if (!headerRead)
-            {
-                string[] headers = s.Split(separator);
-                if (filtering && filterColumn is not null)
-                {
-                    filterIndex = Array.IndexOf(headers, filterColumn);
-                    if (filterIndex < 0)
-                    {
-                        filtering = false;
-                    }
-                }
-                selectedIndex = Array.IndexOf(headers, columnName);
-                if (selectedIndex < 0)
-                {
-                    yield break;
-                }
-                // Skip the header line.
-                headerRead = true;
-                continue;
-            }
-            if (TryParse(s, selectedIndex, filtering, out DateTime value))
-                yield return (Date)value;
-        }
-    }
-
-    /// <summary>Reads all lines from the configured CSV file.</summary>
-    /// <param name="columnIndex">The index of a numeric column to return.</param>
-    /// <returns>A sequence of possibly filtered lines.</returns>
-    public IEnumerable<Date> ReadDates(int columnIndex)
-    {
-        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
-        // Assume that we have a header.
-        bool headerRead = !hasHeader;
-        if (columnIndex < 0)
-            yield break;
-        foreach (string s in File.ReadLines(filename))
-        {
-            if (!headerRead)
-            {
-                string[] headers = s.Split(separator);
-                if (filtering && filterColumn is not null)
-                {
-                    filterIndex = Array.IndexOf(headers, filterColumn);
-                    if (filterIndex < 0)
-                    {
-                        filtering = false;
-                    }
-                }
-                // Skip the header line.
-                headerRead = true;
-                continue;
-            }
-            if (TryParse(s, columnIndex, filtering, out DateTime value))
-                yield return (Date)value;
         }
     }
 
