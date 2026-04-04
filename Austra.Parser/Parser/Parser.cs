@@ -1994,12 +1994,12 @@ internal sealed partial class Parser : Scanner, IDisposable
                 if (saveId.Equals("int", StringComparison.OrdinalIgnoreCase))
                 {
                     Move();
-                    return ParseIntegerVector();
+                    return ParseVector(typeof(int), typeof(NVector), "an integer");
                 }
                 if (saveId.Equals("date", StringComparison.OrdinalIgnoreCase))
                 {
                     Move();
-                    return ParseDateVector();
+                    return ParseVector(typeof(Date), typeof(DateVector), "a date");
                 }
                 if (saveId.Equals("real", StringComparison.OrdinalIgnoreCase) ||
                     saveId.Equals("double", StringComparison.OrdinalIgnoreCase))
@@ -2023,7 +2023,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             if (isFirst && e.Type == typeof(Date))
             {
                 (id, lexCursor, kind) = (saveId, saveCursor, saveKind);
-                return ParseDateVector();
+                return ParseVector(typeof(Date), typeof(DateVector), "a date");
             }
             isFirst = false;
             if (IsArithmetic(e))
@@ -2112,16 +2112,16 @@ internal sealed partial class Parser : Scanner, IDisposable
         return result;
     }
 
-    /// <summary>Parses an integer vector literal.</summary>
-    /// <returns>An expression creating the integer vector.</returns>
-    private Expression ParseIntegerVector()
+    /// <summary>Parses a date or integer vector literal.</summary>
+    /// <returns>An expression creating the date/integer vector.</returns>
+    private Expression ParseVector(Type itemType, Type vectorType, string itemError)
     {
         List<Expression> items = source.Rent(16);
         int vectors = 0;
         for (; ; )
         {
             Expression e = ParseLightConditional();
-            if (e.Type == typeof(int) || e.Type == typeof(Date))
+            if (e.Type == itemType)
                 if (items.Count == 0 && kind == Token.Range)
                 {
                     Move();
@@ -2131,13 +2131,13 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
                 else
                     items.Add(e);
-            else if (e.Type == typeof(NVector))
+            else if (e.Type == vectorType)
             {
                 vectors++;
                 items.Add(e);
             }
             else
-                throw Error("Vector item must be integer");
+                throw Error("Vector item must be " + itemError);
             if (kind == Token.Comma)
                 Move();
             else if (kind == Token.RBra)
@@ -2153,80 +2153,19 @@ internal sealed partial class Parser : Scanner, IDisposable
         {
             for (int i = 0; vectors < items.Count; vectors++)
             {
-                for (; items[i].Type == typeof(NVector); i++) ;
+                for (; items[i].Type == vectorType; i++) ;
                 int j = i + 1;
-                for (; j < items.Count && items[j].Type != typeof(NVector); j++) ;
+                for (; j < items.Count && items[j].Type != vectorType; j++) ;
                 int count = j - i;
                 if (count == 1 && items.Count == 2)
-                    return typeof(NVector).New(items[0], items[1]);
-                items[i] = typeof(NVector).New(typeof(int).Make(items.GetRange(i, count)));
+                    return vectorType.New(items[0], items[1]);
+                items[i] = vectorType.New(itemType.Make(items.GetRange(i, count)));
                 items.RemoveRange(i + 1, count - 1);
             }
-            result = typeof(NVector).New(typeof(NVector).Make(items));
+            result = vectorType.New(vectorType.Make(items));
         }
         else
-        {
-            Expression args = typeof(int).Make(items);
-            result = typeof(NVector).New(args);
-        }
-        source.Return(items);
-        return result;
-    }
-
-    /// <summary>Parses an date vector literal.</summary>
-    /// <returns>An expression creating the date vector.</returns>
-    private Expression ParseDateVector()
-    {
-        List<Expression> items = source.Rent(16);
-        int vectors = 0;
-        for (; ; )
-        {
-            Expression e = ParseLightConditional();
-            if (e.Type == typeof(Date))
-                if (items.Count == 0 && kind == Token.Range)
-                {
-                    Move();
-                    e = ParseGenerator(e);
-                    CheckAndMove(Token.RBra, "] expected in sequence generator");
-                    return e;
-                }
-                else
-                    items.Add(e);
-            else if (e.Type == typeof(DateVector))
-            {
-                vectors++;
-                items.Add(e);
-            }
-            else
-                throw Error("Vector item must be a date");
-            if (kind == Token.Comma)
-                Move();
-            else if (kind == Token.RBra)
-            {
-                Move();
-                break;
-            }
-            else
-                throw Error("Vector item separator expected");
-        }
-        Expression result;
-        if (vectors > 0)
-        {
-            for (int i = 0; vectors < items.Count; vectors++)
-            {
-                for (; items[i].Type == typeof(DateVector); i++) ;
-                int j = i + 1;
-                for (; j < items.Count && items[j].Type != typeof(DateVector); j++) ;
-                int count = j - i;
-                if (count == 1 && items.Count == 2)
-                    return typeof(DateVector).New(items[0], items[1]);
-                items[i] = typeof(DateVector).New(typeof(Date).Make(items.GetRange(i, count)));
-                items.RemoveRange(i + 1, count - 1);
-            }
-            result = typeof(DateVector).New(typeof(DateVector).Make(items));
-        }
-        else
-            result = typeof(DateVector).New(typeof(Date).Make(items));
+            result = vectorType.New(itemType.Make(items));
         source.Return(items);
         return result;
     }
