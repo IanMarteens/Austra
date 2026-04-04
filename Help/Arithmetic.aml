@@ -527,6 +527,46 @@ iff(aapl.mean &lt; msft.mean, aapl.mean, msft.mean)
         </sections>
       </content>
     </section>
+    <section address="Section5">
+      <title>CSV files</title>
+      <content>
+        <para>The <codeInline>csv</codeInline> is not a primitive type. However, we explain it here because it is used 
+by vectors and series for importing data from files.</para> 
+        <para>An instance of the csv type is created like this:</para>
+		    <code language="Austra">
+<markup><b>let</b></markup> csv1 = csv("c:\folder\file.csv");;
+<markup><b>let</b></markup> csv2 = csv("anotherFile.csv");;
+			</code>
+			<para>There’s only one argument: the file name. In the first example, we provide an abso
+lute path to the file. When a relative path is provided, as in the second example, Austra tries to locate the file either
+in the user documents folder or in the <codeInline>austra</codeInline> subfolder of the user documents path.</para>
+            <para>Since <codeInline>csv</codeInline> class instances are immutable, properties must be modified using methods that creates new instances with the required changes:</para>
+		    <code language="Austra">
+<markup><b>let</b></markup> csv = csv("curves.csv"); 
+<markup><b>let</b></markup> csv = csv.withHeader.withSeparator(",").withFormat("EN-US");
+			</code>
+			<para>Note that without the reassignment at the second line, the local variable would keep 
+its initial properties. You can also create a definition if you use a CSV file frequently 
+enough to deserve it:</para>
+		    <code language="Austra">
+<markup><b>def</b></markup> curves = csv("curves.csv")
+    .withHeader.withSeparator(",").withFormat("EN-US");
+			</code>
+			<para>Columns from the CSV file can then be read as vectors:</para>
+		    <code language="Austra">
+<markup><font color="DarkGreen">-- Using a column name from the header, if available.</font></markup>
+vec(curves, "Discount factor");
+<markup><font color="DarkGreen">-- Using the column position inside the file.</font></markup>
+vec(curves, 15); 
+			</code>
+			<para>The content of the file can be filtered using one of the two variants of the
+<codeInline>withFilter()</codeInline> method:</para>
+		    <code language="Austra">
+vec(curves.withFilter("Curve name", "SONIA"), "Discount factor"); 
+vec(curves.withFilter(1, "SONIA"), "Discount factor");
+            </code>
+      </content>
+     </section>
     <relatedTopics>
 	  <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">Code definitions</link>
       <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">Local variables</link>

@@ -11,13 +11,13 @@
       <content>
       <para>
       The lexical syntax of AUSTRA is very similar to most programming languages:
+      </para>
       <list class="bullet">
       	<listItem>White space, including line returns, are completely ignored.</listItem>
       	<listItem>Identifiers and keywords are key insensitive.</listItem>
       	<listItem>Unicode characters are allowed in identifiers. So, yes: <codeInline>τ = 2*π</codeInline> is a valid expression. Of course, <codeInline>pi</codeInline> is also allowed, and the code editor helps while typing Greek characters.</listItem>
       	<listItem>Semicolons (<codeInline>;</codeInline>) are mandatory for separating statements, but not as statement terminators.</listItem>
       </list>
-      </para>
       </content>
       <sections>
       	<section>
