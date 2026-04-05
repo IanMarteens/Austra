@@ -1933,9 +1933,10 @@ internal sealed partial class Parser : Scanner, IDisposable
             Move();
             return typeof(DVector).New(ZeroExpr);
         }
-        // Check if it's a list comprehension: first, check the universal qualifier ∀.
-        if (kind == Token.All)
+        // Check if it's a list comprehension: first, check symbolic qualifiers ∀/∃.
+        if (kind == Token.All || kind == Token.Any)
         {
+            string qual = kind == Token.All ? "all" : "any";
             int saveCursor = lexCursor;
             Move();
             if (kind == Token.Id)
@@ -1944,22 +1945,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 if (kind == Token.Element)
                 {
                     lexCursor = saveCursor;
-                    return ParseListComprehension("all");
-                }
-            }
-        }
-        // Now check existential quantifier ∃.
-        else if (kind == Token.Any)
-        {
-            int saveCursor = lexCursor;
-            Move();
-            if (kind == Token.Id)
-            {
-                Move();
-                if (kind == Token.Element)
-                {
-                    lexCursor = saveCursor;
-                    return ParseListComprehension("any");
+                    return ParseListComprehension(qual);
                 }
             }
         }
@@ -1994,12 +1980,12 @@ internal sealed partial class Parser : Scanner, IDisposable
                 if (saveId.Equals("int", StringComparison.OrdinalIgnoreCase))
                 {
                     Move();
-                    return ParseVector(typeof(int), typeof(NVector), "an integer");
+                    return ParseVector<int, NVector>("an integer");
                 }
                 if (saveId.Equals("date", StringComparison.OrdinalIgnoreCase))
                 {
                     Move();
-                    return ParseVector(typeof(Date), typeof(DateVector), "a date");
+                    return ParseVector<Date, DateVector>("a date");
                 }
                 if (saveId.Equals("real", StringComparison.OrdinalIgnoreCase) ||
                     saveId.Equals("double", StringComparison.OrdinalIgnoreCase))
@@ -2008,9 +1994,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     goto PARSE_VECTOR;
                 }
             }
-            id = saveId;
-            lexCursor = saveCursor;
-            kind = Token.Id;
+            (id, lexCursor, kind) = (saveId, saveCursor, Token.Id);
         }
     PARSE_VECTOR:
         // It's a vector or a matrix constructor.
@@ -2020,10 +2004,10 @@ internal sealed partial class Parser : Scanner, IDisposable
         {
             var (saveId, saveCursor, saveKind) = (id, lexCursor, kind);
             Expression e = ParseLightConditional();
-            if (isFirst && e.Type == typeof(Date))
+            if (isFirst && (e.Type == typeof(Date) || e.Type == typeof(DateVector)))
             {
                 (id, lexCursor, kind) = (saveId, saveCursor, saveKind);
-                return ParseVector(typeof(Date), typeof(DateVector), "a date");
+                return ParseVector<Date, DateVector>("a date");
             }
             isFirst = false;
             if (IsArithmetic(e))
@@ -2084,20 +2068,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 : typeof(Matrix).Call(period == 0 ? nameof(Matrix.HCat) : nameof(Matrix.VCat),
                     items[0], items[1]);
         else if (vectors > 0)
-        {
-            for (int i = 0; vectors < items.Count; vectors++)
-            {
-                for (; items[i].Type == typeof(DVector); i++) ;
-                int j = i + 1;
-                for (; j < items.Count && items[j].Type != typeof(DVector); j++) ;
-                int count = j - i;
-                if (count == 1 && items.Count == 2)
-                    return typeof(DVector).New(items[0], items[1]);
-                items[i] = typeof(DVector).New(typeof(double).Make(items.GetRange(i, count)));
-                items.RemoveRange(i + 1, count - 1);
-            }
-            result = typeof(DVector).New(typeof(DVector).Make(items));
-        }
+            result = ConcatVectors<double, DVector>(vectors, items);
         else
         {
             if (period != 0 && items.Count - lastPeriod != period)
@@ -2113,15 +2084,16 @@ internal sealed partial class Parser : Scanner, IDisposable
     }
 
     /// <summary>Parses a date or integer vector literal.</summary>
+    /// <param name="itemError">Error message part for invalid items.</param>
     /// <returns>An expression creating the date/integer vector.</returns>
-    private Expression ParseVector(Type itemType, Type vectorType, string itemError)
+    private Expression ParseVector<TItem, TVector>(string itemError)
     {
         List<Expression> items = source.Rent(16);
         int vectors = 0;
         for (; ; )
         {
             Expression e = ParseLightConditional();
-            if (e.Type == itemType)
+            if (e.Type == typeof(TItem))
                 if (items.Count == 0 && kind == Token.Range)
                 {
                     Move();
@@ -2131,7 +2103,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
                 else
                     items.Add(e);
-            else if (e.Type == vectorType)
+            else if (e.Type == typeof(TVector))
             {
                 vectors++;
                 items.Add(e);
@@ -2148,26 +2120,36 @@ internal sealed partial class Parser : Scanner, IDisposable
             else
                 throw Error("Vector item separator expected");
         }
-        Expression result;
-        if (vectors > 0)
-        {
-            for (int i = 0; vectors < items.Count; vectors++)
-            {
-                for (; items[i].Type == vectorType; i++) ;
-                int j = i + 1;
-                for (; j < items.Count && items[j].Type != vectorType; j++) ;
-                int count = j - i;
-                if (count == 1 && items.Count == 2)
-                    return vectorType.New(items[0], items[1]);
-                items[i] = vectorType.New(itemType.Make(items.GetRange(i, count)));
-                items.RemoveRange(i + 1, count - 1);
-            }
-            result = vectorType.New(vectorType.Make(items));
-        }
-        else
-            result = vectorType.New(itemType.Make(items));
+        Expression result = vectors > 0
+            ? ConcatVectors<TItem, TVector>(vectors, items)
+            : typeof(TVector).New(typeof(TItem).Make(items));
         source.Return(items);
         return result;
+    }
+
+    /// <summary>
+    /// Creates a new vector expression by concatenating a specified number of vectors from a list of expressions.
+    /// </summary>
+    /// <remarks>The method groups consecutive expressions of the specified vector type and constructs a new
+    /// vector expression accordingly. The resulting expression will have the specified vector type and will contain the
+    /// concatenated items.</remarks>
+    /// <param name="vectors">The number of vectors to concatenate from the list of expressions.</param>
+    /// <param name="items">The list of expressions to be concatenated.</param>
+    /// <returns>An expression representing the concatenated vector constructed from the specified items.</returns>
+    private static NewExpression ConcatVectors<TItem, TVector>(int vectors, List<Expression> items)
+    {
+        for (int i = 0; vectors < items.Count; vectors++)
+        {
+            for (; items[i].Type == typeof(TVector); i++) ;
+            int j = i + 1;
+            for (; j < items.Count && items[j].Type != typeof(TVector); j++) ;
+            int count = j - i;
+            if (count == 1 && items.Count == 2)
+                return typeof(TVector).New(items[0], items[1]);
+            items[i] = typeof(TVector).New(typeof(TItem).Make(items.GetRange(i, count)));
+            items.RemoveRange(i + 1, count - 1);
+        }
+        return typeof(TVector).New(typeof(TVector).Make(items));
     }
 
     /// <summary>Parses a list comprehension expression.</summary>
@@ -2188,7 +2170,6 @@ internal sealed partial class Parser : Scanner, IDisposable
         // Check a colon for a filter expression.
         if (kind == Token.Colon)
         {
-            bool backtrack = false;
             Move();
             lambdaBlock.Add(Expression.Parameter(
                 eType == typeof(Series) ? typeof(Point<Date>) : iType, paramName));
@@ -2220,14 +2201,8 @@ internal sealed partial class Parser : Scanner, IDisposable
                         filter = lambdaBlock.Create(this, Expression.Call(
                             f, qual == "all" ? "All" : "Any", Type.EmptyTypes, filter), typeof(bool));
                     }
-                    else
-                        backtrack = true;
-                }
-                if (backtrack)
-                {
-                    lexCursor = savePos;
-                    id = qual;
-                    kind = Token.Id;
+                    else // Backtrack if it's not a qualified filter.
+                        (id, lexCursor, kind) = (qual, savePos, Token.Id);
                 }
             }
             // Parse the expression that filters the sequence.

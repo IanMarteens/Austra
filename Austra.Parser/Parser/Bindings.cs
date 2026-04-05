@@ -806,7 +806,9 @@ internal sealed class Bindings
             ["ivec.new"] = new(
                 typeof(NVector).MD(NArg),
                 typeof(NVector).MD(typeof(int), typeof(Func<int, int>)),
-                typeof(NVector).MD(typeof(int), typeof(Func<int, NVector, int>))),
+                typeof(NVector).MD(typeof(int), typeof(Func<int, NVector, int>)),
+                typeof(DVector).MD(typeof(Csv), typeof(string)),
+                typeof(DVector).MD(typeof(Csv), typeof(int))),
             ["ivec.ones"] = new(
                 typeof(NVector).MD(typeof(int), typeof(One))),
             ["ivec.random"] = new(
