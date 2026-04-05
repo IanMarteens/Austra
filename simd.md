@@ -6,6 +6,6 @@ These are the relevant classes:
 
 * [Simd](https://github.com/IanMarteens/Austra/blob/master/Austra.Library/Helpers/Simd.cs): Implements functions using AVX256 and AVX512 instructions.
 * [RandomAvx](https://github.com/IanMarteens/Austra/blob/master/Austra.Library/Helpers/RandomAvx.cs): Implements random number generation using AVX256 and AVX512 instructions, both for a uniform distribution and a normal distribution.
-* [Vec](https://github.com/IanMarteens/Austra/blob/master/Austra.Library/Helpers/Vec.cs): A static classes containing generic and non-generic functions to work with arrays and spans.
+* [Vec](https://github.com/IanMarteens/Austra/blob/master/Austra.Library/Helpers/Vec.cs): A static class containing generic and non-generic functions to work with arrays and spans.
 
 ## Simd
