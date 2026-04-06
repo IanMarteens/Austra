@@ -138,42 +138,6 @@ public class Csv
         return (from, to < 0 ? line.Length : to);
     }
 
-    /// <summary>Reads all lines from the configured CSV file.</summary>
-    /// <returns>A sequence of possibly filtered lines.</returns>
-    public IEnumerable<string> Read()
-    {
-        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
-        bool headerRead = !hasHeader;
-        foreach (string s in File.ReadLines(filename))
-        {
-            if (!headerRead)
-            {
-                if (filtering && filterColumn is not null)
-                {
-                    filterIndex = Array.IndexOf(s.Split(separator), filterColumn);
-                    if (filterIndex < 0)
-                    {
-                        filtering = false;
-                    }
-                }
-                // Skip the header line.
-                headerRead = true;
-                continue;
-            }
-            if (filtering)
-            {
-                var (from, to) = GetColumnBounds(0, s, filterIndex);
-                if (from < 0)
-                    continue;
-                if (s.AsSpan(from, to)
-                    .Equals(filterValue, StringComparison.OrdinalIgnoreCase))
-                    yield return s;
-            }
-            else
-                yield return s;
-        }
-    }
-
     /// <summary>
     /// Filters and project a substring and converts it to a provided type.
     /// </summary>
@@ -275,6 +239,63 @@ public class Csv
             if (TryParse(s, columnIndex, filtering, out T value))
                 yield return value;
         }
+    }
+
+    /// <summary>
+    /// Reads all rows from the configured CSV file and returns all values as an array of doubles,
+    /// along with the number of columns per row. Applies any configured filtering and handles headers as specified.
+    /// </summary>
+    /// <returns>
+    /// A tuple containing an array of all double values in the file and the number of columns per row.
+    /// </returns>
+    public (double[] items, int columns) ReadAll()
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        bool headerRead = !hasHeader;
+        List<double> result = [];
+        int columns = -1;
+        foreach (string s in File.ReadLines(filename))
+        {
+            if (!headerRead)
+            {
+                string[] headers = s.Split(separator);
+                if (filtering && filterColumn is not null)
+                {
+                    filterIndex = Array.IndexOf(headers, filterColumn);
+                    if (filterIndex < 0)
+                    {
+                        filtering = false;
+                    }
+                }
+                // Skip the header line.
+                headerRead = true;
+                columns = headers.Length;
+                continue;
+            }
+            // From now on, we expect a data row.
+            if (columns < 0)
+                columns = s.Split(separator).Length;
+            int saveLength = result.Count;
+            for (int c = 0, from = 0; c < columns; c++)
+            {
+                int to = s.IndexOf(separator, from);
+                if (to < 0)
+                    to = s.Length;
+                ReadOnlySpan<char> span = s.AsSpan(from, to - from);
+                if (filtering && filterIndex == c
+                    && !span.Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                    {
+                    result.RemoveRange(saveLength, result.Count - saveLength);
+                    break;
+                    }
+                if (double.TryParse(span, formatProvider, out double d))
+                    result.Add(d);
+                else
+                    result.Add(0.0);
+                from = to + 1;
+            }
+        }
+        return (result.ToArray(), columns);
     }
 
     /// <inheritdoc/>

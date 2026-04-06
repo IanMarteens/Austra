@@ -919,7 +919,8 @@ internal sealed class Bindings
                 typeof(Matrix).MD(NArg),
                 typeof(Matrix).MD(NNArg),
                 typeof(Matrix).MD(typeof(int), typeof(Func<int, int, double>)),
-                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>))),
+                typeof(Matrix).MD(typeof(int), typeof(int), typeof(Func<int, int, double>)),
+                typeof(Matrix).MD(typeof(Csv))),
             ["matrix.rows"] = new(
                 typeof(Matrix).MD(typeof(DVector[]))),
             ["matrix.cols"] = new(

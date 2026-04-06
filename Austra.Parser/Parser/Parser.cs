@@ -2474,8 +2474,7 @@ internal sealed partial class Parser : Scanner, IDisposable
 
     private bool IsQualifiedLambdaFunctor()
     {
-        int saveCursor = lexCursor;
-        string saveClassName = id;
+        (int saveCursor, string saveClassName) = (lexCursor, id);
         try
         {
             SkipFunctor();
@@ -2484,9 +2483,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         finally
         {
             // Backtrack to the original position.
-            lexCursor = saveCursor;
-            id = saveClassName;
-            kind = Token.ClassName;
+            (lexCursor, id, kind) = (saveCursor, saveClassName, Token.ClassName);
         }
     }
 
