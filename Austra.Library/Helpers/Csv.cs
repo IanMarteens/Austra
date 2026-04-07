@@ -115,7 +115,6 @@ public class Csv
     public Csv WithFilter(int columnIndex, string value)
     {
         var result = MemberwiseClone() as Csv;
-        result!.hasHeader = true;
         result!.filterColumn = null;
         result!.filterIndex = columnIndex;
         result!.filterValue = value;
@@ -296,6 +295,86 @@ public class Csv
             }
         }
         return (result.ToArray(), columns);
+    }
+
+    /// <summary>
+    /// Reads all rows from the configured CSV file and returns all values as an array of doubles,
+    /// along with the number of columns per row. Applies any configured filtering and handles headers as specified.
+    /// </summary>
+    /// <param name="columnIndexes">The indexes of the columns to parse and return.</param>
+    /// <returns>
+    /// A tuple containing an array of all double values in the file and the number of columns per row.
+    /// </returns>
+    public (double[] items, int columns) ReadAll(params int[] columnIndexes)
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        bool headerRead = !hasHeader;
+        List<double> result = [];
+        int[]? map = null;
+        double[] buffer = new double[columnIndexes.Length];
+        int columns = -1;
+        foreach (string s in File.ReadLines(filename))
+        {
+            if (!headerRead)
+            {
+                string[] headers = s.Split(separator);
+                if (filtering && filterColumn is not null)
+                {
+                    filterIndex = Array.IndexOf(headers, filterColumn);
+                    if (filterIndex < 0)
+                    {
+                        filtering = false;
+                    }
+                }
+                // Skip the header line.
+                headerRead = true;
+                columns = headers.Length;
+                continue;
+            }
+            // From now on, we expect a data row.
+            if (columns < 0)
+                columns = s.Split(separator).Length;
+            if (map == null)
+            {
+                map = new int[columns];
+                for (int i = 0, m = 1; i < columnIndexes.Length; i++, m <<= 1)
+                {
+                    int idx = columnIndexes[i];
+                    if ((uint)idx >= map.Length)
+                        throw new ArgumentOutOfRangeException(
+                            nameof(columnIndexes),
+                            $"Column index {idx} is out of range for a file with {columns} columns.");
+                    map[idx] |= m;
+                }
+            }
+            Array.Clear(buffer, 0, buffer.Length);
+            bool assigned = false;
+            for (int c = 0, from = 0; c < columns; c++)
+            {
+                int to = s.IndexOf(separator, from);
+                if (to < 0)
+                    to = s.Length;
+                ReadOnlySpan<char> span = s.AsSpan(from, to - from);
+                if (filtering && filterIndex == c
+                    && !span.Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    assigned = false;
+                    break;
+                }
+                if (map[c] != 0)
+                {
+                    assigned = true;
+                    _ = double.TryParse(span, formatProvider, out double d);
+                    for (int i = 0, m = 1; i < buffer.Length; i++, m <<= 1)
+                        if ((map[c] & m) != 0)
+                            buffer[i] = d;
+                }
+                from = to + 1;
+            }
+            if (assigned)
+                result.AddRange(buffer);
+        }
+        return (result.ToArray(), columnIndexes.Length);
     }
 
     /// <inheritdoc/>

@@ -178,6 +178,23 @@ public readonly struct Matrix :
         values = items;
     }
 
+    /// <summary>
+    /// Creates a matrix by importing all columns and rows from a CSV file.
+    /// </summary>
+    /// <param name="csvFile">The CSV file.</param>
+    /// <param name="sourceIndexes">Indexes from columns in the CSV to be read.</param>
+    /// <exception cref="MatrixSizeException">
+    /// If the total number of items is not a multiple of the number of columns.
+    /// </exception>
+    public Matrix(Csv csvFile, int[] sourceIndexes)
+    {
+        (double[] items, Cols) = csvFile.ReadAll(sourceIndexes);
+        Rows = items.Length / Cols;
+        if (Rows * Cols != items.Length)
+            throw new MatrixSizeException();
+        values = items;
+    }
+
     /// <summary>Creates an identity matrix given its size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
