@@ -23,9 +23,10 @@
     <Language>en-US</Language>
     <DocumentationSources>
       <DocumentationSource sourceFile="..\Austra.Library\bin\Release\net10.0\Austra.Library.dll" />
-<DocumentationSource sourceFile="..\Austra.Library\bin\Release\net10.0\Austra.Library.xml" />
-<DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net10.0\Austra.Parser.xml" />
-<DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net10.0\Austra.Parser.dll" /></DocumentationSources>
+      <DocumentationSource sourceFile="..\Austra.Library\bin\Release\net10.0\Austra.Library.xml" />
+      <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net10.0\Austra.Parser.xml" />
+      <DocumentationSource sourceFile="..\Austra.Parser\bin\Release\net10.0\Austra.Parser.dll" />
+    </DocumentationSources>
     <HelpFileFormat>HtmlHelp1</HelpFileFormat>
     <SyntaxFilters>C#</SyntaxFilters>
     <PresentationStyle>VS2013</PresentationStyle>

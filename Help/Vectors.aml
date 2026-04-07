@@ -14,7 +14,7 @@
 		<para>Commas are mandatory for separating items, and white space and line feeds are always ignored.</para>
 		<para>Bracket lists can be also used to concatenate the content of several vectors, and you can add scalars to the mix:</para>
 		<code language="Austra">
-<markup><b>let</b></markup> v1=[1, 2], v2=[3, 4];
+<markup><font color="RoyalBlue"><b>let</b></font></markup> v1=[1, 2], v2=[3, 4];
 <markup><font color="DarkGreen">-- Returns a vector with 4 items.</font></markup>
 [v1, v2];
 <markup><font color="DarkGreen">-- This also is accepted:</font></markup>
@@ -60,6 +60,21 @@ vec(10, i => i + 1)
 <markup><font color="DarkGreen">-- Mimics a periodic function.</font></markup>
 vec(1024, i => sin(i*pi/512) + 0.8*cos(i*pi/256))
 			  </code>
+			  <para>A vector can also be read from a CSV file using one of two methods:</para>
+        	  <code language="Austra">
+<markup><font color="RoyalBlue"><b>let</b></font></markup> curves = csv("curves.csv") 
+    .withHeader.withSeparator(",").withFormat("EN-US");
+<markup><font color="DarkGreen">-- Using a column name from the header, if available.</font></markup>
+vec(curves, "Discount factor");
+<markup><font color="DarkGreen">-- Using the column position inside the file.</font></markup>
+vec(curves, 15); 
+			  </code>
+			  <para>The content of the file can be filtered using one of the two variants of the 
+<codeInline>withFilter()</codeInline> method:</para>
+        	  <code language="Austra">
+vec(curves.withFilter("Curve name", "SONIA"), "Discount factor"); 
+vec(curves.withFilter(1, "SONIA"), "Discount factor"); 
+			  </code>		  
         	  <para><codeInline>vec::new</codeInline> can also be used to create a linear combination of vectors:</para>
         	  <code language="Austra">
 vec([0.5, 0.1, 0.7, 0.2], v1, v2, v3)
@@ -500,6 +515,7 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
     	    <entry><para>Creates a vector with random values from a uniform distribution.</para></entry>
   		  </row>
 	    </table>
+	    <para>You can import integer vectors from a CSV file using the same technique as with real-valued vectors.</para>
         <para><codeInline>ivec::random</codeInline> has three overloaded variants:</para>
 		<code language="Austra">
 <markup><font color="DarkGreen">-- Ten items. Values between <codeInline>0</codeInline> and <codeInline>int.MaxValue - 1</codeInline>.</font><br/>
@@ -512,7 +528,7 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
         <para>Integer vector literals can be created using this notation:</para>
 		<code language="Austra">
 <markup><font color="DarkGreen">-- Integer vector creation.</font><br/>
-<b>let</b></markup> v1 = [<markup><b>int</b></markup>: 1, 2, 3, 4];
+<font color="RoyalBlue"><b>let</b></font></markup> v1 = [<markup><b>int</b></markup>: 1, 2, 3, 4];
 <markup><font color="DarkGreen">-- Integer vector concatenation.</font></markup>
 [<markup><b>int</b></markup>: v1, 5, v1.reverse];
 		</code>
@@ -624,12 +640,31 @@ cvec(100, (i, v) => polar(2π*i/10) - 0.01 * i * v{i-1})
       <title>Date vectors</title>
       <content>
         <para>Date vectors are implemented by the <codeInline>dvec</codeInline> class. They are mainly intended to support the arguments vector from time series.</para>
+	    <table>
+  		  <row>
+    	    <entry><para><codeInline>dvec::new</codeInline></para></entry>
+    	    <entry><para>Overloaded constructor.</para></entry>
+  		  </row>
+  		  <row>
+    	    <entry><para><codeInline>dvec::random</codeInline></para></entry>
+    	    <entry><para>Creates a vector with random dates between a range, using a uniform distribution.</para></entry>
+  		  </row>
+	    </table>
+        <para>A date vector can also be read from a CSV file using the same technique as the used for reading a numeric vector:</para>
+        <code language="Austra">
+<markup><font color="RoyalBlue"><b>let</b></font></markup> curves = csv("curves.csv")
+    .withHeader.withSeparator(",").withFormat("EN-US");
+<markup><font color="DarkGreen">-- Using a column name from the header, if available.</font></markup>
+dvec(curves, "Knot maturity");
+<markup><font color="DarkGreen">-- Using the column position inside the file and a filter.</font></markup>
+dvec(curves.withFilter("Curve name", "SONIA"), 11);
+        </code>
 		<para>Date vector literals can be created using this notation:</para>
 		<code language="Austra">
 <markup><font color="DarkGreen">-- Date vector creation.</font><br/>
-<b>let</b></markup> v1 = [<markup><b><font color="DarkCyan">date</font></b></markup>:jan2024, feb2024, 4@jul24];
+<font color="RoyalBlue"><b>let</b></font></markup> v1 = [<markup><b><font color="DarkCyan">date</font></b></markup>:jan2024, feb2024, 4@jul24];
 <markup><font color="DarkGreen">-- The type indicator can be omited.</font><br/>
-<b>let</b></markup> v1 = [jan2024, feb2024, 4@jul24];
+<font color="RoyalBlue"><b>let</b></font></markup> v1 = [jan2024, feb2024, 4@jul24];
 <markup><font color="DarkGreen">-- Date vector concatenation.</font></markup>
 [<markup><b><font color="DarkCyan">date</font></b></markup>:v1, 25@dec24, v1.reverse];
 		</code>

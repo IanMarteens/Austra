@@ -142,15 +142,15 @@ seq(1.5, 10.6);     <markup><font color="DarkGreen">-- Numbers from 1 to 10, too
 				  </row>
 	 			  <row>
 	 			    <entry><para><codeInline>first</codeInline></para></entry>
-	 		    	<entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.First</codeEntityReference>.</para></entry>
+	 		    	<entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.First</codeEntityReference>.</para></entry>
 				  </row>
 	 			  <row>
 	 			    <entry><para><codeInline>last</codeInline></para></entry>
-			    	<entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Last</codeEntityReference>.</para></entry>
+			    	<entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Last</codeEntityReference>.</para></entry>
 				  </row>
 		 		  <row>
 	 			    <entry><para><codeInline>length</codeInline></para></entry>
-	 			    <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Length</codeEntityReference>.</para></entry>
+	 			    <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Length</codeEntityReference>.</para></entry>
 				  </row>
 	 			  <row>
 	 			    <entry><para><codeInline>max</codeInline></para></entry>
@@ -197,11 +197,11 @@ seq(1.5, 10.6);     <markup><font color="DarkGreen">-- Numbers from 1 to 10, too
 				<table>
 		 		  <row>
 		 		    <entry><para><codeInline>all</codeInline></para></entry>
-		 		    <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		 		    <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 				  </row>
 		 		  <row>
 		 		    <entry><para><codeInline>any</codeInline></para></entry>
-		 		    <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		 		    <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 				  </row>
 		 		  <row>
 		 		    <entry><para><codeInline>ar</codeInline></para></entry>
@@ -229,15 +229,15 @@ seq(1.5, 10.6);     <markup><font color="DarkGreen">-- Numbers from 1 to 10, too
 				  </row>
 		 		  <row>
 		 		    <entry><para><codeInline>reduce</codeInline></para></entry>
-		 		    <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
+		 		    <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
 				  </row>
 		 		  <row>
 		 		    <entry><para><codeInline>until</codeInline></para></entry>
-		 		    <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		 		    <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 				  </row>
 		 		  <row>
 		 		    <entry><para><codeInline>while</codeInline></para></entry>
-		 		    <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		 		    <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 				  </row>
 		 		  <row>
 		 		    <entry><para><codeInline>zip</codeInline></para></entry>
@@ -304,15 +304,15 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>first</codeInline></para></entry>
-	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.First</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.First</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>last</codeInline></para></entry>
-	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Last</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Last</codeEntityReference>.</para></entry>
 	 		    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>length</codeInline></para></entry>
-	 		      <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Length</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Length</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>max</codeInline></para></entry>
@@ -355,11 +355,11 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 			  <table>
 	 		    <row>
 	 		      <entry><para><codeInline>all</codeInline></para></entry>
-	 		      <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+	 		      <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>any</codeInline></para></entry>
-	 		      <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+	 		      <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>filter</codeInline></para></entry>
@@ -375,15 +375,15 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>reduce</codeInline></para></entry>
-	 		      <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
+	 		      <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
  		    	  <entry><para><codeInline>until</codeInline></para></entry>
- 		    	  <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 		  		</row>
  		  		<row>
  		    	  <entry><para><codeInline>while</codeInline></para></entry>
- 		    	  <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 		  		</row>
 	 		    <row>
 	 		      <entry><para><codeInline>zip</codeInline></para></entry>
@@ -448,15 +448,15 @@ collatz(137)
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>first</codeInline></para></entry>
-	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.First</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.First</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>last</codeInline></para></entry>
-	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Last</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Last</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>length</codeInline></para></entry>
-	 		      <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Length</codeEntityReference>.</para></entry>
+	 		      <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Length</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>plot</codeInline></para></entry>
@@ -479,11 +479,11 @@ collatz(137)
 			  <table>
 	 		    <row>
 	 		      <entry><para><codeInline>all</codeInline></para></entry>
-	 		      <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+	 		      <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>any</codeInline></para></entry>
-	 		      <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+	 		      <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>filter</codeInline></para></entry>
@@ -499,15 +499,15 @@ collatz(137)
 			    </row>
 	 		    <row>
 	 		      <entry><para><codeInline>reduce</codeInline></para></entry>
-	 		      <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
+	 		      <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
 			    </row>
 	 		    <row>
  		    	  <entry><para><codeInline>until</codeInline></para></entry>
- 		    	  <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 		  		</row>
  		  		<row>
  		    	  <entry><para><codeInline>while</codeInline></para></entry>
- 		    	  <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
 		  		</row>
 	 		    <row>
 	 		      <entry><para><codeInline>zip</codeInline></para></entry>
