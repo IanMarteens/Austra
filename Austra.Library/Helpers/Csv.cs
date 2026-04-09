@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Austra.Library;
 
@@ -171,6 +172,7 @@ public class Csv
     }
 
     /// <summary>Reads all lines from the configured CSV file.</summary>
+    /// <typeparam name="T">The type to convert the column values to.</typeparam>
     /// <param name="columnName">The name of a numeric column to return.</param>
     /// <returns>A sequence of possibly filtered lines.</returns>
     public IEnumerable<T> ReadColumn<T>(string columnName)
@@ -208,6 +210,7 @@ public class Csv
     }
 
     /// <summary>Reads all lines from the configured CSV file.</summary>
+    /// <typeparam name="T">The type to convert the column values to.</typeparam>
     /// <param name="columnIndex">The index of a numeric column to return.</param>
     /// <returns>A sequence of possibly filtered lines.</returns>
     public IEnumerable<T> ReadColumn<T>(int columnIndex)
@@ -283,10 +286,10 @@ public class Csv
                 ReadOnlySpan<char> span = s.AsSpan(from, to - from);
                 if (filtering && filterIndex == c
                     && !span.Equals(filterValue, StringComparison.OrdinalIgnoreCase))
-                    {
+                {
                     result.RemoveRange(saveLength, result.Count - saveLength);
                     break;
-                    }
+                }
                 if (double.TryParse(span, formatProvider, out double d))
                     result.Add(d);
                 else
@@ -322,9 +325,7 @@ public class Csv
                 {
                     filterIndex = Array.IndexOf(headers, filterColumn);
                     if (filterIndex < 0)
-                    {
                         filtering = false;
-                    }
                 }
                 // Skip the header line.
                 headerRead = true;
@@ -375,6 +376,68 @@ public class Csv
                 result.AddRange(buffer);
         }
         return (result.ToArray(), columnIndexes.Length);
+    }
+
+    /// <summary>Read points for a series from the configured CSV file.</summary>
+    /// <param name="dateIndex">Index of column containing the dates.</param>
+    /// <param name="valueIndex">Index of column containing the values.</param>
+    /// <returns>The list of points for the series.</returns>
+    public Point<Date>[] ReadSeries(int dateIndex, int valueIndex)
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        bool headerRead = !hasHeader;
+        int columns = -1;
+        List<Point<Date>> result = [];
+        foreach (string s in File.ReadLines(filename))
+        {
+            if (!headerRead)
+            {
+                string[] headers = s.Split(separator);
+                if (filtering && filterColumn is not null)
+                {
+                    filterIndex = Array.IndexOf(headers, filterColumn);
+                    if (filterIndex < 0)
+                        filtering = false;
+                }
+                // Skip the header line.
+                headerRead = true;
+                columns = headers.Length;
+                continue;
+            }
+            if (columns < 0)
+                columns = s.Split(separator).Length;
+            Date? date = null;
+            double? value = null;
+            for (int c = 0, from = 0; c < columns; c++)
+            {
+                int to = s.IndexOf(separator, from);
+                if (to < 0)
+                    to = s.Length;
+                ReadOnlySpan<char> span = s.AsSpan(from, to - from);
+                if (filtering && filterIndex == c
+                    && !span.Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    date = null;
+                    break;
+                }
+                if (c == dateIndex)
+                {
+                    if (!Date.TryParse(span, formatProvider, out Date d))
+                        break;
+                    date = d;
+                }
+                else if (c == valueIndex)
+                {
+                    if (!double.TryParse(span, formatProvider, out double d))
+                        break;
+                    value = d;
+                }
+                from = to + 1;
+            }
+            if (date is not null && value is not null)
+                result.Add(new Point<Date>(date.Value, value.Value));
+        }
+        return [.. result];
     }
 
     /// <inheritdoc/>

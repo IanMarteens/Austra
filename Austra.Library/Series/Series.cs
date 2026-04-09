@@ -64,6 +64,21 @@ public sealed class Series : Series<Date>,
     public Series(string name, string? ticker, double[] values, Series anchor)
         : base(name, ticker, anchor.args, values, anchor.Type) => Freq = anchor.Freq;
 
+    /// <summary>Imports a series from a CSV file.</summary>
+    /// <param name="name">The name for the series.</param>
+    /// <param name="csv">The CSV file wrapper.</param>
+    /// <param name="dateIndex">The index of the column with dates.</param>
+    /// <param name="valueIndex">The index of the column with values.</param>
+    /// <returns>A new series with the given name.</returns>
+    public static Series FromCsv(string name, Csv csv, int dateIndex, int valueIndex)
+    {
+        var points = csv.ReadSeries(dateIndex, valueIndex);
+        Array.Sort(points, (p1, p2) => p2.Arg.CompareTo(p1.Arg));
+        return new Series(name, null,
+            [.. points.Select(p => p.Arg)], [.. points.Select(p => p.Value)],
+            SeriesType.Raw, Frequency.Other);
+    }
+
     /// <summary>
     /// Transforms a <see cref="Series{T}"/> into a <see cref="Series"/>.
     /// </summary>

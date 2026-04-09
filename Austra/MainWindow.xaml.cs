@@ -91,43 +91,53 @@ public partial class MainWindow : Window
                 if (offset == 0)
                     ShowCodeCompletion(RootModel.Instance.GetRoots(0, ""));
                 else if (offset > 0)
-                {
-                    string fragment = GetFragment(0);
-                    if (IsIdentifier(fragment))
+                    try
                     {
-                        ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
-                        completionWindow!.StartOffset = offset - fragment.Length;
-                    }
-                    else
-                    {
-                        fragment = fragment.TrimEnd();
-                        if (fragment.EndsWith('.'))
-                            ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
-                        else if (fragment.EndsWith('('))
+                        string fragment = GetFragment(0);
+                        if (IsIdentifier(fragment))
                         {
-                            if (fragment.Length > 2 && char.IsLetterOrDigit(fragment[^2]))
-                                ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
-                        }
-                        else if (fragment.EndsWith(','))
                             ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
-                        else if (fragment.EndsWith("::"))
-                            ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
+                            completionWindow!.StartOffset = offset - fragment.Length;
+                        }
+                        else
+                        {
+                            fragment = fragment.TrimEnd();
+                            if (fragment.EndsWith('.'))
+                                ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
+                            else if (fragment.EndsWith('('))
+                            {
+                                if (fragment.Length > 2 && char.IsLetterOrDigit(fragment[^2]))
+                                    ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
+                            }
+                            else if (fragment.EndsWith(','))
+                                ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
+                            else if (fragment.EndsWith("::"))
+                                ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
+                        }
                     }
-                }
+                    catch { }
             }
 
         static bool IsIdentifier(string s) => s.Length > 0 &&
             char.IsLetter(s[0]) && s.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
 
-    private void TextArea_TextEntered(object sender, TextCompositionEventArgs e) =>
-        ShowCodeCompletion(e.Text == "."
-            ? RootModel.Instance.GetMembers(GetFragment())
-            : e.Text == ":"
-            ? RootModel.Instance.GetClassMembers(GetFragment())
-            : e.Text == "("
-            ? RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text)
-            : null);
+    private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
+    {
+        try
+        {
+            ShowCodeCompletion(e.Text == "."
+                ? RootModel.Instance.GetMembers(GetFragment())
+                : e.Text == ":"
+                ? RootModel.Instance.GetClassMembers(GetFragment())
+                : e.Text == "("
+                ? RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text)
+                : null);
+        }
+        catch
+        {
+        }
+    }
 
     private string GetFragment(int delta = 1) => avalon.Document.GetText(0, avalon.CaretOffset - delta);
 
