@@ -177,8 +177,16 @@ extProduct! = extProduct
 	 		      <entry><para>Real, complex, and integer vectors.</para></entry>
 			    </row>
 	 		    <row>
+	 		      <entry><para><codeInline>dvec</codeInline></para></entry>
+	 		      <entry><para>Date vectors.</para></entry>
+			    </row>
+	 		    <row>
 	 		      <entry><para><codeInline>seq</codeInline>, <codeInline>cseq</codeInline>, <codeInline>iseq</codeInline></para></entry>
 	 		      <entry><para>Real, complex, and integer sequences.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>dseq</codeInline></para></entry>
+	 		      <entry><para>Date sequences.</para></entry>
 			    </row>
 			  </table>
       		  <para>Arrays can be specified adding two brackets after a type name. Function types follows this convention:</para>

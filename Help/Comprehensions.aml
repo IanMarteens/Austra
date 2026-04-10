@@ -9,17 +9,29 @@
       <content>
         <para>Suppose you need to write a formula like this one:</para>
         <code language="Austra">
-seq(1, 100).filter(x =&gt; x.odd).map(x =&gt; x^2)
+iseq(1, 100).filter(x =&gt; x.odd).map(x =&gt; x<sup>2</sup>)
         </code>
         <para>It is not a candidate for the Turing Award: it takes the squares of all odd numbers between 0 and 100. You had to type two lambda functions, including arrows and lambda parameters, and you also had to explicitly mention the <codeInline>filter</codeInline> and the <codeInline>map</codeInline> methods, including the parentheses enclosing their arguments.</para>
         <para>This alternative expression does the same, is shorter to type and easier to read:</para>
         <code language="Austra">
-[x &lt;- seq(1, 100) : x.odd =&gt; x^2]
+[x &lt;- iseq(1, 100) : x.odd =&gt; x<sup>2</sup>]
         </code>
         <para>With this trick, we have avoided repeating the declaration of the parameter <codeInline>x</codeInline> in the two lambda definitions used in the expression.</para>
         <para>In this example, since the source of all numbers is a range sequence, you could also use a simpler expression for the range:</para>
         <code language="Austra">
-[x &lt;- 1..100 : x.odd =&gt; x^2]
+[x &lt;- 1..100 : x.odd =&gt; x<sup>2</sup>]
+        </code>
+        <para>The new syntax even takes care of any type conversion performed by the mapper.</para>
+        <code language="Austra">
+<markup><font color="DarkGreen">-- This expression doesn’t compile!!!</font></markup>
+iseq(1, 100).filter(x => x.odd).map(x => sqrt(x));
+<markup><font color="DarkGreen">-- We need to use mapReal.</font></markup>
+iseq(1, 100).filter(x => x.odd).mapReal(x => sqrt(x));
+        </code>        
+        <para>However, if we perform the change in the list comprehension, the compiler automatically picks <codeInline>mapReal</codeInline> for the mapper:</para>
+        <code language="Austra">
+<markup><font color="DarkGreen">-- A-OK!</font></markup>
+[x &lt;- 1..100 : x.odd =&gt; sqrt(x)]
         </code>
         <para>The syntax for this construct can be summarized like this:</para>
         <code language="Austra">
@@ -74,6 +86,9 @@ seq(1, 100)
         	  <code language="Austra">
 [x &lt;- pi - 1..32 * 32..sqrt(200)];
         	  </code>
+        	  <para>Any data type compatible with a sequence, such as vectors, series and matrices, can 
+also be used in a generator, instead of a range. The compiler takes care of creating a 
+sequence from the source.</para>
             </content>
           </section>
         </sections>
