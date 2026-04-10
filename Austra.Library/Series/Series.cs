@@ -79,6 +79,21 @@ public sealed class Series : Series<Date>,
             SeriesType.Raw, Frequency.Other);
     }
 
+    /// <summary>Imports a series from a CSV file.</summary>
+    /// <param name="name">The name for the series.</param>
+    /// <param name="csv">The CSV file wrapper.</param>
+    /// <param name="dateColumn">The name of the column with dates.</param>
+    /// <param name="valueColumn">The name of the column with values.</param>
+    /// <returns>A new series with the given name.</returns>
+    public static Series FromCsv(string name, Csv csv, string dateColumn, string valueColumn)
+    {
+        var points = csv.ReadSeries(dateColumn, valueColumn);
+        Array.Sort(points, (p1, p2) => p2.Arg.CompareTo(p1.Arg));
+        return new Series(name, null,
+            [.. points.Select(p => p.Arg)], [.. points.Select(p => p.Value)],
+            SeriesType.Raw, Frequency.Other);
+    }
+
     /// <summary>
     /// Transforms a <see cref="Series{T}"/> into a <see cref="Series"/>.
     /// </summary>

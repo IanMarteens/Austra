@@ -1003,7 +1003,8 @@ internal sealed class Bindings
                     typeof(Func<double, double, double>))),
             ["series.new"] = new(
                 typeof(Series).MD(nameof(Series.Combine), typeof(DVector), typeof(Series[])),
-                typeof(Series).MD(nameof(Series.FromCsv), typeof(string), typeof(Csv), typeof(int), typeof(int))),
+                typeof(Series).MD(nameof(Series.FromCsv), typeof(string), typeof(Csv), typeof(int), typeof(int)),
+                typeof(Series).MD(nameof(Series.FromCsv), typeof(string), typeof(Csv), typeof(string), typeof(string))),
             ["spline.new"] = new(
                 typeof(DateSpline).MD(typeof(Series)),
                 typeof(VectorSpline).MD(VVArg),

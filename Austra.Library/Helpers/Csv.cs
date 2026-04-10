@@ -378,6 +378,55 @@ public class Csv
         return (result.ToArray(), columnIndexes.Length);
     }
 
+    /// <summary>
+    /// Parses a delimited string and, if valid, adds a new point with date and value information to the specified
+    /// result list.
+    /// </summary>
+    /// <remarks>If filtering is enabled and the filter condition is not met, no point is added to the result
+    /// list. The method expects the input string to contain at least as many columns as specified by the 'columns'
+    /// parameter.</remarks>
+    /// <param name="s">The delimited string containing the data fields to parse.</param>
+    /// <param name="columns">The total number of columns expected in the input string.</param>
+    /// <param name="dateIndex">The zero-based index of the column containing the date value.</param>
+    /// <param name="valueIndex">The zero-based index of the column containing the numeric value.</param>
+    /// <param name="filtering">A value indicating whether to apply filtering based on a specific column value.</param>
+    /// <param name="result">The list to which the parsed point is added if the input is valid.</param>
+    private void AddPoint(
+        string s, int columns, int dateIndex, int valueIndex,
+        bool filtering, List<Point<Date>> result)
+    {
+        Date? date = null;
+        double? value = null;
+        for (int c = 0, from = 0; c < columns; c++)
+        {
+            int to = s.IndexOf(separator, from);
+            if (to < 0)
+                to = s.Length;
+            ReadOnlySpan<char> span = s.AsSpan(from, to - from);
+            if (filtering && filterIndex == c
+                && !span.Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+            {
+                date = null;
+                break;
+            }
+            if (c == dateIndex)
+            {
+                if (!Date.TryParse(span, formatProvider, out Date d))
+                    break;
+                date = d;
+            }
+            else if (c == valueIndex)
+            {
+                if (!double.TryParse(span, formatProvider, out double d))
+                    break;
+                value = d;
+            }
+            from = to + 1;
+        }
+        if (date is not null && value is not null)
+            result.Add(new Point<Date>(date.Value, value.Value));
+    }
+
     /// <summary>Read points for a series from the configured CSV file.</summary>
     /// <param name="dateIndex">Index of column containing the dates.</param>
     /// <param name="valueIndex">Index of column containing the values.</param>
@@ -406,36 +455,46 @@ public class Csv
             }
             if (columns < 0)
                 columns = s.Split(separator).Length;
-            Date? date = null;
-            double? value = null;
-            for (int c = 0, from = 0; c < columns; c++)
+            AddPoint(s, columns, dateIndex, valueIndex, filtering, result);
+        }
+        return [.. result];
+    }
+
+    /// <summary>Read points for a series from the configured CSV file.</summary>
+    /// <param name="dateColumn">Name of the column containing the dates.</param>
+    /// <param name="valueColumn">Name of the column containing the values.</param>
+    /// <returns>The list of points for the series.</returns>
+    public Point<Date>[] ReadSeries(string dateColumn, string valueColumn)
+    {
+        bool filtering = filterValue is not null && (filterIndex >= 0 || filterColumn is not null);
+        bool headerRead = false;
+        int columns = -1, dateIndex = -1, valueIndex = -1;
+        List<Point<Date>> result = [];
+        foreach (string s in File.ReadLines(filename))
+        {
+            if (!headerRead)
             {
-                int to = s.IndexOf(separator, from);
-                if (to < 0)
-                    to = s.Length;
-                ReadOnlySpan<char> span = s.AsSpan(from, to - from);
-                if (filtering && filterIndex == c
-                    && !span.Equals(filterValue, StringComparison.OrdinalIgnoreCase))
+                string[] headers = s.Split(separator);
+                if (filtering && filterColumn is not null)
                 {
-                    date = null;
+                    filterIndex = Array.IndexOf(headers, filterColumn);
+                    if (filterIndex < 0)
+                        filtering = false;
+                }
+                dateIndex = Array.IndexOf(headers, dateColumn);
+                valueIndex = Array.IndexOf(headers, valueColumn);
+                if (dateIndex < 0 || valueIndex < 0)
                     break;
-                }
-                if (c == dateIndex)
-                {
-                    if (!Date.TryParse(span, formatProvider, out Date d))
-                        break;
-                    date = d;
-                }
-                else if (c == valueIndex)
-                {
-                    if (!double.TryParse(span, formatProvider, out double d))
-                        break;
-                    value = d;
-                }
-                from = to + 1;
+                // Skip the header line.
+                headerRead = true;
+                columns = headers.Length;
             }
-            if (date is not null && value is not null)
-                result.Add(new Point<Date>(date.Value, value.Value));
+            else
+            {
+                if (columns < 0)
+                    columns = s.Split(separator).Length;
+                AddPoint(s, columns, dateIndex, valueIndex, filtering, result);
+            }
         }
         return [.. result];
     }
