@@ -163,7 +163,7 @@ and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInli
 		    <content>
 		    <para>Integer values support the <codeInline>even</codeInline> and <codeInline>odd</codeInline> properties for easy testing of parity:</para>
 		    <code language="Austra">
-iff(e.toInt.even, "Truncated to 2", "Rounded to 3")		    
+iff(e.toInt.even, <markup><font color="DarkRed">"Truncated to 2"</font>, <font color="DarkRed">"Rounded to 3"</font></markup>)		    
 			</code>
 		    </content>
 		  </section>
@@ -478,6 +478,11 @@ Newton-Raphson algorithm.</para>
 		    <entry><para>Subtracts a number of days from a date. The left operand must be a date. It can also be used to find the difference in days between two dates.</para></entry>
 		  </row>
 	    </table>
+	    <para>Though the value returned by the <codeInline>dow</codeInline> property of a date is technically an enumerative value, you still can compare it to a string constant:</para>
+	    <code language="Austra">
+[d &lt;- today..today+365 : d.dow = <markup><font color="DarkRed">"Saturday"</font></markup>]
+        </code>
+        <para>All enumerative values in Austra allow this conversion.</para>
       </content>
     </section>
     <section address="Section5">
@@ -517,10 +522,10 @@ iff(aapl.mean &lt; msft.mean, aapl.mean, msft.mean)
 			<para>Most of the times, the more verbose ternary operator is easier to read. The ternary operator has another advantage: you can chain several conditions and responses using the <codeInline>elif</codeInline> keyword.</para>
 		    <code language="Austra">
 <markup><b>let</b></markup> x = random;
-<markup><b>if</b></markup> x &lt; 0.1 <markup><b>then</b></markup> "Too low!"
-<markup><b>elif</b></markup> x &lt; 0.5 <markup><b>then</b></markup> "A little low"
-<markup><b>elif</b></markup> x &lt; 0.9 <markup><b>then</b></markup> "A little high"
-<markup><b>else</b></markup> "Too high!"
+<markup><b>if</b></markup> x &lt; 0.1 <markup><b>then</b><font color="DarkRed"> "Too low!"</font><br/></markup>
+<markup><b>elif</b></markup> x &lt; 0.5 <markup><b>then</b><font color="DarkRed"> "A little low"</font><br/></markup>
+<markup><b>elif</b></markup> x &lt; 0.9 <markup><b>then</b><font color="DarkRed"> "A little high"</font><br/></markup>
+<markup><b>else</b><font color="DarkRed"> "Too high!"</font></markup>
 			</code>			
             </content>
           </section>
@@ -534,22 +539,22 @@ iff(aapl.mean &lt; msft.mean, aapl.mean, msft.mean)
 by vectors and series for importing data from files.</para> 
         <para>An instance of the csv type is created like this:</para>
 		    <code language="Austra">
-<markup><b>let</b></markup> csv1 = csv("c:\folder\file.csv");;
-<markup><b>let</b></markup> csv2 = csv("anotherFile.csv");;
+<markup><font color="RoyalBlue"><b>let</b></font></markup> csv1 = csv(<markup><font color="DarkRed">"c:\folder\file.csv"</font></markup>);
+<markup><font color="RoyalBlue"><b>let</b></font></markup> csv2 = csv(<markup><font color="DarkRed">"anotherFile.csv"</font></markup>);
 			</code>
 			<para>There’s only one argument: the file name. In the first example, we provide an abso
 lute path to the file. When a relative path is provided, as in the second example, Austra tries to locate the file either
 in the user documents folder or in the <codeInline>austra</codeInline> subfolder of the user documents path.</para>
             <para>Since <codeInline>csv</codeInline> class instances are immutable, properties must be modified using methods that creates new instances with the required changes:</para>
 		    <code language="Austra">
-<markup><b>let</b></markup> csv = csv("curves.csv"); 
-<markup><b>let</b></markup> csv = csv.withHeader.withSeparator(",").withFormat("EN-US");
+<markup><font color="RoyalBlue"><b>let</b></font></markup> csv = csv(<markup><font color="DarkRed">"curves.csv"</font></markup>); 
+<markup><font color="RoyalBlue"><b>let</b></font></markup> csv = csv.withHeader.withSeparator(",").withFormat("EN-US");
 			</code>
 			<para>Note that without the reassignment at the second line, the local variable would keep 
 its initial properties. You can also create a definition if you use a CSV file frequently 
 enough to deserve it:</para>
 		    <code language="Austra">
-<markup><b>def</b></markup> curves = csv("curves.csv")
+<markup><font color="RoyalBlue"><b>def</b></font></markup> curves = csv(<markup><font color="DarkRed">"curves.csv"</font></markup>)
     .withHeader.withSeparator(",").withFormat("EN-US");
 			</code>
 			<para>Columns from the CSV file can then be read as vectors:</para>

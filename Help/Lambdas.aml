@@ -74,7 +74,7 @@ prices.map(x => min(x, 1000))
 	  <section address="opfree">
 	  	<title>Binary operators as lambdas</title>
 	  	<content>
-	  	  <para>You can also use a binary operator as a shortcut for a lambda definition. This code uses the <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Sequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference> method on a sequence of integers for summing all items in the sequence:</para>
+	  	  <para>You can also use a binary operator as a shortcut for a lambda definition. This code uses the <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference> method on a sequence of integers for summing all items in the sequence:</para>
 	  	  <code language="Austra">
 iseq(1, 10).reduce(0, (x, y) =&gt; x + y)
 	  	  </code>

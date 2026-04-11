@@ -1069,6 +1069,7 @@ internal sealed class Bindings
             [new(typeof(Complex), "magnitude")] = typeof(Complex).Prop(nameof(Complex.Magnitude)),
             [new(typeof(Complex), "mag")] = typeof(Complex).Prop(nameof(Complex.Magnitude)),
             [new(typeof(Complex), "phase")] = typeof(Complex).Prop(nameof(Complex.Phase)),
+            [new(typeof(Complex), "φ")] = typeof(Complex).Prop(nameof(Complex.Phase)),
 
             [new(typeof(CSequence), "distinct")] = typeof(CSequence).Get(nameof(CSequence.Distinct)),
             [new(typeof(CSequence), "first")] = typeof(CSequence).Get(nameof(CSequence.First)),
