@@ -2445,6 +2445,10 @@ internal sealed partial class Parser : Scanner, IDisposable
                 e1 = ToLong(e1);
             else if (e2.Type == typeof(int) && e1.Type == typeof(long))
                 e2 = ToLong(e2);
+            else if (e1.Type.IsEnum && e2 is ConstantExpression { Value: string v2 } && Enum.IsDefined(e1.Type, v2))
+                e2 = Expression.Constant(Enum.Parse(e1.Type, v2));
+            else if (e2.Type.IsEnum && e1 is ConstantExpression { Value: string v1 } && Enum.IsDefined(e2.Type, v1))
+                e1 = Expression.Constant(Enum.Parse(e2.Type, v1));
             else
             {
                 if (!IsArithmetic(e1) || !IsArithmetic(e2))
