@@ -277,6 +277,7 @@ internal sealed class Bindings
                 new("zip(", "Combines two sequence using a lambda function"),
             ],
             [typeof(Csv)] = [
+                new("first", "Retrieves the first line of the file"),
                 new("withHeader", "Indicates that the file has an initial header row"),
                 new("withSeparator", "Assigns a different CSV character separator"),
                 new("withFormat", "Sets a format provider for the CSV file"),
@@ -1083,6 +1084,7 @@ internal sealed class Bindings
             [new(typeof(CSequence), "tovector")] = typeof(CSequence).GetMethod(
                 nameof(CSequence.ToVector), Type.EmptyTypes)!,
 
+            [new(typeof(Csv), "first")] = typeof(Csv).Get(nameof(Csv.First)),
             [new(typeof(Csv), "withheader")] = typeof(Csv).Get(nameof(Csv.WithHeader)),
 
             [new(typeof(CVector), "amax")] = typeof(CVector).Get(nameof(CVector.AbsMax)),

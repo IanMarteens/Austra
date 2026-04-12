@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Enumeration;
 
 namespace Austra.Library;
 
@@ -30,29 +31,45 @@ public class Csv
     private string? filterValue;
 
     /// <summary>Creates a new CSV reader for the specified file.</summary>
+    /// <remarks>
+    /// If the provided file name is not an absolute path, the constructor will attempt to locate the file in the following order:
+    /// <list type="number">
+    /// <item><description>The user documents folder.</description></item>
+    /// <item><description>The subfolder "austra" inside the user documents folder.</description></item>
+    /// <item><description>The current folder.</description></item>
+    /// </list>
+    /// If no extension is provided in the file name, the constructor will also attempt
+    /// to find a file with the same name and a ".csv" extension in the same locations.
+    /// </remarks>
     /// <param name="fileName">Path to the CSV file.</param>
     public Csv(string fileName)
     {
+        bool hasExt = Path.HasExtension(fileName);
         if (!Path.IsPathFullyQualified(fileName))
         {
             string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string f = Path.Combine(documents, fileName);
-            if (File.Exists(f))
-                fileName = f;
-            else
-            {
-                f = Path.Combine(documents, "austra", fileName);
-                if (File.Exists(f))
-                    fileName = f;
-                else
-                {
-                    f = Path.Combine(Environment.CurrentDirectory, fileName);
-                    if (File.Exists(f))
-                        fileName = f;
-                }
-            }
+            if (!TryExtension(Path.Combine(documents, fileName))
+                && !TryExtension(Path.Combine(documents, "austra", fileName)))
+                TryExtension(Path.Combine(Environment.CurrentDirectory, fileName));
         }
+        else
+            TryExtension(fileName);
         filename = fileName;
+
+        bool TryExtension(string proposal)
+        {
+            if (File.Exists(proposal))
+            {
+                fileName = proposal;
+                return true;
+            }
+            if (!hasExt && File.Exists(proposal + ".csv"))
+            {
+                fileName = proposal + ".csv";
+                return true;
+            }
+            return false;
+        }
     }
 
     /// <summary>
@@ -120,6 +137,16 @@ public class Csv
         result!.filterIndex = columnIndex;
         result!.filterValue = value;
         return result;
+    }
+
+    /// <summary>
+    /// Reads the first line from the configured CSV file.
+    /// </summary>
+    /// <returns>The first line of the file, which is commonly the headers line.</returns>
+    public string First()
+    {
+        using StreamReader reader = new(filename);
+        return reader.ReadLine() ?? string.Empty;
     }
 
     /// <summary>Gets the start and end indices of the value in the specified column.</summary>
