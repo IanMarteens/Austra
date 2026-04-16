@@ -1,0 +1,418 @@
+| Type               | Method                           | Mean               | Error           | StdDev          | Median             |
+|------------------- |--------------------------------- |-------------------:|----------------:|----------------:|-------------------:|
+| CVectorBenchmark   | AustraComplexVectorCtor          |        724.8672 ns |      14.3961 ns |      35.3139 ns |        705.9486 ns |
+| CholeskyBenchmark  | AustraCholMatrix                 |    579,572.7679 ns |   3,489.7673 ns |   3,093.5878 ns |    579,097.5098 ns |
+| EvdBenchmark       | AustraEvdMatrix                  |  4,845,859.8958 ns |  96,032.4470 ns | 102,753.6424 ns |  4,824,200.7812 ns |
+| FftBenchmark       | Fft533                           |     27,243.2585 ns |     100.4189 ns |      93.9319 ns |     27,245.4010 ns |
+| FunctionsBenchmark | AustraErf                        |         11.7286 ns |       0.0885 ns |       0.0785 ns |         11.7107 ns |
+| LuBenchmark        | AustraLuMatrix                   |    929,400.8580 ns |   4,129.6062 ns |   3,660.7884 ns |    928,373.3887 ns |
+| MatrixBenchmark    | AustraAddMatrix                  |     75,328.4189 ns |     945.3277 ns |     789.3915 ns |     75,159.0332 ns |
+| ParserBenchmark    | AustraCreateEngine               |    170,736.6520 ns |   2,545.6480 ns |   2,381.2007 ns |    169,577.9297 ns |
+| SeqBenchmark       | AustraVSeqSum                    |         70.0386 ns |       0.3691 ns |       0.3453 ns |         70.0744 ns |
+| SeriesBenchmark    | AustraCnvRets                    |      2,269.0296 ns |      19.0021 ns |      15.8676 ns |      2,272.2126 ns |
+| SplineBenchmark    | AustraGrid                       |     20,418.2449 ns |     149.3961 ns |     132.4358 ns |     20,452.6474 ns |
+| VectorBenchmark    | AustraVectorSum                  |        252.4798 ns |       0.9408 ns |       0.8340 ns |        252.5723 ns |
+| CVectorBenchmark   | AustraComplexVectorSquared       |        117.8641 ns |       0.5222 ns |       0.4629 ns |        117.8528 ns |
+| CholeskyBenchmark  | AustraCholSolve                  |     36,291.0400 ns |     205.3366 ns |     182.0255 ns |     36,302.9602 ns |
+| EvdBenchmark       | AustraEvdAsymMatrix              | 83,780,118.8889 ns | 400,290.6511 ns | 374,432.1236 ns | 83,610,166.6667 ns |
+| FftBenchmark       | Fft562                           |     21,702.1331 ns |     115.9440 ns |     108.4541 ns |     21,668.6935 ns |
+| FunctionsBenchmark | AustraGamma                      |         21.8264 ns |       0.1409 ns |       0.1176 ns |         21.7966 ns |
+| LuBenchmark        | AustraLuSolve                    |    109,357.9975 ns |     367.1240 ns |     306.5651 ns |    109,496.7529 ns |
+| MatrixBenchmark    | AustraSubMatrix                  |     75,052.0939 ns |     610.4911 ns |     571.0538 ns |     75,158.8257 ns |
+| ParserBenchmark    | AustraParseMatrixTrace           |      1,062.2152 ns |      10.6496 ns |       9.9617 ns |      1,064.5201 ns |
+| SeqBenchmark       | AustraMSeqSum                    |          9.2260 ns |       0.0505 ns |       0.0473 ns |          9.2298 ns |
+| SeriesBenchmark    | AustraCnvLogs                    |      3,006.5307 ns |      34.2322 ns |      32.0208 ns |      3,014.3322 ns |
+| SplineBenchmark    | AustraPolyDer                    |          9.8478 ns |       0.2239 ns |       0.2489 ns |          9.6661 ns |
+| VectorBenchmark    | AustraVectorSub                  |        256.0782 ns |       0.8877 ns |       0.6930 ns |        256.2280 ns |
+| CVectorBenchmark   | AustraComplexVectorMagnitudes    |        760.1612 ns |       4.8015 ns |       4.4913 ns |        758.4592 ns |
+| CholeskyBenchmark  | AustraCholSolveMat               |  2,102,552.4554 ns |  18,718.9190 ns |  16,593.8341 ns |  2,098,100.3906 ns |
+| EvdBenchmark       | AustraEvdIsSymmetric             |     22,582.4892 ns |      45.6902 ns |      38.1534 ns |     22,568.1671 ns |
+| FftBenchmark       | Fft579                           |     24,426.1300 ns |     112.6518 ns |      99.8629 ns |     24,421.6797 ns |
+| LuBenchmark        | AustraLuSolveMat                 |  2,078,994.3750 ns |   6,228.0768 ns |   5,825.7469 ns |  2,077,868.3594 ns |
+| MatrixBenchmark    | AustraAddLMatrix                 |     69,308.1709 ns |     437.1697 ns |     387.5396 ns |     69,273.6511 ns |
+| ParserBenchmark    | AustraParseCholeskyCheck         |      2,660.8156 ns |      12.0870 ns |      11.3062 ns |      2,656.7528 ns |
+| SeqBenchmark       | AustraRSeqSum                    |          8.4769 ns |       0.0253 ns |       0.0224 ns |          8.4785 ns |
+| SeriesBenchmark    | AustraRawCombine                 |      9,206.1615 ns |      55.7128 ns |      52.1138 ns |      9,205.6572 ns |
+| SplineBenchmark    | AustraPolySolve3                 |         90.3642 ns |       0.9418 ns |       0.8810 ns |         89.9254 ns |
+| VectorBenchmark    | AustraVectorScale                |        257.7959 ns |       0.3920 ns |       0.3273 ns |        257.7487 ns |
+| CVectorBenchmark   | AustraComplexVectorPhases        |      2,743.0941 ns |      31.2999 ns |      29.2780 ns |      2,726.3714 ns |
+| EvdBenchmark       | AustraEvdIsNotSymmetric          |          0.5551 ns |       0.0264 ns |       0.0234 ns |          0.5507 ns |
+| FftBenchmark       | Fft580                           |     13,466.7833 ns |      41.3573 ns |      32.2890 ns |     13,473.8251 ns |
+| MatrixBenchmark    | AustraSubLMatrix1                |     69,373.3537 ns |     435.3795 ns |     407.2543 ns |     69,386.1206 ns |
+| ParserBenchmark    | AustraParseSimpleSum             |        368.7634 ns |       2.9763 ns |       2.7840 ns |        370.2109 ns |
+| SeqBenchmark       | AustraRandom                     |        210.7166 ns |       1.9046 ns |       1.5905 ns |        211.0620 ns |
+| SeriesBenchmark    | AustraOptCombine                 |      2,113.6872 ns |      25.2730 ns |      22.4038 ns |      2,108.3332 ns |
+| VectorBenchmark    | AustraVectorAddScalar            |        259.3696 ns |       4.8661 ns |       4.3137 ns |        256.9083 ns |
+| CVectorBenchmark   | AustraComplexVectorScale         |        581.8429 ns |      11.2691 ns |      12.0579 ns |        584.7916 ns |
+| FftBenchmark       | Fft583                           |     24,030.8417 ns |      43.3338 ns |      38.4143 ns |     24,033.8409 ns |
+| MatrixBenchmark    | AustraMulMatrix                  |  2,293,063.9062 ns |  22,098.7994 ns |  20,671.2306 ns |  2,288,565.2344 ns |
+| ParserBenchmark    | AustraParseFunctionCall          |        596.0904 ns |       1.8717 ns |       1.6592 ns |        596.1516 ns |
+| SeqBenchmark       | AustraFactorial                  |          9.6238 ns |       0.1654 ns |       0.1547 ns |          9.6226 ns |
+| SeriesBenchmark    | AustraPointMultSeries            |      1,880.0020 ns |      36.6987 ns |      36.0430 ns |      1,873.4105 ns |
+| VectorBenchmark    | AustraVectorPointMult            |        255.3020 ns |       0.7406 ns |       0.6184 ns |        255.4742 ns |
+| CVectorBenchmark   | AustraComplexVectorMap           |      1,799.5135 ns |      28.6025 ns |      26.7548 ns |      1,786.7041 ns |
+| FftBenchmark       | Fft1024                          |     12,001.7130 ns |      61.7499 ns |      51.5640 ns |     11,977.2736 ns |
+| MatrixBenchmark    | AustraTransMatrix                |     83,283.1621 ns |   1,035.0022 ns |     917.5025 ns |     83,242.3340 ns |
+| ParserBenchmark    | AustraEvalMatrixTrace            |  1,839,168.2338 ns |   8,065.4330 ns |   7,149.7962 ns |  1,837,617.3828 ns |
+| VectorBenchmark    | AustraVectorPointMultAdd         |        271.1910 ns |       0.8382 ns |       0.6999 ns |        271.5230 ns |
+| CVectorBenchmark   | AustraComplexVectorFilter        |      5,919.4079 ns |     105.9402 ns |      93.9132 ns |      5,931.2706 ns |
+| FftBenchmark       | Fft2048                          |     23,673.6200 ns |     121.1013 ns |     107.3531 ns |     23,691.9266 ns |
+| MatrixBenchmark    | AustraMulTMatrix                 |  2,558,677.9018 ns |  10,043.2455 ns |   8,903.0756 ns |  2,556,023.0469 ns |
+| ParserBenchmark    | AustraEvalSimpleSum              |     64,960.8415 ns |     168.3756 ns |     157.4987 ns |     64,988.6719 ns |
+| VectorBenchmark    | AustraVectorMultAdd              |        253.6027 ns |       0.8825 ns |       0.7370 ns |        253.5205 ns |
+| CVectorBenchmark   | AustraRandomComplexVector        |      4,032.1515 ns |      62.6082 ns |      52.2807 ns |      4,015.8772 ns |
+| MatrixBenchmark    | AustraTransMatrixVector          |      8,753.4824 ns |      96.6818 ns |      90.4362 ns |      8,799.1623 ns |
+| ParserBenchmark    | AustraEvalFunctionCall           |     71,539.6305 ns |     947.1112 ns |     885.9284 ns |     71,196.8262 ns |
+| VectorBenchmark    | AustraVectorMultAddRaw           |        553.8140 ns |       7.7048 ns |       7.2071 ns |        551.3616 ns |
+| CVectorBenchmark   | AustraPointwiseMultComplexVector |        857.2398 ns |      17.0099 ns |      36.2494 ns |        834.1634 ns |
+| MatrixBenchmark    | AustraMatrixVector               |      8,053.8985 ns |      67.9492 ns |      56.7407 ns |      8,031.8344 ns |
+| VectorBenchmark    | AustraDotProduct                 |         86.0584 ns |       0.3777 ns |       0.2949 ns |         86.1221 ns |
+| CVectorBenchmark   | AustraPointwiseDivComplexVector  |      1,016.5066 ns |       7.3991 ns |       6.9211 ns |      1,013.2870 ns |
+| MatrixBenchmark    | AustraLMatrixVector              |      3,199.4333 ns |      36.3113 ns |      33.9656 ns |      3,192.2440 ns |
+| VectorBenchmark    | AustraVectorProduct              |         70.5506 ns |       0.4331 ns |       0.4051 ns |         70.3637 ns |
+| CVectorBenchmark   | AustraRandomOffsetComplexVector  |      1,367.7623 ns |      13.2536 ns |      12.3974 ns |      1,367.7616 ns |
+| MatrixBenchmark    | AustraRMatrixVector              |      5,074.0161 ns |      12.8090 ns |      10.0004 ns |      5,074.2035 ns |
+| VectorBenchmark    | AustraVectorSumItems             |         69.2792 ns |       0.5961 ns |       0.5576 ns |         69.3573 ns |
+| CVectorBenchmark   | AustraComplexVector2Array        |        560.0663 ns |      10.8199 ns |      10.6265 ns |        561.8570 ns |
+| MatrixBenchmark    | AustraLMatrixMultAdd             |      3,381.6798 ns |      60.5055 ns |      56.5969 ns |      3,388.9679 ns |
+| VectorBenchmark    | AustraVectorEqualsFalse          |          0.4390 ns |       0.0096 ns |       0.0090 ns |          0.4416 ns |
+| CVectorBenchmark   | AustraComplexVectorMultiply      |        210.1712 ns |       2.8285 ns |       2.6458 ns |        209.1957 ns |
+| MatrixBenchmark    | AustraMatrixMultiplyAddRaw       |      7,251.8243 ns |      72.3966 ns |      67.7199 ns |      7,212.0659 ns |
+| VectorBenchmark    | AustraVectorEqualsTrue           |         66.1042 ns |       0.4194 ns |       0.3923 ns |         65.9238 ns |
+| MatrixBenchmark    | AustraMatrixMultiplyAdd          |      7,035.7959 ns |      39.6817 ns |      37.1183 ns |      7,023.9056 ns |
+| VectorBenchmark    | AustraRawLineal                  |        866.6661 ns |      13.2483 ns |      11.0629 ns |        867.1521 ns |
+| MatrixBenchmark    | AustraMatrixMultiplySub          |      7,097.4316 ns |      59.7010 ns |      55.8443 ns |      7,111.4746 ns |
+| VectorBenchmark    | AustraCombineLineal              |        256.2907 ns |       3.8561 ns |       3.6070 ns |        254.3298 ns |
+| MatrixBenchmark    | AustraLowerTriangular            |    106,763.5758 ns |     782.7990 ns |     732.2307 ns |    106,705.9814 ns |
+| VectorBenchmark    | AustraNegate                     |        262.8634 ns |       0.5733 ns |       0.5083 ns |        262.8913 ns |
+| MatrixBenchmark    | AustraRandomMatrix               |     76,790.6877 ns |   1,493.1968 ns |   1,833.7799 ns |     76,270.9045 ns |
+| VectorBenchmark    | AustraRandomVector               |        541.8616 ns |       8.2609 ns |       7.7272 ns |        546.5880 ns |
+| MatrixBenchmark    | AustraSymmetricMatrix            |     23,078.1108 ns |     280.1291 ns |     262.0329 ns |     22,952.9510 ns |
+| VectorBenchmark    | AustraURandomVector              |        206.5516 ns |       0.5859 ns |       0.4893 ns |        206.6543 ns |
+| MatrixBenchmark    | AustraMatrixGetRow               |         97.6707 ns |       1.7896 ns |       1.5864 ns |         97.6698 ns |
+| VectorBenchmark    | AustraSquareVector               |         76.4885 ns |       1.1828 ns |       1.1064 ns |         76.4048 ns |
+| MatrixBenchmark    | AustraMatrixMap                  |     68,458.8306 ns |     422.4852 ns |     395.1930 ns |     68,348.0713 ns |
+| VectorBenchmark    | AustraVectorSqrt                 |        740.4326 ns |       1.5113 ns |       1.3397 ns |        740.5704 ns |
+| MatrixBenchmark    | AustraTransposeRMatrix           |     83,371.6725 ns |   1,664.4684 ns |   1,709.2865 ns |     83,254.7729 ns |
+| VectorBenchmark    | AustraVectorAbs                  |        260.5082 ns |       0.4874 ns |       0.4070 ns |        260.5681 ns |
+| MatrixBenchmark    | AustraLMultiplyTranspose         |    344,675.2409 ns |   2,296.5297 ns |   2,148.1753 ns |    345,075.0488 ns |
+| VectorBenchmark    | AustraVectorMap                  |      2,496.9815 ns |       6.5100 ns |       5.7709 ns |      2,497.4129 ns |
+| MatrixBenchmark    | AustraRMultiplyTranspose         |    492,850.0349 ns |   1,794.2705 ns |   1,590.5740 ns |    493,206.8359 ns |
+| VectorBenchmark    | AustraExternalProduct            |     27,168.1868 ns |     141.2251 ns |     132.1020 ns |     27,100.4852 ns |
+| MatrixBenchmark    | AustraLRMatrixMult               |    931,581.1719 ns |   5,452.9289 ns |   5,100.6730 ns |    931,403.9062 ns |
+| VectorBenchmark    | AustraIndexOfMiddle              |         35.0075 ns |       0.2147 ns |       0.1904 ns |         34.9722 ns |
+| MatrixBenchmark    | AustraLMatrixSolve               |      3,543.3851 ns |      22.4794 ns |      21.0272 ns |      3,533.3225 ns |
+| VectorBenchmark    | AustraIndexOfLast                |         57.5657 ns |       0.3073 ns |       0.2874 ns |         57.6974 ns |
+| MatrixBenchmark    | AustraGetDiagonal                |        165.2509 ns |       1.2285 ns |       1.1491 ns |        165.1767 ns |
+| VectorBenchmark    | AustraAutocorrelation            |        357.4089 ns |       4.4319 ns |       3.9288 ns |        357.9428 ns |
+| MatrixBenchmark    | AustraRMatrixTranspose           |     82,729.7814 ns |     713.8461 ns |     596.0938 ns |     82,643.4570 ns |
+| VectorBenchmark    | AustraVectorReverse              |        346.4061 ns |       3.0385 ns |       2.6936 ns |        345.6635 ns |
+| MatrixBenchmark    | AustraLMatrixTranspose           |     83,116.0124 ns |   1,646.4099 ns |   1,540.0528 ns |     83,155.4443 ns |
+| VectorBenchmark    | AustraVectorAccumulator          |        356.5683 ns |       3.4909 ns |       3.2654 ns |        355.6897 ns |
+| MatrixBenchmark    | AustraLMatrixInverse             |  2,114,291.3462 ns |   6,064.7273 ns |   5,064.3220 ns |  2,114,206.2500 ns |
+| VectorBenchmark    | AustraNIndexOfLast               |          3.9039 ns |       0.0897 ns |       0.0839 ns |          3.8579 ns |
+| MatrixBenchmark    | AustraLMatrixInverse1            |  4,303,301.7708 ns |  20,790.1825 ns |  19,447.1496 ns |  4,311,054.6875 ns |
+| VectorBenchmark    | AustraAny                        |        852.7753 ns |       1.3066 ns |       1.0910 ns |        852.5844 ns |
+| MatrixBenchmark    | AustraRMatrixInverse             |  2,090,333.6914 ns |   6,592.5289 ns |   5,147.0130 ns |  2,090,403.9062 ns |
+| VectorBenchmark    | AustraAll                        |        372.0138 ns |       0.5671 ns |       0.4736 ns |        372.0817 ns |
+| VectorBenchmark    | AustraVectorDistinct             |      9,915.6758 ns |     170.3731 ns |     159.3671 ns |      9,830.7907 ns |
+| VectorBenchmark    | AustraVectorMax                  |        921.0255 ns |       2.3531 ns |       2.0860 ns |        921.2197 ns |
+
+// * Warnings *
+MultimodalDistribution
+  CVectorBenchmark.AustraPointwiseMultComplexVector: Default -> It seems that the distribution can have several modes (mValue = 2.94)
+
+// * Hints *
+Outliers
+  CholeskyBenchmark.AustraCholMatrix: Default          -> 1 outlier  was  removed (588.33 us)
+  FunctionsBenchmark.AustraErf: Default                -> 1 outlier  was  removed (13.73 ns)
+  LuBenchmark.AustraLuMatrix: Default                  -> 1 outlier  was  removed (946.27 us)
+  MatrixBenchmark.AustraAddMatrix: Default             -> 2 outliers were removed (82.01 us, 87.26 us)
+  SeqBenchmark.AustraVSeqSum: Default                  -> 2 outliers were detected (71.58 ns, 71.72 ns)
+  SeriesBenchmark.AustraCnvRets: Default               -> 2 outliers were removed, 3 outliers were detected (2.23 us, 2.31 us, 2.38 us)
+  SplineBenchmark.AustraGrid: Default                  -> 1 outlier  was  removed, 2 outliers were detected (19.99 us, 20.84 us)
+  VectorBenchmark.AustraVectorSum: Default             -> 1 outlier  was  removed (258.89 ns)
+  CVectorBenchmark.AustraComplexVectorSquared: Default -> 1 outlier  was  removed, 2 outliers were detected (118.61 ns, 120.94 ns)
+  CholeskyBenchmark.AustraCholSolve: Default           -> 1 outlier  was  removed, 2 outliers were detected (35.86 us, 36.77 us)
+  FunctionsBenchmark.AustraGamma: Default              -> 2 outliers were removed (24.14 ns, 24.38 ns)
+  LuBenchmark.AustraLuSolve: Default                   -> 2 outliers were removed (110.74 us, 112.33 us)
+  VectorBenchmark.AustraVectorSub: Default             -> 3 outliers were removed (261.30 ns..264.09 ns)
+  CholeskyBenchmark.AustraCholSolveMat: Default        -> 1 outlier  was  removed (2.18 ms)
+  EvdBenchmark.AustraEvdIsSymmetric: Default           -> 2 outliers were removed (22.77 us, 22.85 us)
+  FftBenchmark.Fft579: Default                         -> 1 outlier  was  removed (24.83 us)
+  MatrixBenchmark.AustraAddLMatrix: Default            -> 1 outlier  was  removed (71.45 us)
+  SeqBenchmark.AustraRSeqSum: Default                  -> 1 outlier  was  removed (10.14 ns)
+  SeriesBenchmark.AustraRawCombine: Default            -> 2 outliers were detected (9.09 us, 9.11 us)
+  VectorBenchmark.AustraVectorScale: Default           -> 2 outliers were removed, 3 outliers were detected (259.23 ns, 260.65 ns, 263.05 ns)
+  EvdBenchmark.AustraEvdIsNotSymmetric: Default        -> 1 outlier  was  removed (2.30 ns)
+  FftBenchmark.Fft580: Default                         -> 3 outliers were removed, 5 outliers were detected (13.41 us, 13.41 us, 13.59 us..13.64 us)
+  SeqBenchmark.AustraRandom: Default                   -> 2 outliers were removed, 3 outliers were detected (208.14 ns, 216.99 ns, 217.98 ns)
+  SeriesBenchmark.AustraOptCombine: Default            -> 1 outlier  was  removed (2.19 us)
+  VectorBenchmark.AustraVectorAddScalar: Default       -> 2 outliers were removed (280.00 ns, 280.47 ns)
+  CVectorBenchmark.AustraComplexVectorScale: Default   -> 1 outlier  was  detected (536.90 ns)
+  FftBenchmark.Fft583: Default                         -> 1 outlier  was  removed, 2 outliers were detected (23.96 us, 24.20 us)
+  ParserBenchmark.AustraParseFunctionCall: Default     -> 1 outlier  was  removed, 2 outliers were detected (595.44 ns, 604.33 ns)
+  SeriesBenchmark.AustraPointMultSeries: Default       -> 1 outlier  was  removed, 2 outliers were detected (1.79 us, 2.03 us)
+  VectorBenchmark.AustraVectorPointMult: Default       -> 2 outliers were removed, 3 outliers were detected (255.76 ns, 259.20 ns, 262.03 ns)
+  FftBenchmark.Fft1024: Default                        -> 2 outliers were removed (12.35 us, 12.48 us)
+  MatrixBenchmark.AustraTransMatrix: Default           -> 1 outlier  was  removed (91.90 us)
+  ParserBenchmark.AustraEvalMatrixTrace: Default       -> 1 outlier  was  removed (1.88 ms)
+  VectorBenchmark.AustraVectorPointMultAdd: Default    -> 2 outliers were removed, 3 outliers were detected (271.32 ns, 275.75 ns, 276.59 ns)
+  CVectorBenchmark.AustraComplexVectorFilter: Default  -> 1 outlier  was  removed (6.14 us)
+  FftBenchmark.Fft2048: Default                        -> 1 outlier  was  removed, 2 outliers were detected (23.42 us, 24.07 us)
+  MatrixBenchmark.AustraMulTMatrix: Default            -> 1 outlier  was  removed (2.59 ms)
+  VectorBenchmark.AustraVectorMultAdd: Default         -> 2 outliers were removed (259.23 ns, 260.95 ns)
+  CVectorBenchmark.AustraRandomComplexVector: Default  -> 2 outliers were removed (4.31 us, 4.35 us)
+  MatrixBenchmark.AustraMatrixVector: Default          -> 4 outliers were removed (8.33 us..8.56 us)
+  VectorBenchmark.AustraDotProduct: Default            -> 3 outliers were removed (89.79 ns..90.11 ns)
+  MatrixBenchmark.AustraRMatrixVector: Default         -> 3 outliers were removed, 4 outliers were detected (5.05 us, 5.12 us..5.14 us)
+  CVectorBenchmark.AustraComplexVector2Array: Default  -> 1 outlier  was  detected (525.65 ns)
+  VectorBenchmark.AustraRawLineal: Default             -> 2 outliers were removed, 3 outliers were detected (835.34 ns, 899.18 ns, 927.55 ns)
+  VectorBenchmark.AustraNegate: Default                -> 1 outlier  was  removed (266.49 ns)
+  VectorBenchmark.AustraURandomVector: Default         -> 2 outliers were removed (210.57 ns, 214.43 ns)
+  MatrixBenchmark.AustraMatrixGetRow: Default          -> 1 outlier  was  removed, 2 outliers were detected (95.17 ns, 103.37 ns)
+  VectorBenchmark.AustraVectorSqrt: Default            -> 1 outlier  was  removed, 2 outliers were detected (738.59 ns, 745.52 ns)
+  MatrixBenchmark.AustraTransposeRMatrix: Default      -> 1 outlier  was  removed (89.06 us)
+  VectorBenchmark.AustraVectorAbs: Default             -> 2 outliers were removed (266.78 ns, 275.66 ns)
+  VectorBenchmark.AustraVectorMap: Default             -> 1 outlier  was  removed (2.51 us)
+  MatrixBenchmark.AustraRMultiplyTranspose: Default    -> 1 outlier  was  removed (499.79 us)
+  VectorBenchmark.AustraIndexOfMiddle: Default         -> 1 outlier  was  removed, 2 outliers were detected (36.40 ns, 37.37 ns)
+  VectorBenchmark.AustraIndexOfLast: Default           -> 1 outlier  was  detected (58.92 ns)
+  VectorBenchmark.AustraAutocorrelation: Default       -> 1 outlier  was  removed, 2 outliers were detected (350.82 ns, 367.04 ns)
+  MatrixBenchmark.AustraRMatrixTranspose: Default      -> 2 outliers were removed (85.55 us, 88.91 us)
+  VectorBenchmark.AustraVectorReverse: Default         -> 1 outlier  was  removed (378.24 ns)
+  MatrixBenchmark.AustraLMatrixInverse: Default        -> 2 outliers were removed (2.14 ms, 2.14 ms)
+  VectorBenchmark.AustraAny: Default                   -> 2 outliers were removed (860.09 ns, 885.43 ns)
+  MatrixBenchmark.AustraRMatrixInverse: Default        -> 3 outliers were removed (2.11 ms..2.19 ms)
+  VectorBenchmark.AustraAll: Default                   -> 2 outliers were removed, 3 outliers were detected (372.88 ns, 375.52 ns, 377.41 ns)
+  VectorBenchmark.AustraVectorMax: Default             -> 1 outlier  was  removed (928.46 ns)
+
+// * Legends *
+  Mean   : Arithmetic mean of all measurements
+  Error  : Half of 99.9% confidence interval
+  StdDev : Standard deviation of all measurements
+  Median : Value separating the higher half of all measurements (50th percentile)
+  1 ns   : 1 Nanosecond (0.000000001 sec)
+
+// ***** BenchmarkRunner: End *****
+Global total time: 00:39:31 (2371.8 sec), executed benchmarks: 117
+// * Artifacts cleanup *
+Artifacts cleanup is finished
+
+// * Summary *
+
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26100.8246/24H2/2024Update/HudsonValley)
+11th Gen Intel Core i9-11900K 3.50GHz, 1 CPU, 16 logical and 8 physical cores
+.NET SDK 10.0.103
+  [Host]     : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v4
+  DefaultJob : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v4
+
+
+| Type               | Method                           | Mean               | Error           | StdDev          | Median             |
+|------------------- |--------------------------------- |-------------------:|----------------:|----------------:|-------------------:|
+| CVectorBenchmark   | AustraComplexVectorCtor          |        717.0743 ns |      13.6578 ns |      12.7755 ns |        718.6925 ns |
+| CholeskyBenchmark  | AustraCholMatrix                 |    545,950.5033 ns |   3,423.2209 ns |   2,858.5445 ns |    545,550.1953 ns |
+| EvdBenchmark       | AustraEvdMatrix                  |  4,679,281.7522 ns |  38,818.2583 ns |  34,411.3749 ns |  4,670,164.4531 ns |
+| FftBenchmark       | Fft533                           |     26,872.3343 ns |     280.0287 ns |     261.9391 ns |     26,733.2169 ns |
+| FunctionsBenchmark | AustraErf                        |         10.8856 ns |       0.0375 ns |       0.0351 ns |         10.8854 ns |
+| LuBenchmark        | AustraLuMatrix                   |    921,054.4992 ns |   6,709.2653 ns |   5,947.5889 ns |    919,628.8574 ns |
+| MatrixBenchmark    | AustraAddMatrix                  |     72,949.4751 ns |     246.0632 ns |     218.1286 ns |     72,950.2075 ns |
+| ParserBenchmark    | AustraCreateEngine               |    166,754.0381 ns |     760.6980 ns |     711.5574 ns |    166,595.0195 ns |
+| SeqBenchmark       | AustraVSeqSum                    |         69.0528 ns |       0.4572 ns |       0.4277 ns |         68.9056 ns |
+| SeriesBenchmark    | AustraCnvRets                    |      2,209.1030 ns |      24.1588 ns |      22.5982 ns |      2,212.3543 ns |
+| SplineBenchmark    | AustraGrid                       |     20,150.4844 ns |     343.9967 ns |     304.9441 ns |     20,023.4634 ns |
+| VectorBenchmark    | AustraVectorSum                  |        253.6439 ns |       3.4201 ns |       3.0319 ns |        252.2032 ns |
+| CVectorBenchmark   | AustraComplexVectorSquared       |        116.2205 ns |       1.8831 ns |       1.7615 ns |        116.9930 ns |
+| CholeskyBenchmark  | AustraCholSolve                  |     34,933.5177 ns |      69.3846 ns |      57.9393 ns |     34,917.4988 ns |
+| EvdBenchmark       | AustraEvdAsymMatrix              | 82,396,214.1026 ns | 310,260.7089 ns | 259,081.7438 ns | 82,373,150.0000 ns |
+| FftBenchmark       | Fft562                           |     21,123.6315 ns |      63.0705 ns |      58.9962 ns |     21,117.3691 ns |
+| FunctionsBenchmark | AustraGamma                      |         21.5839 ns |       0.0514 ns |       0.0456 ns |         21.5940 ns |
+| LuBenchmark        | AustraLuSolve                    |    108,189.0465 ns |     343.6698 ns |     286.9798 ns |    108,214.3799 ns |
+| MatrixBenchmark    | AustraSubMatrix                  |     73,467.3148 ns |     361.8622 ns |     320.7814 ns |     73,485.0769 ns |
+| ParserBenchmark    | AustraParseMatrixTrace           |      1,039.3868 ns |      17.6360 ns |      25.8506 ns |      1,028.4101 ns |
+| SeqBenchmark       | AustraMSeqSum                    |          8.8316 ns |       0.0232 ns |       0.0206 ns |          8.8324 ns |
+| SeriesBenchmark    | AustraCnvLogs                    |      2,923.9067 ns |      52.9209 ns |      49.5023 ns |      2,941.6386 ns |
+| SplineBenchmark    | AustraPolyDer                    |          9.2451 ns |       0.0356 ns |       0.0333 ns |          9.2467 ns |
+| VectorBenchmark    | AustraVectorSub                  |        252.3610 ns |       0.5425 ns |       0.4809 ns |        252.4734 ns |
+| CVectorBenchmark   | AustraComplexVectorMagnitudes    |        736.4488 ns |       3.2306 ns |       3.0220 ns |        736.1698 ns |
+| CholeskyBenchmark  | AustraCholSolveMat               |  2,052,252.6302 ns |  22,698.9349 ns |  21,232.5978 ns |  2,053,770.3125 ns |
+| EvdBenchmark       | AustraEvdIsSymmetric             |     22,441.0126 ns |      90.0831 ns |      75.2234 ns |     22,418.7317 ns |
+| FftBenchmark       | Fft579                           |     23,813.2987 ns |      33.6662 ns |      28.1128 ns |     23,812.3947 ns |
+| LuBenchmark        | AustraLuSolveMat                 |  2,042,818.6458 ns |  12,015.7172 ns |  11,239.5093 ns |  2,044,722.2656 ns |
+| MatrixBenchmark    | AustraAddLMatrix                 |     68,579.1195 ns |     318.0087 ns |     297.4655 ns |     68,508.2764 ns |
+| ParserBenchmark    | AustraParseCholeskyCheck         |      2,565.4552 ns |       9.7757 ns |       8.1632 ns |      2,563.2622 ns |
+| SeqBenchmark       | AustraRSeqSum                    |          8.0549 ns |       0.0231 ns |       0.0205 ns |          8.0594 ns |
+| SeriesBenchmark    | AustraRawCombine                 |      8,839.2328 ns |      59.3441 ns |      55.5105 ns |      8,824.7620 ns |
+| SplineBenchmark    | AustraPolySolve3                 |         88.7325 ns |       0.2253 ns |       0.1881 ns |         88.7538 ns |
+| VectorBenchmark    | AustraVectorScale                |        255.1524 ns |       1.1163 ns |       0.9896 ns |        255.2474 ns |
+| CVectorBenchmark   | AustraComplexVectorPhases        |      2,728.0276 ns |      22.8166 ns |      21.3427 ns |      2,728.2272 ns |
+| EvdBenchmark       | AustraEvdIsNotSymmetric          |          0.6269 ns |       0.0020 ns |       0.0016 ns |          0.6275 ns |
+| FftBenchmark       | Fft580                           |     13,221.1044 ns |     238.7953 ns |     223.3692 ns |     13,072.7814 ns |
+| MatrixBenchmark    | AustraSubLMatrix1                |     68,966.6854 ns |     193.1905 ns |     180.7105 ns |     68,985.1318 ns |
+| ParserBenchmark    | AustraParseSimpleSum             |        359.1993 ns |       2.2036 ns |       2.0612 ns |        359.0643 ns |
+| SeqBenchmark       | AustraRandom                     |        206.1401 ns |       2.1182 ns |       1.9814 ns |        206.4202 ns |
+| SeriesBenchmark    | AustraOptCombine                 |      2,029.0573 ns |      22.3077 ns |      20.8666 ns |      2,021.2101 ns |
+| VectorBenchmark    | AustraVectorAddScalar            |        255.4001 ns |       0.5230 ns |       0.4892 ns |        255.3562 ns |
+| CVectorBenchmark   | AustraComplexVectorScale         |        562.3214 ns |       9.9300 ns |       8.8027 ns |        564.6498 ns |
+| FftBenchmark       | Fft583                           |     23,467.8836 ns |      50.0272 ns |      46.7955 ns |     23,469.0384 ns |
+| MatrixBenchmark    | AustraMulMatrix                  |  2,237,737.2489 ns |  16,372.9810 ns |  14,514.2212 ns |  2,234,486.1328 ns |
+| ParserBenchmark    | AustraParseFunctionCall          |        584.6294 ns |      11.5874 ns |      11.3803 ns |        582.1745 ns |
+| SeqBenchmark       | AustraFactorial                  |          9.1367 ns |       0.0670 ns |       0.0594 ns |          9.1379 ns |
+| SeriesBenchmark    | AustraPointMultSeries            |      1,765.0849 ns |      13.6761 ns |      12.7926 ns |      1,763.9811 ns |
+| VectorBenchmark    | AustraVectorPointMult            |        254.2956 ns |       1.2078 ns |       0.9430 ns |        254.5222 ns |
+| CVectorBenchmark   | AustraComplexVectorMap           |      1,727.4241 ns |       4.4592 ns |       4.1711 ns |      1,727.2236 ns |
+| FftBenchmark       | Fft1024                          |     11,983.8872 ns |      74.5018 ns |      66.0439 ns |     11,964.7064 ns |
+| MatrixBenchmark    | AustraTransMatrix                |     83,150.7845 ns |     995.2706 ns |     930.9768 ns |     82,877.2339 ns |
+| ParserBenchmark    | AustraEvalMatrixTrace            |  1,818,749.9302 ns |   6,966.2730 ns |   6,175.4196 ns |  1,817,091.0156 ns |
+| VectorBenchmark    | AustraVectorPointMultAdd         |        270.5085 ns |       4.7660 ns |       4.4581 ns |        268.0790 ns |
+| CVectorBenchmark   | AustraComplexVectorFilter        |      5,816.3905 ns |      69.7160 ns |      65.2124 ns |      5,809.6634 ns |
+| FftBenchmark       | Fft2048                          |     23,321.8551 ns |     335.7167 ns |     314.0296 ns |     23,208.0505 ns |
+| MatrixBenchmark    | AustraMulTMatrix                 |  2,527,762.1695 ns |   4,959.9317 ns |   4,141.7676 ns |  2,528,453.1250 ns |
+| ParserBenchmark    | AustraEvalSimpleSum              |     63,623.5570 ns |     237.8307 ns |     210.8308 ns |     63,662.4756 ns |
+| VectorBenchmark    | AustraVectorMultAdd              |        251.9781 ns |       0.6014 ns |       0.5625 ns |        252.0558 ns |
+| CVectorBenchmark   | AustraRandomComplexVector        |      3,846.8814 ns |      60.5946 ns |      56.6802 ns |      3,816.4558 ns |
+| MatrixBenchmark    | AustraTransMatrixVector          |      8,591.5696 ns |      84.9117 ns |      79.4265 ns |      8,592.7170 ns |
+| ParserBenchmark    | AustraEvalFunctionCall           |     69,791.6889 ns |     336.8344 ns |     281.2719 ns |     69,801.8433 ns |
+| VectorBenchmark    | AustraVectorMultAddRaw           |        540.1667 ns |       2.3413 ns |       2.1900 ns |        539.1735 ns |
+| CVectorBenchmark   | AustraPointwiseMultComplexVector |        856.0580 ns |      16.7036 ns |      13.9483 ns |        854.4220 ns |
+| MatrixBenchmark    | AustraMatrixVector               |      7,893.4126 ns |      42.9778 ns |      40.2015 ns |      7,890.3824 ns |
+| VectorBenchmark    | AustraDotProduct                 |         86.7861 ns |       0.2324 ns |       0.1940 ns |         86.7412 ns |
+| CVectorBenchmark   | AustraPointwiseDivComplexVector  |        986.0713 ns |       5.8453 ns |       5.4677 ns |        983.2241 ns |
+| MatrixBenchmark    | AustraLMatrixVector              |      3,136.9387 ns |      16.5692 ns |      14.6882 ns |      3,130.0230 ns |
+| VectorBenchmark    | AustraVectorProduct              |         69.8229 ns |       0.1951 ns |       0.1523 ns |         69.8414 ns |
+| CVectorBenchmark   | AustraRandomOffsetComplexVector  |      1,309.5744 ns |      17.6771 ns |      16.5351 ns |      1,300.3498 ns |
+| MatrixBenchmark    | AustraRMatrixVector              |      5,026.7652 ns |       6.3239 ns |       4.9373 ns |      5,028.3333 ns |
+| VectorBenchmark    | AustraVectorSumItems             |         69.0571 ns |       0.5410 ns |       0.5060 ns |         69.0562 ns |
+| CVectorBenchmark   | AustraComplexVector2Array        |        523.8618 ns |      10.4393 ns |      21.3248 ns |        512.1177 ns |
+| MatrixBenchmark    | AustraLMatrixMultAdd             |      3,256.5429 ns |      15.4008 ns |      14.4059 ns |      3,253.0449 ns |
+| VectorBenchmark    | AustraVectorEqualsFalse          |          0.4399 ns |       0.0073 ns |       0.0065 ns |          0.4409 ns |
+| CVectorBenchmark   | AustraComplexVectorMultiply      |        206.9039 ns |       1.9635 ns |       1.8366 ns |        206.1066 ns |
+| MatrixBenchmark    | AustraMatrixMultiplyAddRaw       |      7,111.6328 ns |      29.0467 ns |      24.2553 ns |      7,113.8206 ns |
+| VectorBenchmark    | AustraVectorEqualsTrue           |         67.5532 ns |       0.7830 ns |       0.6941 ns |         67.1696 ns |
+| MatrixBenchmark    | AustraMatrixMultiplyAdd          |      6,950.6073 ns |      38.3087 ns |      35.8340 ns |      6,936.1977 ns |
+| VectorBenchmark    | AustraRawLineal                  |        866.9258 ns |      13.5645 ns |      11.3269 ns |        869.0141 ns |
+| MatrixBenchmark    | AustraMatrixMultiplySub          |      7,835.4404 ns |      54.3648 ns |      50.8529 ns |      7,845.5139 ns |
+| VectorBenchmark    | AustraCombineLineal              |        255.6894 ns |       1.6519 ns |       1.3794 ns |        255.2369 ns |
+| MatrixBenchmark    | AustraLowerTriangular            |    104,466.6181 ns |     744.6343 ns |     660.0989 ns |    104,235.3882 ns |
+| VectorBenchmark    | AustraNegate                     |        260.9968 ns |       1.2039 ns |       1.0672 ns |        260.7972 ns |
+| MatrixBenchmark    | AustraRandomMatrix               |     73,607.9543 ns |   1,093.1120 ns |     912.7980 ns |     73,907.0312 ns |
+| VectorBenchmark    | AustraRandomVector               |        542.7038 ns |       9.8597 ns |      10.9590 ns |        538.1201 ns |
+| MatrixBenchmark    | AustraSymmetricMatrix            |     22,583.1811 ns |      66.7750 ns |      62.4613 ns |     22,586.4120 ns |
+| VectorBenchmark    | AustraURandomVector              |        204.1293 ns |       1.1559 ns |       1.0812 ns |        203.8206 ns |
+| MatrixBenchmark    | AustraMatrixGetRow               |         94.8814 ns |       1.6820 ns |       1.5733 ns |         94.6948 ns |
+| VectorBenchmark    | AustraSquareVector               |         74.8428 ns |       0.1767 ns |       0.1476 ns |         74.8458 ns |
+| MatrixBenchmark    | AustraMatrixMap                  |     69,846.0311 ns |   1,198.7810 ns |   1,121.3405 ns |     70,077.7222 ns |
+| VectorBenchmark    | AustraVectorSqrt                 |        742.8000 ns |       9.6456 ns |       9.0225 ns |        738.2762 ns |
+| MatrixBenchmark    | AustraTransposeRMatrix           |     81,896.7057 ns |     273.1657 ns |     255.5194 ns |     81,892.4683 ns |
+| VectorBenchmark    | AustraVectorAbs                  |        260.2780 ns |       0.8391 ns |       0.7438 ns |        260.4539 ns |
+| MatrixBenchmark    | AustraLMultiplyTranspose         |    343,437.7726 ns |   1,198.1257 ns |     935.4177 ns |    343,700.0732 ns |
+| VectorBenchmark    | AustraVectorMap                  |      2,476.9081 ns |       4.5292 ns |       4.0150 ns |      2,476.0973 ns |
+| MatrixBenchmark    | AustraRMultiplyTranspose         |    484,675.3976 ns |   1,335.6969 ns |   1,184.0605 ns |    484,878.7598 ns |
+| VectorBenchmark    | AustraExternalProduct            |     27,374.3576 ns |     114.9579 ns |     107.5317 ns |     27,378.2974 ns |
+| MatrixBenchmark    | AustraLRMatrixMult               |    906,391.1003 ns |   3,613.6293 ns |   3,380.1911 ns |    904,538.6719 ns |
+| VectorBenchmark    | AustraIndexOfMiddle              |         35.4776 ns |       0.5563 ns |       0.5203 ns |         35.2797 ns |
+| MatrixBenchmark    | AustraLMatrixSolve               |      3,408.5174 ns |      13.7221 ns |      10.7133 ns |      3,409.0330 ns |
+| VectorBenchmark    | AustraIndexOfLast                |         58.7626 ns |       0.2922 ns |       0.2733 ns |         58.7871 ns |
+| MatrixBenchmark    | AustraGetDiagonal                |        160.9457 ns |       1.2677 ns |       1.1858 ns |        160.7856 ns |
+| VectorBenchmark    | AustraAutocorrelation            |        349.0967 ns |       0.6570 ns |       0.5129 ns |        349.2239 ns |
+| MatrixBenchmark    | AustraRMatrixTranspose           |     82,069.3848 ns |     265.4085 ns |     248.2633 ns |     82,097.7295 ns |
+| VectorBenchmark    | AustraVectorReverse              |        342.2843 ns |       2.2252 ns |       1.8582 ns |        342.4335 ns |
+| MatrixBenchmark    | AustraLMatrixTranspose           |     82,464.8213 ns |   1,615.1695 ns |   2,156.2051 ns |     81,632.1899 ns |
+| VectorBenchmark    | AustraVectorAccumulator          |        354.6894 ns |       3.8572 ns |       3.6080 ns |        353.2441 ns |
+| MatrixBenchmark    | AustraLMatrixInverse             |  2,099,239.5368 ns |   6,030.3025 ns |   5,345.7061 ns |  2,098,242.7734 ns |
+| VectorBenchmark    | AustraNIndexOfLast               |          3.7907 ns |       0.0119 ns |       0.0111 ns |          3.7901 ns |
+| MatrixBenchmark    | AustraLMatrixInverse1            |  4,190,138.6458 ns |  33,808.5130 ns |  31,624.5041 ns |  4,205,463.2812 ns |
+| VectorBenchmark    | AustraAny                        |        852.6338 ns |       1.6226 ns |       1.3550 ns |        852.7337 ns |
+| MatrixBenchmark    | AustraRMatrixInverse             |  1,983,225.6010 ns |   2,521.7617 ns |   2,105.7853 ns |  1,983,541.7969 ns |
+| VectorBenchmark    | AustraAll                        |        372.0047 ns |       2.3520 ns |       1.9640 ns |        371.1931 ns |
+| VectorBenchmark    | AustraVectorDistinct             |      9,623.9800 ns |      78.2714 ns |      73.2151 ns |      9,635.9375 ns |
+| VectorBenchmark    | AustraVectorMax                  |        928.5514 ns |       2.1207 ns |       1.9837 ns |        928.1884 ns |
+
+// * Warnings *
+MultimodalDistribution
+  CVectorBenchmark.AustraComplexVector2Array: Default -> It seems that the distribution can have several modes (mValue = 2.87)
+
+// * Hints *
+Outliers
+  CVectorBenchmark.AustraComplexVectorCtor: Default          -> 1 outlier  was  removed, 2 outliers were detected (675.18 ns, 740.97 ns)
+  CholeskyBenchmark.AustraCholMatrix: Default                -> 2 outliers were removed (558.64 us, 561.15 us)
+  EvdBenchmark.AustraEvdMatrix: Default                      -> 1 outlier  was  removed (4.81 ms)
+  LuBenchmark.AustraLuMatrix: Default                        -> 1 outlier  was  removed (939.40 us)
+  MatrixBenchmark.AustraAddMatrix: Default                   -> 1 outlier  was  removed (74.28 us)
+  SplineBenchmark.AustraGrid: Default                        -> 1 outlier  was  removed (21.23 us)
+  VectorBenchmark.AustraVectorSum: Default                   -> 1 outlier  was  removed (264.69 ns)
+  CholeskyBenchmark.AustraCholSolve: Default                 -> 2 outliers were removed (35.23 us, 36.75 us)
+  EvdBenchmark.AustraEvdAsymMatrix: Default                  -> 2 outliers were removed (85.39 ms, 85.70 ms)
+  FunctionsBenchmark.AustraGamma: Default                    -> 1 outlier  was  removed (23.27 ns)
+  LuBenchmark.AustraLuSolve: Default                         -> 2 outliers were removed (109.42 us, 111.50 us)
+  MatrixBenchmark.AustraSubMatrix: Default                   -> 1 outlier  was  removed (74.66 us)
+  ParserBenchmark.AustraParseMatrixTrace: Default            -> 2 outliers were removed (1.13 us, 1.15 us)
+  SeqBenchmark.AustraMSeqSum: Default                        -> 1 outlier  was  removed (10.49 ns)
+  SplineBenchmark.AustraPolyDer: Default                     -> 1 outlier  was  detected (10.73 ns)
+  VectorBenchmark.AustraVectorSub: Default                   -> 1 outlier  was  removed, 2 outliers were detected (253.34 ns, 255.42 ns)
+  CholeskyBenchmark.AustraCholSolveMat: Default              -> 1 outlier  was  detected (2.00 ms)
+  EvdBenchmark.AustraEvdIsSymmetric: Default                 -> 2 outliers were removed (22.97 us, 22.99 us)
+  FftBenchmark.Fft579: Default                               -> 2 outliers were removed (24.07 us, 24.23 us)
+  ParserBenchmark.AustraParseCholeskyCheck: Default          -> 2 outliers were removed (2.61 us, 2.63 us)
+  SeqBenchmark.AustraRSeqSum: Default                        -> 1 outlier  was  removed, 2 outliers were detected (9.56 ns, 9.69 ns)
+  SplineBenchmark.AustraPolySolve3: Default                  -> 2 outliers were removed, 3 outliers were detected (90.27 ns, 91.43 ns, 92.23 ns)
+  VectorBenchmark.AustraVectorScale: Default                 -> 1 outlier  was  removed (260.62 ns)
+  EvdBenchmark.AustraEvdIsNotSymmetric: Default              -> 3 outliers were removed (2.22 ns..2.26 ns)
+  ParserBenchmark.AustraParseSimpleSum: Default              -> 1 outlier  was  detected (357.65 ns)
+  VectorBenchmark.AustraVectorAddScalar: Default             -> 1 outlier  was  detected (256.32 ns)
+  CVectorBenchmark.AustraComplexVectorScale: Default         -> 1 outlier  was  removed, 2 outliers were detected (535.09 ns, 586.10 ns)
+  MatrixBenchmark.AustraMulMatrix: Default                   -> 1 outlier  was  removed (2.29 ms)
+  SeqBenchmark.AustraFactorial: Default                      -> 1 outlier  was  removed (10.96 ns)
+  SeriesBenchmark.AustraPointMultSeries: Default             -> 1 outlier  was  detected (1.73 us)
+  VectorBenchmark.AustraVectorPointMult: Default             -> 3 outliers were removed, 4 outliers were detected (253.88 ns, 261.95 ns..265.11 ns)
+  FftBenchmark.Fft1024: Default                              -> 1 outlier  was  removed (13.41 us)
+  ParserBenchmark.AustraEvalMatrixTrace: Default             -> 1 outlier  was  removed (1.86 ms)
+  MatrixBenchmark.AustraMulTMatrix: Default                  -> 2 outliers were removed (2.55 ms, 2.55 ms)
+  ParserBenchmark.AustraEvalSimpleSum: Default               -> 1 outlier  was  removed, 2 outliers were detected (63.14 us, 64.35 us)
+  ParserBenchmark.AustraEvalFunctionCall: Default            -> 2 outliers were removed (70.63 us, 70.75 us)
+  CVectorBenchmark.AustraPointwiseMultComplexVector: Default -> 2 outliers were removed, 3 outliers were detected (822.44 ns, 922.20 ns, 1.02 us)
+  MatrixBenchmark.AustraMatrixVector: Default                -> 1 outlier  was  detected (7.80 us)
+  VectorBenchmark.AustraDotProduct: Default                  -> 2 outliers were removed (90.87 ns, 91.07 ns)
+  MatrixBenchmark.AustraLMatrixVector: Default               -> 1 outlier  was  removed (3.25 us)
+  VectorBenchmark.AustraVectorProduct: Default               -> 3 outliers were removed (73.06 ns..74.01 ns)
+  MatrixBenchmark.AustraRMatrixVector: Default               -> 3 outliers were removed, 4 outliers were detected (5.02 us, 5.04 us..5.09 us)
+  VectorBenchmark.AustraVectorEqualsFalse: Default           -> 1 outlier  was  removed, 2 outliers were detected (2.02 ns, 2.06 ns)
+  MatrixBenchmark.AustraMatrixMultiplyAddRaw: Default        -> 2 outliers were removed, 3 outliers were detected (7.05 us, 7.18 us, 7.20 us)
+  VectorBenchmark.AustraVectorEqualsTrue: Default            -> 1 outlier  was  removed (73.06 ns)
+  VectorBenchmark.AustraRawLineal: Default                   -> 2 outliers were removed, 3 outliers were detected (832.44 ns, 885.14 ns, 891.18 ns)
+  VectorBenchmark.AustraCombineLineal: Default               -> 2 outliers were removed (263.78 ns, 265.84 ns)
+  MatrixBenchmark.AustraLowerTriangular: Default             -> 1 outlier  was  removed (106.60 us)
+  VectorBenchmark.AustraNegate: Default                      -> 1 outlier  was  removed (266.96 ns)
+  MatrixBenchmark.AustraRandomMatrix: Default                -> 2 outliers were removed (76.48 us, 78.32 us)
+  VectorBenchmark.AustraRandomVector: Default                -> 2 outliers were removed (572.35 ns, 575.85 ns)
+  MatrixBenchmark.AustraSymmetricMatrix: Default             -> 1 outlier  was  detected (22.40 us)
+  MatrixBenchmark.AustraMatrixGetRow: Default                -> 2 outliers were removed, 3 outliers were detected (92.02 ns, 100.72 ns, 100.90 ns)
+  VectorBenchmark.AustraSquareVector: Default                -> 2 outliers were removed, 3 outliers were detected (76.59 ns, 77.58 ns, 77.90 ns)
+  MatrixBenchmark.AustraTransposeRMatrix: Default            -> 1 outlier  was  detected (81.25 us)
+  VectorBenchmark.AustraVectorAbs: Default                   -> 1 outlier  was  removed, 2 outliers were detected (260.22 ns, 263.83 ns)
+  MatrixBenchmark.AustraLMultiplyTranspose: Default          -> 3 outliers were removed (350.99 us..352.16 us)
+  VectorBenchmark.AustraVectorMap: Default                   -> 1 outlier  was  removed (2.50 us)
+  MatrixBenchmark.AustraRMultiplyTranspose: Default          -> 1 outlier  was  removed, 2 outliers were detected (481.72 us, 490.09 us)
+  MatrixBenchmark.AustraLMatrixSolve: Default                -> 3 outliers were removed (3.46 us..3.60 us)
+  VectorBenchmark.AustraIndexOfLast: Default                 -> 1 outlier  was  detected (60.12 ns)
+  VectorBenchmark.AustraAutocorrelation: Default             -> 3 outliers were removed, 4 outliers were detected (349.79 ns, 359.50 ns..361.08 ns)
+  VectorBenchmark.AustraVectorReverse: Default               -> 2 outliers were removed (355.52 ns, 358.14 ns)
+  MatrixBenchmark.AustraLMatrixTranspose: Default            -> 4 outliers were removed (88.45 us..90.21 us)
+  MatrixBenchmark.AustraLMatrixInverse: Default              -> 1 outlier  was  removed (2.11 ms)
+  VectorBenchmark.AustraNIndexOfLast: Default                -> 1 outlier  was  detected (5.36 ns)
+  VectorBenchmark.AustraAny: Default                         -> 2 outliers were removed, 3 outliers were detected (850.67 ns, 858.43 ns, 860.13 ns)
+  MatrixBenchmark.AustraRMatrixInverse: Default              -> 2 outliers were removed (2.01 ms, 2.08 ms)
+  VectorBenchmark.AustraAll: Default                         -> 2 outliers were removed (383.24 ns, 383.64 ns)
+  VectorBenchmark.AustraVectorDistinct: Default              -> 1 outlier  was  detected (9.40 us)
+
+// * Legends *
+  Mean   : Arithmetic mean of all measurements
+  Error  : Half of 99.9% confidence interval
+  StdDev : Standard deviation of all measurements
+  Median : Value separating the higher half of all measurements (50th percentile)
+  1 ns   : 1 Nanosecond (0.000000001 sec)
+
+// ***** BenchmarkRunner: End *****
+Global total time: 00:37:44 (2264.66 sec), executed benchmarks: 117
+// * Artifacts cleanup *
+Artifacts cleanup is finished

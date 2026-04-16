@@ -135,7 +135,7 @@ v2.plot;
 <markup><font color="DarkGreen">-- Every use of <em>v1</em> returns always the same vector:</font></markup>
 v1 = v1;
 <markup><font color="DarkGreen">-- This is in contrast with the behavior of local variables.</font><br/>
-<b>let</b></markup> v2 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<font color="RoyalBlue"><b>let</b></font></markup> v2 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
 <markup><font color="DarkGreen">-- This expression will return <b>false</b>:</font></markup>
 v2 = v2
             </code>

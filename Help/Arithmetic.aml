@@ -144,7 +144,7 @@ and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInli
 		      </row>
 		    </table>
 		    <code language="Austra">
-<markup><b>let</b></markup> c = complex(3, 4) <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> c = complex(3, 4) <markup><font color="RoyalBlue"><b>in</b></font></markup>
 	c = c.real + c.imaginary * i
             </code>
 		    <para>If typing <codeInline>magnitude</codeInline> is too hard for your nerves, you can use <codeInline>mag</codeInline> as an accepted synonym. <codeInline>real</codeInline> can be shortened to <codeInline>re</codeInline>, and <codeInline>imag</codeInline> and even <codeInline>im</codeInline> can be used instead of <codeInline>imaginary</codeInline>. Since my heart is cold and empty for <codeInline>phase</codeInline>, on the other hand, there is no diminutive for that fellow.</para>
@@ -392,7 +392,7 @@ maximum numbers of iterations, which by default is <codeInline>100</codeInline>.
 list of coefficients, either in a single vector or as a list of real values, and evaluates
 the polynomial at the supplied value:</para>
 		    <code language="Austra">
-<markup><b>let</b></markup> x1 = complex(-1, sqrt(2)), x2 = x1';
+<markup><font color="RoyalBlue"><b>let</b></font></markup> x1 = complex(-1, sqrt(2)), x2 = x1';
 <markup><font color="DarkGreen">-- 1, 2, 3 represents the polynomial x² + 2x + 3</font></markup>
 polyEval(x1, 1, 2, 3);
 <markup><font color="DarkGreen">-- Coefficients can be grouped in a vector.</font></markup>
@@ -408,14 +408,14 @@ polySolve(1, 2, 3)
 			</code>
 			<para>You can check the accuracy of the answers from the solver using this trick:</para>
 		    <code language="Austra">
-<markup><b>let</b></markup> poly = [1, 2, 3] <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> poly = [1, 2, 3] <markup><font color="RoyalBlue"><b>in</b></font></markup>
   polySolve(poly).all(c => abs(polyEval(c, poly)) &lt;= 1e-15)
 			</code>
 			<para>Of course, the accuracy of the roots may vary according to the polynomial.</para>
 <para>A close relative of <codeInline>polyEval</codeInline> is <codeInline>polyDerivative</codeInline>, which calculates the derivative of a
 given polynomial at the specified argument:</para>
 		    <code language="Austra">
-<markup><b>let</b></markup> v = [1, 2, 3, 4];
+<markup><font color="RoyalBlue"><b>let</b></font></markup> v = [1, 2, 3, 4];
 polyEval(2, v) = 26;
 polyDerivative(2, v) = 23
 			</code>
@@ -521,7 +521,7 @@ iff(aapl.mean &lt; msft.mean, aapl.mean, msft.mean)
 			</code>
 			<para>Most of the times, the more verbose ternary operator is easier to read. The ternary operator has another advantage: you can chain several conditions and responses using the <codeInline>elif</codeInline> keyword.</para>
 		    <code language="Austra">
-<markup><b>let</b></markup> x = random;
+<markup><font color="RoyalBlue"><b>let</b></font></markup> x = random;
 <markup><b>if</b></markup> x &lt; 0.1 <markup><b>then</b><font color="DarkRed"> "Too low!"</font><br/></markup>
 <markup><b>elif</b></markup> x &lt; 0.5 <markup><b>then</b><font color="DarkRed"> "A little low"</font><br/></markup>
 <markup><b>elif</b></markup> x &lt; 0.9 <markup><b>then</b><font color="DarkRed"> "A little high"</font><br/></markup>
@@ -548,27 +548,27 @@ in the user documents folder or in the <codeInline>austra</codeInline> subfolder
             <para>Since <codeInline>csv</codeInline> class instances are immutable, properties must be modified using methods that creates new instances with the required changes:</para>
 		    <code language="Austra">
 <markup><font color="RoyalBlue"><b>let</b></font></markup> csv = csv(<markup><font color="DarkRed">"curves.csv"</font></markup>); 
-<markup><font color="RoyalBlue"><b>let</b></font></markup> csv = csv.withHeader.withSeparator(",").withFormat("EN-US");
+<markup><font color="RoyalBlue"><b>let</b></font></markup> csv = csv.withHeader.withSeparator(<markup><font color="DarkRed">","</font></markup>).withFormat(<markup><font color="DarkRed">"EN-US"</font></markup>);
 			</code>
 			<para>Note that without the reassignment at the second line, the local variable would keep 
 its initial properties. You can also create a definition if you use a CSV file frequently 
 enough to deserve it:</para>
 		    <code language="Austra">
 <markup><font color="RoyalBlue"><b>def</b></font></markup> curves = csv(<markup><font color="DarkRed">"curves.csv"</font></markup>)
-    .withHeader.withSeparator(",").withFormat("EN-US");
+    .withHeader.withSeparator(<markup><font color="DarkRed">","</font></markup>).withFormat(<markup><font color="DarkRed">"EN-US"</font></markup>);
 			</code>
 			<para>Columns from the CSV file can then be read as vectors:</para>
 		    <code language="Austra">
 <markup><font color="DarkGreen">-- Using a column name from the header, if available.</font></markup>
-vec(curves, "Discount factor");
+vec(curves, <markup><font color="DarkRed">"Discount factor"</font></markup>);
 <markup><font color="DarkGreen">-- Using the column position inside the file.</font></markup>
 vec(curves, 15); 
 			</code>
 			<para>The content of the file can be filtered using one of the two variants of the
 <codeInline>withFilter()</codeInline> method:</para>
 		    <code language="Austra">
-vec(curves.withFilter("Curve name", "SONIA"), "Discount factor"); 
-vec(curves.withFilter(1, "SONIA"), "Discount factor");
+vec(curves.withFilter(<markup><font color="DarkRed">"Curve name"</font></markup>, <markup><font color="DarkRed">"SONIA"</font></markup>), <markup><font color="DarkRed">"Discount factor"</font></markup>); 
+vec(curves.withFilter(1, <markup><font color="DarkRed">"SONIA"</font></markup>), <markup><font color="DarkRed">"Discount factor"</font></markup>);
             </code>
       </content>
      </section>
