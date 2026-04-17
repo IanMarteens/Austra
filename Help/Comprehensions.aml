@@ -55,7 +55,7 @@ iseq(1, 100)
         	  </code>
         	  <para>Special care is needed when the generator is a time series, because the identifier in the head of the list comprehension is typed as <codeInline>double</codeInline> in the mapping section, but it is a <codeInline>Point&lt;Date&gt;</codeInline> in the filter section:</para>
         	  <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> mean = msft.mean <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> mean = msft.mean <markup><font color="RoyalBlue"><b>in</b></font></markup>
   [x &lt;- msft : x.date &gt;= jan2015 =&gt; x - mean]
         	  </code>        	  
             </content>
@@ -107,7 +107,7 @@ iseq(10, 100).any(x =&gt; x * x = x + x)
         <para>The quantified list comprehension is marginally shorter than a call to <codeInline>any</codeInline> or <codeInline>all</codeInline>. Why, then, do we bother supporting this syntax? The reason is that we can embed a qualified predicate inside a normal list comprehension:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- Find all prime numbers between 2 and 100:</font></markup>
-[x &lt;- 2..100 : <markup><b>all</b></markup> div <markup><b>in</b></markup> 2 .. x - 1 : x % div != 0];
+[x &lt;- 2..100 : <markup><b>all</b></markup> div <markup><font color="RoyalBlue"><b>in</b></font></markup> 2 .. x - 1 : x % div != 0];
 <markup><font color="DarkGreen">-- Equivalent, but longer:</font></markup>
 iseq(2, 100).filter(x =&gt; iseq(2, x - 1).all(div => x % div != 0))
         </code>
@@ -116,7 +116,7 @@ iseq(2, 100).filter(x =&gt; iseq(2, x - 1).all(div => x % div != 0))
         <para>The mathematical symbols <codeInline>∀</codeInline> and <codeInline>∃</codeInline> are also accepted as synonyms of <codeInline>all</codeInline> and <codeInline>any</codeInline>:</para>
         <code language="Austra">
 [∃x &lt;- 10..100 : x * x = x + x];
-[x &lt; 2..100 : ∀y &lt; 2 .. x - 1 : x % y != 0];
+[x &lt;- 2..100 : ∀y &lt;- 2 .. x - 1 : x % y != 0];
         </code>
         <para>These symbols can be typed by pressing <codeInline>CtrlQ+A</codeInline> or <codeInline>CtrlQ+E</codeInline> in the <legacyBold>Code Editor</legacyBold>.</para>
        </content>
