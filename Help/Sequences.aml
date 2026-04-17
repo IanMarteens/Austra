@@ -3,7 +3,7 @@
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
       <para>Sequences provides most of the operations from real and complex vectors, but avoiding the storage. Sequences are similar to enumerable types in C# with LINQ, and are a requisite for any functional language.</para>
-      <para>AUSTRA supports three kinds of sequences: <codeInline>seq</codeInline>, for real valued sequences, <codeInline>cseq</codeInline> for complex ones, and <codeInline>iseq</codeInline>, for integer sequences.</para>
+      <para>AUSTRA supports four kinds of sequences: <codeInline>seq</codeInline>, for real valued sequences, <codeInline>cseq</codeInline> for complex ones, <codeInline>iseq</codeInline>, for integer sequences, and <codeInline>dseq</codeInline>, for date sequences.</para>
     </introduction>
     <section address="seqs">
       <title>Double-valued sequences as light vectors</title>
@@ -98,19 +98,19 @@ seq(1.5, 10.6);     <markup><font color="DarkGreen">-- Numbers from 1 to 10, too
 				  <para>Let us consider, for instance, how we would write a function for the greatest common divisor. When learning about function definitions, we saw that we could define a recursive function for this task:</para>
 		          <code language="Austra">
 <markup><font color="DarkGreen">-- The recursive version</font><br/>
-<b>def</b></markup> gcd1:<markup><font color="DarkRed">"Recursive GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
-    <markup><b>let</b></markup> rm = a % b <markup><b>in</b></markup>
+<font color="RoyalBlue"><b>def</b></font></markup> gcd1:<markup><font color="DarkRed">"Recursive GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
+    <markup><font color="RoyalBlue"><b>let</b></font></markup> rm = a % b <markup><font color="RoyalBlue"><b>in</b></font></markup>
         iff(rm = 0, b, mcd(b, rm))
 				  </code>
 				  <para>This is a fine recursive definition that even is amenable to tail recursion optimization. Now compare with the iterative alternative:</para>
 		          <code language="Austra">
 <markup><font color="DarkGreen">-- -- The iterative version</font><br/>
-<b>def</b></markup> gcd2:<markup><font color="DarkRed">"Iterative GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
+<font color="RoyalBlue"><b>def</b></font></markup> gcd2:<markup><font color="DarkRed">"Iterative GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
     <markup><font color="DarkCyan">iseq::</font></markup>unfold(10000, a, b, (x, y) => x%y).while(x => x > 0).last
 				  </code>
 				  <para>Even though it looks more verbose, the second definition is almost twice faster than the recursive definition. Note, however, that we have used the class iseq instead of seq, so the property last directly returned an integer value. We could have kept seq by simply adding <codeInline>toInt</codeInline> after calling last:</para>
 		          <code language="Austra">
-<markup><b>def</b></markup> gcd3:<markup><font color="DarkRed">"Iterative GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
+<markup><font color="RoyalBlue"><b>def</b></font></markup> gcd3:<markup><font color="DarkRed">"Iterative GCD"</font></markup>(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
     <markup><font color="DarkCyan">seq::</font></markup>unfold(10000, a, b, (x, y) => x%y).while(x => x > 0).last.toInt
 				  </code>
 				  <para>Still, the advantage of the iterative definition will be huge compared to the recursive definition.</para>
@@ -392,14 +392,14 @@ seq(1, 10) * seq(10, 1)  <markup><font color="DarkGreen">-- The dot product.</fo
 			  </table>
 			  <para>This example shows how to calculate the Collatz sequence using integer sequences:</para>
 			  <code language="Austra">
-<markup><b>let</b></markup> collatz(n: <markup><b>int</b></markup>) =
+<markup><font color="RoyalBlue"><b>let</b></font></markup> collatz(n: <markup><b>int</b></markup>) =
 	<markup><b><font color="DarkCyan">iseq::</font></b></markup>unfold(1000000, n, x => iff(x % 2 = 0, x / 2, 3x + 1))
 	.until(x => x = 1);
 collatz(137)
 			  </code>
 			  <para>Though the generator is created with a big enough upper limit, the sequence stops when a <codeInline>1</codeInline> is generated. The <codeInline>until</codeInline> method can also be written this way:</para>
 			  <code language="Austra">
-<markup><b>let</b></markup> collatz(n: <markup><b>int</b></markup>) =
+<markup><font color="RoyalBlue"><b>let</b></font></markup> collatz(n: <markup><b>int</b></markup>) =
 	<markup><b><font color="DarkCyan">iseq::</font></b></markup>unfold(1000000, n, x => iff(x % 2 = 0, x / 2, 3x + 1))
 	.until(1)
 			  </code>
