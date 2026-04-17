@@ -55,8 +55,8 @@
       		<content>
       		  <para>String literals are enclosed by double quotes and cannot cross line boundaries.</para>
 			  <code language="Austra">
-			  "A simple string literal";
-			  "A string literal with a quote: ""Wow!"". That was the quote."
+<markup><font color="DarkRed">"A simple string literal"</font>;<br/>
+<font color="DarkRed">"A string literal with a quote: ""Wow!"". That was the quote."</font></markup>
 			  </code>
       		</content>
       	</section>
@@ -86,8 +86,8 @@
 			<para>Though we do not expect anyone to write hundreds of pages of AUSTRA script, we still support line comments for better documentation. Comments always starts with two consecutive hyphens and extends to the next line feed or the end of the expression, whatever comes first:</para>
 			<code language="Austra">
 			<markup><font color="DarkGreen">-- A verbose version of math::min()</font><br/>
-<b>if</b></markup> aapl.mean &lt; msft.mean <markup><b>then</b></markup> aapl.mean <markup><font color="DarkGreen">-- Another comment.</font><br/>
-<b>else</b></markup> msft.mean
+<font color="RoyalBlue"><b>if</b></font></markup> aapl.mean &lt; msft.mean <markup><font color="RoyalBlue"><b>then</b></font></markup> aapl.mean <markup><font color="DarkGreen">-- Another comment.</font><br/>
+<font color="RoyalBlue"><b>else</b></font></markup> msft.mean
 			</code>
       	  </content>
       	</section>
@@ -118,20 +118,20 @@
           <content>
 			<para>Session variables, as the name indicates, are defined inside a user session, and die with the session. They are defined and removed using the <codeInline>set</codeInline> statement:</para>
             <code language="Austra">
-<markup><b>set</b></markup> v1 = [1, 2, 3, 4, 5];
-<markup><b>set</b></markup> v2 = v1.map(x =&gt; 1 / x);
+<markup><font color="RoyalBlue"><b>set</b></font></markup> v1 = [1, 2, 3, 4, 5];
+<markup><font color="RoyalBlue"><b>set</b></font></markup> v2 = v1.map(x =&gt; 1 / x);
 v2.plot;
 <markup><font color="DarkGreen">-- <em>v1</em> is removed now:</font><br/>
-<b>set</b></markup> v1;
+<font color="RoyalBlue"><b>set</b></font></markup> v1;
 <markup><font color="DarkGreen">-- <em>v2</em>, however, persist for the rest of the session.</font></markup>
 v2.plot;
 <markup><font color="DarkGreen">-- More than one variable can be assigned in a single statement.</font><br/>
-<b>set</b></markup> pi2 = 2 * pi, pi3 = 3 * pi 
+<font color="RoyalBlue"><b>set</b></font></markup> pi2 = 2 * pi, pi3 = 3 * pi 
             </code>
             <para>Only the value of the variable is stored, but not the formula that was used to calculate that value. This means, for example, that every use of the session variable will return the same value, even if the value was created using a random number generator:</para>
             <code language="Austra">
 <markup><font color="DarkGreen">-- <em>v1</em> is created using random numbers:</font><br/>
-<b>set</b></markup> v1 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<font color="RoyalBlue"><b>set</b></font></markup> v1 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
 <markup><font color="DarkGreen">-- Every use of <em>v1</em> returns always the same vector:</font></markup>
 v1 = v1;
 <markup><font color="DarkGreen">-- This is in contrast with the behavior of local variables.</font><br/>

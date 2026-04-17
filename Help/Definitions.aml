@@ -9,15 +9,15 @@
       <content>
         <para>Definitions are created using the <codeInline>def</codeInline> statement:</para>
         <code language="Austra">
-		<markup><b>def</b></markup> cxMvo = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, sm_low, sm_high)
+		<markup><font color="RoyalBlue"><b>def</b></font></markup> cxMvo = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, sm_low, sm_high)
         </code>
         <para>A description can be associated to a definition using the following syntax:</para>
         <code language="Austra">
-		<markup><b>def</b></markup> cxMvo:"MVO Model" = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, sm_low, sm_high)
+		<markup><font color="RoyalBlue"><b>def</b></font></markup> cxMvo:<markup><font color="DarkRed">"MVO Model"</font></markup> = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, sm_low, sm_high)
         </code>
         <para>Removing an existing definition is achieved with the <codeInline>undef</codeInline> command:</para>
         <code language="Austra">
-		<markup><b>undef</b></markup> cxMvo
+		<markup><font color="RoyalBlue"><b>undef</b></font></markup> cxMvo
         </code>
         <para>In the AUSTRA desktop application, definitions appear in the <legacyBold>Variables</legacyBold> panel, inside a <legacyBold>Definitions</legacyBold> node:</para>
         <mediaLink>
@@ -30,8 +30,8 @@
       	  <content>
       	  <para>Code definitions must respect some limitations. The most important one is that they cannot reference session variables. This sequence of commands is invalid:</para>
       	  <code language="Austra">
-<markup><b>set</b></markup> vector = [1, 2, 3, 4];
-<markup><b>def</b></markup> fact4 = vector.product <markup><font color="DarkGreen">-- Invalid code definition.</font></markup>
+<markup><font color="RoyalBlue"><b>set</b></font></markup> vector = [1, 2, 3, 4];
+<markup><font color="RoyalBlue"><b>def</b></font></markup> fact4 = vector.product <markup><font color="DarkGreen">-- Invalid code definition.</font></markup>
       	  </code>
       	  <para>The reason behind this constraint is that session variables only store their current values, but not the formula that generated that value.</para>
       	  </content>
@@ -41,9 +41,9 @@
       	  <content>
       	  <para>A code definition may refer to an existing definition. For instance:</para>
       	  <code language="Austra">
-<markup><b>def</b></markup> sm_cov = <markup><b><font color="DarkCyan">matrix::</font></b></markup>covariance(aapl, msft, hog, dax);
-<markup><b>def</b></markup> sm_ret = [1, 0.9, 1.2, 0.8];
-<markup><b>def</b></markup> cxMvo = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, vec(4), <markup><b><font color="DarkCyan">vec::</font></b></markup>ones(4))
+<markup><font color="RoyalBlue"><b>def</b></font></markup> sm_cov = <markup><b><font color="DarkCyan">matrix::</font></b></markup>covariance(aapl, msft, hog, dax);
+<markup><font color="RoyalBlue"><b>def</b></font></markup> sm_ret = [1, 0.9, 1.2, 0.8];
+<markup><font color="RoyalBlue"><b>def</b></font></markup> cxMvo = <markup><b><font color="DarkCyan">model::</font></b></markup>mvo(sm_ret, sm_cov, vec(4), <markup><b><font color="DarkCyan">vec::</font></b></markup>ones(4))
       	  </code>
       	  <para>In this case, removing either <codeInline>sm_cov</codeInline> or <codeInline>sm_ret</codeInline>, would also remove <codeInline>cxMvo</codeInline>.</para>
       	  </content>
@@ -53,7 +53,7 @@
       	  <content>
       	  <para>Let's say we make this definition:</para>
       	  <code language="Austra">
-<markup><b>def</b></markup> extProduct = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(4) ^ <markup><b><font color="DarkCyan">vec::</font></b></markup>random(4)
+<markup><font color="RoyalBlue"><b>def</b></font></markup> extProduct = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(4) ^ <markup><b><font color="DarkCyan">vec::</font></b></markup>random(4)
       	  </code>
       	  <para>This definition calls twice a class method that creates a random vector. The caret operator, <codeInline>^</codeInline>, combines those two vectors in a 4x4 matrix. Executing these definitions two times in a row gives, as expected, different results:</para>
       	  <code language="Austra">
@@ -78,8 +78,8 @@ extProduct = expProduct''; <markup><font color="DarkGreen">-- Double transpose.<
       	  </code>
       	  <para>AUSTRA assumes that, inside a formula, all parameter-less definitions call must return the same value. For that purpose, the two above formulas are internally rewritten as:</para>
       	  <code language="Austra">
-<markup><b>let</b></markup> x = extProduct <markup><b>in</b></markup> x = x'';
-<markup><b>let</b></markup> x = extProduct <markup><b>in</b></markup> (x * x).det - x.det ^ 2
+<markup><font color="RoyalBlue"><b>let</b></font></markup> x = extProduct <markup><font color="RoyalBlue"><b>in</b></font></markup> x = x'';
+<markup><font color="RoyalBlue"><b>let</b></font></markup> x = extProduct <markup><font color="RoyalBlue"><b>in</b></font></markup> (x * x).det - x.det ^ 2
       	  </code>
           <para>A <link xlink:href="8b381718-bf08-4762-a51b-1516af27bef2">local variable</link> is created under the hood for evaluating the definition just once inside the current formula.</para>
       	  <para>This automatic caching only takes place for parameterless definitions. If you want to disable this behaviour, just add an exclamation sign right after the definition identifier, when using the definition:</para>
@@ -100,22 +100,22 @@ extProduct! = extProduct
    	  <content>
       	<para>A definition can also have parameters, for defining a function. For instance, the factorial of an integer can be defined this way:</para>
       	<code language="Austra">
-<markup><b>def</b></markup> fact(n: <markup><b>int</b></markup>) = iff(n &lt;= 1, 1, [2..n].prod)
+<markup><font color="RoyalBlue"><b>def</b></font></markup> fact(n: <markup><b>int</b></markup>) = iff(n &lt;= 1, 1, [2..n].prod)
       	</code>
       	<para>The above definition is non recursive. Recursive functions must declare their return type:</para>
       	<code language="Austra">
-<markup><b>def</b></markup> recFact(n: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
-    <markup><b>if</b></markup> n &lt;= 1 <markup><b>then</b></markup> 1 <markup><b>else</b></markup> n * recFact(n - 1)
+<markup><font color="RoyalBlue"><b>def</b></font></markup> recFact(n: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
+    <markup><font color="RoyalBlue"><b>if</b></font></markup> n &lt;= 1 <markup><font color="RoyalBlue"><b>then</b></font></markup> 1 <markup><font color="RoyalBlue"><b>else</b></font></markup> n * recFact(n - 1)
       	</code>
       	<para>You can use local variables when defining a function:</para>
         <code language="Austra">
-<markup><b>def</b></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
-    <markup><b>let</b></markup> m = a % b <markup><b>in</b></markup> iff(m = 0, b, mcd(b, m))
+<markup><font color="RoyalBlue"><b>def</b></font></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
+    <markup><font color="RoyalBlue"><b>let</b></font></markup> m = a % b <markup><font color="RoyalBlue"><b>in</b></font></markup> iff(m = 0, b, mcd(b, m))
         </code>
       	<para>And you can also define auxiliary functions inside a function definition:</para>
         <code language="Austra">
-<markup><b>def</b></markup> fact(n: <markup><b>int</b></markup>) =
-    <markup><b>let</b></markup> f(n, acc: <markup><b>int</b></markup>): <markup><b>int</b></markup> = iff(n &lt;= 1, acc, f(n - 1, n * acc)) <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>def</b></font></markup> fact(n: <markup><b>int</b></markup>) =
+    <markup><font color="RoyalBlue"><b>let</b></font></markup> f(n, acc: <markup><b>int</b></markup>): <markup><b>int</b></markup> = iff(n &lt;= 1, acc, f(n - 1, n * acc)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
         f(n, 1)
         </code>
       	<para>In this case,  the inner function <codeInline>f</codeInline> is the one that is directly recursive. The outer function does not need to declare its return type.</para>
@@ -125,7 +125,7 @@ extProduct! = extProduct
       	    <content>
       		  <para>A permanent description can be attached to a function definition using the same syntax as before:</para>
       	      <code language="Austra">
-<markup><b>def</b></markup> fact:"Iterative factorial"(n: <markup><b>int</b></markup>) =
+<markup><font color="RoyalBlue"><b>def</b></font></markup> fact:<markup><font color="DarkRed">"Iterative factorial"</font></markup>(n: <markup><b>int</b></markup>) =
     iff(n &lt;= 1, 1, [2..n].prod)
       	      </code>
       		  <para>The description will be serialized and saved in whichever data storage Austra uses.</para>
@@ -198,14 +198,13 @@ extProduct! = extProduct
       	      </code>
       		  <para>For instance, this definition allows to apply a function twice to an argument:</para>
       	      <code language="Austra">
-<markup><b>def</b></markup> twice(x: <markup><b>real</b></markup>, f: <markup><b>real</b></markup> => <markup><b>real</b></markup>) =
+<markup><font color="RoyalBlue"><b>def</b></font></markup> twice(x: <markup><b>real</b></markup>, f: <markup><b>real</b></markup> => <markup><b>real</b></markup>) =
     f(f(x))
       	      </code>
       		  <para>This function can be called like this:</para>
       	      <code language="Austra">
 twice(1, sin)
       	      </code>
-
      	    </content>
       	  </section>
       	</sections>
