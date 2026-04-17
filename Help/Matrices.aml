@@ -18,7 +18,7 @@
 		</code>
 		<para>You can also create a new matrix by concatenating two existing matrices, or a matrix and a vector. You can use either vertical or horizontal concatenation:</para>
 		<code language="Austra">
-<markup><b>let</b></markup> m = [1,2;3,4], v=[1, 1];
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = [1,2;3,4], v=[1, 1];
 <markup><font color="DarkGreen">-- Horizontal concatenation (2x4 matrix).</font></markup>
 [m, m];
 <markup><font color="DarkGreen">-- Horizontal concatenation (2x3 matrix).</font></markup>
@@ -27,7 +27,7 @@
 <markup><font color="DarkGreen">-- Vertical concatenation (4x2 matrix).</font></markup>
 [m; m];
 <markup><font color="DarkGreen">-- Vertical concatenation (3x2 matrix).
-The vector is handled as a row vector.</font></markup>
+-- The vector is handled as a row vector.</font></markup>
 [m; v];
 [v; m];
 		</code>
@@ -83,6 +83,15 @@ The vector is handled as a row vector.</font></markup>
 	    	  <entry><para>Creates a correlation matrix given a list of series.</para></entry>
 	  		</row>
 		</table>
+        <para>Matrices can be imported from a CSV file using any of these methods:</para>
+        <code language="Austra">
+<markup><font color="RoyalBlue"><b>let</b></font></markup> csv = csv(<markup><font color="DarkRed">"matrix.csv"</font></markup>).withSeparator(<markup><font color="DarkRed">";"</font></markup>);
+<markup><font color="DarkGreen">-- Read all available columns into the new matrix.</font></markup>
+matrix(csv);
+<markup><font color="DarkGreen">-- Read only the provided column indexes.</font></markup>
+matrix(csv, 2, 2, 3);
+        </code>
+        <para>When a column index is repeated, the column is included twice in the matrix. The CSV file can also be filtered.</para>
 	  </content>
 	</section>
     <section address="matMethods">
@@ -217,14 +226,14 @@ The vector is handled as a row vector.</font></markup>
 		</table>
 		<para>This examples shows how to solve linear equations for a vector, using division by a matrix:</para>
 		<code language="Austra">
-<markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(5) + 0.01,
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(5) + 0.01,
     v = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(5),
-    answer = v / m <markup><b>in</b></markup>
+    answer = v / m <markup><font color="RoyalBlue"><b>in</b></font></markup>
     m * answer - v
 		</code>
 		<para>Solving equations for a matrix is also possible:</para>
 		<code language="Austra">
-<markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(5) + 1;
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(5) + 1;
 <markup><b><font color="DarkCyan">matrix::</font></b></markup>eye(5) / m - m.inverse
 		</code>
 		<para>Internally, the LU factorization of the matrix is used for equation solving, for the general case. When the matrix at the left is a triangular matrix, a most efficient algorithm is used.</para>
@@ -234,7 +243,7 @@ The vector is handled as a row vector.</font></markup>
 		    <content>
 		      <para>The compiler performs some optimisations for matrix operations. For instance, these two expressions yield the same result, but the second one avoids one matrix transpose:</para>
 			  <code language="Austra">
-<markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10), v = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10), v = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
 <markup><font color="DarkGreen">-- Transpose a matrix and then transform a vector:</font></markup>
 m' * v;
 <markup><font color="DarkGreen">-- Changing the order of operands avoids a transpose:</font></markup>
@@ -242,16 +251,16 @@ v * m;
 			  </code>
 			  <para>The compiler also detects when the second matrix in a matrix multiplication is being transposed:</para>
 			  <code language="Austra">
-<markup><b>let</b></markup> m1 = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10), m2 = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10) <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m1 = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10), m2 = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10) <markup><font color="RoyalBlue"><b>in</b></font></markup>
     m1 * m2'
 			  </code>
 			  <para>This pattern is handled by the <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.MultiplyTranspose(Austra.Library.Matrix)</codeEntityReference> method, which not only saves the time spent in the transpose but also avoids a temporal memory allocation.</para>
 			  <para>These two operation patterns are also detected and implemented with a single method call:</para>
 			  <code language="Austra">
-<markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
-<markup><b>let</b></markup> v1 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
-<markup><b>let</b></markup> v2 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
-<markup><b>let</b></markup> scaleFactor = 0.1;
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
+<markup><font color="RoyalBlue"><b>let</b></font></markup> v1 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<markup><font color="RoyalBlue"><b>let</b></font></markup> v2 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<markup><font color="RoyalBlue"><b>let</b></font></markup> scaleFactor = 0.1;
 m * v1 ± v2;
 m * v1 ± scaleFactor * v2;
 			  </code>
@@ -304,8 +313,8 @@ mat[^1, 1..^1]
 		<para>It means that, when the matrix transforms an eigenvector, the result is the same vector, except for a scale factor.</para>
 		<para>The Eigenvalue Decomposition of a matrix is an algorithm that identifies all the pairs of eigenvalues and eigenvector for a given square matrix. You can efficiently find eigenvalues and eigenvectors in AUSTRA applying the <codeInline>evd</codeInline> method on a matrix:</para>
 		<code language="Austra">
-<markup><b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
-<markup><b>let</b></markup> e = mat.evd;
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
+<markup><font color="RoyalBlue"><b>let</b></font></markup> e = mat.evd;
 <markup><font color="DarkGreen">-- This is a matrix with all eigenvectors as columns.</font></markup>
 e.vectors;
 <markup><font color="DarkGreen">-- This is a complex vectors with all eigenvalues.</font></markup>
@@ -337,9 +346,9 @@ m * m.evd.vectors = m.evd.vectors * m.evd.d
 		</code>
 		<para>In practice, however, we must take the lost of precision into account. For verifying an EVD, you can use this formula in AUSTRA:</para>
 		<code language="Austra">
-<markup><b>let</b></markup> m = matrix::random(32), e = m.evd <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = matrix::random(32), e = m.evd <markup><font color="RoyalBlue"><b>in</b></font></markup>
   (m * e.vectors - e.vectors * e.d).amax &lt;= 1e-12;
-<markup><b>let</b></markup> lm = matrix::lrandom(32), m = lm * lm', e = m.evd <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> lm = matrix::lrandom(32), m = lm * lm', e = m.evd <markup><font color="RoyalBlue"><b>in</b></font></markup>
   (m * e.vectors - e.vectors * e.d).amax &lt;= 1e-12;
 		</code>
 		<para>Symmetric matrices, as the one generated for the second example above, are decomposed using a more efficient algorithm, so Austra checks symmetry first, before applying any of these algorithms.</para>
@@ -382,11 +391,11 @@ m * m.evd.vectors = m.evd.vectors * m.evd.d
 		<para>The <codeInline>solve</codeInline> method from the original matrix does the same work, but it delegates the solution to a LU factorization created on the fly. If we need to solve more than one equation involving the same matrix at the left side, it is more efficient to perform the LU factorisation once, and reuse the result for each linear system, as this code show:</para>
 		<code language="Austra">
 <markup><font color="DarkGreen">-- This a matrix whose LU factorisation will be reused.</font><br/>
-<b>let</b></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
+<font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
 <markup><font color="DarkGreen">-- The LU factorisation is computed here.</font><br/>
-<b>let</b></markup> lu = m.lu;
+<font color="RoyalBlue"><b>let</b></font></markup> lu = m.lu;
 <markup><font color="DarkGreen">-- Now we generate a vector and a matrix for the right sides.</font><br/>
-<b>let</b></markup> n = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(m.rows), v = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(m.rows);
+<font color="RoyalBlue"><b>let</b></font></markup> n = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(m.rows), v = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(m.rows);
 <markup><font color="DarkGreen">-- Solve m*x=n and m*y=v, and check the accuracy of the results.</font></markup>
 (m * lu.solve(n) - n).amax;
 (m * lu.solve(v) - v).amax;
