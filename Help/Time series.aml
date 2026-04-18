@@ -66,6 +66,16 @@ series([0.5, 0.1, 0.9], aapl, msft);
 <markup><font color="DarkGreen">-- The above code is equivalent to this:</font></markup>
 0.5 + 0.1 * aapl + 0.9 * msft
 			</code>
+            <para>We can also import a series from any CSV file that has a date and a double-valued column:</para>
+            <code language="Austra">
+<markup><font color="RoyalBlue"><b>let</b></font></markup> curves = csv(<markup><font color="DarkRed">"curves.csv"</font></markup>)
+    .withHeader.withSeparator(<markup><font color="DarkRed">","</font></markup>).withFormat(<markup><font color="DarkRed">"EN-US"</font></markup>);
+<markup><font color="DarkGreen">-- You can use both column names and column indexes.</font></markup>
+series(<markup><font color="DarkRed">"SONIA"</font></markup>, curves.withFilter(<markup><font color="DarkRed">"Curve Name"</font></markup>, <markup><font color="DarkRed">"SONIA"</font></markup>),
+    11, 15);
+series(<markup><font color="DarkRed">"SONIA"</font></markup>, curves.withFilter(<markup><font color="DarkRed">"Curve Name"</font></markup>, <markup><font color="DarkRed">"SONIA"</font></markup>),
+    <markup><font color="DarkRed">"Curve Maturity Date"</font></markup>, <markup><font color="DarkRed">"Zero Rate Curve value"</font></markup>);
+            </code>
           </content>
         </section>
         <section address="serieProperties">

@@ -41,17 +41,17 @@ prices.map(x => min(x, 1000))
 		  	<content>
 		  	  <para>In many cases, you need a lambda that takes a single parameter to transform it into another value from the same type. For instance, the sine function can be approximated using a <link xlink:href="008dce7e-55cd-4c37-997b-b0463d7c24d0">spline</link> over a uniform grid like this:</para>
 		  	  <code language="Austra">
-<markup><b>let</b></markup> s = spline(0, 2*pi, 1024, x =&gt; sin(x)) <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(0, 2*pi, 1024, x =&gt; sin(x)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
     s[pi/4]
 		  	  </code>
 		  	  <para>The above code can be shortened to this:</para>
 		  	  <code language="Austra">
-<markup><b>let</b></markup> s = spline(0, 2*pi, 1024, sin) <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(0, 2*pi, 1024, sin) <markup><font color="RoyalBlue"><b>in</b></font></markup>
     s[pi/4];
 		  	  </code>
 		  	  <para>Or even this if you need to qualify the function name for any reason:</para>
 		  	  <code language="Austra">
-<markup><b>let</b></markup> s = spline(0, 2*pi, 1024, <markup><b><font color="DarkCyan">math::</font></b></markup>sin) <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(0, 2*pi, 1024, <markup><b><font color="DarkCyan">math::</font></b></markup>sin) <markup><font color="RoyalBlue"><b>in</b></font></markup>
     s[pi/4];
 		  	  </code>
 		  	  <para>Since <codeInline>sin</codeInline> is a mono-parametric function and no parameters are supplied, the compiler understands that the function must be used to create a mono-parametric lambda, returning a real value.</para>
@@ -115,7 +115,7 @@ aapl.rets.map(x => aapl.rets.ncdf(x))
 		</code>
 <para>But we can do it much better, using a <codeInline>let</codeInline> clause:</para>
         <code language="Austra">
-<markup><b>let</b></markup> a = aapl.rets <markup><b>in</b></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> a = aapl.rets <markup><font color="RoyalBlue"><b>in</b></font></markup>
   a.map(x => a.ncdf(x))
 		</code>
 <para>Though <codeInline>a</codeInline> is a local variable defined in the main body of the formula, we still can
