@@ -100,7 +100,8 @@ integer and it is immediately followed by an identifier:</para>
 		      </row>
 		      <row>
 		        <entry><para><codeInline>∈</codeInline></para></entry>
-		        <entry><para>A fancy synonym for the membership operator (<codeInline>&lt;-</codeInline>).</para></entry>
+		        <entry><para>A fancy synonym for the membership operator (<codeInline>&lt;-</codeInline>).</para>
+		        <para>It can by entered with the keys CTRL+Q/CTRL+I.</para></entry>
 		      </row>
 		    </table>
 		    <para>The membership operator can be used with sequences, vectors, matrices, and series:</para>
@@ -173,7 +174,7 @@ iff(e.toInt.even, <markup><font color="DarkRed">"Truncated to 2"</font>, <font c
     <section address="Section3">
       <title>The math class</title>
       <content>
-        <para>The <codeInline>math</codeInline> class groups methods and properties dealing with arithmetic operations. Most of these features come straight from the C#'s <codeEntityReference qualifyHint="false">T:System.Math</codeEntityReference> and <codeEntityReference qualifyHint="false">T:System.Numerics.Complex</codeEntityReference>, but it also incorporate other functions that are used in statistics and probabilities.</para>
+        <para>The <codeInline>math</codeInline> class groups methods and properties dealing with arithmetic operations. Most of these features come straight from the C#'s <codeInline>Math</codeInline> and <codeInline>Complex</codeInline>, but it also incorporate other functions that are used in statistics and probabilities.</para>
         <para>Our <codeInline>math</codeInline> is special in that the class prefix is assumed when not present in a function or property call:</para>
 		    <code language="Austra">
 <markup><font color="DarkGreen">-- Write like this, if you are a sucker for pain.</font><br/>
@@ -513,7 +514,7 @@ Newton-Raphson algorithm.</para>
 provides an <codeInline>if/then/else</codeInline> ternary operator, equivalent to the also included 
 <codeInline>iff()</codeInline> function:</para>
 		    <code language="Austra">
-<markup><b>if</b></markup> aapl.mean &lt; msft.mean <markup><b>then</b></markup> aapl.mean <markup><b>else</b></markup> msft.mean
+<markup><font color="RoyalBlue"><b>if</b></font></markup> aapl.mean &lt; msft.mean <markup><font color="RoyalBlue"><b>then</b></font></markup> aapl.mean <markup><font color="RoyalBlue"><b>else</b></font></markup> msft.mean
 			</code>
 			<para>Of course, the above expression is just a pedantic way to write <codeInline>min(aapl.mean, msft.mean)</codeInline>. It can be also be expressed using <codeInline>iff()</codeInline> this way:</para>
 		    <code language="Austra">
@@ -522,10 +523,10 @@ iff(aapl.mean &lt; msft.mean, aapl.mean, msft.mean)
 			<para>Most of the times, the more verbose ternary operator is easier to read. The ternary operator has another advantage: you can chain several conditions and responses using the <codeInline>elif</codeInline> keyword.</para>
 		    <code language="Austra">
 <markup><font color="RoyalBlue"><b>let</b></font></markup> x = random;
-<markup><b>if</b></markup> x &lt; 0.1 <markup><b>then</b><font color="DarkRed"> "Too low!"</font><br/></markup>
-<markup><b>elif</b></markup> x &lt; 0.5 <markup><b>then</b><font color="DarkRed"> "A little low"</font><br/></markup>
-<markup><b>elif</b></markup> x &lt; 0.9 <markup><b>then</b><font color="DarkRed"> "A little high"</font><br/></markup>
-<markup><b>else</b><font color="DarkRed"> "Too high!"</font></markup>
+<markup><font color="RoyalBlue"><b>if</b></font></markup> x &lt; 0.1 <markup><font color="RoyalBlue"><b>then</b></font><font color="DarkRed"> "Too low!"</font><br/>
+<font color="RoyalBlue"><b>elif</b></font></markup> x &lt; 0.5 <markup><font color="RoyalBlue"><b>then</b></font><font color="DarkRed"> "A little low"</font><br/>
+<font color="RoyalBlue"><b>elif</b></font></markup> x &lt; 0.9 <markup><font color="RoyalBlue"><b>then</b></font><font color="DarkRed"> "A little high"</font><br/>
+<font color="RoyalBlue"><b>else</b></font><font color="DarkRed"> "Too high!"</font></markup>
 			</code>			
             </content>
           </section>
@@ -569,6 +570,10 @@ vec(curves, 15);
 		    <code language="Austra">
 vec(curves.withFilter(<markup><font color="DarkRed">"Curve name"</font></markup>, <markup><font color="DarkRed">"SONIA"</font></markup>), <markup><font color="DarkRed">"Discount factor"</font></markup>); 
 vec(curves.withFilter(1, <markup><font color="DarkRed">"SONIA"</font></markup>), <markup><font color="DarkRed">"Discount factor"</font></markup>);
+            </code>
+            <para>The first line of a CSV file can be recovered using the <codeInline>first</codeInline> property:</para>
+		    <code language="Austra">
+curves.first;
             </code>
       </content>
      </section>

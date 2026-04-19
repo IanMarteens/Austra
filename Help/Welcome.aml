@@ -122,8 +122,9 @@
         <list class="bullet">
         	<listItem><codeInline>math</codeInline>, for grouping global functions and variables.</listItem>
         	<listItem><codeInline>matrix</codeInline>, for dealing with all kinds of matrices.</listItem>
-        	<listItem><codeInline>vec</codeInline>, <codeInline>cvec</codeInline> and <codeInline>nvec</codeInline>, for real vectors, complex vectors and integer vectors.</listItem>
-        	<listItem><codeInline>seq</codeInline>, <codeInline>cseq</codeInline> and <codeInline>nseq</codeInline>, for real sequences, complex sequences and integer sequences.</listItem>
+        	<listItem><codeInline>vec</codeInline>, <codeInline>cvec</codeInline>, and <codeInline>nvec</codeInline>, for real vectors, complex vectors and integer vectors.</listItem>
+        	<listItem><codeInline>seq</codeInline>, <codeInline>cseq</codeInline>, and <codeInline>nseq</codeInline>, for real sequences, complex sequences and integer sequences.</listItem>
+        	<listItem><codeInline>dvec</codeInline>, and <codeInline>dseq</codeInline>, for date vectors and sequences.</listItem>
         	<listItem><codeInline>series</codeInline>, for time series.</listItem>
         	<listItem><codeInline>spline</codeInline>, for cubic splines.</listItem>
         	<listItem><codeInline>model</codeInline>, for mathematical models and tools.</listItem>

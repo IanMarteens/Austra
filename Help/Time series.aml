@@ -470,6 +470,18 @@ aaa.stats + aab.stats
 			<para>A <codeInline>stats</codeInline> property is also implemented by real and integer <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">vectors</link> and <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">sequences</link>.</para>
           </content>
         </section>
+        <section address="timeWindows">
+          <title>Moving time windows</title>
+          <content>
+            <para>A series like our friend aaa is classified as a raw series. It starts with low values, and, despite random oscillations, it has a definite upward trend. If we take the mean of the first half of the series, it will be wildly different from the other half’s mean. The average value is not a significant property of the series.</para>
+            <para>Part of the problem has to do with the fact that <codeInline>aaa</codeInline> probably represents a random walk. The most probable underlying process that generates a series like this works by throwing a die at each step and deciding how much we must increase or decrease the current value. We can focus, however, on how these variations behave, by transforming the series into a series of returns. Series have two properties for this task: <codeInline>rets</codeInline>, for linear or ordinary returns, and <codeInline>logs</codeInline>, for logarithmic returns. This chart shows the logarithmic returns of <codeInline>aaa</codeInline>:</para>
+            <mediaLink><image placement="near" xlink:href="rets001"/></mediaLink>
+            <para>Now we have a series with a uniform mean throughout its lifetime, but another problem has surfaced. The time range we sample has a significant impact on the variation in the returns. In other words, different segments have different standard deviations or variances.</para>
+            <para>That is the reason why there are series methods like <codeInline>movingAvg</codeInline>, <codeInline>movingStd</codeInline>, and <codeInline>movingNcdf</codeInline> that calculate those statistics over a sliding window of samples. Each of these methods requires the number of samples to define the moving window. Since <codeInline>aaa</codeInline> is a monthly series, the following chart displays the accumulated standard deviation for a moving period extending from one year.</para>
+            <mediaLink><image placement="near" xlink:href="rets002"/></mediaLink>
+            <para>The related property, <codeInline>movingRet</codeInline>, can be used on raw and return series and averages the return according to the sampling frequency of the series. In this case, we do not supply the size of the sliding window, but it is inferred from its type and frequency.</para>
+          </content>
+        </section>
         <section address="statsAcf">
           <title>Autocorrelation and partial autocorrelation</title>
           <content>
