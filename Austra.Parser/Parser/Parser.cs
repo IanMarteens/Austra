@@ -680,35 +680,16 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Move();
                     Expression e2 = ParseAdditiveMultiplicative();
-                    if (IsDateVecOrSeq(e2))
-                        return e1.Type != typeof(Date)
-                            ? throw Error("Left side of membership operator must be a date", pos)
-                            : Expression.Call(e2, e2.Type.Get(nameof(DateSequence.Contains)), e1);
-                    if (IsIntVecOrSeq(e2))
-                        return e1.Type != typeof(int)
-                            ? throw Error("Left side of membership operator must be an integer", pos)
-                            : Expression.Call(e2, e2.Type.Get(nameof(NSequence.Contains)), e1);
-                    if (e1.Type == typeof(Date) && e2.Type == typeof(Series))
-                        return Expression.Call(e2,
-                            e2.Type.GetMethod(nameof(Series.Contains), [typeof(Date)])!, e1);
-                    if (e2.Type == typeof(DVector) || e2.Type == typeof(Series) ||
-                        e2.Type.IsAssignableTo(typeof(IMatrix)) ||
-                        e2.Type.IsAssignableTo(typeof(DSequence)))
+                    if (TryMembership(e1, e2, out var result))
+                        return result;
+                    e1 = ToDouble(e1);
+                    if (e1.Type == typeof(double))
                     {
-                        e1 = ToDouble(e1);
-                        return e1.Type != typeof(double)
-                            ? throw Error("Left side of membership operator must be numeric", pos)
-                            : Expression.Call(e2,
-                                e2.Type.GetMethod(nameof(NSequence.Contains), [typeof(double)])!, e1);
-                    }
-                    if (e2.Type == typeof(CVector) || e2.Type.IsAssignableTo(typeof(CSequence)))
-                    {
-                        if (e1.Type != typeof(Complex))
-                            if (IsArithmetic(e1))
-                                e1 = Expression.Convert(e1, typeof(Complex));
-                        return e1.Type != typeof(Complex)
-                            ? throw Error("Left side of membership operator must be numeric", pos)
-                            : Expression.Call(e2, e2.Type.Get(nameof(CSequence.Contains)), e1);
+                        if (TryMembership(e1, e2, out result))
+                            return result;
+                        e1 = Expression.Convert(e1, typeof(Complex));
+                        if (TryMembership(e1, e2, out result))
+                            return result;
                     }
                     throw Error("Invalid membership operation");
                 }
@@ -771,6 +752,18 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
             default:
                 return e1;
+        }
+
+        static bool TryMembership(Expression e1, Expression e2, [MaybeNullWhen(false)] out MethodCallExpression result)
+        {
+            if (e2.Type.IsAssignableTo(typeof(IContainer<>).MakeGenericType(e1.Type)))
+            {
+                result = Expression.Call(e2,
+                    e2.Type.GetMethod(nameof(IContainer<>.Contains), [e1.Type])!, e1);
+                return true;
+            }
+            result = null;
+            return false;
         }
     }
 
@@ -2417,11 +2410,11 @@ internal sealed partial class Parser : Scanner, IDisposable
     private static Expression ToDouble(Expression e) =>
         e.Type == typeof(int)
         ? (e is ConstantExpression { Value: int i }
-            ? (Expression)Expression.Constant((double)i)
+            ? Expression.Constant((double)i)
             : Expression.Convert(e, typeof(double)))
         : e.Type == typeof(long)
         ? (e is ConstantExpression { Value: long li }
-            ? (Expression)Expression.Constant((double)li)
+            ? Expression.Constant((double)li)
             : Expression.Convert(e, typeof(double)))
         : e;
 
