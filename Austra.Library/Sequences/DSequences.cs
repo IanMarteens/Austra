@@ -14,6 +14,7 @@ public abstract partial class DSequence : Sequence<double, DSequence>,
     IDivisionOperators<DSequence, double, DSequence>,
     IUnaryNegationOperators<DSequence, DSequence>,
     IPointwiseOperators<DSequence>,
+    IContainer<double>,
     IIndexable
 {
     /// <summary>Creates a sequence from a range.</summary>

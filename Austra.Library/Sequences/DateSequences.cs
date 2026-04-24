@@ -5,6 +5,7 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     IFormattable,
     IEquatable<DateSequence>,
     IEqualityOperators<DateSequence, DateSequence, bool>,
+    IContainer<Date>,
     IIndexable
 {
     /// <summary>Creates a sequence from a range.</summary>

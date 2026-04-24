@@ -21,6 +21,7 @@ public readonly struct CVector :
     IMultiplyOperators<CVector, double, CVector>,
     IUnaryNegationOperators<CVector, CVector>,
     IPointwiseOperators<CVector>,
+    IContainer<Complex>,
     ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the real components of the vector.</summary>

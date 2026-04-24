@@ -31,6 +31,7 @@ public readonly struct Matrix :
     IDivisionOperators<Matrix, double, Matrix>,
     IUnaryNegationOperators<Matrix, Matrix>,
     IPointwiseOperators<Matrix>,
+    IContainer<double>,
     IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>

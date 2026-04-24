@@ -56,7 +56,7 @@ public readonly struct Point<T>(T arg, double value) where T : struct, IComparab
 
 /// <summary>Represents a named series.</summary>
 /// <typeparam name="T">Type of the abscissa.</typeparam>
-public class Series<T> : ISafeIndexed where T : struct, IComparable<T>
+public class Series<T> : IContainer<double>, ISafeIndexed where T : struct, IComparable<T>
 {
     /// <summary>Stores the arguments for the series.</summary>
     protected internal readonly T[] args;

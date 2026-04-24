@@ -14,6 +14,7 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     IDivisionOperators<CSequence, Complex, CSequence>,
     IUnaryNegationOperators<CSequence, CSequence>,
     IPointwiseOperators<CSequence>,
+    IContainer<Complex>,
     IIndexable
 {
     /// <summary>Creates a sequence from a uniform grid.</summary>

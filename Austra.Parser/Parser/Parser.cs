@@ -507,8 +507,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         parsingLambdaHeader = true;
         Move();
         List<ParameterExpression> result = source.RentParams(4);
-        List<string> names = new(4);
-        while (true)
+        for (List<string> names = new(4); ; Move())
         {
             if (kind != Token.Id)
                 throw Error("Parameter name expected");
@@ -528,7 +527,6 @@ internal sealed partial class Parser : Scanner, IDisposable
             names.Clear();
             if (kind != Token.Comma)
                 break;
-            Move();
         }
         lambdaBlock.Add(result);
         CheckAndMove(Token.RPar, ") expected");

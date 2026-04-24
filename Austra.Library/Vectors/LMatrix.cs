@@ -26,6 +26,7 @@ public readonly struct LMatrix :
     IMultiplyOperators<LMatrix, double, LMatrix>,
     IDivisionOperators<LMatrix, double, LMatrix>,
     IUnaryNegationOperators<LMatrix, LMatrix>,
+    IContainer<double>,
     IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>

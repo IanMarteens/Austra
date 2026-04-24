@@ -15,6 +15,18 @@ public interface IIndexable
 {
 }
 
+/// <summary>
+/// Common interface for all types that can be used as containers, such as vectors and matrices.
+/// </summary>
+/// <typeparam name="T">The type of elements in the container.</typeparam>
+public interface IContainer<T>
+{
+    /// <summary>Determines whether the container contains a specific element.</summary>
+    /// <param name="item">The element to locate in the container.</param>
+    /// <returns><see langword="true"/> if the element is found; otherwise, <see langword="false"/>.</returns>
+    bool Contains(T item);
+}
+
 /// <summary>Defines a type with a pointwise multiplication operation.</summary>
 /// <typeparam name="T">The type that implements this interface.</typeparam>
 public interface IPointwiseOperators<T>

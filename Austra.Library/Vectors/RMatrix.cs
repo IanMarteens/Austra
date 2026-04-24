@@ -20,6 +20,7 @@ public readonly struct RMatrix :
     IMultiplyOperators<RMatrix, double, RMatrix>,
     IDivisionOperators<RMatrix, double, RMatrix>,
     IUnaryNegationOperators<RMatrix, RMatrix>,
+    IContainer<double>,
     IMatrix
 {
     /// <summary>Stores the cells of the matrix.</summary>

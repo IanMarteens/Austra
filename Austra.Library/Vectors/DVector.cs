@@ -31,6 +31,7 @@ public readonly struct DVector :
     IDivisionOperators<DVector, double, DVector>,
     IUnaryNegationOperators<DVector, DVector>,
     IPointwiseOperators<DVector>,
+    IContainer<double>,
     ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the components of the vector.</summary>

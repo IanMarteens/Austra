@@ -33,6 +33,7 @@ public sealed class Series : Series<Date>,
     IDivisionOperators<Series, double, Series>,
     IUnaryNegationOperators<Series, Series>,
     IPointwiseOperators<Series>,
+    IContainer<Date>,
     IFormattable
 {
     /// <summary>Creates a named time series.</summary>

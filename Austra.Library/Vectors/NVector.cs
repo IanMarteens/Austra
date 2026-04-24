@@ -25,6 +25,7 @@ public readonly struct NVector :
     IUnaryNegationOperators<NVector, NVector>,
     IMultiplyOperators<NVector, NVector, int>,
     IMultiplyOperators<NVector, int, NVector>,
+    IContainer<int>,
     ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the components of the vector.</summary>

@@ -10,6 +10,7 @@ public readonly struct DateVector :
     IAdditionOperators<DateVector, int, DateVector>,
     ISubtractionOperators<DateVector, DateVector, NVector>,
     ISubtractionOperators<DateVector, int, DateVector>,
+    IContainer<Date>,
     ISafeIndexed, IVector, IIndexable
 {
     /// <summary>Stores the components of the vector.</summary>
