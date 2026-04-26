@@ -3,11 +3,6 @@
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser : Scanner, IDisposable
 {
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] VectorVectorArg = [typeof(DVector), typeof(DVector)];
-    /// <summary>Another common argument list in functions.</summary>
-    private static readonly Type[] DoubleVectorArg = [typeof(double), typeof(DVector)];
-
     /// <summary>Constructor for <see cref="Index"/>.</summary>
     private static readonly ConstructorInfo IndexCtor =
         typeof(Index).GetConstructor([typeof(int), typeof(bool)])!;
@@ -680,16 +675,16 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Move();
                     Expression e2 = ParseAdditiveMultiplicative();
-                    if (TryMembership(e1, e2, out var result))
-                        return result;
+                    if (TryMembership(e1, ref e2))
+                        return e2;
                     e1 = ToDouble(e1);
                     if (e1.Type == typeof(double))
                     {
-                        if (TryMembership(e1, e2, out result))
-                            return result;
+                        if (TryMembership(e1, ref e2))
+                            return e2;
                         e1 = Expression.Convert(e1, typeof(Complex));
-                        if (TryMembership(e1, e2, out result))
-                            return result;
+                        if (TryMembership(e1, ref e2))
+                            return e2;
                     }
                     throw Error("Invalid membership operation");
                 }
@@ -754,15 +749,14 @@ internal sealed partial class Parser : Scanner, IDisposable
                 return e1;
         }
 
-        static bool TryMembership(Expression e1, Expression e2, [MaybeNullWhen(false)] out MethodCallExpression result)
+        static bool TryMembership(Expression e1, ref Expression e2)
         {
             if (e2.Type.IsAssignableTo(typeof(IContainer<>).MakeGenericType(e1.Type)))
             {
-                result = Expression.Call(e2,
+                e2 = Expression.Call(e2,
                     e2.Type.GetMethod(nameof(IContainer<>.Contains), [e1.Type])!, e1);
                 return true;
             }
-            result = null;
             return false;
         }
     }
@@ -770,9 +764,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>
     /// Parses expressions which combine addition, subtraction, multiplication, and division.
     /// </summary>
-    /// <remarks>
-    /// Most algebraic optimizations are performed by this method.
-    /// </remarks>
+    /// <remarks>Most algebraic optimizations are performed by this method.</remarks>
     /// <returns>The expression tree corresponding to the text.</returns>
     private Expression ParseAdditiveMultiplicative()
     {
@@ -955,15 +947,15 @@ internal sealed partial class Parser : Scanner, IDisposable
                 : nameof(DVector.MultiplySubtract);
             return b1.Right.Type == typeof(double)
                 ? Expression.Call(b1.Left,
-                    typeof(DVector).GetMethod(method, DoubleVectorArg)!,
+                    b1.Left.Type.GetMethod(method, [b1.Right.Type, e2.Type])!,
                     b1.Right, e2)
                 : b1.Left.Type == typeof(double)
                 ? Expression.Call(b1.Right,
-                    typeof(DVector).GetMethod(method, DoubleVectorArg)!,
+                    typeof(DVector).GetMethod(method, [b1.Left.Type, e2.Type])!,
                     b1.Left, e2)
                 : b1.Left.Type == typeof(Matrix)
                 ? Expression.Call(b1.Left,
-                    typeof(Matrix).GetMethod(method, VectorVectorArg)!,
+                    b1.Left.Type.GetMethod(method, [b1.Right.Type, e2.Type])!,
                     b1.Right, e2)
                 : opAdd == Token.Plus
                 ? Expression.Add(b1, e2)
@@ -980,15 +972,15 @@ internal sealed partial class Parser : Scanner, IDisposable
                 : nameof(CVector.MultiplySubtract);
             return b1.Right.Type == typeof(Complex)
                 ? Expression.Call(b1.Left,
-                    typeof(CVector).GetMethod(method, [typeof(Complex), typeof(CVector)])!,
+                    typeof(CVector).GetMethod(method, [b1.Right.Type, e2.Type])!,
                     b1.Right, e2)
                 : b1.Left.Type == typeof(Complex)
                 ? Expression.Call(b1.Right,
-                    typeof(CVector).GetMethod(method, [typeof(Complex), typeof(CVector)])!,
+                    typeof(CVector).GetMethod(method, [b1.Left.Type, e2.Type])!,
                     b1.Left, e2)
                 : b1.Left.Type == typeof(Matrix)
                 ? Expression.Call(b1.Left,
-                    typeof(Matrix).GetMethod(method, [typeof(CVector), typeof(CVector)])!,
+                    b1.Left.Type.GetMethod(method, [b1.Right.Type, e2.Type])!,
                     b1.Right, e2)
                 : opAdd == Token.Plus
                 ? Expression.Add(b1, e2)

@@ -5,6 +5,16 @@ internal static class TreeExtensions
 {
     extension(Expression e)
     {
+        public string Format()
+        {
+            string s = e.AsString()
+                .Replace("datasource.Listener.Enqueue(", "enqueue(")
+                .Replace("datasource.Item[", "datasource[");
+            return s.StartsWith("(datasource => ")
+                ? s["(datasource => ".Length..].TrimEnd(')')
+                : s;
+        }
+
         /// <summary>Gets a recursive string representation of the expression.</summary>
         /// <returns>The text equivalent to the expression.</returns>
         public string AsString() =>
