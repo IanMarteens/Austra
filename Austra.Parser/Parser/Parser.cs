@@ -867,7 +867,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                         {
                             // any * v ± v
                             if (e2 is not BinaryExpression { NodeType: ExpressionType.Multiply } b2)
-                                e1 = OptimizeVectorSum(opAdd, b1, e2);
+                                e1 = OptimizeVectorSum(opAdd, b1, e2, typeof(double));
                             else if (b1.Left.Type == typeof(double)
                                     && b2.Left.Type == typeof(double))
                                 // d1 * v1 + d2 * v2
@@ -883,10 +883,10 @@ internal sealed partial class Parser : Scanner, IDisposable
                                     opAdd == Token.Plus ? b2.Left : Negate(b2.Left),
                                     b2.Right);
                             else
-                                e1 = OptimizeVectorSum(opAdd, b1, e2);
+                                e1 = OptimizeVectorSum(opAdd, b1, e2, typeof(double));
                         }
                         else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } b2)
-                            e1 = OptimizeVectorSum(opAdd, b2, e1, true);
+                            e1 = OptimizeVectorSum(opAdd, b2, e1, typeof(double), true);
                         else if (e1 is NewExpression
                             || e1 is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name))
                             e1 = opAdd == Token.Plus
@@ -899,9 +899,9 @@ internal sealed partial class Parser : Scanner, IDisposable
                     else if (e1.Type == e2.Type && e2.Type == typeof(CVector))
                     {
                         if (e1 is BinaryExpression { NodeType: ExpressionType.Multiply } b1)
-                            e1 = OptimizeCVectorSum(opAdd, b1, e2);
+                            e1 = OptimizeVectorSum(opAdd, b1, e2, typeof(Complex));
                         else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } b2)
-                            e1 = OptimizeCVectorSum(opAdd, b2, e1, true);
+                            e1 = OptimizeVectorSum(opAdd, b2, e1, typeof(Complex), true);
                         else if (e1 is NewExpression
                             || e1 is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name))
                             e1 = opAdd == Token.Plus
@@ -938,6 +938,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             ? Expression.Constant(-d) : Expression.Negate(e);
 
         static Expression OptimizeVectorSum(Token opAdd, BinaryExpression b1, Expression e2,
+            Type itemType,
             bool reversed = false)
         {
             string method = opAdd == Token.Plus
@@ -945,38 +946,13 @@ internal sealed partial class Parser : Scanner, IDisposable
                 : reversed
                 ? nameof(DVector.SubtractMultiply)
                 : nameof(DVector.MultiplySubtract);
-            return b1.Right.Type == typeof(double)
+            return b1.Right.Type == itemType
                 ? Expression.Call(b1.Left,
                     b1.Left.Type.GetMethod(method, [b1.Right.Type, e2.Type])!,
                     b1.Right, e2)
-                : b1.Left.Type == typeof(double)
+                : b1.Left.Type == itemType
                 ? Expression.Call(b1.Right,
-                    typeof(DVector).GetMethod(method, [b1.Left.Type, e2.Type])!,
-                    b1.Left, e2)
-                : b1.Left.Type == typeof(Matrix)
-                ? Expression.Call(b1.Left,
-                    b1.Left.Type.GetMethod(method, [b1.Right.Type, e2.Type])!,
-                    b1.Right, e2)
-                : opAdd == Token.Plus
-                ? Expression.Add(b1, e2)
-                : Expression.Subtract(b1, e2);
-        }
-
-        static Expression OptimizeCVectorSum(Token opAdd, BinaryExpression b1, Expression e2,
-            bool reversed = false)
-        {
-            string method = opAdd == Token.Plus
-                ? nameof(CVector.MultiplyAdd)
-                : reversed
-                ? nameof(CVector.SubtractMultiply)
-                : nameof(CVector.MultiplySubtract);
-            return b1.Right.Type == typeof(Complex)
-                ? Expression.Call(b1.Left,
-                    typeof(CVector).GetMethod(method, [b1.Right.Type, e2.Type])!,
-                    b1.Right, e2)
-                : b1.Left.Type == typeof(Complex)
-                ? Expression.Call(b1.Right,
-                    typeof(CVector).GetMethod(method, [b1.Left.Type, e2.Type])!,
+                    b1.Right.Type.GetMethod(method, [b1.Left.Type, e2.Type])!,
                     b1.Left, e2)
                 : b1.Left.Type == typeof(Matrix)
                 ? Expression.Call(b1.Left,
