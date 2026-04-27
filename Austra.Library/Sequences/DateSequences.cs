@@ -18,12 +18,20 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
 
     /// <summary>Creates a sequence from a range and a step.</summary>
     /// <param name="first">First value in the sequence.</param>
-    /// <param name="step">Distance between sequence values.</param>
+    /// <param name="step">Distance between sequence values, in days.</param>
     /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
     /// <returns>A sequence returning a range of values.</returns>
     public static DateSequence Create(Date first, int step, Date last) => first <= last
         ? new GridSequence(first, step, last)
         : new GridSequenceDesc(first, step, last);
+
+    /// <summary>Creates a sequence from a range and a step in months.</summary>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="step">Distance between sequence values, in months.</param>
+    /// <param name="length">The number of values in the sequence.</param>
+    /// <returns>A sequence returning a range of values.</returns>
+    public static DateSequence Create(Date first, int step, int length) =>
+        new MonthGridSequence(first, step, length);
 
     /// <summary>Creates a date sequence from a vector.</summary>
     /// <param name="values">The vector containing the sequence's dates.</param>

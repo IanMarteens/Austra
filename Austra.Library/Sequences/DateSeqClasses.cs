@@ -319,10 +319,11 @@ public abstract partial class DateSequence
             return this;
         }
     }
+
     /// <summary>Implements a sequence of integers based in an range and a step.</summary>
     /// <remarks><c>first &lt;= last</c></remarks>
     /// <param name="first">First value in the sequence.</param>
-    /// <param name="step">Distance between sequence values.</param>
+    /// <param name="step">Distance between sequence values, in days.</param>
     /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
     private class GridSequence(Date first, int step, Date last) :
         FixLengthSequence(Abs(last - first) / step + 1)
@@ -387,11 +388,11 @@ public abstract partial class DateSequence
         public override DateSequence SortDescending() => new GridSequenceDesc(max, step, first);
 
         /// <summary>Gets the first value in the sequence.</summary>
-        /// <returns>The first value, or <see cref="double.NaN"/> when empty.</returns>
+        /// <returns>The first value, or <see cref="Date.Zero"/> when empty.</returns>
         public override Date First() => first;
 
         /// <summary>Gets the last value in the sequence.</summary>
-        /// <returns>The last value, or <see cref="double.NaN"/> when empty.</returns>
+        /// <returns>The last value, or <see cref="Date.Zero"/> when empty.</returns>
         public override Date Last() => max;
 
         /// <summary>Gets the minimum value from the sequence.</summary>
@@ -489,6 +490,228 @@ public abstract partial class DateSequence
             {
                 value = current;
                 current -= step;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <remarks><c>first &lt;= last</c></remarks>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="step">Distance between sequence values, in months.</param>
+    /// <param name="length">Number of values in the sequence.</param>
+    private class MonthGridSequence(Date first, int step, int length) :
+        FixLengthSequence(length)
+    {
+        /// <summary>The first value in the sequence.</summary>
+        protected readonly Date first = first;
+        /// <summary>The step of the sequence.</summary>
+        protected readonly int step = step;
+        /// <summary>
+        /// Maximum value in the sequence, which is the last value rounded down to the step.
+        /// </summary>
+        private readonly Date max = first.AddMonths((length - 1) * step);
+        /// <summary>Current value.</summary>
+        protected int current = 0;
+
+        /// <summary>
+        /// Resets the sequence by setting the next value to <see cref="first"/>.
+        /// </summary>
+        /// <returns>Echoes this sequence.</returns>
+        public sealed override DateSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override Date this[int index] =>
+            (uint)index < length ? first.AddMonths(index * step) : throw new IndexOutOfRangeException();
+
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DateSequence this[Range range]
+        {
+            get
+            {
+                (int offset, int length) = range.GetOffsetAndLength(Length());
+                return new MonthGridSequence(first.AddMonths(offset * step), step, length);
+            }
+        }
+
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(Date value)
+        {
+            if (value <= max && value >= first)
+            {
+                var (y1, m1, _) = first;
+                var (y2, m2, _) = value;
+                int months = (y2 - y1) * 12 + m2 - m1;
+                return months % step == 0 && first.AddMonths(months) == value;
+            }
+            return false;
+        }
+
+        /// <summary>Sorts the content of this sequence.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence Sort() => this;
+
+        /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence SortDescending() => first.Day == max.Day
+            ? new MonthGridSequenceDesc(max, step, length)
+            : base.SortDescending();
+
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value, or <see cref="Date.Zero"/> when empty.</returns>
+        public override Date First() => first;
+
+        /// <summary>Gets the last value in the sequence.</summary>
+        /// <returns>The last value, or <see cref="Date.Zero"/> when empty.</returns>
+        public override Date Last() => max;
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override Date Min() => first;
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override Date Max() => max;
+
+        /// <summary>Gets only the unique values in this sequence.</summary>
+        /// <remarks>This sequence has always unique values.</remarks>
+        /// <returns>A sequence with unique values.</returns>
+        public sealed override DateSequence Distinct() => this;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Date value)
+        {
+            if (current < length)
+            {
+                value = first.AddMonths(current++ * step);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <remarks><c>first &lt;= last</c></remarks>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="step">Distance between sequence values, in months.</param>
+    /// <param name="length">Number of values in the sequence.</param>
+    private class MonthGridSequenceDesc(Date first, int step, int length) :
+        FixLengthSequence(length)
+    {
+        /// <summary>The first value in the sequence.</summary>
+        protected readonly Date first = first;
+        /// <summary>The step of the sequence.</summary>
+        protected readonly int step = step;
+        /// <summary>
+        /// Maximum value in the sequence, which is the last value rounded down to the step.
+        /// </summary>
+        private readonly Date min = first.AddMonths(-(length - 1) * step);
+        /// <summary>Current value.</summary>
+        protected int current = 0;
+
+        /// <summary>
+        /// Resets the sequence by setting the next value to <see cref="first"/>.
+        /// </summary>
+        /// <returns>Echoes this sequence.</returns>
+        public sealed override DateSequence Reset()
+        {
+            current = 0;
+            return this;
+        }
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override Date this[int index] =>
+            (uint)index < length ? first.AddMonths(-index * step) : throw new IndexOutOfRangeException();
+
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DateSequence this[Range range]
+        {
+            get
+            {
+                (int offset, int length) = range.GetOffsetAndLength(Length());
+                return new MonthGridSequence(first.AddMonths(offset * step), step, length);
+            }
+        }
+
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(Date value)
+        {
+            if (value >= min && value <= first)
+            {
+                var (y1, m1, _) = first;
+                var (y2, m2, _) = value;
+                int months = (y1 - y2) * 12 + m1 - m2;
+                return months % step == 0 && first.AddMonths(-months) == value;
+            }
+            return false;
+        }
+
+        /// <summary>Sorts the content of this sequence.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence Sort() => first.Day == min.Day
+            ? new MonthGridSequence(min, step, length)
+            : base.Sort();
+
+        /// <summary>Sorts the content of this sequence in descending order.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence SortDescending() => this;
+
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value, or <see cref="Date.Zero"/> when empty.</returns>
+        public override Date First() => first;
+
+        /// <summary>Gets the last value in the sequence.</summary>
+        /// <returns>The last value, or <see cref="Date.Zero"/> when empty.</returns>
+        public override Date Last() => min;
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override Date Min() => min;
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override Date Max() => first;
+
+        /// <summary>Gets only the unique values in this sequence.</summary>
+        /// <remarks>This sequence has always unique values.</remarks>
+        /// <returns>A sequence with unique values.</returns>
+        public sealed override DateSequence Distinct() => this;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Date value)
+        {
+            if (current < length)
+            {
+                value = first.AddMonths(-current++ * step);
                 return true;
             }
             value = default;

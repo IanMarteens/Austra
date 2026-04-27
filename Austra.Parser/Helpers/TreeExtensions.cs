@@ -11,7 +11,7 @@ internal static class TreeExtensions
                 .Replace("datasource.Listener.Enqueue(", "enqueue(")
                 .Replace("datasource.Item[", "datasource[");
             return s.StartsWith("(datasource => ")
-                ? s["(datasource => ".Length..].TrimEnd(')')
+                ? s["(datasource => ".Length..][..^1]
                 : s;
         }
 

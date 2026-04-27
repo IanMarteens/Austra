@@ -777,6 +777,7 @@ internal sealed class Bindings
             ["dseq.new"] = new(
                 typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(Date)]),
                 typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(int), typeof(Date)]),
+                typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(int), typeof(int)]),
                 typeof(DateSequence).MD(nameof(DateSequence.Create), typeof(DateVector))),
             ["dseq.repeat"] = new(
                 typeof(DateSequence).MD(nameof(DateSequence.Repeat), typeof(int), typeof(Date))),
