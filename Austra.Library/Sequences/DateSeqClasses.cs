@@ -535,18 +535,6 @@ public abstract partial class DateSequence
         public override Date this[int index] =>
             (uint)index < length ? first.AddMonths(index * step) : throw new IndexOutOfRangeException();
 
-        /// <summary>Gets a range from the sequence.</summary>
-        /// <param name="range">A range inside the sequence.</param>
-        /// <returns>The sequence for the given range.</returns>
-        public override DateSequence this[Range range]
-        {
-            get
-            {
-                (int offset, int length) = range.GetOffsetAndLength(Length());
-                return new MonthGridSequence(first.AddMonths(offset * step), step, length);
-            }
-        }
-
         /// <summary>Checks if the underlying vector contains the given value.</summary>
         /// <param name="value">Value to locate.</param>
         /// <returns><see langword="true"/> if successful.</returns>
@@ -645,18 +633,6 @@ public abstract partial class DateSequence
         /// </exception>
         public override Date this[int index] =>
             (uint)index < length ? first.AddMonths(-index * step) : throw new IndexOutOfRangeException();
-
-        /// <summary>Gets a range from the sequence.</summary>
-        /// <param name="range">A range inside the sequence.</param>
-        /// <returns>The sequence for the given range.</returns>
-        public override DateSequence this[Range range]
-        {
-            get
-            {
-                (int offset, int length) = range.GetOffsetAndLength(Length());
-                return new MonthGridSequence(first.AddMonths(offset * step), step, length);
-            }
-        }
 
         /// <summary>Checks if the underlying vector contains the given value.</summary>
         /// <param name="value">Value to locate.</param>
