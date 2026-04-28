@@ -320,7 +320,7 @@ public abstract partial class DateSequence
         }
     }
 
-    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <summary>Implements a sequence of integers based in an range and a tenor.</summary>
     /// <remarks><c>first &lt;= last</c></remarks>
     /// <param name="first">First value in the sequence.</param>
     /// <param name="step">Distance between sequence values, in days.</param>
@@ -332,10 +332,10 @@ public abstract partial class DateSequence
         protected readonly Date first = first;
         /// <summary>The last value in the sequence.</summary>
         protected readonly Date last = last;
-        /// <summary>The step of the sequence.</summary>
+        /// <summary>The tenor of the sequence.</summary>
         protected readonly int step = step;
         /// <summary>
-        /// Maximum value in the sequence, which is the last value rounded down to the step.
+        /// Maximum value in the sequence, which is the last value rounded down to the tenor.
         /// </summary>
         private readonly Date max = first + ((last - first) / step) * step;
         /// <summary>Current value.</summary>
@@ -424,7 +424,7 @@ public abstract partial class DateSequence
         }
     }
 
-    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <summary>Implements a sequence of integers based in an range and a tenor.</summary>
     /// <remarks><c>first &gt;= last</c></remarks>
     /// <param name="first">First value in the sequence.</param>
     /// <param name="step">Distance between sequence values.</param>
@@ -433,7 +433,7 @@ public abstract partial class DateSequence
         GridSequence(first, step, last)
     {
         /// <summary>
-        /// Last actual value in the sequence, which is the last value rounded up to the step.
+        /// Last actual value in the sequence, which is the last value rounded up to the tenor.
         /// </summary>
         private readonly Date min = first - step * (Abs(last - first) / step);
 
@@ -497,34 +497,22 @@ public abstract partial class DateSequence
         }
     }
 
-    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <summary>Implements a sequence of integers based in an range and a tenor.</summary>
     /// <remarks><c>first &lt;= last</c></remarks>
     /// <param name="first">First value in the sequence.</param>
-    /// <param name="step">Distance between sequence values, in months.</param>
+    /// <param name="tenor">Distance between sequence values, in months.</param>
     /// <param name="length">Number of values in the sequence.</param>
-    private class MonthGridSequence(Date first, int step, int length) :
-        FixLengthSequence(length)
+    private class MonthGridSequence(Date first, int tenor, int length) :
+        CursorSequence(length)
     {
         /// <summary>The first value in the sequence.</summary>
         protected readonly Date first = first;
-        /// <summary>The step of the sequence.</summary>
-        protected readonly int step = step;
+        /// <summary>The tenor of the sequence.</summary>
+        protected readonly int step = tenor;
         /// <summary>
-        /// Maximum value in the sequence, which is the last value rounded down to the step.
+        /// Maximum value in the sequence, which is the last value rounded down to the tenor.
         /// </summary>
-        private readonly Date max = first.AddMonths((length - 1) * step);
-        /// <summary>Current value.</summary>
-        protected int current = 0;
-
-        /// <summary>
-        /// Resets the sequence by setting the next value to <see cref="first"/>.
-        /// </summary>
-        /// <returns>Echoes this sequence.</returns>
-        public sealed override DateSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
+        private readonly Date max = first.AddMonths((length - 1) * tenor);
 
         /// <summary>Gets the value at the specified index.</summary>
         /// <param name="index">A position inside the sequence.</param>
@@ -596,34 +584,22 @@ public abstract partial class DateSequence
         }
     }
 
-    /// <summary>Implements a sequence of integers based in an range and a step.</summary>
+    /// <summary>Implements a sequence of integers based in an range and a tenor.</summary>
     /// <remarks><c>first &lt;= last</c></remarks>
     /// <param name="first">First value in the sequence.</param>
-    /// <param name="step">Distance between sequence values, in months.</param>
+    /// <param name="tenor">Distance between sequence values, in months.</param>
     /// <param name="length">Number of values in the sequence.</param>
-    private class MonthGridSequenceDesc(Date first, int step, int length) :
-        FixLengthSequence(length)
+    private class MonthGridSequenceDesc(Date first, int tenor, int length) :
+        CursorSequence(length)
     {
         /// <summary>The first value in the sequence.</summary>
         protected readonly Date first = first;
-        /// <summary>The step of the sequence.</summary>
-        protected readonly int step = step;
+        /// <summary>The tenor of the sequence.</summary>
+        protected readonly int step = tenor;
         /// <summary>
-        /// Maximum value in the sequence, which is the last value rounded down to the step.
+        /// Maximum value in the sequence, which is the last value rounded down to the tenor.
         /// </summary>
-        private readonly Date min = first.AddMonths(-(length - 1) * step);
-        /// <summary>Current value.</summary>
-        protected int current = 0;
-
-        /// <summary>
-        /// Resets the sequence by setting the next value to <see cref="first"/>.
-        /// </summary>
-        /// <returns>Echoes this sequence.</returns>
-        public sealed override DateSequence Reset()
-        {
-            current = 0;
-            return this;
-        }
+        private readonly Date min = first.AddMonths(-(length - 1) * tenor);
 
         /// <summary>Gets the value at the specified index.</summary>
         /// <param name="index">A position inside the sequence.</param>
