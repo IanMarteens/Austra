@@ -412,7 +412,7 @@ polySolve(1, 2, 3)
 <markup><font color="RoyalBlue"><b>let</b></font></markup> poly = [1, 2, 3] <markup><font color="RoyalBlue"><b>in</b></font></markup>
   polySolve(poly).all(c => abs(polyEval(c, poly)) &lt;= 1e-15)
 			</code>
-			<para>Of course, the accuracy of the roots may vary according to the polynomial.</para>
+			<para>The accuracy of the roots may vary according to the polynomial.</para>
 <para>A close relative of <codeInline>polyEval</codeInline> is <codeInline>polyDerivative</codeInline>, which calculates the derivative of a
 given polynomial at the specified argument:</para>
 		    <code language="Austra">
@@ -490,7 +490,7 @@ Newton-Raphson algorithm.</para>
       <title>Logical values</title>
       <content>
         <para>Logical values are represented by the <codeInline>bool</codeInline> data type. Variables and parameters from this type hold one of these two constants: either <codeInline>false</codeInline> or <codeInline>true</codeInline>.</para>
-        <para>Operators acting on logical values resembles more the good-old Pascal operators than the C/C++/C# one. It's a matter of personal preference, of course, but also of readability:</para>
+        <para>Operators acting on logical values resembles more the good-old Pascal operators than the C/C++/C# one. It's a matter of personal preference but also of readability:</para>
         <table>
       	  <row>
 		    <entry><para><codeInline>not</codeInline></para></entry>
@@ -516,7 +516,7 @@ provides an <codeInline>if/then/else</codeInline> ternary operator, equivalent t
 		    <code language="Austra">
 <markup><font color="RoyalBlue"><b>if</b></font></markup> aapl.mean &lt; msft.mean <markup><font color="RoyalBlue"><b>then</b></font></markup> aapl.mean <markup><font color="RoyalBlue"><b>else</b></font></markup> msft.mean
 			</code>
-			<para>Of course, the above expression is just a pedantic way to write <codeInline>min(aapl.mean, msft.mean)</codeInline>. It can be also be expressed using <codeInline>iff()</codeInline> this way:</para>
+			<para>The above expression is just a pedantic way to write <codeInline>min(aapl.mean, msft.mean)</codeInline>. It can be also be expressed using <codeInline>iff()</codeInline> this way:</para>
 		    <code language="Austra">
 iff(aapl.mean &lt; msft.mean, aapl.mean, msft.mean)
 			</code>

@@ -365,7 +365,7 @@ aapl[1..aapl.count - 1].count = aapl[1..^1].count
     <section address="seriesFit">
       <title>Linear fitting</title>
       <content>
-		<para>When you face a time series for the first time, the first thing you want is to decompose the series in all its identifiable components. The series may be the sum of a linear or quadratic process, it may have seasonal variations or any kind of period-ic variation, it may show signs of a stochastic process such as an autoregressive or moving average process and, of course, there will be almost always a random noise in the raw data.</para>
+		<para>When you face a time series for the first time, the first thing you want is to decompose the series in all its identifiable components. The series may be the sum of a linear or quadratic process, it may have seasonal variations or any kind of period-ic variation, it may show signs of a stochastic process such as an autoregressive or moving average process and there will be almost always a random noise in the raw data.</para>
 		<para>The most easily identifiable component is perhaps a linear trend in the data. Look at the chart of this raw series with monthly sampling:</para>
 		<mediaLink><image placement="near" xlink:href="s003"/></mediaLink>
 		<para>If you apply the <codeInline>fit</codeInline> method to this series, the answer will be two numbers in a real vector:</para>

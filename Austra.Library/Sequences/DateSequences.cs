@@ -106,11 +106,6 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     public override DateSequence Until(Date value) =>
         new SeqUntilValue(this, value);
 
-    /// <summary>Gets the value at the specified index.</summary>
-    /// <param name="idx">A position inside the sequence.</param>
-    /// <returns>The value at the given position.</returns>
-    public override Date this[Index idx] => idx.IsFromEnd ? Materialize()[idx] : this[idx.Value];
-
     /// <summary>Gets a range from the sequence.</summary>
     /// <param name="range">A range inside the sequence.</param>
     /// <returns>The sequence for the given range.</returns>
@@ -224,5 +219,4 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
         Date[] values = Materialize();
         return values.Length == 0 ? "∅" : values.ToString(v => v.ToString(format, provider));
     }
-
 }

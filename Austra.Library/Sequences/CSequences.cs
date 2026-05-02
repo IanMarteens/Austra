@@ -126,11 +126,6 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
     public override CSequence Until(Complex value) =>
         new SeqUntilValue(this, value);
 
-    /// <summary>Gets the value at the specified index.</summary>
-    /// <param name="idx">A position inside the sequence.</param>
-    /// <returns>The value at the given position.</returns>
-    public override Complex this[Index idx] => idx.IsFromEnd ? Materialize()[idx] : this[idx.Value];
-
     /// <summary>Gets a range from the sequence.</summary>
     /// <param name="range">A range inside the sequence.</param>
     /// <returns>The sequence for the given range.</returns>

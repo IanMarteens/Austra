@@ -42,7 +42,7 @@ public abstract class BaseSequence<T, TSelf>
     /// <summary>Gets the value at the specified index.</summary>
     /// <param name="idx">A position inside the sequence.</param>
     /// <returns>The value at the given position.</returns>
-    public abstract T this[Index idx] { get; }
+    public virtual T this[Index idx] => idx.IsFromEnd ? Materialize()[idx] : this[idx.Value];
 
     /// <summary>Gets a range from the sequence.</summary>
     /// <param name="range">A range inside the sequence.</param>

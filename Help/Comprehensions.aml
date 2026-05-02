@@ -82,7 +82,7 @@ iseq(1, 100)
 [0..2..100];
 [0..1024..2pi];
         	  </code>
-        	  <para>We have mostly used constants for the range generators so far but, of course, each part of the generator could be an expression:</para>
+        	  <para>We have mostly used constants for the range generators so far but each part of the generator could be an expression:</para>
         	  <code language="Austra">
 [x &lt;- pi - 1..32 * 32..sqrt(200)];
         	  </code>
