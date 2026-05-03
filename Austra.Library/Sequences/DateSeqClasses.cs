@@ -1,7 +1,13 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning Austra dates.</summary>
+#pragma warning disable IDE0079 // Remove unnecessary suppression
+#pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 public abstract partial class DateSequence
+#pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+#pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning restore IDE0079 // Remove unnecessary suppression
 {
     /// <summary>Implements a sequence of integers with a known length.</summary>
     /// <param name="length">Number of items in the sequence.</param>
@@ -320,8 +326,7 @@ public abstract partial class DateSequence
         }
     }
 
-    /// <summary>Implements a sequence of integers based in an range and a tenor.</summary>
-    /// <remarks><c>first &lt;= last</c></remarks>
+    /// <summary>Implements a sequence of dates based in an range and a tenor.</summary>
     /// <param name="first">First value in the sequence.</param>
     /// <param name="step">Distance between sequence values, in days.</param>
     /// <param name="last">Upper bound of the sequence. It may be rounded down.</param>
@@ -498,7 +503,6 @@ public abstract partial class DateSequence
     }
 
     /// <summary>Implements a sequence of integers based in an range and a tenor.</summary>
-    /// <remarks><c>first &lt;= last</c></remarks>
     /// <param name="first">First value in the sequence.</param>
     /// <param name="tenor">Distance between sequence values, in months.</param>
     /// <param name="length">Number of values in the sequence.</param>
@@ -509,10 +513,10 @@ public abstract partial class DateSequence
         protected readonly Date first = first;
         /// <summary>The tenor of the sequence.</summary>
         protected readonly int step = tenor;
-        /// <summary>
-        /// Maximum value in the sequence, which is the last value rounded down to the tenor.
-        /// </summary>
+        /// <summary>Maximum value in the sequence, which is also the last one.</summary>
         private readonly Date max = first.AddMonths((length - 1) * tenor);
+        /// <summary>Rolling day of the sequence.</summary>
+        private readonly int rollingDay = first.Day;
 
         /// <summary>Gets the value at the specified index.</summary>
         /// <param name="index">A position inside the sequence.</param>
@@ -522,6 +526,23 @@ public abstract partial class DateSequence
         /// </exception>
         public override Date this[int index] =>
             (uint)index < length ? first.AddMonths(index * step) : throw new IndexOutOfRangeException();
+
+        /// <summary>Gets a range from the sequence.</summary>
+        /// <param name="range">A range inside the sequence.</param>
+        /// <returns>The sequence for the given range.</returns>
+        public override DateSequence this[Range range]
+        {
+            get
+            {
+                if (rollingDay <= 28)
+                {
+                    (int offset, int length) = range.GetOffsetAndLength(Length());
+                    return new MonthGridSequence(
+                        first.AddMonths(offset * step), step, length);
+                }
+                return base[range];
+            }
+        }
 
         /// <summary>Checks if the underlying vector contains the given value.</summary>
         /// <param name="value">Value to locate.</param>
@@ -544,7 +565,7 @@ public abstract partial class DateSequence
 
         /// <summary>Sorts the content of this sequence in descending order.</summary>
         /// <returns>A sorted sequence.</returns>
-        public override DateSequence SortDescending() => first.Day == max.Day
+        public override DateSequence SortDescending() => rollingDay <= 28
             ? new MonthGridSequenceDesc(max, step, length)
             : base.SortDescending();
 
@@ -584,8 +605,87 @@ public abstract partial class DateSequence
         }
     }
 
-    /// <summary>Implements a sequence of integers based in an range and a tenor.</summary>
-    /// <remarks><c>first &lt;= last</c></remarks>
+    /// <summary>
+    /// Implements a sequence of dates based in an range and a tenor. with end-of-month adjustment.
+    /// </summary>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="tenor">Distance between sequence values, in months.</param>
+    /// <param name="length">Number of values in the sequence.</param>
+    private class EomGridSequence(Date first, int tenor, int length) :
+        CursorSequence(length)
+    {
+        /// <summary>The first value in the sequence.</summary>
+        protected readonly Date first = first.RollEOM();
+        /// <summary>The tenor of the sequence.</summary>
+        protected readonly int step = tenor;
+        /// <summary>Maximum value in the sequence, which is also the last one.</summary>
+        private readonly Date max = first.AddMonths((length - 1) * tenor).RollEOM();
+
+        /// <summary>Gets the value at the specified index.</summary>
+        /// <param name="index">A position inside the sequence.</param>
+        /// <returns>The value at the given position.</returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// When <paramref name="index"/> is out of range.
+        /// </exception>
+        public override Date this[int index] =>
+            (uint)index < length ? first.AddMonths(index * step).RollEOM() : throw new IndexOutOfRangeException();
+
+        /// <summary>Checks if the underlying vector contains the given value.</summary>
+        /// <param name="value">Value to locate.</param>
+        /// <returns><see langword="true"/> if successful.</returns>
+        public override bool Contains(Date value)
+        {
+            if (value <= max && value >= first)
+            {
+                var (y1, m1, _) = first;
+                var (y2, m2, _) = value;
+                int months = (y2 - y1) * 12 + m2 - m1;
+                return months % step == 0 && first.AddMonths(months).RollEOM() == value;
+            }
+            return false;
+        }
+
+        /// <summary>Sorts the content of this sequence.</summary>
+        /// <returns>A sorted sequence.</returns>
+        public override DateSequence Sort() => this;
+
+        /// <summary>Gets the first value in the sequence.</summary>
+        /// <returns>The first value, or <see cref="Date.Zero"/> when empty.</returns>
+        public override Date First() => first;
+
+        /// <summary>Gets the last value in the sequence.</summary>
+        /// <returns>The last value, or <see cref="Date.Zero"/> when empty.</returns>
+        public override Date Last() => max;
+
+        /// <summary>Gets the minimum value from the sequence.</summary>
+        /// <returns>The minimum value.</returns>
+        public override Date Min() => first;
+
+        /// <summary>Gets the maximum value from the sequence.</summary>
+        /// <returns>The maximum value.</returns>
+        public override Date Max() => max;
+
+        /// <summary>Gets only the unique values in this sequence.</summary>
+        /// <remarks>This sequence has always unique values.</remarks>
+        /// <returns>A sequence with unique values.</returns>
+        public sealed override DateSequence Distinct() => this;
+
+        /// <summary>Gets the next number in the sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out Date value)
+        {
+            if (current < length)
+            {
+                value = first.AddMonths(current++ * step).RollEOM();
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>Implements a sequence of dates based in an range and a tenor.</summary>
     /// <param name="first">First value in the sequence.</param>
     /// <param name="tenor">Distance between sequence values, in months.</param>
     /// <param name="length">Number of values in the sequence.</param>
@@ -627,9 +727,7 @@ public abstract partial class DateSequence
 
         /// <summary>Sorts the content of this sequence.</summary>
         /// <returns>A sorted sequence.</returns>
-        public override DateSequence Sort() => first.Day == min.Day
-            ? new MonthGridSequence(min, step, length)
-            : base.Sort();
+        public override DateSequence Sort() => new MonthGridSequence(min, step, length);
 
         /// <summary>Sorts the content of this sequence in descending order.</summary>
         /// <returns>A sorted sequence.</returns>

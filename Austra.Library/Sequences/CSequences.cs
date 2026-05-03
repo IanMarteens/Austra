@@ -311,23 +311,6 @@ public abstract partial class CSequence : Sequence<Complex, CSequence>,
         return values.Length == 0 ? "∅" : values.ToString(v => v.ToString(format, provider));
     }
 
-    /// <summary>Checks if two sequence has the same length and arguments.</summary>
-    /// <param name="other">The second sequence to be compared.</param>
-    /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
-    public bool Equals(CSequence? other) =>
-        other is not null && new CVector(Materialize()) == new CVector(other.Materialize());
-
-    /// <summary>Checks if the provided argument is a sequence with the same values.</summary>
-    /// <param name="obj">The object to be compared.</param>
-    /// <returns><see langword="true"/> if the argument is a sequence with the same items.</returns>
-    public override bool Equals(object? obj) =>
-        obj is CSequence seq && Equals(seq);
-
-    /// <summary>Returns the hashcode for this vector.</summary>
-    /// <returns>A hashcode summarizing the content of the vector.</returns>
-    public override int GetHashCode() =>
-        ((IStructuralEquatable)Materialize()).GetHashCode(EqualityComparer<Complex>.Default);
-
     /// <summary>Compares two vectors for equality. </summary>
     /// <param name="left">First sequence operand.</param>
     /// <param name="right">Second sequence operand.</param>

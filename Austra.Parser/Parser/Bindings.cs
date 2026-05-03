@@ -118,6 +118,7 @@ internal sealed class Bindings
             ],
             ["dseq"] = [
                 new("new(", "Creates a date sequence either from a range, a range and a step, or a vector"),
+                new("eom(", "Creates a date sequence, rolling to the end of the month"),
                 new("repeat(", "Creates a sequence with a repeated value"),
                 new("unfold", "Creates a date sequence from a seed and a lambda"),
             ],
@@ -774,6 +775,8 @@ internal sealed class Bindings
                 typeof(CVector).MD(typeof(int), typeof(NormalRandom))),
             ["cvec.random"] = new(
                 typeof(CVector).MD(typeof(int), typeof(Random))),
+            ["dseq.eom"] = new(
+                typeof(DateSequence).MD(nameof(DateSequence.CreateEom), typeof(Date), typeof(int), typeof(int))),
             ["dseq.new"] = new(
                 typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(Date)]),
                 typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(int), typeof(Date)]),

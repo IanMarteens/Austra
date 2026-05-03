@@ -1,7 +1,11 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning complex values.</summary>
+#pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 public abstract partial class CSequence
+#pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+#pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
 {
     /// <summary>Implements a sequence of complex values based with a known length.</summary>
     /// <param name="length">Number of items in the sequence.</param>

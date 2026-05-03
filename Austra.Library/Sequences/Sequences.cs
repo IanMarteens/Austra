@@ -3,9 +3,9 @@
 /// <summary>Common base class for all sequences.</summary>
 /// <typeparam name="T">The type for the returned items.</typeparam>
 /// <typeparam name="TSelf">The covariant type of the sequence.</typeparam>
-public abstract class BaseSequence<T, TSelf>
+public abstract class BaseSequence<T, TSelf> : IEquatable<TSelf>
     where TSelf: BaseSequence<T, TSelf>
-    where T: unmanaged
+    where T: unmanaged, IEquatable<T>, IEqualityOperators<T, T, bool>
 {
     /// <summary>Gets the next item in the sequence.</summary>
     /// <param name="value">The next item in the sequence.</param>
@@ -16,7 +16,7 @@ public abstract class BaseSequence<T, TSelf>
     /// <returns>Echoes this sequence.</returns>
     public abstract TSelf Reset();
 
-    /// <summary>Performs a shallow copy of the sequence and performs a reset.</summary>
+    /// <summary>Makes a shallow copy of the sequence and resets it.</summary>
     /// <returns>A shallow copy of the sequence with clean state.</returns>
     public TSelf Clone() => ((TSelf)MemberwiseClone()).Reset();
 
@@ -189,17 +189,36 @@ public abstract class BaseSequence<T, TSelf>
     }
 
     /// <summary>Creates an array with all values from the sequence.</summary>
-    /// <returns>The values as an array.</returns>
+    /// <returns>The values as an array.</returns> 
     protected virtual T[] Materialize()
     {
         if (HasLength)
             return Materialize(Length());
+#pragma warning disable IDE0028 // Simplify collection initialization
         List<T> values = new(8);
+#pragma warning restore IDE0028 // Simplify collection initialization
         while (Next(out T value))
             values.Add(value);
         Reset();
         return [.. values];
     }
+
+    /// <summary>Checks if two sequence has the same length and arguments.</summary>
+    /// <param name="other">The second sequence to be compared.</param>
+    /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
+    public bool Equals(TSelf? other) =>
+        other is not null && Materialize().Eqs<T>(other.Materialize());
+
+    /// <summary>Checks if the provided argument is a sequence with the same values.</summary>
+    /// <param name="obj">The object to be compared.</param>
+    /// <returns><see langword="true"/> if the argument is a sequence with the same items.</returns>
+    public override bool Equals(object? obj) =>
+        obj is TSelf seq && Equals(seq);
+
+    /// <summary>Returns the hashcode for this vector.</summary>
+    /// <returns>A hashcode summarizing the content of the vector.</returns>
+    public override int GetHashCode() =>
+        ((IStructuralEquatable)Materialize()).GetHashCode(EqualityComparer<T>.Default);
 }
 
 /// <summary>Common base class for all numerical sequences.</summary>
@@ -214,7 +233,9 @@ public abstract class Sequence<T, TSelf> : BaseSequence<T, TSelf>
         ISubtractionOperators<T, T, T>,
         IMultiplyOperators<T, T, T>,
         IMultiplicativeIdentity<T, T>,
-        IDivisionOperators<T, T, T>
+        IDivisionOperators<T, T, T>,
+        IEquatable<T>,
+        IEqualityOperators<T, T, bool>
 {
     /// <summary>Gets the sum of all the values in the sequence.</summary>
     /// <returns>The sum of all the values in the sequence.</returns>

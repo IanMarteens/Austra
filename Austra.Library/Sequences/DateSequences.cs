@@ -1,6 +1,8 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning Austra dates.</summary>
+#pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     IFormattable,
     IEquatable<DateSequence>,
@@ -32,6 +34,14 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     /// <returns>A sequence returning a range of values.</returns>
     public static DateSequence Create(Date first, int tenor, int length) =>
         new MonthGridSequence(first, tenor, length);
+
+    /// <summary>Creates a sequence from a range and a tenor in months.</summary>
+    /// <param name="first">First value in the sequence.</param>
+    /// <param name="tenor">Distance between sequence values, in months.</param>
+    /// <param name="length">The number of values in the sequence.</param>
+    /// <returns>A sequence returning a range of values.</returns>
+    public static DateSequence CreateEom(Date first, int tenor, int length) =>
+        new EomGridSequence(first, tenor, length);
 
     /// <summary>Creates a date sequence from a vector.</summary>
     /// <param name="values">The vector containing the sequence's dates.</param>
@@ -166,23 +176,6 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
         return Create(data);
     }
 
-    /// <summary>Checks if two sequence has the same length and arguments.</summary>
-    /// <param name="other">The second sequence to be compared.</param>
-    /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
-    public bool Equals(DateSequence? other) =>
-        other is not null && Materialize().Eqs(other.Materialize());
-
-    /// <summary>Checks if the provided argument is a sequence with the same values.</summary>
-    /// <param name="obj">The object to be compared.</param>
-    /// <returns><see langword="true"/> if the argument is a sequence with the same items.</returns>
-    public override bool Equals(object? obj) =>
-        obj is DateSequence seq && Equals(seq);
-
-    /// <summary>Returns the hashcode for this vector.</summary>
-    /// <returns>A hashcode summarizing the content of the vector.</returns>
-    public override int GetHashCode() =>
-        ((IStructuralEquatable)Materialize()).GetHashCode(EqualityComparer<Date>.Default);
-
     /// <summary>Compares two vectors for equality. </summary>
     /// <param name="left">First sequence operand.</param>
     /// <param name="right">Second sequence operand.</param>
@@ -220,3 +213,5 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
         return values.Length == 0 ? "∅" : values.ToString(v => v.ToString(format, provider));
     }
 }
+#pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+#pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)

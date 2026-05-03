@@ -1,7 +1,13 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning double-precision values.</summary>
+#pragma warning disable IDE0079 // Remove unnecessary suppression
+#pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 public abstract partial class DSequence : IFormattable
+#pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+#pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning restore IDE0079 // Remove unnecessary suppression
 {
     /// <summary>Implements a sequence of doubles with a known length.</summary>
     /// <param name="length">Number of items in the sequence.</param>

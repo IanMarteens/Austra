@@ -395,23 +395,6 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
         return values.Length == 0 ? "∅" : values.ToString(v => v.ToString(format, provider));
     }
 
-    /// <summary>Checks if two sequence has the same length and arguments.</summary>
-    /// <param name="other">The second sequence to be compared.</param>
-    /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
-    public bool Equals(NSequence? other) =>
-        other is not null && Materialize().Eqs(other.Materialize());
-
-    /// <summary>Checks if the provided argument is a sequence with the same values.</summary>
-    /// <param name="obj">The object to be compared.</param>
-    /// <returns><see langword="true"/> if the argument is a sequence with the same items.</returns>
-    public override bool Equals(object? obj) =>
-        obj is NSequence seq && Equals(seq);
-
-    /// <summary>Returns the hashcode for this vector.</summary>
-    /// <returns>A hashcode summarizing the content of the vector.</returns>
-    public override int GetHashCode() =>
-        ((IStructuralEquatable)Materialize()).GetHashCode(EqualityComparer<int>.Default);
-
     /// <summary>Compares two vectors for equality. </summary>
     /// <param name="left">First sequence operand.</param>
     /// <param name="right">Second sequence operand.</param>
