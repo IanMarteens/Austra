@@ -126,6 +126,8 @@ public partial class MainWindow : Window
     {
         try
         {
+            if (e.Text == "." && avalon.CaretOffset > 1 && avalon.Text[avalon.CaretOffset - 2] == '.')
+                return;
             ShowCodeCompletion(e.Text == "."
                 ? RootModel.Instance.GetMembers(GetFragment())
                 : e.Text == ":"
