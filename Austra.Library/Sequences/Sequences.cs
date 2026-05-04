@@ -206,7 +206,7 @@ public abstract class BaseSequence<T, TSelf> : IEquatable<TSelf>
     /// <summary>Checks if two sequence has the same length and arguments.</summary>
     /// <param name="other">The second sequence to be compared.</param>
     /// <returns><see langword="true"/> if the two sequences have the same items.</returns>
-    public bool Equals(TSelf? other) =>
+    public virtual bool Equals(TSelf? other) =>
         other is not null && Materialize().Eqs(other.Materialize());
 
     /// <summary>Checks if the provided argument is a sequence with the same values.</summary>

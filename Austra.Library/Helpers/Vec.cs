@@ -482,6 +482,45 @@ public static class Vec
         return result;
     }
 
+    /// <summary>Checks two arrays of dates for equality.</summary>
+    /// <param name="array1">First array operand.</param>
+    /// <param name="array2">Second array operand.</param>
+    /// <returns><see langword="true"/> if both array has the same items.</returns>
+    public static bool Eqs(this Date[] array1, Date[] array2)
+    {
+        if (array1.Length != array2.Length)
+            return false;
+        ref uint p = ref As<Date, uint>(ref MM.GetArrayDataReference(array1));
+        ref uint q = ref As<Date, uint>(ref MM.GetArrayDataReference(array2));
+        if (V8.IsHardwareAccelerated && array1.Length >= Vector512<uint>.Count)
+        {
+            ref uint lstP = ref Unsafe.Add(ref p, array1.Length - Vector512<uint>.Count);
+            ref uint lstQ = ref Unsafe.Add(ref q, array1.Length - Vector512<uint>.Count);
+            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, Vector512<uint>.Count),
+                q = ref Unsafe.Add(ref q, Vector512<uint>.Count))
+                if (!V8.EqualsAll(V8.LoadUnsafe(ref p), V8.LoadUnsafe(ref q)))
+                    return false;
+            if (!V8.EqualsAll(V8.LoadUnsafe(ref lstP), V8.LoadUnsafe(ref lstQ)))
+                return false;
+        }
+        else if (V4.IsHardwareAccelerated && array1.Length >= Vector256<uint>.Count)
+        {
+            ref uint lstP = ref Unsafe.Add(ref p, array1.Length - Vector256<uint>.Count);
+            ref uint lstQ = ref Unsafe.Add(ref q, array1.Length - Vector256<uint>.Count);
+            for (; IsAddressLessThan(ref p, ref lstP); p = ref Unsafe.Add(ref p, Vector256<uint>.Count),
+                q = ref Unsafe.Add(ref q, Vector256<uint>.Count))
+                if (!V4.EqualsAll(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q)))
+                    return false;
+            if (!V4.EqualsAll(V4.LoadUnsafe(ref lstP), V4.LoadUnsafe(ref lstQ)))
+                return false;
+        }
+        else
+            for (int i = 0; i < array1.Length; i++)
+                if (Unsafe.Add(ref p, i) != Unsafe.Add(ref q, i))
+                    return false;
+        return true;
+    }
+
     /// <summary>Checks two arrays for equality.</summary>
     /// <typeparam name="T">The type of the arrays.</typeparam>
     /// <param name="array1">First array operand.</param>

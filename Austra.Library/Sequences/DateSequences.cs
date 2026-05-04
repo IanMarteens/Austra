@@ -199,7 +199,11 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     /// <returns>A plot containing a frozen vector as its dataset.</returns>
     public Plot<DateVector> Plot() => new(ToVector());
 
-    /// <summary>Evaluated the sequence and formats it like a <see cref="NVector"/>.</summary>
+    /// <inheritdoc/>
+    public override bool Equals(DateSequence? other) =>
+        other is not null && Materialize().Eqs(other.Materialize());
+
+    /// <summary>Evaluated the sequence and formats it like a <see cref="DateVector"/>.</summary>
     /// <returns>A formated list of double values.</returns>
     public override string ToString() => ToString("d");
 
