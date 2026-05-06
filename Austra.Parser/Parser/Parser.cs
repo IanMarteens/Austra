@@ -857,6 +857,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     else if (e2.Type == typeof(int) && e1.Type == typeof(long))
                         e2 = ToLong(e2);
                     else if (!IsIntVecOrSeq(e1) && !IsIntVecOrSeq(e2)
+                            && !e1.Type.IsAssignableTo(typeof(DateSequence))
                             && e1.Type != typeof(Date) && e2.Type != typeof(Date))
                         (e1, e2) = (ToDouble(e1), ToDouble(e2));
                 try

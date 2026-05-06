@@ -519,6 +519,120 @@ collatz(137)
         </sections>
       </content>
     </section>
+    <section address="dateseqs">
+      <title>Date sequences</title>
+      <content>
+        <para>Date sequences are implemented by the <codeInline>dseq</codeInline> class.</para>
+        <sections>
+          <section address="dateseqCtors">
+            <title>Class methods</title>
+            <content>
+              <para>These are the class methods supported by <codeInline>dseq</codeInline>:</para>
+			  <table>
+	 		    <row>
+	 		      <entry><para><codeInline>dseq::new</codeInline></para></entry>
+	 		      <entry><para>Creates a sequence, either from a date vector or from a grid of dates.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>dseq::eom</codeInline></para></entry>
+	 		      <entry><para>Creates a sequence starting with a date, adding months and rolling each date to the end of the month.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>cseq::repeat</codeInline></para></entry>
+	 		      <entry><para>Creates a sequence of repetitions of a single date.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>cseq::unfold</codeInline></para></entry>
+	 		      <entry><para>Like <codeInline>seq::unfold</codeInline>, but using date arguments.</para></entry>
+			    </row>
+			  </table>
+			  <para>The two most useful class methods probably are the ones that create schedules:</para>
+			  <code language="Austra">
+<markup><font color="DarkGreen">-- Generates twelve dates using a one-month tenor.</font></markup>
+dseq(today, 1, 12);
+<markup><font color="DarkGreen">-- Same as above, but using end-of-month rolling.</font><br/>
+<font color="DarkCyan"><b>dseq::</b></font></markup>eom(today, 1, 12);
+</code>
+            </content>
+          </section>
+          <section address="dateseqMethods">
+            <title>Methods and properties</title>
+            <content>
+              <para>These properties can be used with date sequences:</para>
+			  <table>
+	 		    <row>
+	 		      <entry><para><codeInline>distinct</codeInline></para></entry>
+	 		      <entry><para>Select unique values in the sequence, with no predefined order. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateSequence.Distinct</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>first</codeInline></para></entry>
+	 		      <entry><para>Gets the first term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.First</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>last</codeInline></para></entry>
+	 		      <entry><para>Gets the last term of the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Last</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>length</codeInline></para></entry>
+	 		      <entry><para>Gets the number of elements in the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Length</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>plot</codeInline></para></entry>
+	 		      <entry><para>Plots the sequence. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateSequence.Plot</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>sort</codeInline></para></entry>
+	 		      <entry><para>Sort dates in ascending order.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>sortDesc</codeInline></para></entry>
+	 		      <entry><para>Sort dates in descending order.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>toVector</codeInline></para></entry>
+	 		      <entry><para>Materializes the sequence into a date vector. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateSequence.ToVector</codeEntityReference>.</para></entry>
+			    </row>
+			  </table>
+			  <para>And these are the available methods:</para>
+			  <table>
+	 		    <row>
+	 		      <entry><para><codeInline>all</codeInline></para></entry>
+	 		      <entry><para>Checks if all items in the sequence satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.All(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>any</codeInline></para></entry>
+	 		      <entry><para>Checks if there is an item in the sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Any(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>filter</codeInline></para></entry>
+	 		      <entry><para>Returns items of the original sequence satisfying a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateSequence.Filter(System.Func{Austra.Library.Dates.Date,System.Boolean})</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>map</codeInline></para></entry>
+	 		      <entry><para>Transforms items with the help of a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateSequence.Map(System.Func{Austra.Library.Dates.Date,Austra.Library.Dates.Date})</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+	 		      <entry><para><codeInline>reduce</codeInline></para></entry>
+	 		      <entry><para>Conflates all values in a sequence using a lambda. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference>.</para></entry>
+			    </row>
+	 		    <row>
+ 		    	  <entry><para><codeInline>until</codeInline></para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence until a values satisfying a predicate is found. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Until(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>while</codeInline></para></entry>
+ 		    	  <entry><para>Returns a prefix of a sequence while values satisfy a predicate. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.While(System.Func{`0,System.Boolean})</codeEntityReference>.</para></entry>
+		  		</row>
+	 		    <row>
+	 		      <entry><para><codeInline>zip</codeInline></para></entry>
+	 		      <entry><para>Combines two sequences using a lambda function. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.DateSequence.Zip(Austra.Library.DateSequence,System.Func{Austra.Library.Dates.Date,Austra.Library.Dates.Date,Austra.Library.Dates.Date})</codeEntityReference>.</para></entry>
+			    </row>
+			  </table>
+            </content>
+          </section>
+        </sections>
+      </content>
+    </section>
     <section address="delayed">
        <title>Delayed execution</title>
        <content>

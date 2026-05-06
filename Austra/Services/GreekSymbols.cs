@@ -12,7 +12,7 @@ internal static class GreekSymbols
         [Key.F] = 'φ',
         [Key.G] = 'γ',
         [Key.H] = 'η',
-        [Key.I] = '∈',
+        [Key.I] = 'ι',
         [Key.J] = 'ξ',
         [Key.L] = 'λ',
         [Key.M] = 'μ',

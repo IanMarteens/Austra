@@ -7,6 +7,8 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     IFormattable,
     IEquatable<DateSequence>,
     IEqualityOperators<DateSequence, DateSequence, bool>,
+    IAdditionOperators<DateSequence, int, DateSequence>,
+    ISubtractionOperators<DateSequence, int, DateSequence>,
     IContainer<Date>,
     IIndexable
 {
@@ -175,6 +177,20 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
         Array.Sort(data, (x, y) => y.CompareTo(x));
         return Create(data);
     }
+
+    /// <summary>Adds a number of days to a date sequence.</summary>
+    /// <param name="s">Sequence operand.</param>
+    /// <param name="d">A number of days.</param>
+    /// <returns>The component by component sum of the sequence and the scalar.</returns>
+    public static DateSequence operator +(DateSequence s, int d) =>
+        s.HasStorage ? new VectorSequence(s.ToVector() + d) : s.Map(x => x + d);
+
+    /// <summary>Subtracts a number of days from a date sequence.</summary>
+    /// <param name="s">Sequence operand.</param>
+    /// <param name="d">A number of days.</param>
+    /// <returns>The component by component difference of the sequence and the scalar.</returns>
+    public static DateSequence operator -(DateSequence s, int d) =>
+        s.HasStorage ? new VectorSequence(s.ToVector() - d) : s.Map(x => x - d);
 
     /// <summary>Compares two vectors for equality. </summary>
     /// <param name="left">First sequence operand.</param>

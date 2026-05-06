@@ -194,9 +194,7 @@ public abstract class BaseSequence<T, TSelf> : IEquatable<TSelf>
     {
         if (HasLength)
             return Materialize(Length());
-#pragma warning disable IDE0028 // Simplify collection initialization
         List<T> values = new(8);
-#pragma warning restore IDE0028 // Simplify collection initialization
         while (Next(out T value))
             values.Add(value);
         Reset();
