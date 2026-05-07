@@ -189,6 +189,21 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     public static DateSequence operator +(DateSequence s, int d) =>
         s.HasStorage ? new VectorSequence(s.ToVector() + d) : s.Map(x => x + d);
 
+    /// <summary>Adds a number of days to a date sequence.</summary>
+    /// <param name="s1">Date sequence operand.</param>
+    /// <param name="s2">Integer sequence operator.</param>
+    /// <returns>The component by component sum of the sequence and the scalar.</returns>
+    public static DateSequence operator +(DateSequence s1, NSequence s2)
+    {
+        DateVector v1 = s1.ToVector();
+        NVector v2 = s2.ToVector();
+        if (v1.Length > v2.Length)
+            v1 = v1[0..v2.Length];
+        else if (v1.Length < v2.Length)
+            v2 = v2[0..v1.Length];
+        return Create(v1 + v2);
+    }
+
     /// <summary>Subtracts a number of days from a date sequence.</summary>
     /// <param name="s">Sequence operand.</param>
     /// <param name="d">A number of days.</param>
@@ -209,6 +224,22 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
         else if (v1.Length < v2.Length)
             v2 = v2[0..v1.Length];
         return NSequence.Create(v1 - v2);
+    }
+
+    /// <summary>Subtracts an integer sequence from a date sequence.</summary>
+    /// <param name="s1">The date sequence operand.</param>
+    /// <param name="s2">The integer sequence operand.</param>
+    /// <returns>The component by component shifted dates.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DateSequence operator -(DateSequence s1, NSequence s2)
+    {
+        DateVector v1 = s1.ToVector();
+        NVector v2 = s2.ToVector();
+        if (v1.Length > v2.Length)
+            v1 = v1[0..v2.Length];
+        else if (v1.Length < v2.Length)
+            v2 = v2[0..v1.Length];
+        return Create(v1 - v2);
     }
 
     /// <summary>Subtracts two date sequences to create a new sequence representing the difference in days.</summary>
