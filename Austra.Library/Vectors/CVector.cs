@@ -22,7 +22,7 @@ public readonly struct CVector :
     IUnaryNegationOperators<CVector, CVector>,
     IPointwiseOperators<CVector>,
     IContainer<Complex>,
-    ISafeIndexed, IVector, IIndexable
+    ISafeIndexed, INumericVector, IIndexable
 {
     /// <summary>Stores the real components of the vector.</summary>
     private readonly double[] re;

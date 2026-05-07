@@ -1622,6 +1622,7 @@ internal sealed class Bindings
             nameof(DVector.InplaceAdd), nameof(DVector.InplaceSub),
             nameof(DVector.MultiplyAdd), nameof(DVector.MultiplySubtract),
             nameof(DVector.SubtractMultiply),
+            nameof(DVector.InplaceNegate),
             nameof(DVector.Combine2), nameof(DVector.Combine)
         }.ToFrozenSet();
 

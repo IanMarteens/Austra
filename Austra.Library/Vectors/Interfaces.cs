@@ -5,6 +5,11 @@ public interface IVector
 {
 }
 
+/// <summary>Common interface for all numeric vector types.</summary>
+public interface INumericVector : IVector
+{  
+}
+
 /// <summary>Common interface for all matrix types.</summary>
 public interface IMatrix
 {

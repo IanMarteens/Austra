@@ -26,7 +26,7 @@ public readonly struct NVector :
     IMultiplyOperators<NVector, NVector, int>,
     IMultiplyOperators<NVector, int, NVector>,
     IContainer<int>,
-    ISafeIndexed, IVector, IIndexable
+    ISafeIndexed, INumericVector, IIndexable
 {
     /// <summary>Stores the components of the vector.</summary>
     internal readonly int[] values;
@@ -429,6 +429,181 @@ public readonly struct NVector :
     {
         values.AsSpan().Neg();
         return this;
+    }
+
+    /// <summary>Optimized vector multiplication and addition.</summary>
+    /// <remarks>The current vector is the multiplicand.</remarks>
+    /// <param name="multiplier">The multiplier vector.</param>
+    /// <param name="summand">The vector to be added to the pointwise multiplication.</param>
+    /// <returns><code>this .* multiplier + summand</code></returns>
+    public NVector MultiplyAdd(NVector multiplier, NVector summand)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(multiplier.IsInitialized);
+        Contract.Requires(summand.IsInitialized);
+        Contract.Requires(Length == multiplier.Length);
+        Contract.Requires(Length == summand.Length);
+
+        int[] result = GC.AllocateUninitializedArray<int>(Length);
+        ref int p = ref MM.GetArrayDataReference(values);
+        ref int q = ref MM.GetArrayDataReference(multiplier.values);
+        ref int r = ref MM.GetArrayDataReference(summand.values);
+        ref int s = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(
+                    V8.LoadUnsafe(ref p, i) * V8.LoadUnsafe(ref q, i) + V8.LoadUnsafe(ref r, i),
+                    ref s, i);
+            V8.StoreUnsafe(
+                V8.LoadUnsafe(ref p, t) * V8.LoadUnsafe(ref q, t) + V8.LoadUnsafe(ref r, t),
+                ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref p, i) * V4.LoadUnsafe(ref q, i) + V4.LoadUnsafe(ref r, i),
+                    ref s, i);
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref p, t) * V4.LoadUnsafe(ref q, t) + V4.LoadUnsafe(ref r, t),
+                ref s, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = Add(ref p, i) * Add(ref q, i) + Add(ref r, i);
+        return result;
+    }
+
+    /// <summary>Optimized vector multiplication and addition.</summary>
+    /// <remarks>The current vector is the multiplicand.</remarks>
+    /// <param name="multiplier">The multiplier scalar.</param>
+    /// <param name="summand">The vector to be added to the scalar multiplication.</param>
+    /// <returns><code>this * multiplier + summand</code></returns>
+    public NVector MultiplyAdd(int multiplier, NVector summand)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(summand.IsInitialized);
+        Contract.Requires(Length == summand.Length);
+
+        int[] result = GC.AllocateUninitializedArray<int>(Length);
+        ref int p = ref MM.GetArrayDataReference(values);
+        ref int r = ref MM.GetArrayDataReference(summand.values);
+        ref int s = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            V8i vq = V8.Create(multiplier);
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(
+                    V8.LoadUnsafe(ref p, i) * vq + V8.LoadUnsafe(ref r, i), ref s, i);
+            V8.StoreUnsafe(
+                V8.LoadUnsafe(ref p, t) * vq + V8.LoadUnsafe(ref r, t), ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            V4i vq = V4.Create(multiplier);
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref p, i) * vq + V4.LoadUnsafe(ref r, i), ref s, i);
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref p, t) * vq + V4.LoadUnsafe(ref r, t), ref s, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = Add(ref p, i) * multiplier + Add(ref r, i);
+        return result;
+    }
+
+    /// <summary>Optimized vector scaling and subtraction.</summary>
+    /// <remarks>
+    /// <para>The current vector is the multiplicand.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
+    /// <param name="multiplier">The multiplier scalar.</param>
+    /// <param name="subtrahend">The vector to be subtracted from the multiplication.</param>
+    /// <returns><code>this * multiplier - subtrahend</code></returns>
+    public NVector MultiplySubtract(int multiplier, NVector subtrahend)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(subtrahend.IsInitialized);
+        Contract.Requires(Length == subtrahend.Length);
+
+        int[] result = GC.AllocateUninitializedArray<int>(Length);
+        ref int p = ref MM.GetArrayDataReference(values);
+        ref int r = ref MM.GetArrayDataReference(subtrahend.values);
+        ref int s = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            V8i vq = V8.Create(multiplier);
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(
+                    V8.LoadUnsafe(ref p, i) * vq - V8.LoadUnsafe(ref r, i), ref s, i);
+            V8.StoreUnsafe(
+                V8.LoadUnsafe(ref p, t) * vq - V8.LoadUnsafe(ref r, t), ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            V4i vq = V4.Create(multiplier);
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref p, i) * vq - V4.LoadUnsafe(ref r, i), ref s, i);
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref p, t) * vq - V4.LoadUnsafe(ref r, t), ref s, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = Add(ref p, i) * multiplier - Add(ref r, i);
+        return result;
+    }
+
+    /// <summary>Optimized subtraction of scaled vector.</summary>
+    /// <remarks>
+    /// <para>The current vector is the minuend.</para>
+    /// <para>This operation is hardware-accelerated when possible.</para>
+    /// </remarks>
+    /// <param name="multiplier">The multiplier scalar.</param>
+    /// <param name="subtrahend">The vector to scaled.</param>
+    /// <returns><code>this - multiplier * subtrahend</code></returns>
+    public NVector SubtractMultiply(int multiplier, NVector subtrahend)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(subtrahend.IsInitialized);
+        Contract.Requires(Length == subtrahend.Length);
+
+        int[] result = GC.AllocateUninitializedArray<int>(Length);
+        ref int p = ref MM.GetArrayDataReference(values);
+        ref int r = ref MM.GetArrayDataReference(subtrahend.values);
+        ref int s = ref MM.GetArrayDataReference(result);
+        if (V8.IsHardwareAccelerated && result.Length >= V8i.Count)
+        {
+            V8i vq = V8.Create(multiplier);
+            nuint t = (nuint)(result.Length - V8i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V8i.Count)
+                V8.StoreUnsafe(
+                    V8.LoadUnsafe(ref p, i) - vq * V8.LoadUnsafe(ref r, i), ref s, i);
+            V8.StoreUnsafe(
+                V8.LoadUnsafe(ref p, t) - vq * V8.LoadUnsafe(ref r, t), ref s, t);
+        }
+        else if (V4.IsHardwareAccelerated && result.Length >= V4i.Count)
+        {
+            V4i vq = V4.Create(multiplier);
+            nuint t = (nuint)(result.Length - V4i.Count);
+            for (nuint i = 0; i < t; i += (nuint)V4i.Count)
+                V4.StoreUnsafe(
+                    V4.LoadUnsafe(ref p, i) - vq * V4.LoadUnsafe(ref r, i), ref s, i);
+            V4.StoreUnsafe(
+                V4.LoadUnsafe(ref p, t) - vq * V4.LoadUnsafe(ref r, t), ref s, t);
+        }
+        else
+            for (int i = 0; i < result.Length; i++)
+                Add(ref s, i) = Add(ref p, i) - multiplier * Add(ref r, i);
+        return result;
     }
 
     /// <summary>Gets statistics on the vector values.</summary>
