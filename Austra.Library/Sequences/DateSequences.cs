@@ -1,14 +1,18 @@
 ﻿namespace Austra.Library;
 
 /// <summary>Represents any sequence returning Austra dates.</summary>
+#pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
 #pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
+#pragma warning restore IDE0079 // Remove unnecessary suppression
     IFormattable,
     IEquatable<DateSequence>,
     IEqualityOperators<DateSequence, DateSequence, bool>,
     IAdditionOperators<DateSequence, int, DateSequence>,
     ISubtractionOperators<DateSequence, int, DateSequence>,
+    ISubtractionOperators<DateSequence, DateSequence, NSequence>,
+    ISubtractionOperators<DateSequence, Date, NSequence>,
     IContainer<Date>,
     IIndexable
 {
@@ -192,6 +196,27 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     public static DateSequence operator -(DateSequence s, int d) =>
         s.HasStorage ? new VectorSequence(s.ToVector() - d) : s.Map(x => x - d);
 
+    /// <summary>Subtracts two date sequences to create a new sequence representing the difference in days.</summary>
+    /// <param name="s1">First date sequence operand.</param>
+    /// <param name="s2">Second date sequence operand.</param>
+    /// <returns>The component by component difference of dates.</returns>
+    public static NSequence operator -(DateSequence s1, DateSequence s2)
+    {
+        DateVector v1 = s1.ToVector();
+        DateVector v2 = s2.ToVector();
+        if (v1.Length > v2.Length)
+            v1 = v1[0..v2.Length];
+        else if (v1.Length < v2.Length)
+            v2 = v2[0..v1.Length];
+        return NSequence.Create(v1 - v2);
+    }
+
+    /// <summary>Subtracts two date sequences to create a new sequence representing the difference in days.</summary>
+    /// <param name="s">The date sequence operand.</param>
+    /// <param name="d">A date scalar.</param>
+    /// <returns>The component by component difference of dates.</returns>
+    public static NSequence operator -(DateSequence s, Date d) => NSequence.Create(s.ToVector() - d);
+
     /// <summary>Compares two vectors for equality. </summary>
     /// <param name="left">First sequence operand.</param>
     /// <param name="right">Second sequence operand.</param>
@@ -233,5 +258,11 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
         return values.Length == 0 ? "∅" : values.ToString(v => v.ToString(format, provider));
     }
 }
+#pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+
+#pragma warning restore IDE0079 // Remove unnecessary suppression
+#pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+
+#pragma warning restore IDE0079 // Remove unnecessary suppression

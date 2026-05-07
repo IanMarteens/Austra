@@ -4,7 +4,9 @@
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
 #pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 public abstract partial class DateSequence
+#pragma warning restore CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 #pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 #pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
 #pragma warning restore IDE0079 // Remove unnecessary suppression
