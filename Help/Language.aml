@@ -25,28 +25,28 @@
       	  <content>
 			<para>Integer and real numbers are represented as in most programming languages. Here are some examples:</para>
 			<code language="Austra">
-			2023;
-			1.0;
-			-0.1E-16
+<markup><font color="Blue">2023</font></markup>;
+<markup><font color="Blue">1.0</font></markup>;
+<markup><font color="Blue">-0.1E-16</font></markup>
 			</code>
  			<para>Number literals can be suffixed with a lower-case i to represent an imaginary value:</para>
 			<code language="Austra">
-			2.0i;
-			-3i
+<markup><font color="Blue">2.0</font></markup>i;
+-<markup><font color="Blue">3</font></markup>i
 			</code>
 			<para>The identifier <codeInline>i</codeInline>, by its own, represents the imaginary unit:</para>
 			<code language="Austra">
-			1-3i = 1 - 3 * i
+<markup><font color="Blue">1</font></markup>-<markup><font color="Blue">3</font></markup>i = <markup><font color="Blue">1</font></markup> - <markup><font color="Blue">3</font></markup> * i
 			</code>
 			<para>Complex numbers can also be created using the <codeInline>complex</codeInline> function:</para>
 			<code language="Austra">
-			complex(1, -3) = 1 - 3 * i;
-			complex(3) = 3 + 0i
+complex(<markup><font color="Blue">1</font></markup>, -<markup><font color="Blue">3</font></markup>) = <markup><font color="Blue">1</font></markup> - <markup><font color="Blue">3</font></markup> * i;
+complex(<markup><font color="Blue">3</font></markup>) = <markup><font color="Blue">3</font></markup> + <markup><font color="Blue">0</font></markup>i
 			</code>
 			<para>Since <codeInline>i</codeInline> is not a keyword, you must be careful because it can be redefined as a user variable.</para>
 			<para>Complex can also be built using the polar notation:</para>
 			<code language="Austra">
-			polar(1, pi/2) <markup><font color="DarkGreen">-- Another way to write the imaginary unit.</font></markup>
+polar(<markup><font color="Blue">1</font></markup>, pi/<markup><font color="Blue">2</font></markup>) <markup><font color="DarkGreen">-- Another way to write the imaginary unit.</font></markup>
 			</code>
       	  </content>
       	</section>

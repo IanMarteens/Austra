@@ -630,6 +630,25 @@ dseq(today, 1, 12);
 			  </table>
             </content>
           </section>
+		  <section address="dateseqOperators">
+		    <title>Date sequence operators</title>
+		    <content>
+			  <para>Date sequence operators match the corresponding date vector operators:</para>
+			  <table>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>+</codeInline></para></entry>
+ 		    	  <entry><para>Adds a date sequence and an integer sequence and returns a sequence of dates. The second operand can also be an integer scalar.</para></entry>
+		  		</row>
+ 		  		<row>
+ 		    	  <entry><para><codeInline>-</codeInline></para></entry>
+ 		    	  <entry><para>Subtracts two date sequences, returning an integer sequence with the difference in days.
+It can also subtract an integer sequence from a date sequence to return another sequence of dates.
+In both cases, the second operand can be a scalar.</para></entry>
+		  		</row>
+			  </table>
+			  <para>While vector operations require both operands to have the same length, sequence operators act only on the common parts of their operands.</para>
+		    </content>
+		  </section>
         </sections>
       </content>
     </section>

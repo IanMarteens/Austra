@@ -45,7 +45,7 @@
     <MaximumGroupParts>2</MaximumGroupParts>
     <Preliminary>False</Preliminary>
     <SdkLinkTarget>Blank</SdkLinkTarget>
-    <CopyrightText>Copyright &amp;#169%3b by Intuitive Sight, 2023</CopyrightText>
+    <CopyrightText>Copyright &amp;#169%3b by Intuitive Sight, 2023-2026</CopyrightText>
     <VisibleItems>InheritedMembers, InheritedFrameworkMembers, ProtectedInternalAsProtected, NonBrowsable</VisibleItems>
     <HtmlHelp1xCompilerPath>C:\Program Files (x86)\HTML Help Workshop\</HtmlHelp1xCompilerPath>
     <WarnOnMissingSourceContext>False</WarnOnMissingSourceContext>
