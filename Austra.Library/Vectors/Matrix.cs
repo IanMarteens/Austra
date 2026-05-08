@@ -1242,7 +1242,7 @@ public readonly struct Matrix :
     /// This method avoids allocating two temporary vectors.
     /// </remarks>
     /// <param name="v">Vector to transform.</param>
-    /// <param name="scale">A scale factor for the vector to add.</param>
+    /// <param name="scale">A scale term for the vector to add.</param>
     /// <param name="add">Vector to add.</param>
     /// <returns><c>this * v + scale * add</c>.</returns>
     public DVector MultiplyAdd(DVector v, double scale, DVector add)
@@ -1482,6 +1482,29 @@ public readonly struct Matrix :
     {
         Contract.Requires(IsInitialized);
         return values.Sum();
+    }
+
+    /// <summary>
+    /// Retrieves the exponential of the matrix, using a Taylor expansion.
+    /// </summary>
+    /// <returns>The exponential of the matrix.</returns>
+    /// <exception cref="MatrixSizeException">When the matrix is not square.</exception>
+    public Matrix Exp()
+    {
+        Contract.Requires(IsInitialized);
+        if (!IsSquare)
+            throw new MatrixSizeException();
+        Matrix result = Identity(Rows) + this;
+        Matrix current = this;
+        for (int k = 2; k < 150; k++)
+        {
+            Matrix term = current * this / k;
+            result += term;
+            current = term;
+            if (term.AMax() < 1E-12)
+                break;
+        }
+        return result;
     }
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>

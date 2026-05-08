@@ -1270,6 +1270,7 @@ internal sealed class Bindings
             [new(typeof(Matrix), "det")] = typeof(Matrix).Get(nameof(Matrix.Determinant)),
             [new(typeof(Matrix), "diag")] = typeof(Matrix).Get(nameof(Matrix.Diagonal)),
             [new(typeof(Matrix), "evd")] = typeof(Matrix).GetMethod(nameof(Matrix.EVD), Type.EmptyTypes)!,
+            [new(typeof(Matrix), "exp")] = typeof(Matrix).GetMethod(nameof(Matrix.Exp), Type.EmptyTypes)!,
             [new(typeof(Matrix), "inverse")] = typeof(Matrix).Get(nameof(Matrix.Inverse)),
             [new(typeof(Matrix), "issym")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
             [new(typeof(Matrix), "issymmetric")] = typeof(Matrix).Get(nameof(Matrix.IsSymmetric)),
