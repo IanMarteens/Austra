@@ -31,6 +31,74 @@ internal static class TreeExtensions
                 MethodCallExpression m => $"{DescribeInstance(m.Object)}{m.Method.Name}({string.Join(", ", m.Arguments.Select(AsString))})",
                 _ => e.ToString(),
             };
+
+        /// <summary>Checks if the expression's type is either a double or an integer.</summary>
+        public bool IsArithmetic
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => e.Type == typeof(int) || e.Type == typeof(double);
+        }
+
+        /// <summary>Checks if the expression's type0 is either a double, an integer or a long.</summary>
+        public bool IsNumeric
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => e.Type == typeof(int) || e.Type == typeof(double) || e.Type == typeof(long);
+        }
+
+        public bool IsMatrix
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => e.Type.IsAssignableTo(typeof(IMatrix));
+        }
+
+        public bool IsVector
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => e.Type.IsAssignableTo(typeof(IVector));
+        }
+
+        public bool IsIntVecOrSeq
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => e.Type == typeof(NVector) || e.Type == typeof(NSequence)
+                || e.Type == typeof(DateVector);
+        }
+
+        public Expression ToLong
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get =>
+                e.Type == typeof(int)
+                ? (e is ConstantExpression { Value: int v }
+                    ? Expression.Constant((long)v)
+                    : Expression.Convert(e, typeof(long)))
+                : e;
+        }
+
+        public Expression ToDouble
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get =>
+                e.Type == typeof(int)
+                ? (e is ConstantExpression { Value: int i }
+                    ? Expression.Constant((double)i)
+                    : Expression.Convert(e, typeof(double)))
+                : e.Type == typeof(long)
+                ? (e is ConstantExpression { Value: long li }
+                    ? Expression.Constant((double)li)
+                    : Expression.Convert(e, typeof(double)))
+                : e;
+        }
+
+        public Expression IntToDouble
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get =>
+                e is ConstantExpression { Value: int i }
+                ? Expression.Constant((double)i)
+                : Expression.Convert(e, typeof(double));
+        }
     }
 
     private static string DescribeInstance(Expression? e) =>

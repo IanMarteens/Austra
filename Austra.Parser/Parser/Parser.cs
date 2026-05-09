@@ -665,7 +665,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Move();
                     Expression e2 = ParseAdditiveMultiplicative();
-                    return DifferentTypes(ref e1, ref e2) && !(IsMatrix(e1) && IsMatrix(e2))
+                    return DifferentTypes(ref e1, ref e2) && !(e1.IsMatrix && e2.IsMatrix)
                         ? throw Error("Equality operands are not compatible", pos)
                         : opKind == Token.Eq ? Expression.Equal(e1, e2)
                         : Expression.NotEqual(e1, e2);
@@ -677,7 +677,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     Expression e2 = ParseAdditiveMultiplicative();
                     if (TryMembership(e1, ref e2))
                         return e2;
-                    e1 = ToDouble(e1);
+                    e1 = e1.ToDouble;
                     if (e1.Type == typeof(double))
                     {
                         if (TryMembership(e1, ref e2))
@@ -699,17 +699,17 @@ internal sealed partial class Parser : Scanner, IDisposable
                     if (e1.Type != e2.Type)
                     {
                         if (e1.Type == typeof(int) && e2.Type == typeof(long))
-                            e1 = ToLong(e1);
+                            e1 = e1.ToLong;
                         else if (e2.Type == typeof(int) && e1.Type == typeof(long))
-                            e2 = ToLong(e2);
-                        else if (!IsArithmetic(e1) || !IsArithmetic(e2))
+                            e2 = e2.ToLong;
+                        else if (!e1.IsArithmetic || !e2.IsArithmetic)
                             throw Error("Comparison operators are not compatible", pos);
                         else
-                            (e1, e2) = (ToDouble(e1), ToDouble(e2));
+                            (e1, e2) = (e1.ToDouble, e2.ToDouble);
                     }
                     try
                     {
-                        if (IsArithmetic(e2))
+                        if (e2.IsArithmetic)
                         {
                             Token op2 = kind;
                             if ((opKind == Token.Lt || opKind == Token.Le) &&
@@ -719,13 +719,13 @@ internal sealed partial class Parser : Scanner, IDisposable
                             {
                                 Move();
                                 Expression e3 = ParseAdditiveMultiplicative();
-                                if (!IsArithmetic(e3))
+                                if (!e3.IsArithmetic)
                                     throw Error("Upper bound must be numeric");
                                 if (e3.Type != e2.Type)
                                     if (e3.Type == typeof(int))
-                                        e3 = IntToDouble(e3);
+                                        e3 = e3.IntToDouble;
                                     else
-                                        (e1, e2) = (ToDouble(e1), ToDouble(e2));
+                                        (e1, e2) = (e1.ToDouble, e2.ToDouble);
                                 return Expression.AndAlso(
                                     Comp(opKind, e1, e2), Comp(op2, e2, e3));
                             }
@@ -788,11 +788,11 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     if (e2.Type != e3.Type)
                         if (e2.Type == typeof(int) && e3.Type == typeof(long))
-                            e2 = ToLong(e2);
+                            e2 = e2.ToLong;
                         else if (e3.Type == typeof(int) && e2.Type == typeof(long))
-                            e3 = ToLong(e3);
-                        else if (!IsIntVecOrSeq(e2) && !IsIntVecOrSeq(e3))
-                            (e2, e3) = (ToDouble(e2), ToDouble(e3));
+                            e3 = e3.ToLong;
+                        else if (!e2.IsIntVecOrSeq && !e3.IsIntVecOrSeq)
+                            (e2, e3) = (e2.ToDouble, e3.ToDouble);
                     try
                     {
                         // Try to optimize matrix transpose multiplying a vector.
@@ -853,13 +853,13 @@ internal sealed partial class Parser : Scanner, IDisposable
             {
                 if (e1.Type != e2.Type)
                     if (e1.Type == typeof(int) && e2.Type == typeof(long))
-                        e1 = ToLong(e1);
+                        e1 = e1.ToLong;
                     else if (e2.Type == typeof(int) && e1.Type == typeof(long))
-                        e2 = ToLong(e2);
-                    else if (!IsIntVecOrSeq(e1) && !IsIntVecOrSeq(e2)
+                        e2 = e2.ToLong;
+                    else if (!e1.IsIntVecOrSeq && !e2.IsIntVecOrSeq
                             && !e1.Type.IsAssignableTo(typeof(DateSequence))
                             && e1.Type != typeof(Date) && e2.Type != typeof(Date))
-                        (e1, e2) = (ToDouble(e1), ToDouble(e2));
+                        (e1, e2) = (e1.ToDouble, e2.ToDouble);
                 try
                 {
                     if (e1.Type == e2.Type && e2.Type.IsAssignableTo(typeof(INumericVector)))
@@ -989,15 +989,15 @@ internal sealed partial class Parser : Scanner, IDisposable
         Token k = kind;
         Move();
         Expression e1 = k == Token.Caret ? ParseFactor() : Expression.Constant(2);
-        if (IsNumeric(e) && IsNumeric(e1))
-            return OptimizePowerOf() ? e : Expression.Power(ToDouble(e), ToDouble(e1));
+        if (e.IsNumeric && e1.IsNumeric)
+            return OptimizePowerOf() ? e : Expression.Power(e.ToDouble, e1.ToDouble);
         if (e.Type == typeof(Complex))
         {
             if (e1.Type == typeof(Complex))
                 return Expression.Call(typeof(Complex), nameof(Complex.Pow), null, e, e1);
-            else if (IsArithmetic(e1))
+            else if (e1.IsArithmetic)
                 return OptimizePowerOf() ? e : Expression.Call(
-                    typeof(Complex), nameof(Complex.Pow), null, e, ToDouble(e1));
+                    typeof(Complex), nameof(Complex.Pow), null, e, e1.ToDouble);
         }
         else if (k == Token.Caret2 || e1 is ConstantExpression { Value: 2 })
             if (e.Type == typeof(Matrix))
@@ -1103,7 +1103,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     int pos = start;
                     e = ParseVariable();
                     if (e.Type == typeof(int))
-                        e = IntToDouble(e);
+                        e = e.IntToDouble;
                     else if (e.Type != typeof(double) && e.Type != typeof(Complex))
                         throw Error("Variable must be numeric", pos);
                     if (kind is Token.Caret or Token.Caret2)
@@ -1117,7 +1117,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     int pos = start;
                     e = ParseVariable();
                     if (e.Type == typeof(double))
-                        e1 = ToDouble(e1);
+                        e1 = e1.ToDouble;
                     else if (e.Type == typeof(Complex))
                         e1 = Expression.Convert(e1, typeof(Complex));
                     else if (e.Type != typeof(int))
@@ -1195,7 +1195,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     // Transpose a matrix or conjugate a complex scalar or vector.
                     e = e.Type == typeof(CVector)
                         ? Expression.Call(e, e.Type.Get(nameof(CVector.Conjugate)))
-                        : IsMatrix(e)
+                        : e.IsMatrix
                         ? Expression.Call(e, e.Type.Get(nameof(Matrix.Transpose)))
                         : e.Type == typeof(Complex)
                         ? e.Type.Call(null, nameof(Complex.Conjugate), e)
@@ -1206,7 +1206,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     Move();
                     e = e.Type == typeof(Series<int>) || e.Type.IsAssignableTo(typeof(IIndexable))
                         ? ParseIndexer(e, true)
-                        : IsMatrix(e)
+                        : e.IsMatrix
                         ? ParseMatrixIndexer(e)
                         : e.Type == typeof(Series)
                         ? ParseSeriesIndexer(e)
@@ -1244,9 +1244,9 @@ internal sealed partial class Parser : Scanner, IDisposable
         Expression e1 = ParseLightConditional();
         CheckAndMove(Token.RBra, "] expected in indexer");
         return e1.Type != expected && (expected != typeof(double) || e1.Type != typeof(int))
-            && (expected != typeof(Date) || !IsArithmetic(e1))
+            && (expected != typeof(Date) || !e1.IsArithmetic)
             ? throw Error("Invalid index type")
-            : Expression.Property(e, "Item", ToDouble(e1));
+            : Expression.Property(e, "Item", e1.ToDouble);
     }
 
     private IndexExpression ParseIndexer(Expression e, bool allowSlice)
@@ -1721,11 +1721,11 @@ internal sealed partial class Parser : Scanner, IDisposable
             expected.IsClass && e.Type.IsAssignableTo(expected)
             ? e
             : expected == typeof(double) && (e.Type == typeof(int) || e.Type == typeof(long))
-            ? ToDouble(e)
+            ? e.ToDouble
             : expected == typeof(long) && e.Type == typeof(int)
-            ? ToLong(e)
-            : expected == typeof(Complex) && IsNumeric(e)
-            ? Expression.Convert(ToDouble(e), typeof(Complex))
+            ? e.ToLong
+            : expected == typeof(Complex) && e.IsNumeric
+            ? Expression.Convert(e.ToDouble, typeof(Complex))
             : throw Error($"Expected {expected.Name}");
     }
 
@@ -1833,17 +1833,17 @@ internal sealed partial class Parser : Scanner, IDisposable
             if (actual != expected)
             {
                 if (expected == typeof(double) && IsInteger(actual))
-                    args[i] = ToDouble(args[i]);
+                    args[i] = args[i].ToDouble;
                 else if (expected == typeof(Complex) &&
                     (IsInteger(actual) || actual == typeof(double)))
-                    args[i] = Expression.Convert(ToDouble(args[i]), typeof(Complex));
+                    args[i] = Expression.Convert(args[i].ToDouble, typeof(Complex));
                 else if (expected.IsArray && expected.GetElementType() is Type et)
                 {
                     for (int j = i; j < args.Count; j++)
                         if (args[i].Type is var a && a != et &&
                             (et != typeof(double) || a != typeof(int)))
                             throw Error($"Expected {expected.Name}", starts[i]);
-                    args[i] = et.Make(args.Skip(i).Select(a => a.Type == et ? a : ToDouble(a)));
+                    args[i] = et.Make(args.Skip(i).Select(a => a.Type == et ? a : a.ToDouble));
                     args.RemoveRange(i + 1, args.Count - i - 1);
                     break;
                 }
@@ -1958,7 +1958,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 return ParseVector<Date, DateVector>("a date");
             }
             isFirst = false;
-            if (IsArithmetic(e))
+            if (e.IsArithmetic)
                 if (items.Count == 0 && kind == Token.Range)
                 {
                     Move();
@@ -1967,7 +1967,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     return e;
                 }
                 else
-                    items.Add(ToDouble(e));
+                    items.Add(e.ToDouble);
             else if (e.Type == typeof(DVector))
             {
                 if (period != 0 && matrices == 0)
@@ -2178,7 +2178,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         // Check and skip a right bracket.
         CheckAndMove(Token.RBra, "] expected in list comprehension");
         if (filter != null)
-            if (IsVector(e) && mapper != null && !upgraded)
+            if (e.IsVector && mapper != null && !upgraded)
                 return Expression.Call(e, "FilterMap", Type.EmptyTypes, filter, mapper);
             else
                 e = Expression.Call(e, "Filter", Type.EmptyTypes, filter);
@@ -2201,7 +2201,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     private Expression ParseGenerator()
     {
         Expression first = ParseLightConditional();
-        if (!IsArithmetic(first) && first.Type != typeof(Date))
+        if (!first.IsArithmetic && first.Type != typeof(Date))
             return first;
         // It may be a range expression.
         CheckAndMove(Token.Range, "Expected range in list comprehension");
@@ -2221,10 +2221,10 @@ internal sealed partial class Parser : Scanner, IDisposable
             (middle, last) = (null, middle);
         if (last!.Type != first.Type)
             if (last.Type == typeof(int))
-                last = IntToDouble(last);
+                last = last.IntToDouble;
             else
                 first = first.Type == typeof(int)
-                    ? IntToDouble(first)
+                    ? first.IntToDouble
                     : throw Error("Range bounds must be of the same type");
         if (middle is not null && middle.Type != typeof(int))
             throw Error("Range step must be an integer");
@@ -2328,80 +2328,27 @@ internal sealed partial class Parser : Scanner, IDisposable
             _ => null,
         };
 
-    /// <summary>Checks if the expression's type0 is either a double or an integer.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsArithmetic(Expression e) =>
-        e.Type == typeof(int) || e.Type == typeof(double);
-
-    /// <summary>Checks if the expression's type0 is either a double, an integer or a long.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsNumeric(Expression e) =>
-        e.Type == typeof(int) || e.Type == typeof(double) || e.Type == typeof(long);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsMatrix(Expression e) =>
-        e.Type.IsAssignableTo(typeof(IMatrix));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsVector(Expression e) =>
-        e.Type.IsAssignableTo(typeof(IVector));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsIntVecOrSeq(Expression e) =>
-        e.Type == typeof(NVector) || e.Type == typeof(NSequence)
-        || e.Type == typeof(DateVector);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsDateVecOrSeq(Expression e) =>
-        e.Type == typeof(DateVector) || e.Type == typeof(DateSequence);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Expression ToLong(Expression e) =>
-        e.Type == typeof(int)
-        ? (e is ConstantExpression { Value: int v }
-            ? (Expression)Expression.Constant((long)v)
-            : Expression.Convert(e, typeof(long)))
-        : e;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Expression ToDouble(Expression e) =>
-        e.Type == typeof(int)
-        ? (e is ConstantExpression { Value: int i }
-            ? Expression.Constant((double)i)
-            : Expression.Convert(e, typeof(double)))
-        : e.Type == typeof(long)
-        ? (e is ConstantExpression { Value: long li }
-            ? Expression.Constant((double)li)
-            : Expression.Convert(e, typeof(double)))
-        : e;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Expression IntToDouble(Expression e) =>
-        e is ConstantExpression { Value: int i }
-        ? Expression.Constant((double)i)
-        : Expression.Convert(e, typeof(double));
-
     private static bool DifferentTypes(ref Expression e1, ref Expression e2)
     {
         if (e1.Type != e2.Type)
         {
-            if (e1.Type == typeof(Complex) && IsNumeric(e2))
+            if (e1.Type == typeof(Complex) && e2.IsNumeric)
                 e2 = Expression.Convert(e2, typeof(Complex));
-            else if (e2.Type == typeof(Complex) && IsNumeric(e1))
+            else if (e2.Type == typeof(Complex) && e1.IsNumeric)
                 e1 = Expression.Convert(e1, typeof(Complex));
             else if (e1.Type == typeof(int) && e2.Type == typeof(long))
-                e1 = ToLong(e1);
+                e1 = e1.ToLong;
             else if (e2.Type == typeof(int) && e1.Type == typeof(long))
-                e2 = ToLong(e2);
+                e2 = e2.ToLong;
             else if (e1.Type.IsEnum && e2 is ConstantExpression { Value: string v2 } && Enum.IsDefined(e1.Type, v2))
                 e2 = Expression.Constant(Enum.Parse(e1.Type, v2));
             else if (e2.Type.IsEnum && e1 is ConstantExpression { Value: string v1 } && Enum.IsDefined(e2.Type, v1))
                 e1 = Expression.Constant(Enum.Parse(e2.Type, v1));
             else
             {
-                if (!IsArithmetic(e1) || !IsArithmetic(e2))
+                if (!e1.IsArithmetic || !e2.IsArithmetic)
                     return true;
-                (e1, e2) = (ToDouble(e1), ToDouble(e2));
+                (e1, e2) = (e1.ToDouble, e2.ToDouble);
             }
         }
         return false;
