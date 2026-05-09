@@ -128,6 +128,10 @@ matrix(csv, 2, 2, 3);
 	    	<entry><para>Calculates the EigenValues Decomposition. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.EVD</codeEntityReference>.</para></entry>
 	  	  </row>
 		  <row>
+	    	<entry><para><codeInline>exp</codeInline></para></entry>
+	    	<entry><para>Computes the matrix exponential. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Exp</codeEntityReference>.</para></entry>
+	  	  </row>
+		  <row>
 	    	<entry><para><codeInline>inverse</codeInline></para></entry>
 	    	<entry><para>Gets the inverse of this matrix. See <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.Matrix.Inverse</codeEntityReference>.</para></entry>
 	  	  </row>
