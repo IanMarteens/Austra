@@ -922,7 +922,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             }
             else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } b2)
                 return OptimizeVectorSum(opAdd, b2, e1, itemType, true);
-            else if (e1 is NewExpression
+            else if (e1 is NewExpression or BinaryExpression
                 || e1 is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name))
                 return opAdd == Token.Plus
                     ? Expression.Call(e1, e1.Type.Get(nameof(DVector.InplaceAdd)), e2)
@@ -976,16 +976,10 @@ internal sealed partial class Parser : Scanner, IDisposable
             ? throw Error("Unary operator not supported", opPos)
             : opKind == Token.Plus
             ? u
-            : u.Type == typeof(DVector) && (u is BinaryExpression or NewExpression
+            : u.Type.IsAssignableTo(typeof(INumericVector))
+                && (u is BinaryExpression or NewExpression
                 || u is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name))
-            // Overwrite the memory of a binary vector operation result or a new vector.
-            ? Expression.Call(u, typeof(DVector).Get(nameof(DVector.InplaceNegate)))
-            : u.Type == typeof(CVector) && (u is BinaryExpression or NewExpression
-                || u is MethodCallExpression n && bindings.IsOptimizableCall(n.Method.Name))
-            ? Expression.Call(u, typeof(CVector).Get(nameof(CVector.InplaceNegate)))
-            : u.Type == typeof(NVector) && (u is BinaryExpression or NewExpression
-                || u is MethodCallExpression nm && bindings.IsOptimizableCall(nm.Method.Name))
-            ? Expression.Call(u, typeof(NVector).Get(nameof(NVector.InplaceNegate)))
+            ? Expression.Call(u, u.Type.Get(nameof(DVector.InplaceNegate)))
             : Expression.Negate(u);
     }
 

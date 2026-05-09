@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using static Austra.Library.MVO.Simplex;
+
+namespace Austra.Library;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
@@ -778,6 +780,34 @@ public readonly struct Matrix :
         return new(m1.Rows, m1.Cols, result);
     }
 
+    /// <summary>Adds a second matrix to this one, modifying the term instance.</summary>
+    /// <param name="m">The matrix to add.</param>
+    /// <returns>The term instance after addition.</returns>
+    /// <exception cref="MatrixSizeException">When matrices have non-matching sizes.</exception>
+    public Matrix InplaceAdd(Matrix m)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(m.IsInitialized);
+        if (Rows != m.Rows || Cols != m.Cols)
+            throw new MatrixSizeException();
+        values.AsSpan().Add(m.values);
+        return this;
+    }
+
+    /// <summary>Subtracts a second matrix from this one, modifying the term instance.</summary>
+    /// <param name="m">The matrix to subtract.</param>
+    /// <returns>The term instance after subtraction.</returns>
+    /// <exception cref="MatrixSizeException">When matrices have non-matching sizes.</exception>
+    public Matrix InplaceSub(Matrix m)
+    {
+        Contract.Requires(IsInitialized);
+        Contract.Requires(m.IsInitialized);
+        if (Rows != m.Rows || Cols != m.Cols)
+            throw new MatrixSizeException();
+        values.AsSpan().Sub(m.values);
+        return this;
+    }
+
     /// <summary>Subtracts two matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
@@ -1072,6 +1102,42 @@ public readonly struct Matrix :
                         }
                     }
         }
+    }
+
+    /// <summary>
+    /// Multiplies two matrices and scales the result by a specified value.
+    /// </summary>
+    /// <param name="m1">The first matrix to multiply.</param>
+    /// <param name="m2">The second matrix to multiply.</param>
+    /// <param name="value">The scaling factor.</param>
+    /// <returns>A new matrix representing the product of <paramref name="m1"/> and <paramref name="m2"/>,
+    /// with each element multiplied by <paramref name="value"/>.</returns>
+    private static unsafe Matrix MultiplyMatrixScalar(Matrix m1, Matrix m2, double value)
+    {
+        int m = m1.Rows, n = m1.Cols, p = m2.Cols;
+        double[] result = new double[m * p];
+        fixed (double* a = m1.values, b = m2.values, c = result)
+        {
+            double* pa = a, pc = c;
+            for (int i = 0, top = p & Simd.MASK4; i < m; i++)
+            {
+                double* pb = b;
+                for (int k = 0; k < n; k++)
+                {
+                    double d = pa[k] * value;
+                    int j = 0;
+                    if (Avx.IsSupported)
+                        for (V4d vd = V4.Create(d); j < top; j += V4d.Count)
+                            Avx.Store(pc + j, Avx.LoadVector256(pc + j).MultiplyAdd(pb + j, vd));
+                    for (; j < p; j++)
+                        pc[j] = FusedMultiplyAdd(pb[j], d, pc[j]);
+                    pb += p;
+                }
+                pa += n;
+                pc += p;
+            }
+        }
+        return new(m, p, result);
     }
 
     /// <summary>Multiplies this matrix by itself.</summary>
@@ -1494,14 +1560,14 @@ public readonly struct Matrix :
         Contract.Requires(IsInitialized);
         if (!IsSquare)
             throw new MatrixSizeException();
-        Matrix result = Identity(Rows) + this;
-        Matrix current = this;
+        Contract.Ensures(Contract.Result<Matrix>().Rows == Rows);
+        Contract.Ensures(Contract.Result<Matrix>().Cols == Cols);
+
+        Matrix result = Identity(Rows) + this, term = this;
         for (int k = 2; k < 150; k++)
         {
-            Matrix term = current * this / k;
-            result += term;
-            current = term;
-            if (term.AMax() < 1E-12)
+            result.InplaceAdd(term = MultiplyMatrixScalar(term, this, 1.0 / k));
+            if (term.AMax() < 1E-16)
                 break;
         }
         return result;

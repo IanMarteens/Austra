@@ -530,6 +530,7 @@ internal sealed class Bindings
                 new("det", "Calculates the determinant"),
                 new("diag", "Extracts the diagonal as a vector"),
                 new("evd", "Calculates the EigenValues Decomposition"),
+                new("exp", "Calculates the matrix exponential of a square matrix"),
                 new("inverse", "Calculates the inverse of a square matrix"),
                 new("isSymmetric", "Checks if a matrix is symmetric"),
                 new("lu", "Calculates the LU Decomposition of a square matrix"),
