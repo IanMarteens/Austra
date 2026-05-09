@@ -976,7 +976,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             ? throw Error("Unary operator not supported", opPos)
             : opKind == Token.Plus
             ? u
-            : u.Type.IsAssignableTo(typeof(INumericVector))
+            : (u.Type.IsAssignableTo(typeof(INumericVector)) || u.Type == typeof(Matrix))
                 && (u is BinaryExpression or NewExpression
                 || u is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name))
             ? Expression.Call(u, u.Type.Get(nameof(DVector.InplaceNegate)))

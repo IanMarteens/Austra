@@ -1,6 +1,4 @@
-﻿using static Austra.Library.MVO.Simplex;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
@@ -805,6 +803,14 @@ public readonly struct Matrix :
         if (Rows != m.Rows || Cols != m.Cols)
             throw new MatrixSizeException();
         values.AsSpan().Sub(m.values);
+        return this;
+    }
+
+    /// <summary>Inplace negation of the matrix.</summary>
+    /// <returns>The same matrix instance, with items negated.</returns>
+    public Matrix InplaceNegate()
+    {
+        values.AsSpan().Neg();
         return this;
     }
 
