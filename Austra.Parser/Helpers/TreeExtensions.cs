@@ -99,6 +99,15 @@ internal static class TreeExtensions
                 ? Expression.Constant((double)i)
                 : Expression.Convert(e, typeof(double));
         }
+
+        public bool TryMembership(ref Expression e2)
+        {
+            if (!e2.Type.IsAssignableTo(typeof(IContainer<>).MakeGenericType(e.Type)))
+                return false;
+            e2 = Expression.Call(e2,
+                e2.Type.GetMethod(nameof(IContainer<>.Contains), [e.Type])!, e);
+            return true;
+        }
     }
 
     private static string DescribeInstance(Expression? e) =>

@@ -553,8 +553,8 @@ public abstract partial class DateSequence
         {
             if (value <= max && value >= first)
             {
-                var (y1, m1, _) = first;
-                var (y2, m2, _) = value;
+                var (y1, m1) = first;
+                var (y2, m2) = value;
                 int months = (y2 - y1) * 12 + m2 - m1;
                 return months % step == 0 && first.AddMonths(months) == value;
             }
@@ -639,8 +639,8 @@ public abstract partial class DateSequence
         {
             if (value <= max && value >= first)
             {
-                var (y1, m1, _) = first;
-                var (y2, m2, _) = value;
+                var (y1, m1) = first;
+                var (y2, m2) = value;
                 int months = (y2 - y1) * 12 + m2 - m1;
                 return months % step == 0 && first.AddMonths(months).RollEOM() == value;
             }
@@ -719,8 +719,8 @@ public abstract partial class DateSequence
         {
             if (value >= min && value <= first)
             {
-                var (y1, m1, _) = first;
-                var (y2, m2, _) = value;
+                var (y1, m1) = first;
+                var (y2, m2) = value;
                 int months = (y1 - y2) * 12 + m1 - m2;
                 return months % step == 0 && first.AddMonths(-months) == value;
             }

@@ -675,15 +675,15 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Move();
                     Expression e2 = ParseAdditiveMultiplicative();
-                    if (TryMembership(e1, ref e2))
+                    if (e1.TryMembership(ref e2))
                         return e2;
                     e1 = e1.ToDouble;
                     if (e1.Type == typeof(double))
                     {
-                        if (TryMembership(e1, ref e2))
+                        if (e1.TryMembership(ref e2))
                             return e2;
                         e1 = Expression.Convert(e1, typeof(Complex));
-                        if (TryMembership(e1, ref e2))
+                        if (e1.TryMembership(ref e2))
                             return e2;
                     }
                     throw Error("Invalid membership operation");
@@ -747,17 +747,6 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
             default:
                 return e1;
-        }
-
-        static bool TryMembership(Expression e1, ref Expression e2)
-        {
-            if (e2.Type.IsAssignableTo(typeof(IContainer<>).MakeGenericType(e1.Type)))
-            {
-                e2 = Expression.Call(e2,
-                    e2.Type.GetMethod(nameof(IContainer<>.Contains), [e1.Type])!, e1);
-                return true;
-            }
-            return false;
         }
     }
 

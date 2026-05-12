@@ -151,8 +151,8 @@ public readonly struct Date :
     {
         // y100 = number of whole 100-year periods since 3/1/0000
         // r1 = (day number within 100-year period) * 4
-        (uint y100, uint r1) = Math.DivRem(((date * 4) | 3U) + 1224, DaysPer400Years);
-        ulong u2 = (ulong)Math.BigMul((int)EafMultiplier, (int)r1 | 3);
+        (uint y100, uint r1) = DivRem(((date * 4) | 3U) + 1224, DaysPer400Years);
+        ulong u2 = (ulong)BigMul((int)EafMultiplier, (int)r1 | 3);
         ushort daySinceMarch1 = (ushort)((uint)u2 / EafDivider);
         int n3 = 2141 * daySinceMarch1 + 197913;
         year = (int)(100 * y100 + (uint)(u2 >> 32));
@@ -176,7 +176,7 @@ public readonly struct Date :
         {
             // y100 = number of whole 100-year periods since 1/1/0001
             // r1 = (day number within 100-year period) * 4
-            (uint y100, uint r1) = DivRem(((date * 4) | 3U), DaysPer400Years);
+            (uint y100, uint r1) = DivRem((date * 4) | 3U, DaysPer400Years);
             return 1 + (int)(100 * y100 + (r1 | 3) / DaysPer4Years);
         }
     }

@@ -2059,12 +2059,16 @@ internal readonly struct MethodData
             [typeof(Complex)] = "Complex",
             [typeof(Series)] = "series",
             [typeof(Matrix)] = "matrix",
+            [typeof(LMatrix)] = "matrix",
+            [typeof(RMatrix)] = "matrix",
             [typeof(DVector)] = "vec",
             [typeof(CVector)] = "cvec",
             [typeof(NVector)] = "ivec",
+            [typeof(DateVector)] = "dvec",
             [typeof(DSequence)] = "seq",
             [typeof(CSequence)] = "cseq",
             [typeof(NSequence)] = "iseq",
+            [typeof(DateSequence)] = "dseq",
         }.ToFrozenDictionary();
 
     public static string DescribeType(Type type) =>
