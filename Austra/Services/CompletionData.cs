@@ -4,18 +4,11 @@ using ICSharpCode.AvalonEdit.Editing;
 
 namespace Austra;
 
-public class CompletionData : ICompletionData
+public record class CompletionData(string Text, object Description) : ICompletionData
 {
-    public CompletionData(string text, string descr) =>
-        (Text, Description) = (text, descr);
-
     public System.Windows.Media.ImageSource? Image => null;
 
-    public string Text { get; }
-
     public object Content => Text;
-
-    public object Description { get; }
 
     public double Priority => 0;
 
@@ -24,4 +17,31 @@ public class CompletionData : ICompletionData
         ISegment completionSegment,
         EventArgs insertionRequestEventArgs) =>
         textArea.Document.Replace(completionSegment, Text);
+}
+
+public sealed class InsightProvider(IReadOnlyList<string> overloads) : IOverloadProvider
+{
+    public int SelectedIndex { 
+        get;
+        set {
+            if (field != value)
+            {
+                field = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedIndex)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentIndexText)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentContent)));
+            }
+        }
+    }
+
+    public int Count => overloads.Count;
+
+    public string CurrentIndexText => $"{SelectedIndex + 1} of {Count}";
+
+    public object CurrentHeader => "";
+
+    public object CurrentContent =>
+        (uint)SelectedIndex < Count ? overloads[SelectedIndex] : "";
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

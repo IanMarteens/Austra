@@ -9,6 +9,7 @@ namespace Austra;
 public partial class MainWindow : Window
 {
     private CompletionWindow? completionWindow;
+    private OverloadInsightWindow? insightWindow;
     private bool gMode, qMode;
 
     public MainWindow()
@@ -141,7 +142,8 @@ public partial class MainWindow : Window
         }
     }
 
-    private string GetFragment(int delta = 1) => avalon.Document.GetText(0, avalon.CaretOffset - delta);
+    private string GetFragment(int delta = 1) =>
+        avalon.Document.GetText(0, avalon.CaretOffset - delta);
 
     private void ShowCodeCompletion(IList<Member>? list)
     {
@@ -152,6 +154,8 @@ public partial class MainWindow : Window
             foreach ((string member, string description) in list)
                 data.Add(new CompletionData(member, description));
             completionWindow.Show();
+            if (insightWindow != null)
+                completionWindow.Top += insightWindow.ActualHeight;
             completionWindow.Closed += CompletionListClosed;
         }
     }
@@ -159,12 +163,40 @@ public partial class MainWindow : Window
     private void DocumentChanged(DocumentChangeEventArgs e)
     {
         if (e.InsertedText.Text.EndsWith('('))
-            RootModel.Instance.ShowParameterInfo(GetFragment(1));
+        {
+            var overloads = RootModel.Instance.GetParameterInfo(GetFragment(1));
+            if (overloads?.Count > 0)
+            {
+                insightWindow = new(avalon.TextArea)
+                {
+                    Provider = new InsightProvider(overloads)
+                };
+                insightWindow.Show();
+                insightWindow.Closed += InsightWindowClosed;
+                if (completionWindow is null)
+                    try
+                    {
+                        ShowCodeCompletion(
+                            RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text));
+                    }
+                    catch { }
+                else
+                    completionWindow.Top += insightWindow.ActualHeight;
+            }
+            else
+                insightWindow?.Close();
+            //RootModel.Instance.ShowParameterInfo(GetFragment(1));
+        }
         else if (e.InsertedText.Text.EndsWith(')'))
-            RootModel.Instance.HideParameterInfo();
+        {
+            insightWindow?.Close();
+            //RootModel.Instance.HideParameterInfo();
+        }
     }
 
     private void CompletionListClosed(object? sender, EventArgs e) => completionWindow = null;
+
+    private void InsightWindowClosed(object? sender, EventArgs e) => insightWindow = null;
 
     private void CloseCmdExecuted(object sender, ExecutedRoutedEventArgs e) => Close();
 

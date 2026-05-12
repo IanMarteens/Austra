@@ -302,7 +302,7 @@ public partial class AustraEngine : IAustraEngine
     /// <param name="text">An expression fragment.</param>
     /// <returns>The list of signatures, or an empty list when none available.</returns>
     public IReadOnlyList<string> GetParameterInfo(string text) =>
-        bindings.GetParamInfo(text);
+        bindings.GetParamInfo(Source, text);
 
     /// <summary>Should load series and definitions from persistent storage.</summary>
     public virtual void Load() { }

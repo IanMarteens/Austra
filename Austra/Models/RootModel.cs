@@ -724,18 +724,29 @@ public sealed partial class RootModel : Entity
             Message = msg;
     }
 
+    public IReadOnlyList<string> GetParameterInfo(string fragment) =>
+        Environment?.Engine.GetParameterInfo(fragment) ?? [];
+
     public void ShowParameterInfo(string fragment)
     {
-        if (Environment != null)
+        overloads = GetParameterInfo(fragment);
+        if (overloads.Count == 0)
+            HideParameterInfo();
+        else
         {
-            overloads = Environment.Engine.GetParameterInfo(fragment);
-            if (overloads.Count == 0)
-                HideParameterInfo();
-            else
-            {
-                overloadIdx = -1;
-                ExecuteOverloadUp(null);
-            }
+            overloadIdx = -1;
+            ExecuteOverloadUp(null);
+        }
+    }
+
+    public void HideParameterInfo()
+    {
+        if (ShowErrorText == Visibility.Visible && ErrorIconSize == 0)
+        {
+            timer.Stop();
+            ErrorText = "";
+            InfoArrowSize = 0;
+            ShowErrorText = Visibility.Collapsed;
         }
     }
 
@@ -766,17 +777,6 @@ public sealed partial class RootModel : Entity
             InfoArrowSize = 15;
             ShowErrorText = Visibility.Visible;
             StartTimer(new TimeSpan(0, 1, 0));
-        }
-    }   
-
-    public void HideParameterInfo()
-    {
-        if (ShowErrorText == Visibility.Visible && ErrorIconSize == 0)
-        {
-            timer.Stop();
-            ErrorText = "";
-            InfoArrowSize = 0;
-            ShowErrorText = Visibility.Collapsed;
         }
     }
 

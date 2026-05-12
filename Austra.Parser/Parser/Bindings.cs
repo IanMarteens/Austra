@@ -1672,12 +1672,11 @@ internal sealed class Bindings
     public bool IsClassOperator(string identifier, Token op, [MaybeNullWhen(false)] out Expression e) =>
         classOperators.TryGetValue(new ClassOp(identifier, op), out e);
 
-    /// <summary>Gets a list of members for a given type.</summary>
+    /// <summary>Gets the type of the last expression in a text.</summary>
     /// <param name="source">A data source.</param>
     /// <param name="text">An expression fragment.</param>
-    /// <param name="type">The type of the expression fragment.</param>
-    /// <returns>A list of pairs member name/description.</returns>
-    public IList<Member> GetMembers(IDataSource source, string text, out Type? type)
+    /// <returns>The type of the expression fragment.</returns>
+    public Type? GetLastType(IDataSource source, string text)
     {
         // Creating a scanner is a light task: we can afford it as many times as required.
         Scanner scanner = new(text);
@@ -1770,7 +1769,12 @@ internal sealed class Bindings
         if (!trimmedText.IsEmpty)
             try
             {
-                return ExtractType(trimmedText.ToString(), out type);
+                using Parser parser = new(this, source, trimmedText.ToString());
+                // The abort position of the parser is set to the end of the text, so that
+                // any error results in an AbortException instead of the regular AstException.
+                return parser.ParseType(parser.Text.Length + 1) is Type[] types && types.Length > 0
+                    ? types[^1]
+                    : null;
             }
             catch
             {
@@ -1780,34 +1784,11 @@ internal sealed class Bindings
                     ParameterExpression? pe = new Parser(this, source, text)
                         .ParseLambdaContext(text.Length)
                         .FirstOrDefault(p => id.Equals(p.Name, StringComparison.OrdinalIgnoreCase));
-                    if (pe is not null && members.TryGetValue(pe.Type, out Member[]? list))
-                    {
-                        type = pe.Type;
-                        return list;
-                    }
+                    if (pe is not null)
+                        return pe.Type;
                 }
             }
-        type = null;
-        return [];
-
-        // Finds the type of an object path.
-        IList<Member> ExtractType(string text, out Type? type)
-        {
-            using Parser parser = new(this, source, text);
-            // The abort position of the parser is set to the end of the text, so that
-            // any error results in an AbortException instead of the regular AstException.
-            if (parser.ParseType(text.Length + 1) is Type[] types
-                && types.Length > 0 && types[^1] is not null)
-            {
-                type = types[^1];
-                return members.TryGetValue(types[^1], out Member[]? list) ? list : [];
-            }
-            else
-            {
-                type = null;
-                return [];
-            }
-        }
+        return null;
 
         // Extracts an object path from an expression fragment.
         static ReadOnlySpan<char> ExtractObjectPath(string text)
@@ -1849,6 +1830,16 @@ internal sealed class Bindings
         }
     }
 
+    /// <summary>Gets a list of members for a given type.</summary>
+    /// <param name="source">A data source.</param>
+    /// <param name="text">An expression fragment.</param>
+    /// <param name="type">The type of the expression fragment.</param>
+    /// <returns>A list of pairs member name/description.</returns>
+    public IList<Member> GetMembers(IDataSource source, string text, out Type? type) =>
+        (type = GetLastType(source, text)) is null
+        ? []
+        : (IList<Member>)(members.TryGetValue(type, out Member[]? list) ? list : []);
+
     /// <summary>Gets a list of class members for a given type.</summary>
     /// <param name="text">An expression fragment.</param>
     /// <returns>A list of pairs member name/description.</returns>
@@ -1876,9 +1867,10 @@ internal sealed class Bindings
     }
 
     /// <summary>Checks if there is parameter information for a given method.</summary>
+    /// <param name="source">A data source.</param>
     /// <param name="text">Text up to the method call.</param>
     /// <returns>The list of method overload signatures.</returns>
-    public IReadOnlyList<string> GetParamInfo(string text)
+    public IReadOnlyList<string> GetParamInfo(IDataSource source, string text)
     {
         // Extract a class method call.
         int i = text.Length - 1;
@@ -1894,8 +1886,26 @@ internal sealed class Bindings
             text = method.Replace("::", ".");
         else if (IsClassName(method))
             text = method + ".new";
-        else
+        else if (i >= 0 && text[i] == '.')
+        {
+            // It's not a class method: try an instance method.
+            Type? type = GetLastType(source, text[..i]);
+            if (type is not null)
+            {
+                if (TryGetMethod(type, method, out MethodInfo? mInfo) && mInfo is not null)
+                    return [method + MethodData.DescribeParameters(mInfo.GetParameters())];
+                if (TryGetOverloads(type, method, out MethodList mthds) && mthds.Methods != null)
+                {
+                    List<string> result = new(mthds.Methods.Length);
+                    foreach (MethodData m in mthds.Methods)
+                        result.Add(method + m.DescribeArguments());
+                    return result.AsReadOnly();
+                }
+            }
             return emptyParameters;
+        }
+        else
+            text = "math." + method;
         if (classMethods.TryGetValue(text, out MethodList list)
             && list.Methods != null)
         {
@@ -2025,6 +2035,26 @@ internal readonly struct MethodData
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Expression GetExpression(Expression instance, List<Expression> actualArguments) =>
         Expression.Call(instance, (MethodInfo)mInfo, actualArguments);
+
+    public static string DescribeParameters(ParameterInfo[] parameters)
+    {
+        StringBuilder sb = new(parameters.Length * 16);
+        sb.Append('(');
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            Type arg = parameters[i].ParameterType;
+            string typeName = DescribeType(arg);
+            if (typeName != "")
+            {
+                if (sb.Length > 1)
+                    sb.Append(", ");
+                if (i < parameters.Length)
+                    sb.Append(parameters[i].Name).Append(": ");
+                sb.Append(typeName);
+            }
+        }
+        return sb.Append(')').ToString();
+    }
 
     public string DescribeArguments()
     {

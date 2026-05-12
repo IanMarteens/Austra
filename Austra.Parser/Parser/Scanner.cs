@@ -58,6 +58,9 @@ internal class Scanner
         Move();
     }
 
+    /// <summary>Gets the text being scanned.</summary>
+    public string Text => text;
+
     /// <summary>Skips two tokens with a single call.</summary>
     protected void SkipFunctor()
     {
