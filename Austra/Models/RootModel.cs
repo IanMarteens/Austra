@@ -724,12 +724,12 @@ public sealed partial class RootModel : Entity
             Message = msg;
     }
 
-    public IReadOnlyList<string> GetParameterInfo(string fragment) =>
-        Environment?.Engine.GetParameterInfo(fragment) ?? [];
+    public (string, IReadOnlyList<string>) GetParameterInfo(string fragment) =>
+        Environment?.Engine.GetParameterInfo(fragment) ?? ("", []);
 
     public void ShowParameterInfo(string fragment)
     {
-        overloads = GetParameterInfo(fragment);
+        (_, overloads) = GetParameterInfo(fragment);
         if (overloads.Count == 0)
             HideParameterInfo();
         else

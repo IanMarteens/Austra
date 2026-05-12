@@ -19,7 +19,7 @@ public record class CompletionData(string Text, object Description) : ICompletio
         textArea.Document.Replace(completionSegment, Text);
 }
 
-public sealed class InsightProvider(IReadOnlyList<string> overloads) : IOverloadProvider
+public sealed class InsightProvider(string header, IReadOnlyList<string> overloads) : IOverloadProvider
 {
     public int SelectedIndex { 
         get;
@@ -38,7 +38,7 @@ public sealed class InsightProvider(IReadOnlyList<string> overloads) : IOverload
 
     public string CurrentIndexText => $"{SelectedIndex + 1} of {Count}";
 
-    public object CurrentHeader => "";
+    public object CurrentHeader => header;
 
     public object CurrentContent =>
         (uint)SelectedIndex < Count ? overloads[SelectedIndex] : "";

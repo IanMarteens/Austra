@@ -165,11 +165,11 @@ public partial class MainWindow : Window
         if (e.InsertedText.Text.EndsWith('('))
         {
             var overloads = RootModel.Instance.GetParameterInfo(GetFragment(1));
-            if (overloads?.Count > 0)
+            if (overloads.Item2?.Count > 0)
             {
                 insightWindow = new(avalon.TextArea)
                 {
-                    Provider = new InsightProvider(overloads)
+                    Provider = new InsightProvider(overloads.Item1, overloads.Item2)
                 };
                 insightWindow.Show();
                 insightWindow.Closed += InsightWindowClosed;

@@ -1870,7 +1870,7 @@ internal sealed class Bindings
     /// <param name="source">A data source.</param>
     /// <param name="text">Text up to the method call.</param>
     /// <returns>The list of method overload signatures.</returns>
-    public IReadOnlyList<string> GetParamInfo(IDataSource source, string text)
+    public (string, IReadOnlyList<string>) GetParamInfo(IDataSource source, string text)
     {
         // Extract a class method call.
         int i = text.Length - 1;
@@ -1882,8 +1882,12 @@ internal sealed class Bindings
                 break;
         }
         string method = text[(i + 1)..].Trim();
-        if (method.Contains("::"))
+        int idx = method.IndexOf("::");
+        if (idx >= 0)
+        {
             text = method.Replace("::", ".");
+            method = text[(idx + 1)..];
+        }
         else if (IsClassName(method))
             text = method + ".new";
         else if (i >= 0 && text[i] == '.')
@@ -1893,16 +1897,16 @@ internal sealed class Bindings
             if (type is not null)
             {
                 if (TryGetMethod(type, method, out MethodInfo? mInfo) && mInfo is not null)
-                    return [method + MethodData.DescribeParameters(mInfo.GetParameters())];
+                    return (type.Name, [method + MethodData.DescribeParameters(mInfo.GetParameters())]);
                 if (TryGetOverloads(type, method, out MethodList mthds) && mthds.Methods != null)
                 {
                     List<string> result = new(mthds.Methods.Length);
                     foreach (MethodData m in mthds.Methods)
                         result.Add(method + m.DescribeArguments());
-                    return result.AsReadOnly();
+                    return (type.Name, result.AsReadOnly());
                 }
             }
-            return emptyParameters;
+            return ("", emptyParameters);
         }
         else
             text = "math." + method;
@@ -1912,9 +1916,9 @@ internal sealed class Bindings
             List<string> result = new(list.Methods.Length);
             foreach (MethodData m in list.Methods)
                 result.Add(method + m.DescribeArguments());
-            return result.AsReadOnly();
+            return (text[..text.IndexOf('.')], result.AsReadOnly());
         }
-        return emptyParameters;
+        return ("", emptyParameters);
     }
 
     /// <summary>Gets a property method for a given type and identifier.</summary>
