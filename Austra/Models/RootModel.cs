@@ -1,5 +1,6 @@
 ﻿using Austra.Parser;
 using Microsoft.Win32;
+using System.Numerics;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -565,7 +566,10 @@ public sealed partial class RootModel : Entity
                         if (node != null)
                             node.Show();
                         else
-                            AppendResult(form, answer.Value.ToString());
+                            AppendResult(form,
+                                answer.Type == typeof(Complex) || answer.Type?.IsAssignableTo(typeof(CSequence)) == true
+                                ? answer.Value.ToString()!.Replace('<', '(').Replace('>', ')')
+                                : answer.Value.ToString());
                     }
                 }
         }
