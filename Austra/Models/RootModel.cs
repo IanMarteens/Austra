@@ -38,10 +38,11 @@ public sealed partial class RootModel : Entity
     /// Current position in the formula history. -1 means no history, 0 is the last
     /// </summary>
     private int historyIndex = -1;
+    /// <summary>
+    /// Last formula in the editor before navigating the history.
+    /// Used to restore it when the user goes back to the current formula.
+    /// </summary>
     private string savedHistory = "";
-    private IReadOnlyList<string> overloads = [];
-    private int overloadIdx;
-
 
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
@@ -52,7 +53,6 @@ public sealed partial class RootModel : Entity
             ErrorText = "";
             Message = "";
             ErrorIconSize = 0;
-            InfoArrowSize = 0;
             ShowErrorText = Visibility.Collapsed;
             timer.Stop();
         };
@@ -63,8 +63,6 @@ public sealed partial class RootModel : Entity
         CheckTypeCommand = new(_ => CheckType(Editor.Text), GetHasEnvironment);
         ClearCommand = new(_ => MainSection?.Blocks.Clear(), GetHasEnvironment);
         DebugFormula = new(ExecuteDebugFormula, GetHasEnvironment);
-        OverloadUp = new(ExecuteOverloadUp);
-        OverloadDown = new(ExecuteOverloadDown);
     }
 
     public DelegateCommand CloseAllCommand { get; }
@@ -78,10 +76,6 @@ public sealed partial class RootModel : Entity
     public DelegateCommand CheckTypeCommand { get; }
 
     public DelegateCommand ClearCommand { get; }
-
-    public DelegateCommand OverloadUp { get; }
-
-    public DelegateCommand OverloadDown { get; }
 
     public DelegateCommand PasteExcelCommand { get; } = new(
         _ =>
@@ -201,11 +195,6 @@ public sealed partial class RootModel : Entity
     public int ErrorTextHeight => showErrorText == Visibility.Collapsed ? 0 : 18;
 
     public int ErrorIconSize
-    {
-        get; set => SetField(ref field, value);
-    }
-
-    public int InfoArrowSize
     {
         get; set => SetField(ref field, value);
     }
@@ -408,7 +397,6 @@ public sealed partial class RootModel : Entity
         Environment = null;
         ShowFormulaEditor = Visibility.Collapsed;
         ErrorIconSize = 0;
-        InfoArrowSize = 0;
         ShowErrorText = Visibility.Collapsed;
         MainSection?.Blocks.Clear();
     }
@@ -446,7 +434,6 @@ public sealed partial class RootModel : Entity
             Editor.CaretOffset = Math.Min(e.Position, Editor.Text.Length);
             ErrorText = e.Message;
             ErrorIconSize = 15;
-            InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
             StartTimer();
         }
@@ -454,7 +441,6 @@ public sealed partial class RootModel : Entity
         {
             ErrorText = e.Message;
             ErrorIconSize = 15;
-            InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
             StartTimer();
         }
@@ -588,7 +574,6 @@ public sealed partial class RootModel : Entity
             Editor.CaretOffset = Math.Min(e.Position, Editor.Text.Length);
             ErrorText = e.Message;
             ErrorIconSize = 15;
-            InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
             StartTimer();
         }
@@ -596,7 +581,6 @@ public sealed partial class RootModel : Entity
         {
             ErrorText = e.Message;
             ErrorIconSize = 15;
-            InfoArrowSize = 0;
             ShowErrorText = Visibility.Visible;
             StartTimer();
         }
@@ -687,7 +671,6 @@ public sealed partial class RootModel : Entity
         Message = "";
         ErrorText = "";
         ErrorIconSize = 0;
-        InfoArrowSize = 0;
         ShowErrorText = Visibility.Collapsed;
         CloseCompletion();
     }
@@ -724,61 +707,8 @@ public sealed partial class RootModel : Entity
             Message = msg;
     }
 
-    public (string, IReadOnlyList<string>) GetParameterInfo(string fragment) =>
+    public (string Header, IReadOnlyList<string> Parameters) GetParameterInfo(string fragment) =>
         Environment?.Engine.GetParameterInfo(fragment) ?? ("", []);
-
-    public void ShowParameterInfo(string fragment)
-    {
-        (_, overloads) = GetParameterInfo(fragment);
-        if (overloads.Count == 0)
-            HideParameterInfo();
-        else
-        {
-            overloadIdx = -1;
-            ExecuteOverloadUp(null);
-        }
-    }
-
-    public void HideParameterInfo()
-    {
-        if (ShowErrorText == Visibility.Visible && ErrorIconSize == 0)
-        {
-            timer.Stop();
-            ErrorText = "";
-            InfoArrowSize = 0;
-            ShowErrorText = Visibility.Collapsed;
-        }
-    }
-
-    private void ExecuteOverloadUp(object? _)
-    {
-        if (overloads.Count > 0)
-        {
-            overloadIdx++;
-            if (overloadIdx >= overloads.Count)
-                overloadIdx = 0;
-            ErrorText = overloads[overloadIdx];
-            ErrorIconSize = 0;
-            InfoArrowSize = 15;
-            ShowErrorText = Visibility.Visible;
-            StartTimer(new TimeSpan(0, 1, 0));
-        }
-    }
-
-    private void ExecuteOverloadDown(object? _)
-    {
-        if (overloads.Count > 0)
-        {
-            overloadIdx--;
-            if (overloadIdx < 0)
-                overloadIdx = overloads.Count - 1;
-            ErrorText = overloads[overloadIdx];
-            ErrorIconSize = 0;
-            InfoArrowSize = 15;
-            ShowErrorText = Visibility.Visible;
-            StartTimer(new TimeSpan(0, 1, 0));
-        }
-    }
 
     private void StartTimer(TimeSpan? interval = null)
     {

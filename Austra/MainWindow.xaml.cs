@@ -164,12 +164,12 @@ public partial class MainWindow : Window
     {
         if (e.InsertedText.Text.EndsWith('('))
         {
-            var overloads = RootModel.Instance.GetParameterInfo(GetFragment(1));
-            if (overloads.Item2?.Count > 0)
+            var (header, parameters) = RootModel.Instance.GetParameterInfo(GetFragment(1));
+            if (parameters?.Count > 0)
             {
                 insightWindow = new(avalon.TextArea)
                 {
-                    Provider = new InsightProvider(overloads.Item1, overloads.Item2)
+                    Provider = new InsightProvider(header, parameters)
                 };
                 insightWindow.Show();
                 insightWindow.Closed += InsightWindowClosed;
@@ -185,19 +185,25 @@ public partial class MainWindow : Window
             }
             else
                 insightWindow?.Close();
-            //RootModel.Instance.ShowParameterInfo(GetFragment(1));
         }
         else if (e.InsertedText.Text.EndsWith(')'))
-        {
             insightWindow?.Close();
-            //RootModel.Instance.HideParameterInfo();
-        }
     }
 
+    /// <summary>
+    /// Nullifies the reference to the completion window when it is closed, so that it can be recreated later.
+    /// </summary>
     private void CompletionListClosed(object? sender, EventArgs e) => completionWindow = null;
 
+    /// <summary>
+    /// Nullifies the reference to the insight window when it is closed, so that it can be recreated later.
+    /// </summary>
     private void InsightWindowClosed(object? sender, EventArgs e) => insightWindow = null;
 
+    /// <summary>
+    /// Closes the window when the close command is executed,
+    /// which is triggered by the close button in the title bar and by pressing Alt+F4.
+    /// </summary>
     private void CloseCmdExecuted(object sender, ExecutedRoutedEventArgs e) => Close();
 
     private void ExecuteOpen(object sender, ExecutedRoutedEventArgs e) =>
@@ -241,29 +247,13 @@ public partial class MainWindow : Window
         }
         else if (qMode && e.Key != Key.LeftShift & e.Key != Key.RightShift)
         {
-            if (e.Key == Key.A)
+            if (GreekSymbols.TryTransformSymbol(e.Key, out char ch))
             {
                 avalon.SelectedText = "";
-                avalon.Document.Insert(avalon.CaretOffset, "∀");
-                e.Handled = true;
-            }
-            else if (e.Key == Key.E)
-            {
-                avalon.SelectedText = "";
-                avalon.Document.Insert(avalon.CaretOffset, "∃");
-                e.Handled = true;
-            }
-            else if (e.Key == Key.I)
-            {
-                avalon.SelectedText = "";
-                avalon.Document.Insert(avalon.CaretOffset, "∈");
+                avalon.Document.Insert(avalon.CaretOffset, ch.ToString());
                 e.Handled = true;
             }
             qMode = false;
         }
     }
-
-    private void OverloadDownClick(object sender, MouseButtonEventArgs e) => RootModel.Instance.OverloadDown.Execute(null);
-
-    private void OverloadUpClick(object sender, MouseButtonEventArgs e) => RootModel.Instance.OverloadUp.Execute(null);
 }

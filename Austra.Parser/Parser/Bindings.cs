@@ -1870,7 +1870,7 @@ internal sealed class Bindings
     /// <param name="source">A data source.</param>
     /// <param name="text">Text up to the method call.</param>
     /// <returns>The list of method overload signatures.</returns>
-    public (string, IReadOnlyList<string>) GetParamInfo(IDataSource source, string text)
+    public (string Header, IReadOnlyList<string> Parameters) GetParamInfo(IDataSource source, string text)
     {
         // Extract a class method call.
         int i = text.Length - 1;
@@ -1897,13 +1897,13 @@ internal sealed class Bindings
             if (type is not null)
             {
                 if (TryGetMethod(type, method, out MethodInfo? mInfo) && mInfo is not null)
-                    return (type.Name, [method + MethodData.DescribeParameters(mInfo.GetParameters())]);
+                    return (MethodData.DescribeType(type), [method + MethodData.DescribeParameters(mInfo.GetParameters())]);
                 if (TryGetOverloads(type, method, out MethodList mthds) && mthds.Methods != null)
                 {
                     List<string> result = new(mthds.Methods.Length);
                     foreach (MethodData m in mthds.Methods)
                         result.Add(method + m.DescribeArguments());
-                    return (type.Name, result.AsReadOnly());
+                    return (MethodData.DescribeType(type), result.AsReadOnly());
                 }
             }
             return ("", emptyParameters);

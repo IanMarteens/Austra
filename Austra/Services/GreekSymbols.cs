@@ -40,6 +40,12 @@ internal static class GreekSymbols
         [Key.S] = 'Σ',
         [Key.U] = 'θ',
     };
+    private static readonly Dictionary<Key, char> symbols = new()
+    {
+        [Key.A] = '∀',
+        [Key.E] = '∃',
+        [Key.I] = '∈',
+    };
 
     /// <summary>Checks if a key can be transformed into a Greek letter. </summary>
     /// <param name="key">The original key.</param>
@@ -51,4 +57,11 @@ internal static class GreekSymbols
         return Keyboard.Modifiers == ModifierKeys.None && tmgLo.TryGetValue(key, out newChar)
             || Keyboard.Modifiers == ModifierKeys.Shift && tmgUp.TryGetValue(key, out newChar);
     }
+
+    /// <summary>Checks if a key can be transformed into a mathematical symbol. </summary>
+    /// <param name="key">The original key.</param>
+    /// <param name="newChar">The translated key, or the default value.</param>
+    /// <returns><see langword="true"/> if the key is accepted for translation.</returns>
+    public static bool TryTransformSymbol(Key key, out char newChar) =>
+        symbols.TryGetValue(key, out newChar);
 }
