@@ -17,24 +17,12 @@ public sealed partial class RootModel : Entity
     private string message = "";
     /// <summary>Austra session, containing variables and definitions.</summary>
     private Session? environment;
-    /// <summary>The tree of variables, grouped by class. First node are definitions.</summary>
-    private ObservableCollection<ClassNode> classes = [];
     /// <summary>Maps names into variable nodes.</summary>
     private readonly Dictionary<string, VarNode> allVars = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>This timer erases the status bar message after a while.</summary>
     private readonly DispatcherTimer timer = new();
-    /// <summary>Last date of the series. Used to update the status bar.</summary>
-    private string austraDate = "";
     /// <summary>The scroll viewer of the results panel.</summary>
     private ScrollViewer? scrollViewer;
-    /// <summary>Either a compiling or a runtime error.</summary>
-    private string errorText = "";
-    /// <summary>Is there an error text to show?</summary>
-    private Visibility showErrorText = Visibility.Collapsed;
-    /// <summary>Gets the visibility of the code editor.</summary>
-    private Visibility showFormulaEditor = Visibility.Collapsed;
-    /// <summary>Height for the formula editor row. 0 means collapsed.</summary>
-    private GridLength formulaRowHeight = new(0);
     /// <summary>
     /// Current position in the formula history. -1 means no history, 0 is the last
     /// </summary>
@@ -143,57 +131,54 @@ public sealed partial class RootModel : Entity
 
     public ObservableCollection<string> History { get; } = [];
 
+    /// <summary>Height for the formula editor row. 0 means collapsed.</summary>
     public GridLength FormulaRowHeight
     {
-        get => formulaRowHeight;
-        set => SetField(ref formulaRowHeight, value);
-    }
+        get; set => SetField(ref field, value);
+    } = new(0);
 
     /// <summary>Gets the visibility of the code editor.</summary>
     public Visibility ShowFormulaEditor
     {
-        get => showFormulaEditor;
+        get;
         set
         {
-            if (SetField(ref showFormulaEditor, value))
-                FormulaRowHeight = showFormulaEditor == Visibility.Collapsed
+            if (SetField(ref field, value))
+                FormulaRowHeight = value == Visibility.Collapsed
                     ? new(0) : new(2, GridUnitType.Star);
         }
-    }
+    } = Visibility.Collapsed;
 
     /// <summary>Gets the last date in time series, in Austra date format.</summary>
     public string AustraDate
     {
-        get => austraDate;
-        set => SetField(ref austraDate, value);
-    }
+        get; set => SetField(ref field, value);
+    } = "";
 
     /// <summary>Gets the root nodes of the variables and definitions tree.</summary>
     public ObservableCollection<ClassNode> Classes
     {
-        get => classes;
-        set => SetField(ref classes, value);
-    }
+        get; set => SetField(ref field, value);
+    } = [];
 
     /// <summary>Gets either a compiling or a runtime error.</summary>
     public string ErrorText
     {
-        get => errorText;
-        set => SetField(ref errorText, value);
-    }
+        get; set => SetField(ref field, value);
+    } = "";
 
     /// <summary>Is there an error text to show?</summary>
     public Visibility ShowErrorText
     {
-        get => showErrorText;
+        get;
         set
         {
-            if (SetField(ref showErrorText, value))
+            if (SetField(ref field, value))
                 OnPropertyChanged(nameof(ErrorTextHeight));
         }
-    }
+    } = Visibility.Collapsed;
 
-    public int ErrorTextHeight => showErrorText == Visibility.Collapsed ? 0 : 18;
+    public int ErrorTextHeight => ShowErrorText == Visibility.Collapsed ? 0 : 18;
 
     public int ErrorIconSize
     {
