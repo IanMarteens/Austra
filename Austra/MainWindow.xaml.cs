@@ -63,7 +63,12 @@ public partial class MainWindow : Window
 
     private RootModel Root => (RootModel)DataContext;
 
-    public void CloseCompletion() => completionWindow?.Close();
+    /// <summary>Closes the completion and insight windows, if they are open.</summary>
+    public void CloseCompletion()
+    {
+        completionWindow?.Close(); 
+        insightWindow?.Close();
+    }
 
     private void TextArea_TextEntering(object sender, TextCompositionEventArgs e)
     {

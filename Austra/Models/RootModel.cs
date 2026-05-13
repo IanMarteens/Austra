@@ -318,9 +318,6 @@ public sealed partial class RootModel : Entity
     public static ICSharpCode.AvalonEdit.TextEditor Editor =>
         ((MainWindow)Application.Current.MainWindow).avalon;
 
-    public static void CloseCompletion() =>
-        ((MainWindow)Application.Current.MainWindow).CloseCompletion();
-
     private ScrollViewer? Scroller
     {
         get
@@ -457,6 +454,10 @@ public sealed partial class RootModel : Entity
         }
     }
 
+    /// <summary>
+    /// Evaluates a formula, showing the result in the status bar and in the results panel.
+    /// </summary>
+    /// <param name="text">The formula to be evaluated.</param>
     public void Evaluate(string text)
     {
         CleanBeforeParsing();
@@ -590,6 +591,12 @@ public sealed partial class RootModel : Entity
         }
     }
 
+    /// <summary>
+    /// Navigates to the previous entry in the editor's history, updating the editor text and caret position
+    /// accordingly.
+    /// </summary>
+    /// <remarks>If the editor text has been modified since the last history entry, the current text is
+    /// preserved for potential restoration. Calling this method when there is no history has no effect.</remarks>
     private void ExecHistoryUp()
     {
         if (History.Count == 0)
@@ -633,6 +640,13 @@ public sealed partial class RootModel : Entity
         Editor.CaretOffset = Editor.Text.Length;
     }
 
+    /// <summary>
+    /// Moves the editor's input to the next entry in the command history, or restores the most recently edited text if
+    /// at the end of the history.
+    /// </summary>
+    /// <remarks>If the editor is not currently navigating history, this method sets the input to the oldest
+    /// history entry. If already navigating, it advances to the next entry, or restores the unsaved input if at the end
+    /// of the history. The caret is positioned at the end of the input after the operation.</remarks>
     private void ExecHistoryDown()
     {
         if (historyIndex == -1)
@@ -676,7 +690,7 @@ public sealed partial class RootModel : Entity
         ErrorText = "";
         ErrorIconSize = 0;
         ShowErrorText = Visibility.Collapsed;
-        CloseCompletion();
+        ((MainWindow)Application.Current.MainWindow).CloseCompletion();
     }
 
     private static string CleanFormula(string s) =>
