@@ -22,15 +22,25 @@ public class Plot<T> : IFormattable where T: IFormattable
 
     /// <summary>Gets a textual representation of the datasets in this plot.</summary>
     /// <returns>The combined </returns>
-    public override string ToString() => (Second is null
-        ? First!.ToString()
-        : First!.ToString() + Environment.NewLine + Second!.ToString())!;
+    public override string ToString()
+    {
+        string s = (Second is null
+            ? First!.ToString()
+            : First!.ToString() + Environment.NewLine + Second!.ToString())!;
+        return typeof(T) == typeof(Complex) || typeof(T) == typeof(CVector)
+            ? s.Replace('<', '(').Replace('>', ')') : s;
+    }
 
     /// <summary>Gets a textual representation of the datasets in this plot.</summary>
     /// <param name="format">A format specifier.</param>
     /// <param name="provider">Supplies culture-specific formatting information.</param>
     /// <returns>Space-separated components.</returns>
-    public string ToString(string? format, IFormatProvider? provider) => (Second is null
-        ? First!.ToString(format, provider)
-        : First!.ToString(format, provider) + Environment.NewLine + Second!.ToString(format, provider))!;
+    public string ToString(string? format, IFormatProvider? provider)
+    {
+        string s = (Second is null
+            ? First!.ToString(format, provider)
+            : First!.ToString(format, provider) + Environment.NewLine + Second!.ToString(format, provider))!;
+        return typeof(T) == typeof(Complex) || typeof(T) == typeof(CVector)
+            ? s.Replace('<', '(').Replace('>', ')') : s;
+    }
 }

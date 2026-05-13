@@ -1134,7 +1134,7 @@ public readonly struct CVector :
     /// <returns>Space-separated components.</returns>
     public override string ToString() =>
         $"ans ∊ ℂ({Length})" + Environment.NewLine +
-        ((Complex[])this).ToString(v => v.ToString("G6"));
+        ((Complex[])this).ToString(v => v.ToString("G6")).Replace('<', '(').Replace('>', ')');
 
     /// <summary>Gets a textual representation of this vector.</summary>
     /// <param name="format">A format specifier.</param>
@@ -1142,7 +1142,7 @@ public readonly struct CVector :
     /// <returns>Space-separated components.</returns>
     public string ToString(string? format, IFormatProvider? provider = null) =>
         $"ans ∊ ℂ({Length})" + Environment.NewLine +
-        ((Complex[])this).ToString(v => v.ToString(format, provider));
+        ((Complex[])this).ToString(v => v.ToString(format, provider)).Replace('<', '(').Replace('>', ')');
 
     /// <summary>Checks if the provided argument is a vector with the same values.</summary>
     /// <param name="other">The vector to be compared.</param>
