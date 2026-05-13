@@ -106,13 +106,13 @@ integer and it is immediately followed by an identifier:</para>
 		    </table>
 		    <para>The membership operator can be used with sequences, vectors, matrices, and series:</para>
 		    <code language="Austra">
-34 &lt;- [1..100];
-0 &lt;- <markup><b><font color="DarkCyan">vec::</font></b></markup>random(1024)
+<markup><font color="Blue">34</font></markup> &lt;- [<markup><font color="Blue">1</font></markup>..<markup><font color="Blue">100</font></markup>];
+<markup><font color="Blue">0</font></markup> &lt;- <markup><b><font color="DarkCyan">vec::</font></b></markup>random(<markup><font color="Blue">1024</font></markup>)
             </code>
 		    <para>When the right side of the membership operator is a time series, the left operand may be either a real or a date:</para>
 		    <code language="Austra">
-0.0 &lt;- appl.rets;
-1@jan2020 &lt;- appl
+<markup><font color="Blue">0.0</font></markup> &lt;- appl.rets;
+<markup><font color="Blue">1</font></markup>@jan2020 &lt;- appl
             </code>
 		    <para>Comparisons can be fused for numeric operands using the following syntax:</para>
 		    <code language="Austra">
@@ -145,7 +145,7 @@ and <codeInline>&lt;</codeInline> are compatible, but <codeInline>&lt;</codeInli
 		      </row>
 		    </table>
 		    <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> c = complex(3, 4) <markup><font color="RoyalBlue"><b>in</b></font></markup>
+<markup><font color="RoyalBlue"><b>let</b></font></markup> c = complex(<markup><font color="Blue">3</font></markup>, <markup><font color="Blue">4</font></markup>) <markup><font color="RoyalBlue"><b>in</b></font></markup>
 	c = c.real + c.imaginary * i
             </code>
 		    <para>If typing <codeInline>magnitude</codeInline> is too hard for your nerves, you can use <codeInline>mag</codeInline> as an accepted synonym. <codeInline>real</codeInline> can be shortened to <codeInline>re</codeInline>, and <codeInline>imag</codeInline> and even <codeInline>im</codeInline> can be used instead of <codeInline>imaginary</codeInline>. Since my heart is cold and empty for <codeInline>phase</codeInline>, on the other hand, there is no diminutive for that fellow.</para>
@@ -178,9 +178,9 @@ iff(e.toInt.even, <markup><font color="DarkRed">"Truncated to 2"</font>, <font c
         <para>Our <codeInline>math</codeInline> is special in that the class prefix is assumed when not present in a function or property call:</para>
 		    <code language="Austra">
 <markup><font color="DarkGreen">-- Write like this, if you are a sucker for pain.</font><br/>
-<b><font color="DarkCyan">math::</font></b></markup>sin(<markup><b><font color="DarkCyan">math::</font></b></markup>pi/4) = <markup><b><font color="DarkCyan">math::</font></b></markup>sqrt(2)/2;
+<b><font color="DarkCyan">math::</font></b></markup>sin(<markup><b><font color="DarkCyan">math::</font></b></markup>pi/<markup><font color="Blue">4</font></markup>) = <markup><b><font color="DarkCyan">math::</font></b></markup>sqrt(<markup><font color="Blue">2</font></markup>)/<markup><font color="Blue">2</font></markup>;
 <markup><font color="DarkGreen">-- Standard people use this style.</font></markup>
-sin(pi/4) = sqrt(2)/2
+sin(pi/<markup><font color="Blue">4</font></markup>) = sqrt(<markup><font color="Blue">2</font></markup>)/<markup><font color="Blue">2</font></markup>
             </code>
         <para>Why, for the love of Mike, have we sunken all those definition inside the <codeInline>math</codeInline> class? It is easy to explain with two points: we did not want to pollute the global name space with lots and lots of symbols, in the first place. Some mathematically-oriented language do just this: everything is a global function, so, at some point, you must come with very clever but cryptic names for your own stuff. Nonetheless, we can omit the class name for the most used names. The second point is related: somebody can shadow one of these global names, such <codeInline>i</codeInline> or <codeInline>max</codeInline>. In those cases, you still have the long and winding road of prefixing the shadowed name with its class name, and nothing is lost.</para>
         <para>These are the methods or functions provided by this class. Most of them work both with integer, real and complex parameters:</para>
