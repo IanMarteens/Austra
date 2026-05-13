@@ -162,9 +162,13 @@ public partial class MainWindow : Window
 
     private void DocumentChanged(DocumentChangeEventArgs e)
     {
-        if (e.InsertedText.Text.EndsWith('('))
+        if (e.InsertedText.Text.EndsWith(')'))
+            insightWindow?.Close();
+        else if (e.InsertedText.Text.EndsWith('(')
+            || e.InsertedText.Text.EndsWith("(x => "))
         {
-            var (header, parameters) = RootModel.Instance.GetParameterInfo(GetFragment(1));
+            int len = e.InsertedText.Text.EndsWith('(') ? 1 : "(x => ".Length;
+            var (header, parameters) = RootModel.Instance.GetParameterInfo(GetFragment(len));
             if (parameters?.Count > 0)
             {
                 insightWindow = new(avalon.TextArea)
@@ -186,8 +190,6 @@ public partial class MainWindow : Window
             else
                 insightWindow?.Close();
         }
-        else if (e.InsertedText.Text.EndsWith(')'))
-            insightWindow?.Close();
     }
 
     /// <summary>
@@ -223,6 +225,9 @@ public partial class MainWindow : Window
     private void ExecuteClose(object sender, ExecutedRoutedEventArgs e) =>
         SystemCommands.CloseWindow(this);
 
+    /// <summary>
+    /// Transforms key combinations into either Greek leters or symbols.
+    /// </summary>
     private void AvalonPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.G && Keyboard.Modifiers == ModifierKeys.Control)

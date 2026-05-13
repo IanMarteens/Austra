@@ -46,18 +46,18 @@
 compiler optimizes the special cases when the power is <math>2</math>, <math>3</math> and <math>4</math>, so equalities
 like this exactly holds:</para>
 		<code language="Austra">
-i^2 = -1
+i^<markup><font color="Blue">2</font></markup> = -<markup><font color="Blue">1</font></markup>
 		</code>
 <para>The multiplication operator can be elided when the first operand is a real or an
 integer and it is immediately followed by an identifier:</para>
 		<code language="Austra">
-2pi = 2 * pi
-2x^2 + 3x + 1 = 2*x^2 + 3*x + 1
-1/2x = 1 / (2*x)
+<markup><font color="Blue">2</font></markup>pi = <markup><font color="Blue">2</font></markup> * pi
+<markup><font color="Blue">2</font></markup>x^<markup><font color="Blue">2</font></markup> + <markup><font color="Blue">3</font></markup>x + <markup><font color="Blue">1</font></markup> = <markup><font color="Blue">2</font></markup>*x^<markup><font color="Blue">2</font></markup> + <markup><font color="Blue">3</font></markup>*x + <markup><font color="Blue">1</font></markup>
+<markup><font color="Blue">1</font></markup>/<markup><font color="Blue">2</font></markup>x = <markup><font color="Blue">1</font></markup> / (<markup><font color="Blue">2</font></markup>*x)
 		</code>
 		<para>AUSTRA also recognizes a superscript <math>2</math> (<codeInline>²</codeInline>) as an operator to square a value:</para>
 		<code language="Austra">
-2x² + 3x + 1 = 2*x^2 + 3*x + 1
+<markup><font color="Blue">2</font></markup>x² + <markup><font color="Blue">3</font></markup>x + <markup><font color="Blue">1</font></markup> = <markup><font color="Blue">2</font></markup>*x^<markup><font color="Blue">2</font></markup> + <markup><font color="Blue">3</font></markup>*x + <markup><font color="Blue">1</font></markup>
 		</code>
 		<para>The AUSTRA code editor simplifies typing this operator with the keys combination (Ctrl+G, 2).</para>
 		<sections>
