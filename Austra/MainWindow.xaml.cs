@@ -12,6 +12,13 @@ public partial class MainWindow : Window
     private OverloadInsightWindow? insightWindow;
     private bool gMode, qMode;
 
+    /// <summary>
+    /// Initializes a new instance of the MainWindow class and sets up the main application window,
+    /// event handlers, and data context.
+    /// </summary>
+    /// <remarks>This constructor configures the main window's data context, syntax highlighting,
+    /// and event subscriptions required for user interaction and document editing.
+    /// </remarks>
     public MainWindow()
     {
         InitializeComponent();
@@ -25,6 +32,16 @@ public partial class MainWindow : Window
         Loaded += MainWindowLoaded;
     }
 
+    /// <summary>
+    /// Handles the Loaded event of the main window and attempts to automatically load a data file
+    /// if the autoload setting is enabled.
+    /// </summary>
+    /// <remarks>If the autoload setting is enabled, this method attempts to locate and load the
+    /// specified data file. If the file path is not set or the file does not exist in the expected
+    /// location, it searches common directories such as the user's Documents folder.
+    /// No action is taken if the file cannot be found.</remarks>
+    /// <param name="sender">The source of the event, typically the main window instance.</param>
+    /// <param name="e">The event data associated with the Loaded event.</param>
     private void MainWindowLoaded(object sender, RoutedEventArgs e)
     {
         if (Properties.Settings.Default.Autoload)
@@ -61,12 +78,15 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Casts the data context as a <see cref="RootModel"/> instance.
+    /// </summary>
     private RootModel Root => (RootModel)DataContext;
 
     /// <summary>Closes the completion and insight windows, if they are open.</summary>
     public void CloseCompletion()
     {
-        completionWindow?.Close(); 
+        completionWindow?.Close();
         insightWindow?.Close();
     }
 
@@ -97,31 +117,29 @@ public partial class MainWindow : Window
                 if (offset == 0)
                     ShowCodeCompletion(RootModel.Instance.GetRoots(0, ""));
                 else if (offset > 0)
-                    try
+                {
+                    string fragment = GetFragment(0);
+                    if (IsIdentifier(fragment))
                     {
-                        string fragment = GetFragment(0);
-                        if (IsIdentifier(fragment))
-                        {
-                            ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
-                            completionWindow!.StartOffset = offset - fragment.Length;
-                        }
-                        else
-                        {
-                            fragment = fragment.TrimEnd();
-                            if (fragment.EndsWith('.'))
-                                ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
-                            else if (fragment.EndsWith('('))
-                            {
-                                if (fragment.Length > 2 && char.IsLetterOrDigit(fragment[^2]))
-                                    ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
-                            }
-                            else if (fragment.EndsWith(','))
-                                ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
-                            else if (fragment.EndsWith("::"))
-                                ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
-                        }
+                        ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
+                        completionWindow!.StartOffset = offset - fragment.Length;
                     }
-                    catch { }
+                    else
+                    {
+                        fragment = fragment.TrimEnd();
+                        if (fragment.EndsWith('.'))
+                            ShowCodeCompletion(RootModel.Instance.GetMembers(fragment));
+                        else if (fragment.EndsWith('('))
+                        {
+                            if (fragment.Length > 2 && char.IsLetterOrDigit(fragment[^2]))
+                                ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
+                        }
+                        else if (fragment.EndsWith(','))
+                            ShowCodeCompletion(RootModel.Instance.GetRoots(offset, avalon.Text));
+                        else if (fragment.EndsWith("::"))
+                            ShowCodeCompletion(RootModel.Instance.GetClassMembers(fragment));
+                    }
+                }
             }
 
         static bool IsIdentifier(string s) => s.Length > 0 &&
@@ -130,21 +148,15 @@ public partial class MainWindow : Window
 
     private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
     {
-        try
-        {
-            if (e.Text == "." && avalon.CaretOffset > 1 && avalon.Text[avalon.CaretOffset - 2] == '.')
-                return;
-            ShowCodeCompletion(e.Text == "."
-                ? RootModel.Instance.GetMembers(GetFragment())
-                : e.Text == ":"
-                ? RootModel.Instance.GetClassMembers(GetFragment())
-                : e.Text == "("
-                ? RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text)
-                : null);
-        }
-        catch
-        {
-        }
+        if (e.Text == "." && avalon.CaretOffset > 1 && avalon.Text[avalon.CaretOffset - 2] == '.')
+            return;
+        ShowCodeCompletion(e.Text == "."
+            ? RootModel.Instance.GetMembers(GetFragment())
+            : e.Text == ":"
+            ? RootModel.Instance.GetClassMembers(GetFragment())
+            : e.Text == "("
+            ? RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text)
+            : null);
     }
 
     private string GetFragment(int delta = 1) =>
@@ -153,48 +165,69 @@ public partial class MainWindow : Window
     private void ShowCodeCompletion(IList<Member>? list)
     {
         if (list?.Count > 0)
+            try
+            {
+                completionWindow = new CompletionWindow(avalon.TextArea);
+                IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
+                foreach ((string member, string description) in list)
+                    data.Add(new CompletionData(member, description));
+                completionWindow.Show();
+                if (insightWindow != null)
+                    completionWindow.Top += insightWindow.ActualHeight;
+                completionWindow.Closed += CompletionListClosed;
+            }
+            catch { }
+    }
+
+    /// <summary>
+    /// Displays code insight information for the current code fragment, based on the position of
+    /// the nearest opening parenthesis.
+    /// </summary>
+    /// <remarks>This method analyzes the current code fragment to determine the context for displaying code
+    /// insight, such as parameter information. If no opening parenthesis is found in the fragment,
+    /// no code insight is shown.</remarks>
+    public void ShowCodeInsight()
+    {
+        string text = GetFragment(0);
+        int i = text.Length - 1;
+        while (i >= 0 && text[i] != '(')
+            i--;
+        if (i < 0)
+            return;
+        ShowCodeInsight(text[..i].TrimEnd());
+    }
+
+    private void ShowCodeInsight(string fragment)
+    {
+        var (header, parameters) = RootModel.Instance.GetParameterInfo(fragment);
+        if (parameters?.Count > 0)
         {
-            completionWindow = new CompletionWindow(avalon.TextArea);
-            IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
-            foreach ((string member, string description) in list)
-                data.Add(new CompletionData(member, description));
-            completionWindow.Show();
-            if (insightWindow != null)
+            insightWindow = new(avalon.TextArea)
+            {
+                Provider = new InsightProvider(header, parameters)
+            };
+            insightWindow.Show();
+            insightWindow.Closed += InsightWindowClosed;
+            if (completionWindow is null)
+                ShowCodeCompletion(
+                    RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text));
+            else
                 completionWindow.Top += insightWindow.ActualHeight;
-            completionWindow.Closed += CompletionListClosed;
         }
     }
 
+    /// <summary>Intercepts changes caused by CodeCompletion and CodeInsight.</summary>
     private void DocumentChanged(DocumentChangeEventArgs e)
     {
         if (e.InsertedText.Text.EndsWith(')'))
             insightWindow?.Close();
         else if (e.InsertedText.Text.EndsWith('(')
             || e.InsertedText.Text.EndsWith("(x => "))
-        {
-            int len = e.InsertedText.Text.EndsWith('(') ? 1 : "(x => ".Length;
-            var (header, parameters) = RootModel.Instance.GetParameterInfo(GetFragment(len));
-            if (parameters?.Count > 0)
-            {
-                insightWindow = new(avalon.TextArea)
-                {
-                    Provider = new InsightProvider(header, parameters)
-                };
-                insightWindow.Show();
-                insightWindow.Closed += InsightWindowClosed;
-                if (completionWindow is null)
-                    try
-                    {
-                        ShowCodeCompletion(
-                            RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text));
-                    }
-                    catch { }
-                else
-                    completionWindow.Top += insightWindow.ActualHeight;
-            }
-            else
-                insightWindow?.Close();
-        }
+            ShowCodeInsight(GetFragment(
+                e.InsertedText.Text.EndsWith('(') ? 1 : "(x => ".Length));
+        else if (e.InsertedText.Text.EndsWith("::"))
+            ShowCodeCompletion(
+                RootModel.Instance.GetClassMembers(GetFragment()));
     }
 
     /// <summary>
@@ -245,25 +278,27 @@ public partial class MainWindow : Window
             qMode = !qMode;
             e.Handled = true;
         }
-        else if (gMode && e.Key != Key.LeftShift & e.Key != Key.RightShift)
-        {
-            if (GreekSymbols.TryTransform(e.Key, out char ch))
+        // Avoid interfering with the normal behavior of the Shift keys.
+        else if (e.Key != Key.LeftShift & e.Key != Key.RightShift)
+            if (gMode)
             {
-                avalon.SelectedText = "";
-                avalon.Document.Insert(avalon.CaretOffset, ch.ToString());
-                e.Handled = true;
+                if (GreekSymbols.TryTransform(e.Key, out char ch))
+                {
+                    avalon.SelectedText = "";
+                    avalon.Document.Insert(avalon.CaretOffset, ch.ToString());
+                    e.Handled = true;
+                }
+                gMode = false;
             }
-            gMode = false;
-        }
-        else if (qMode && e.Key != Key.LeftShift & e.Key != Key.RightShift)
-        {
-            if (GreekSymbols.TryTransformSymbol(e.Key, out char ch))
+            else if (qMode)
             {
-                avalon.SelectedText = "";
-                avalon.Document.Insert(avalon.CaretOffset, ch.ToString());
-                e.Handled = true;
+                if (GreekSymbols.TryTransformSymbol(e.Key, out char ch))
+                {
+                    avalon.SelectedText = "";
+                    avalon.Document.Insert(avalon.CaretOffset, ch.ToString());
+                    e.Handled = true;
+                }
+                qMode = false;
             }
-            qMode = false;
-        }
     }
 }

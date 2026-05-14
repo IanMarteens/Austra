@@ -72,6 +72,7 @@
         <KeyBinding Key="F10" Modifiers="Control" Command="{Binding FocusEditorCommand}"/>
         <KeyBinding Key="V" Modifiers="Control+Shift" Command="{Binding PasteExcelCommand}"/>
         <KeyBinding Key="F5" Modifiers="Shift" Command="{Binding DebugFormula}"/>
+        <KeyBinding Key="Space" Modifiers="Control" Command="{Binding CodeInsightCommand}"/>
     </Window.InputBindings>
     <Border x:Name="MainWindowBorder" BorderBrush="#FF000010" BorderThickness="8" >
         <DockPanel>

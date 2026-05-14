@@ -66,6 +66,10 @@ public sealed partial class RootModel : Entity
 
     public DelegateCommand ClearCommand { get; }
 
+    /// <summary>
+    /// Inserts the content of the clipboard in the editor, converting it from Excel
+    /// format if needed to vector or matrix format.
+    /// </summary>
     public DelegateCommand PasteExcelCommand { get; } = new(
         _ =>
         {
@@ -85,6 +89,11 @@ public sealed partial class RootModel : Entity
                     "[" + sb.ToString() + "]");
         },
         _ => Clipboard.ContainsText());
+
+    public DelegateCommand CodeInsightCommand { get; } = new(_ =>
+    {
+        ((MainWindow)Application.Current.MainWindow).ShowCodeInsight();
+    }, _ => Editor.TextArea.Caret.Offset > 0);
 
     public DelegateCommand FocusEditorCommand { get; } = new(_ =>
     {
