@@ -28,7 +28,7 @@ public partial class MainWindow : Window
         avalon.TextArea.TextEntered += TextArea_TextEntered;
         avalon.TextArea.TextEntering += TextArea_TextEntering;
         avalon.PreviewKeyDown += AvalonPreviewKeyDown;
-        avalon.Document.Changed += (s, e) => DocumentChanged(e);
+        avalon.Document.Changed += (_, e) => DocumentChanged(e.InsertedText.Text);
         Loaded += MainWindowLoaded;
     }
 
@@ -167,14 +167,17 @@ public partial class MainWindow : Window
         if (list?.Count > 0)
             try
             {
-                completionWindow = new CompletionWindow(avalon.TextArea);
+                completionWindow = new(avalon.TextArea)
+                {
+                    BorderThickness = new Thickness(0)
+                };
                 IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
                 foreach ((string member, string description) in list)
                     data.Add(new CompletionData(member, description));
                 completionWindow.Show();
                 if (insightWindow != null)
                     completionWindow.Top += insightWindow.ActualHeight;
-                completionWindow.Closed += CompletionListClosed;
+                completionWindow.Closed += (_, _) => completionWindow = null;
             }
             catch { }
     }
@@ -207,7 +210,7 @@ public partial class MainWindow : Window
                 Provider = new InsightProvider(header, parameters)
             };
             insightWindow.Show();
-            insightWindow.Closed += InsightWindowClosed;
+            insightWindow.Closed += (_, _) => insightWindow = null;
             if (completionWindow is null)
                 ShowCodeCompletion(
                     RootModel.Instance.GetRoots(avalon.CaretOffset, avalon.Text));
@@ -217,28 +220,15 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Intercepts changes caused by CodeCompletion and CodeInsight.</summary>
-    private void DocumentChanged(DocumentChangeEventArgs e)
+    private void DocumentChanged(string text)
     {
-        if (e.InsertedText.Text.EndsWith(')'))
+        if (text.EndsWith(')'))
             insightWindow?.Close();
-        else if (e.InsertedText.Text.EndsWith('(')
-            || e.InsertedText.Text.EndsWith("(x => "))
-            ShowCodeInsight(GetFragment(
-                e.InsertedText.Text.EndsWith('(') ? 1 : "(x => ".Length));
-        else if (e.InsertedText.Text.EndsWith("::"))
-            ShowCodeCompletion(
-                RootModel.Instance.GetClassMembers(GetFragment()));
+        else if (text.EndsWith('(') || text.EndsWith("(x => "))
+            ShowCodeInsight(GetFragment(text.EndsWith('(') ? 1 : "(x => ".Length));
+        else if (text.EndsWith("::"))
+            ShowCodeCompletion(RootModel.Instance.GetClassMembers(GetFragment()));
     }
-
-    /// <summary>
-    /// Nullifies the reference to the completion window when it is closed, so that it can be recreated later.
-    /// </summary>
-    private void CompletionListClosed(object? sender, EventArgs e) => completionWindow = null;
-
-    /// <summary>
-    /// Nullifies the reference to the insight window when it is closed, so that it can be recreated later.
-    /// </summary>
-    private void InsightWindowClosed(object? sender, EventArgs e) => insightWindow = null;
 
     /// <summary>
     /// Closes the window when the close command is executed,

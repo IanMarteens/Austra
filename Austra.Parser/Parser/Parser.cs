@@ -2218,21 +2218,16 @@ internal sealed partial class Parser : Scanner, IDisposable
         if (middle is not null && middle.Type != typeof(int))
             throw Error("Range step must be an integer");
         return first.Type == typeof(Date)
-            ? middle != null
-                ? Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
-                    Type.EmptyTypes, first, middle, last)
-                : Expression.Call(typeof(DateSequence), nameof(DateSequence.Create),
-                    Type.EmptyTypes, first, last)
+            ? MakeGenerator(typeof(DateSequence))
             : first.Type == typeof(int)
-            ? middle != null
-                ? Expression.Call(typeof(NSequence), nameof(NSequence.Create),
+            ? MakeGenerator(typeof(NSequence))
+            : MakeGenerator(typeof(DSequence));
+
+        MethodCallExpression MakeGenerator(Type seqType) =>
+            middle != null
+                ? Expression.Call(seqType, nameof(DSequence.Create),
                     Type.EmptyTypes, first, middle, last)
-                : Expression.Call(typeof(NSequence), nameof(NSequence.Create),
-                    Type.EmptyTypes, first, last)
-            : middle != null
-                ? Expression.Call(typeof(DSequence), nameof(DSequence.Create),
-                    Type.EmptyTypes, first, middle, last)
-                : Expression.Call(typeof(DSequence), nameof(DSequence.Create),
+                : Expression.Call(seqType, nameof(DSequence.Create),
                     Type.EmptyTypes, first, last);
     }
 
