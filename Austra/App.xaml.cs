@@ -17,6 +17,7 @@ public partial class App : Application
         };
         Thread.CurrentThread.CurrentCulture = GlobalCulture;
         Thread.CurrentThread.CurrentUICulture = GlobalCulture;
+        new SplashScreen("images/splash.png").Show(true);
     }
 
     private void Application_DispatcherUnhandledException(

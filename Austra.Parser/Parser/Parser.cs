@@ -2293,14 +2293,12 @@ internal sealed partial class Parser : Scanner, IDisposable
     }
 
     private Expression? ParseGlobals(string ident) =>
-        ident == "π" ? PiExpr
-        : ident == "τ" ? Expression.Constant(Math.Tau)
-        : ident.ToLower() switch
+        ident.ToLower() switch
         {
             "e" => Expression.Constant(Math.E),
             "i" => ImExpr,
-            "pi" => PiExpr,
-            "tau" => Expression.Constant(Math.Tau),
+            "pi" or "π" => PiExpr,
+            "tau" or "τ" => Expression.Constant(Math.Tau),
             "today" => Expression.Constant(Date.Today),
             "pearl" => Expression.Call(typeof(Functions).Get(nameof(Functions.Austra))),
             "random" => Expression.Call(typeof(Functions).GetMethod(nameof(Functions.Random))!),
@@ -2324,9 +2322,11 @@ internal sealed partial class Parser : Scanner, IDisposable
                 e1 = e1.ToLong;
             else if (e2.Type == typeof(int) && e1.Type == typeof(long))
                 e2 = e2.ToLong;
-            else if (e1.Type.IsEnum && e2 is ConstantExpression { Value: string v2 } && Enum.IsDefined(e1.Type, v2))
+            else if (e1.Type.IsEnum && e2 is ConstantExpression { Value: string v2 }
+                && Enum.IsDefined(e1.Type, v2))
                 e2 = Expression.Constant(Enum.Parse(e1.Type, v2));
-            else if (e2.Type.IsEnum && e1 is ConstantExpression { Value: string v1 } && Enum.IsDefined(e2.Type, v1))
+            else if (e2.Type.IsEnum && e1 is ConstantExpression { Value: string v1 }
+                && Enum.IsDefined(e2.Type, v1))
                 e1 = Expression.Constant(Enum.Parse(e2.Type, v1));
             else
             {
