@@ -2,15 +2,15 @@
 <topic id="04ea4168-169f-488a-9250-41bdab54e5e6" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA is a small functional language designed to handle financial series and common econometric models. It also implements vectors, matrices and the most frequently used operations from linear algebra, statistics, and probabilities.</para>
-      <para>AUSTRA formulas are efficiently parsed by a .NET Engine, and they are translated into fast-running native code that calls routines also implemented in .NET that take advantage of multicore systems and SIMD extensions.</para>
+      <para><legacyBold>AUSTRA</legacyBold> is a small functional language designed to handle financial series and common econometric models. It also implements vectors, matrices and the most frequently used operations from linear algebra, statistics, and probabilities.</para>
+      <para>Austra formulas are efficiently parsed by a .NET Engine, and they are translated into fast-running native code that calls routines also implemented in .NET that take advantage of multicore systems and SIMD extensions.</para>
       <para>This topic introduces the basic syntax of the language.</para>
     </introduction>
     <section address="Lexical">
       <title>Lexical syntax</title>
       <content>
       <para>
-      The lexical syntax of AUSTRA is very similar to most programming languages:
+      The lexical syntax of Austra is very similar to most programming languages:
       </para>
       <list class="bullet">
       	<listItem>White space, including line returns, are completely ignored.</listItem>
@@ -75,15 +75,15 @@ polar(<markup><font color="Blue">1</font></markup>, pi/<markup><font color="Blue
 			  </code>
 			  <para>A day can be added using this syntax:</para>
 			  <code language="Austra">
-			  6@jan20;
-			  31@jul2021
+<markup><font color="Blue">6</font></markup>@jan20;
+<markup><font color="Blue">31</font></markup>@jul2021
 			  </code>
       		</content>
       	</section>
       	<section>
       	  <title>Comments</title>
       	  <content>
-			<para>Though we do not expect anyone to write hundreds of pages of AUSTRA script, we still support line comments for better documentation. Comments always starts with two consecutive hyphens and extends to the next line feed or the end of the expression, whatever comes first:</para>
+			<para>Though we do not expect anyone to write hundreds of pages of Austra script, we still support line comments for better documentation. Comments always starts with two consecutive hyphens and extends to the next line feed or the end of the expression, whatever comes first:</para>
 			<code language="Austra">
 			<markup><font color="DarkGreen">-- A verbose version of math::min()</font><br/>
 <font color="RoyalBlue"><b>if</b></font></markup> aapl.mean &lt; msft.mean <markup><font color="RoyalBlue"><b>then</b></font></markup> aapl.mean <markup><font color="DarkGreen">-- Another comment.</font><br/>
@@ -96,20 +96,20 @@ polar(<markup><font color="Blue">1</font></markup>, pi/<markup><font color="Blue
     <section address="Section1">
       <title>Root objects</title>
       <content>
-        <para>Every AUSTRA expression must start with a root object. It could be either a global variable, a local variable, a class method, a class variable, or a <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">code definition</link>.</para>
+        <para>Every Austra expression must start with a root object. It could be either a global variable, a local variable, a class method, a class variable, or a <link xlink:href="90cb2899-abcf-4ebe-b96a-8cfac1b2809f">code definition</link>.</para>
       </content>
       <sections>
 		<section address="SubSection1">
 		  <title>Global variables</title>
 		  <content>
-			<para>Global variables come in two flavours: persistent variables and session variables. Persistent variables come mostly from an external source, like a JSON file, a database or an external service. In this AUSTRA version, those persisted variables are always time series, because they have a predictable serialization format. This design decision may change at some point of the evolution of the library.</para>
-			<para>For instance, when I open the AUSTRA application in my system, it automatically loads a set of series and definitions that are stored in a subfolder <newTerm>Austra</newTerm> of my <newTerm>Documents</newTerm> folder, in a file named <newTerm>data.austra</newTerm>, and its main windows looks something like this:</para>
+			<para>Global variables come in two flavours: persistent variables and session variables. Persistent variables come mostly from an external source, like a JSON file, a database or an external service. In this Austra version, those persisted variables are always time series, because they have a predictable serialization format. This design decision may change at some point of the evolution of the library.</para>
+			<para>For instance, when I open the Austra application in my system, it automatically loads a set of series and definitions that are stored in a subfolder <newTerm>Austra</newTerm> of my <newTerm>Documents</newTerm> folder, in a file named <newTerm>data.austra</newTerm>, and its main windows looks something like this:</para>
 			<mediaLink><image placement="near" xlink:href="w001"/></mediaLink>
 			<para>Persistent series are shown below a <newTerm>Series</newTerm> node. I can type the name of any of these variables in the Code Editor:</para>
 			<code language="Austra">
                   aaa
 			</code>                  
-			<para>When I press <codeInline>F5</codeInline>, AUSTRA translates the expression and immediately shows the content of the <codeInline>aaa</codeInline> series:</para>
+			<para>When I press <codeInline>F5</codeInline>, Austra translates the expression and immediately shows the content of the <codeInline>aaa</codeInline> series:</para>
 			<mediaLink><image placement="near" xlink:href="w002"/></mediaLink>
 		  </content>
 		</section>
@@ -118,24 +118,24 @@ polar(<markup><font color="Blue">1</font></markup>, pi/<markup><font color="Blue
           <content>
 			<para>Session variables, as the name indicates, are defined inside a user session, and die with the session. They are defined and removed using the <codeInline>set</codeInline> statement:</para>
             <code language="Austra">
-<markup><font color="RoyalBlue"><b>set</b></font></markup> v1 = [1, 2, 3, 4, 5];
-<markup><font color="RoyalBlue"><b>set</b></font></markup> v2 = v1.map(x =&gt; 1 / x);
+<markup><font color="RoyalBlue"><b>set</b></font></markup> v1 = [<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">2</font></markup>, <markup><font color="Blue">3</font></markup>, <markup><font color="Blue">4</font></markup>, <markup><font color="Blue">5</font></markup>];
+<markup><font color="RoyalBlue"><b>set</b></font></markup> v2 = v1.map(x =&gt; <markup><font color="Blue">1</font></markup> / x);
 v2.plot;
 <markup><font color="DarkGreen">-- <em>v1</em> is removed now:</font><br/>
 <font color="RoyalBlue"><b>set</b></font></markup> v1;
 <markup><font color="DarkGreen">-- <em>v2</em>, however, persist for the rest of the session.</font></markup>
 v2.plot;
 <markup><font color="DarkGreen">-- More than one variable can be assigned in a single statement.</font><br/>
-<font color="RoyalBlue"><b>set</b></font></markup> pi2 = 2 * pi, pi3 = 3 * pi 
+<font color="RoyalBlue"><b>set</b></font></markup> pi2 = <markup><font color="Blue">2</font></markup> * pi, pi3 = <markup><font color="Blue">3</font></markup> * pi 
             </code>
             <para>Only the value of the variable is stored, but not the formula that was used to calculate that value. This means, for example, that every use of the session variable will return the same value, even if the value was created using a random number generator:</para>
             <code language="Austra">
 <markup><font color="DarkGreen">-- <em>v1</em> is created using random numbers:</font><br/>
-<font color="RoyalBlue"><b>set</b></font></markup> v1 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<font color="RoyalBlue"><b>set</b></font></markup> v1 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(<markup><font color="Blue">10</font></markup>);
 <markup><font color="DarkGreen">-- Every use of <em>v1</em> returns always the same vector:</font></markup>
 v1 = v1;
 <markup><font color="DarkGreen">-- This is in contrast with the behavior of local variables.</font><br/>
-<font color="RoyalBlue"><b>let</b></font></markup> v2 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(10);
+<font color="RoyalBlue"><b>let</b></font></markup> v2 = <markup><b><font color="DarkCyan">vec::</font></b></markup>random(<markup><font color="Blue">10</font></markup>);
 <markup><font color="DarkGreen">-- This expression will return <b>false</b>:</font></markup>
 v2 = v2
             </code>
@@ -147,7 +147,7 @@ v2 = v2
         <section address="SubSection2">
           <title>Class methods and class constants</title>
           <content>
-            <para>Class methods in AUSTRA correspond both to constructors and static methods in traditional OOP languages, like C#.</para>
+            <para>Class methods in Austra correspond both to constructors and static methods in traditional OOP languages, like C#.</para>
             <para>Let's start with some variables:</para>
             <code language="Austra">
 i = <markup><b><font color="DarkCyan">math::</font></b></markup>i;
@@ -162,12 +162,12 @@ exp(π*i);
 			<para>Those global functions and constants are considered as belonging to the <codeInline>math</codeInline> for avoiding problems if any of these symbols is redefined as a persistent or session variable.</para>
 			<para>There are more classes than <codeInline>math</codeInline>, and we can use their class methods for creating new objects:</para>
 			<code language="Austra">
-<markup><b><font color="DarkCyan">matrix::</font></b></markup>random(10);
-<markup><b><font color="DarkCyan">vec::</font></b></markup>new(10);
-vec(10)
+<markup><b><font color="DarkCyan">matrix::</font></b></markup>random(<markup><font color="Blue">10</font></markup>);
+<markup><b><font color="DarkCyan">vec::</font></b></markup>new(<markup><font color="Blue">10</font></markup>);
+vec(<markup><font color="Blue">10</font></markup>)
             </code>
             <para>As the last example shows, when you call a <codeInline>new</codeInline> method on a class, you can omit the <codeInline>::new</codeInline> part and use just the class name as synonym.</para>
-            <para>This convention applies to every data type handled by AUSTRA.</para>
+            <para>This convention applies to every data type handled by Austra.</para>
           </content>
         </section>
       </sections>

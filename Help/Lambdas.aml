@@ -2,29 +2,29 @@
 <topic id="9ebcc778-37a1-4313-87f9-1ea37494d2c8" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>Lambda functions are inline-defined anonymous functions that can be used as parameters in normal methods and class method calls.</para>
+      <para><legacyBold>Lambda functions</legacyBold> are inline-defined anonymous functions that can be used as parameters in normal methods and class method calls.</para>
     </introduction>
     <section address="MonoLambda">
       <title>Lambda functions with one parameter</title>
       <content>
         <para>Series and vectors, for instance, has an <codeInline>all</codeInline> method to check if all their numeric values satisfy an arbitrary condition. The condition is the only parameter of the method and must be passed as a lambda function. Let's say we have an <codeInline>aapl_prices</codeInline> persistent variable holding a series of prices. We can verify that all those prices are positive using this formula:</para>
         <code language="Austra">
-        aapl_prices.all(x => x >= 0)   <markup><font color="DarkGreen">-- It should return <strong>true</strong>.</font></markup>
+        aapl_prices.all(x => x >= <markup><font color="Blue">0</font></markup>)   <markup><font color="DarkGreen">-- It should return <strong>true</strong>.</font></markup>
         </code>
         <para>The above formula checks whether all values in the price series are non-negative.
 That's the role of the all method, which checks that all values in a series satisfies a
 given predicate. The way we state the predicate to be satisfied is using this syntax:</para>
         <code language="Austra">
-x => x >= 0
+x => x >= <markup><font color="Blue">0</font></markup>
         </code>
 		<para>This can be read as "given an arbitrary value x, check that it is non-negative". We can use all for any other purpose, such as checking that all values in a series lie inside the (0, 1) interval:</para>
         <code language="Austra">
-prices.all(value => 0 &lt; value &lt; 1)
+prices.all(value => <markup><font color="Blue">0</font></markup> &lt; value &lt; <markup><font color="Blue">1</font></markup>)
 		</code>
 		<para>Notice that in this new example, we have used another name for the "arbitrary given value": <codeInline>value</codeInline> instead of <codeInline>x</codeInline>. This renaming has no effect in the formula.</para>
 		<para>This example shows how to use the related method <codeInline>any</codeInline>:</para>
         <code language="Austra">
-prices.any(x => x >= 1)
+prices.any(x => x >= <markup><font color="Blue">1</font></markup>)
 		</code>
 		<para>In this case, we are checking whether exists at least one value in prices that is above 1.</para>
 		<para>Both <codeInline>any</codeInline> and <codeInline>all</codeInline> require a predicate as argument: a formula that given an arbitrary
@@ -32,7 +32,7 @@ value, returns <codeInline>true</codeInline> or <codeInline>false</codeInline>. 
 function that converts a real value into another one. Let's say we want to limit
 values from a series, so that no one is greater than 1000:</para>
         <code language="Austra">
-prices.map(x => min(x, 1000))
+prices.map(x => min(x, <markup><font color="Blue">1000</font></markup>))
 		</code>
 		<para>In all cases, the type of the parameter of the lambda is determined by the method the lambda is passed, and so is the returned type. AUSTRA adds any required conversion, as when a double is required for the result and an integer expression is being returned. Regarding the name of the lambda's parameter, you can use any name you like, keeping in mind that it will shadow any predefined identifier inside the lambda function's body.</para>
 		<sections>
@@ -41,18 +41,18 @@ prices.map(x => min(x, 1000))
 		  	<content>
 		  	  <para>In many cases, you need a lambda that takes a single parameter to transform it into another value from the same type. For instance, the sine function can be approximated using a <link xlink:href="008dce7e-55cd-4c37-997b-b0463d7c24d0">spline</link> over a uniform grid like this:</para>
 		  	  <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(0, 2*pi, 1024, x =&gt; sin(x)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
-    s[pi/4]
+<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(<markup><font color="Blue">0</font></markup>, <markup><font color="Blue">2</font></markup>*pi, <markup><font color="Blue">1024</font></markup>, x =&gt; sin(x)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
+    s[pi/<markup><font color="Blue">4</font></markup>]
 		  	  </code>
 		  	  <para>The above code can be shortened to this:</para>
 		  	  <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(0, 2*pi, 1024, sin) <markup><font color="RoyalBlue"><b>in</b></font></markup>
-    s[pi/4];
+<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(<markup><font color="Blue">0</font></markup>, <markup><font color="Blue">2</font></markup>*pi, <markup><font color="Blue">1024</font></markup>, sin) <markup><font color="RoyalBlue"><b>in</b></font></markup>
+    s[pi/<markup><font color="Blue">4</font></markup>];
 		  	  </code>
 		  	  <para>Or even this if you need to qualify the function name for any reason:</para>
 		  	  <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(0, 2*pi, 1024, <markup><b><font color="DarkCyan">math::</font></b></markup>sin) <markup><font color="RoyalBlue"><b>in</b></font></markup>
-    s[pi/4];
+<markup><font color="RoyalBlue"><b>let</b></font></markup> s = spline(<markup><font color="Blue">0</font></markup>, <markup><font color="Blue">2</font></markup>*pi, <markup><font color="Blue">1024</font></markup>, <markup><b><font color="DarkCyan">math::</font></b></markup>sin) <markup><font color="RoyalBlue"><b>in</b></font></markup>
+    s[pi/<markup><font color="Blue">4</font></markup>];
 		  	  </code>
 		  	  <para>Since <codeInline>sin</codeInline> is a mono-parametric function and no parameters are supplied, the compiler understands that the function must be used to create a mono-parametric lambda, returning a real value.</para>
 		  	</content>
@@ -76,11 +76,11 @@ prices.map(x => min(x, 1000))
 	  	<content>
 	  	  <para>You can also use a binary operator as a shortcut for a lambda definition. This code uses the <codeEntityReference qualifyHint="false" autoUpgrade="true">M:Austra.Library.BaseSequence`2.Reduce(`0,System.Func{`0,`0,`0})</codeEntityReference> method on a sequence of integers for summing all items in the sequence:</para>
 	  	  <code language="Austra">
-iseq(1, 10).reduce(0, (x, y) =&gt; x + y)
+iseq(<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">10</font></markup>).reduce(<markup><font color="Blue">0</font></markup>, (x, y) =&gt; x + y)
 	  	  </code>
 	  	  <para>You can substitute the lambda definition with a reference to the binary operator, including its class name:</para>
 	  	  <code language="Austra">
-iseq(1, 10).reduce(0, <markup><b><font color="DarkCyan">int::</font></b></markup>+)
+iseq(<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">10</font></markup>).reduce(<markup><font color="Blue">0</font></markup>, <markup><b><font color="DarkCyan">int::</font></b></markup>+)
 	  	  </code>
 	  	  <para>This trick, so far, only works with binary operators.</para>
 	  	</content>

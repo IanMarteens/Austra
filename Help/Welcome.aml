@@ -5,7 +5,7 @@
 		<table>
 			<row>
 			<entry>
-              <para>AUSTRA is an efficient mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models.</para>
+              <para><legacyBold>AUSTRA</legacyBold> is an efficient mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models.</para>
               <para>Both library and language, also support vectors, matrices, transforms, and the most frequently used operations from linear algebra, statistics, and probability.</para>
               <para>The library code is hardware-accelerated, using all resources provided by the CPU. The language compiler is also an optimizing compiler, detecting common expression patterns and substituting them by more efficient method calls, whenever possible.</para>
         <para>Austra contains three main components:</para>
@@ -25,7 +25,7 @@
       <title>The design of the library</title>
       <content>
 		<para>The library has been designed as a set of mostly inmmutable types, to facilitate their concurrent use. Most of the methods are hardware-accelerated, either using managed references, SIMD operations, or both. Memory pinning, and raw pointers, have been reduced to a minimum, to ease the garbage collector's work.</para>
-		<para>Using immutable vectors, series and matrices has one drawback, and it is more stress for the garbage collector. For that reason, we offer combined operations, like other libraries do, to fuse several linear operations into one, when possible. The AUSTRA parser detects most of these cases for optimizing them.</para>
+		<para>Using immutable vectors, series and matrices has one drawback, and it is more stress for the garbage collector. For that reason, we offer combined operations, like other libraries do, to fuse several linear operations into one, when possible. The Austra parser detects most of these cases for optimizing them.</para>
         <sections>
 		  <section address="vectorization">
 			<title>Vectorization versus tasks</title>
@@ -79,7 +79,7 @@
 			<title>Mean-Variance Optimizer</title>
 			<content>
 			  <para>A Mean-Variance Optimizer implementation is included (<codeEntityReference qualifyHint="false">T:Austra.Library.MVO.MvoModel</codeEntityReference>). This functionality is available at the formula language via the <codeInline>model::mvo</codeInline> class method.</para>
-			  <para>The MVO model is rendered as an interactive model by the AUSTRA desktop application.</para>
+			  <para>The MVO model is rendered as an interactive model by the Austra desktop application.</para>
             </content>
 		  </section>
 		  <section address="polynomials">
@@ -111,12 +111,12 @@
         </list>
         <para>There is also an important non-goal:</para>
         <list class="bullet">
-        	<listItem>We are not trying to substitute C# with Austra. AUSTRA, the language, is not supposed to be a Turing-complete programming language.</listItem>
+        	<listItem>We are not trying to substitute C# with Austra. Austra, the language, is not supposed to be a Turing-complete programming language.</listItem>
         </list>
         <para>These are some consequences of the non-goal:</para>
         <list class="bullet">
-        	<listItem>We do not intend writing the Austra library in AUSTRA. That may be the goal for a next step, and, indeed, we have already some ideas and plans to do it. It would require, for make any sense, automatic vectorization, for example.</listItem>
-        	<listItem>The type system of AUSTRA is very simple. There are no generic types. Type inference is primitive. Only a handful of classes from the library are fully exposed. And, in the current version, we still have no support for tuples.</listItem>
+        	<listItem>We do not intend writing the Austra library in Austra. That may be the goal for a next step, and, indeed, we have already some ideas and plans to do it. It would require, for make any sense, automatic vectorization, for example.</listItem>
+        	<listItem>The type system of Austra is very simple. There are no generic types. Type inference is primitive. Only a handful of classes from the library are fully exposed. And, in the current version, we still have no support for tuples.</listItem>
         </list>
         <para>To diminish the complexity of using the language, we also conceal some types as much as possible, to reduce the number of class names the programmer has to remember. The language defines a small set of classes on which class methods, i.e., constructors and static methods, can be called. These classes are:</para>
         <list class="bullet">
@@ -129,22 +129,22 @@
         	<listItem><codeInline>spline</codeInline>, for cubic splines.</listItem>
         	<listItem><codeInline>model</codeInline>, for mathematical models and tools.</listItem>
         </list>
-        <para>AUSTRA handles a long list of types, from primitive types such as <codeInline>date</codeInline>, <codeInline>bool</codeInline> and <codeInline>int</codeInline>, to classes generated by transforms or matrix factorizations.</para>
+        <para>Austra handles a long list of types, from primitive types such as <codeInline>date</codeInline>, <codeInline>bool</codeInline> and <codeInline>int</codeInline>, to classes generated by transforms or matrix factorizations.</para>
         <sections>
           <section address="Arrays">
-            <title>Arrays in AUSTRA</title>
+            <title>Arrays in Austra</title>
             <content>
-              <para>One example about how AUSTRA tries to hide complexity from the user is how arrays are handled by the language. Arrays pervades the library. You need an array of reals to create a vector, an array of vectors to create a matrix, and another array of series to create a covariance matrix. But arrays do not match well with a functional programming style.</para>
-              <para>What AUSTRA does is accepting a variable number of parameters wherever a method needs an array parameter. This is, for instance, how AUSTRA creates a covariance matrix from a list of series:</para>
+              <para>One example about how Austra tries to hide complexity from the user is how arrays are handled by the language. Arrays pervades the library. You need an array of reals to create a vector, an array of vectors to create a matrix, and another array of series to create a covariance matrix. But arrays do not match well with a functional programming style.</para>
+              <para>What Austra does is accepting a variable number of parameters wherever a method needs an array parameter. This is, for instance, how Austra creates a covariance matrix from a list of series:</para>
               <code language="Austra">
 <markup><b><font color="DarkCyan">matrix::</font></b></markup>cov(aaa, aab, aac);
 <markup><b><font color="DarkCyan">matrix::</font></b></markup>cov(aaa, aab, aac, aad);
               </code>
               <para>And this is how we efficiently create a linear combination of three series, including an "intercept", that is, a constant additional term in the linear combination:</para>
               <code language="Austra">
-<markup><b><font color="DarkCyan">series::</font></b></markup>new([0.1, 0.2, 0.3, 0.4], aaa, aab, aac);
+<markup><b><font color="DarkCyan">series::</font></b></markup>new([<markup><font color="Blue">0.1</font></markup>, <markup><font color="Blue">0.2</font></markup>, <markup><font color="Blue">0.3</font></markup>, <markup><font color="Blue">0.4</font></markup>], aaa, aab, aac);
               </code>
-              <para>In both cases, the implementing code receives an array of series as its last parameter, and AUSTRA automatically gathers all series at the end of the method call in a single array.</para>
+              <para>In both cases, the implementing code receives an array of series as its last parameter, and Austra automatically gathers all series at the end of the method call in a single array.</para>
             </content>
           </section>
         </sections>
