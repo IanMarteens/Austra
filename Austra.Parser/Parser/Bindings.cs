@@ -2013,11 +2013,26 @@ internal readonly struct MethodData
         && (Args[0] == inputType || Args[0] == typeof(double) && inputType == typeof(int))
         && mInfo is MethodInfo m && m.ReturnType == returnType;
 
+    public bool IsMatch(Type inputType1, Type inputType2, Type returnType) =>
+        Args.Length == 2
+        && (Args[0] == inputType1 || Args[0] == typeof(double) && inputType1 == typeof(int))
+        && (Args[1] == inputType2|| Args[1] == typeof(double) && inputType2 == typeof(int))
+        && mInfo is MethodInfo m && m.ReturnType == returnType;
+
     public LambdaExpression GetAsLambda(Type inputType)
     {
         ParameterExpression x = Expression.Parameter(inputType, "x");
         Expression arg = Args[0] == x.Type ? x : Expression.Convert(x, typeof(double));
         return Expression.Lambda(Expression.Call((MethodInfo)mInfo, arg), x);
+    }
+
+    public LambdaExpression GetAsLambda(Type inputType1, Type inputType2)
+    {
+        ParameterExpression x = Expression.Parameter(inputType1, "x");
+        ParameterExpression y = Expression.Parameter(inputType2, "y");
+        Expression arg1 = Args[0] == x.Type ? x : Expression.Convert(x, typeof(double));
+        Expression arg2 = Args[1] == y.Type ? y : Expression.Convert(y, typeof(double));
+        return Expression.Lambda(Expression.Call((MethodInfo)mInfo, arg1, arg2), x, y);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1480,10 +1480,28 @@ internal sealed partial class Parser : Scanner, IDisposable
             {
                 string className = id.ToLower();
                 SkipFunctor();
+                if (kind == Token.Id)
+                {
+                    if (!GetLambda2FromFunctionName(
+                        className + "." + id,
+                        out Expression? lambda))
+                        throw Error("Binary function name expected");
+                    Move();
+                    return lambda;
+                }
                 if (!bindings.IsClassOperator(className, kind, out Expression? e))
                     throw Error("Operator expected after class reference");
                 Move();
                 return e;
+            }
+            else if (kind == Token.Id)
+            {
+                if (!GetLambda2FromFunctionName(
+                    "math." + id.ToLower(),
+                    out Expression? lambda))
+                    throw Error("Binary function name expected");
+                Move();
+                return lambda;
             }
             else
             {
@@ -1529,6 +1547,28 @@ internal sealed partial class Parser : Scanner, IDisposable
             if (candidate == null)
                 throw Error("Invalid function name while expecting lambda.");
             lambda = candidate.Value.GetAsLambda(t1);
+            return true;
+        }
+
+        bool GetLambda2FromFunctionName(string qualifiedName,
+            [NotNullWhen(true)] out Expression? lambda)
+        {
+            if (!bindings.TryGetClassMethod(qualifiedName, out MethodList info))
+            {
+                lambda = null;
+                return false;
+            }
+            // Check signature.
+            MethodData? candidate = null;
+            foreach (MethodData m in info.Methods)
+                if (m.IsMatch(t1, t2, retType))
+                    if (candidate != null)
+                        throw Error("Ambiguous function name");
+                    else
+                        candidate = m;
+            if (candidate == null)
+                throw Error("Invalid function name while expecting lambda.");
+            lambda = candidate.Value.GetAsLambda(t1, t2);
             return true;
         }
     }
