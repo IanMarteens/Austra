@@ -982,36 +982,15 @@ public readonly struct Matrix :
         long size = (long)m1.values.Length * m2.values.Length;
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        fixed (double* a = m1.values, b = m2.values, c = result)
-            if (size < MINSIZE)
-                NonBlocking(m, n, p, a, b, c);
-            else if (size < MAXSIZE)
-                Blocking128(m, n, p, a, b, c);
-            else
-                Blocking256(m, n, p, a, b, c);
+        if (size <= MINSIZE)
+            m1.values.MulMatrix(m2.values, result, m, n, p);
+        else
+            fixed (double* a = m1.values, b = m2.values, c = result)
+                if (size < MAXSIZE)
+                    Blocking128(m, n, p, a, b, c);
+                else
+                    Blocking256(m, n, p, a, b, c);
         return new(m, p, result);
-
-        static void NonBlocking(int m, int n, int p, double* a, double* b, double* c)
-        {
-            double* pa = a, pc = c;
-            for (int i = 0, top = p & Simd.MASK4; i < m; i++)
-            {
-                double* pb = b;
-                for (int k = 0; k < n; k++)
-                {
-                    double d = pa[k];
-                    int j = 0;
-                    if (Avx.IsSupported)
-                        for (V4d vd = V4.Create(d); j < top; j += V4d.Count)
-                            Avx.Store(pc + j, Avx.LoadVector256(pc + j).MultiplyAdd(pb + j, vd));
-                    for (; j < p; j++)
-                        pc[j] = FusedMultiplyAdd(pb[j], d, pc[j]);
-                    pb += p;
-                }
-                pa += n;
-                pc += p;
-            }
-        }
 
         static void Blocking128(int m, int n, int p, double* a, double* b, double* c)
         {

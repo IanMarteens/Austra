@@ -765,6 +765,47 @@ public static class Vec
         return result;
     }
 
+    /// <summary>Matrix multiplication for matrix with size &lt;= 64x64.</summary>
+    /// <param name="m1">First matrix.</param>
+    /// <param name="m2">Second matrix.</param>
+    /// <param name="result">Result matrix.</param>
+    /// <param name="m">Number of rows in the first matrix.</param>
+    /// <param name="n">Number of columns in the first matrix / rows in the second matrix.</param>
+    /// <param name="p">Number of columns in the second matrix.</param>
+    public static void MulMatrix(this double[] m1, double[] m2, double[] result, int m, int n, int p)
+    {
+        ref double a = ref MM.GetArrayDataReference(m1);
+        ref double b = ref MM.GetArrayDataReference(m2);
+        ref double c = ref MM.GetArrayDataReference(result);
+        ref double pa = ref a, pc = ref c;
+        nuint top8 = (nuint)(p & Simd.MASK8);
+        nuint top4 = (nuint)(p & Simd.MASK4);
+        for (int i = 0, top = p & Simd.MASK4; i < m; i++)
+        {
+            ref double pb = ref b;
+            for (int k = 0; k < n; k++)
+            {
+                double d = Unsafe.Add(ref pa, k);
+                nuint j = 0;
+                if (Avx512F.IsSupported)
+                    for (V8d vd = V8.Create(d); j < top8; j += (nuint)V8d.Count)
+                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                            V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref pc, j)),
+                            ref pc, j);
+                if (Avx.IsSupported)
+                    for (V4d vd = V4.Create(d); j < top4; j += (nuint)V4d.Count)
+                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j).MultiplyAdd(
+                            V4.LoadUnsafe(ref pb, j), vd),
+                            ref pc, j);
+                for (; j < (nuint)p; j++)
+                    Unsafe.Add(ref pc, j) = FusedMultiplyAdd(Unsafe.Add(ref pb, j), d, Unsafe.Add(ref pc, j));
+                pb = ref Unsafe.Add(ref pb, p);
+            }
+            pa = ref Unsafe.Add(ref pa, n);
+            pc = ref Unsafe.Add(ref pc, p);
+        }
+    }
+
     /// <summary>Pointwise multiplication of a span and a scalar.</summary>
     /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="span">Span multiplicand.</param>
