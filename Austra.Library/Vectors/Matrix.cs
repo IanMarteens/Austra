@@ -968,7 +968,7 @@ public readonly struct Matrix :
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
     /// <returns>The algebraic multiplication of the two operands.</returns>
-    public static unsafe Matrix operator *(Matrix m1, Matrix m2)
+    public static Matrix operator *(Matrix m1, Matrix m2)
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
@@ -977,116 +977,10 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m1.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m2.Cols);
 
-        const long MINSIZE = 64L * 64L * 64L * 64L;
-        const long MAXSIZE = 1024L * 1024L * 1024L * 1024L;
-        long size = (long)m1.values.Length * m2.values.Length;
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        if (size <= MINSIZE)
-            m1.values.MulMatrix(m2.values, result, m, n, p);
-        else
-            fixed (double* a = m1.values, b = m2.values, c = result)
-                if (size < MAXSIZE)
-                    Blocking128(m, n, p, a, b, c);
-                else
-                    Blocking256(m, n, p, a, b, c);
+        m1.values.MulMatrix(m2.values, result, m, n, p);
         return new(m, p, result);
-
-        static void Blocking128(int m, int n, int p, double* a, double* b, double* c)
-        {
-            const int BLK_SIZE = 128;
-            int pbl = p * BLK_SIZE;
-            for (int ii = 0; ii < m; ii += BLK_SIZE)
-                for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
-                    for (int jj = 0; jj < p; jj += BLK_SIZE)
-                    {
-                        double* pa = a + n * ii;
-                        double* pc = c + p * ii;
-                        int topi = Min(m, ii + BLK_SIZE);
-                        int topj = Min(p, jj + BLK_SIZE);
-                        int top = ((topj - jj) & ~15) + jj;
-                        for (int i = ii; i < topi; i++)
-                        {
-                            double* pb = b + pkk;
-                            int topk = Min(n, kk + BLK_SIZE);
-                            for (int k = kk; k < topk; k++)
-                            {
-                                double d = pa[k];
-                                int j = jj;
-                                if (Avx512F.IsSupported)
-                                    for (V8d vd = V8.Create(d); j < top; j += 16)
-                                    {
-                                        V8d op1 = Avx512F.LoadVector512(pb + j);
-                                        V8d op2 = Avx512F.LoadVector512(pb + j + 8);
-                                        Avx512F.Store(pc + j, Avx512F.FusedMultiplyAdd(
-                                            op1, vd, Avx512F.LoadVector512(pc + j)));
-                                        Avx512F.Store(pc + j + 8, Avx512F.FusedMultiplyAdd(
-                                            op2, vd, Avx512F.LoadVector512(pc + j + 8)));
-                                    }
-                                else if (Avx.IsSupported)
-                                    for (V4d vd = V4.Create(d); j < top; j += 16)
-                                    {
-                                        Avx.Store(pc + j, Avx.LoadVector256(pc + j)
-                                            .MultiplyAdd(pb + j, vd));
-                                        Avx.Store(pc + j + 4, Avx.LoadVector256(pc + j + 4)
-                                            .MultiplyAdd(pb + j + 4, vd));
-                                        Avx.Store(pc + j + 8, Avx.LoadVector256(pc + j + 8)
-                                            .MultiplyAdd(pb + j + 8, vd));
-                                        Avx.Store(pc + j + 12, Avx.LoadVector256(pc + j + 12)
-                                            .MultiplyAdd(pb + j + 12, vd));
-                                    }
-                                for (; j < topj; j++)
-                                    pc[j] = FusedMultiplyAdd(d, pb[j], pc[j]);
-                                pb += p;
-                            }
-                            pa += n;
-                            pc += p;
-                        }
-                    }
-        }
-
-        static void Blocking256(int m, int n, int p, double* a, double* b, double* c)
-        {
-            const int BLK_SIZE = 256;
-            int pbl = p * BLK_SIZE;
-            for (int ii = 0; ii < m; ii += BLK_SIZE)
-                for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
-                    for (int jj = 0; jj < p; jj += BLK_SIZE)
-                    {
-                        double* pa = a + n * ii;
-                        double* pc = c + p * ii;
-                        int topi = Min(m, ii + BLK_SIZE);
-                        int topj = Min(p, jj + BLK_SIZE);
-                        int top = ((topj - jj) & ~15) + jj;
-                        for (int i = ii; i < topi; i++)
-                        {
-                            double* pb = b + pkk;
-                            int topk = Min(n, kk + BLK_SIZE);
-                            for (int k = kk; k < topk; k++)
-                            {
-                                double d = pa[k];
-                                int j = jj;
-                                if (Avx.IsSupported)
-                                    for (var vd = V4.Create(d); j < top; j += 16)
-                                    {
-                                        Avx.Store(pc + j, Avx.LoadVector256(pc + j)
-                                            .MultiplyAdd(pb + j, vd));
-                                        Avx.Store(pc + j + 4, Avx.LoadVector256(pc + j + 4)
-                                            .MultiplyAdd(pb + j + 4, vd));
-                                        Avx.Store(pc + j + 8, Avx.LoadVector256(pc + j + 8)
-                                            .MultiplyAdd(pb + j + 8, vd));
-                                        Avx.Store(pc + j + 12, Avx.LoadVector256(pc + j + 12)
-                                            .MultiplyAdd(pb + j + 12, vd));
-                                    }
-                                for (; j < topj; j++)
-                                    pc[j] = FusedMultiplyAdd(d, pb[j], pc[j]);
-                                pb += p;
-                            }
-                            pa += n;
-                            pc += p;
-                        }
-                    }
-        }
     }
 
     /// <summary>

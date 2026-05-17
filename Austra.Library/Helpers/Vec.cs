@@ -765,7 +765,7 @@ public static class Vec
         return result;
     }
 
-    /// <summary>Matrix multiplication for matrix with size &lt;= 64x64.</summary>
+    /// <summary>Matrix multiplication implementation.</summary>
     /// <param name="m1">First matrix.</param>
     /// <param name="m2">Second matrix.</param>
     /// <param name="result">Result matrix.</param>
@@ -774,35 +774,160 @@ public static class Vec
     /// <param name="p">Number of columns in the second matrix.</param>
     public static void MulMatrix(this double[] m1, double[] m2, double[] result, int m, int n, int p)
     {
+        const long MINSIZE = 64L * 64L * 64L;
+        const long MAXSIZE = 1024L * 1024L * 1024L;
+        long size = (long)m * n * p;
+
         ref double a = ref MM.GetArrayDataReference(m1);
         ref double b = ref MM.GetArrayDataReference(m2);
         ref double c = ref MM.GetArrayDataReference(result);
-        ref double pa = ref a, pc = ref c;
-        nuint top8 = (nuint)(p & Simd.MASK8);
-        nuint top4 = (nuint)(p & Simd.MASK4);
-        for (int i = 0, top = p & Simd.MASK4; i < m; i++)
+
+        if (size <= MINSIZE)
         {
-            ref double pb = ref b;
-            for (int k = 0; k < n; k++)
+            ref double pa = ref a, pc = ref c;
+            nuint top8 = (nuint)(p & Simd.MASK8);
+            nuint top4 = (nuint)(p & Simd.MASK4);
+            for (int i = 0, top = p & Simd.MASK4; i < m; i++)
             {
-                double d = Unsafe.Add(ref pa, k);
-                nuint j = 0;
-                if (Avx512F.IsSupported)
-                    for (V8d vd = V8.Create(d); j < top8; j += (nuint)V8d.Count)
-                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
-                            V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref pc, j)),
-                            ref pc, j);
-                if (Avx.IsSupported)
-                    for (V4d vd = V4.Create(d); j < top4; j += (nuint)V4d.Count)
-                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j).MultiplyAdd(
-                            V4.LoadUnsafe(ref pb, j), vd),
-                            ref pc, j);
-                for (; j < (nuint)p; j++)
-                    Unsafe.Add(ref pc, j) = FusedMultiplyAdd(Unsafe.Add(ref pb, j), d, Unsafe.Add(ref pc, j));
-                pb = ref Unsafe.Add(ref pb, p);
+                ref double pb = ref b;
+                for (int k = 0; k < n; k++)
+                {
+                    double d = Unsafe.Add(ref pa, k);
+                    nuint j = 0;
+                    if (Avx512F.IsSupported)
+                        for (V8d vd = V8.Create(d); j < top8; j += (nuint)V8d.Count)
+                            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref pc, j)),
+                                ref pc, j);
+                    if (Avx.IsSupported)
+                        for (V4d vd = V4.Create(d); j < top4; j += (nuint)V4d.Count)
+                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j).MultiplyAdd(
+                                V4.LoadUnsafe(ref pb, j), vd),
+                                ref pc, j);
+                    for (; j < (nuint)p; j++)
+                        Unsafe.Add(ref pc, j) = FusedMultiplyAdd(
+                            Unsafe.Add(ref pb, j), d, Unsafe.Add(ref pc, j));
+                    pb = ref Unsafe.Add(ref pb, p);
+                }
+                pa = ref Unsafe.Add(ref pa, n);
+                pc = ref Unsafe.Add(ref pc, p);
             }
-            pa = ref Unsafe.Add(ref pa, n);
-            pc = ref Unsafe.Add(ref pc, p);
+        }
+        else if (size < MAXSIZE)
+        {
+            const int BLK_SIZE = 128;
+            int pbl = p * BLK_SIZE;
+            for (int ii = 0; ii < m; ii += BLK_SIZE)
+                for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
+                    for (int jj = 0; jj < p; jj += BLK_SIZE)
+                    {
+                        ref double pa = ref Unsafe.Add(ref a, n * ii);
+                        ref double pc = ref Unsafe.Add(ref c, p * ii);
+                        int topi = Math.Min(m, ii + BLK_SIZE);
+                        nuint topj = (nuint)Math.Min(p, jj + BLK_SIZE);
+                        nuint top = (nuint)((((uint)topj - jj) & ~15) + jj);
+                        for (int i = ii; i < topi; i++)
+                        {
+                            ref double pb = ref Unsafe.Add(ref b, pkk);
+                            int topk = Math.Min(n, kk + BLK_SIZE);
+                            for (int k = kk; k < topk; k++)
+                            {
+                                double d = Unsafe.Add(ref pa, k);
+                                nuint j = (nuint)jj;
+                                if (Avx512F.IsSupported)
+                                    for (V8d vd = V8.Create(d); j < top; j += 16)
+                                    {
+                                        V8d op1 = V8.LoadUnsafe(ref pb, j);
+                                        V8d op2 = V8.LoadUnsafe(ref pb, j + 8);
+                                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                            op1, vd, V8.LoadUnsafe(ref pc, j)),
+                                            ref pc, j);
+                                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                            op2, vd, V8.LoadUnsafe(ref pc, j + 8)),
+                                            ref pc, j + 8);
+                                    }
+                                else if (Avx.IsSupported)
+                                    for (V4d vd = V4.Create(d); j < top; j += 16)
+                                    {
+                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j)
+                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j), vd),
+                                            ref pc, j);
+                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 4)
+                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 4), vd),
+                                            ref pc, j + 4);
+                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 8)
+                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 8), vd),
+                                            ref pc, j + 8);
+                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 12)
+                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 12), vd),
+                                            ref pc, j + 12);
+                                    }
+                                for (; j < topj; j++)
+                                    Unsafe.Add(ref pc, j) = FusedMultiplyAdd(
+                                        d, Unsafe.Add(ref pb, j), Unsafe.Add(ref pc, j));
+                                pb = ref Unsafe.Add(ref pb, p);
+                            }
+                            pa = ref Unsafe.Add(ref pa, n);
+                            pc = ref Unsafe.Add(ref pc, p);
+                        }
+                    }
+        }
+        else
+        {
+            const int BLK_SIZE = 256;
+            int pbl = p * BLK_SIZE;
+            for (int ii = 0; ii < m; ii += BLK_SIZE)
+                for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
+                    for (int jj = 0; jj < p; jj += BLK_SIZE)
+                    {
+                        ref double pa = ref Unsafe.Add(ref a, n * ii);
+                        ref double pc = ref Unsafe.Add(ref c, p * ii);
+                        int topi = Math.Min(m, ii + BLK_SIZE);
+                        nuint topj = (nuint)Math.Min(p, jj + BLK_SIZE);
+                        nuint top = (nuint)((((uint)topj - jj) & ~15) + jj);
+                        for (int i = ii; i < topi; i++)
+                        {
+                            ref double pb = ref Unsafe.Add(ref b, pkk);
+                            int topk = Math.Min(n, kk + BLK_SIZE);
+                            for (int k = kk; k < topk; k++)
+                            {
+                                double d = Unsafe.Add(ref pa, k);
+                                nuint j = (nuint)jj;
+                                if (Avx512F.IsSupported)
+                                    for (V8d vd = V8.Create(d); j < top; j += 16)
+                                    {
+                                        V8d op1 = V8.LoadUnsafe(ref pb, j);
+                                        V8d op2 = V8.LoadUnsafe(ref pb, j + 8);
+                                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                            op1, vd, V8.LoadUnsafe(ref pc, j)), ref pc, j);
+                                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                            op2, vd, V8.LoadUnsafe(ref pc, j + 8)), ref pc, j + 8);
+                                    }
+                                if (Avx.IsSupported)
+                                    for (var vd = V4.Create(d); j < top; j += 16)
+                                    {
+                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j)
+                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j), vd),
+                                            ref pc, j);
+                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 4)
+                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 4), vd),
+                                            ref pc, j + 4);
+                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 8)
+                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 8), vd),
+                                            ref pc, j + 8);
+                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 12)
+                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 12), vd),
+                                            ref pc, j + 12);
+                                    }
+                                for (; j < topj; j++)
+                                    Unsafe.Add(ref pc, j) = FusedMultiplyAdd(
+                                        d, Unsafe.Add(ref pb, j), Unsafe.Add(ref pc, j));
+                                pb = ref Unsafe.Add(ref pb, p);
+                            }
+                            pa = ref Unsafe.Add(ref pa, n);
+                            pc = ref Unsafe.Add(ref pc, p);
+                        }
+                    }
         }
     }
 

@@ -157,7 +157,7 @@ public class MatrixTests
     }
 
     [Test]
-    public void CheckMatrixMultiply([Values(32, 35, 256, 257, 1024, 1025)] int size)
+    public void CheckMatrixMultiply([Values(32, 35, 256, 257, 1024, 1025, 1029)] int size)
     {
         Matrix m1 = new Matrix(size, size, new Random(), 0.5, 1.6) + Matrix.Identity(size) * 0.02;
         Matrix m2 = new(size, size, new Random(), 0.5, 1.6);
