@@ -784,7 +784,6 @@ public static class Vec
 
         if (size <= MINSIZE)
         {
-            ref double pa = ref a, pc = ref c;
             nuint top8 = (nuint)(p & Simd.MASK8);
             nuint top4 = (nuint)(p & Simd.MASK4);
             for (int i = 0, top = p & Simd.MASK4; i < m; i++)
@@ -792,25 +791,25 @@ public static class Vec
                 ref double pb = ref b;
                 for (int k = 0; k < n; k++)
                 {
-                    double d = Unsafe.Add(ref pa, k);
+                    double d = Unsafe.Add(ref a, k);
                     nuint j = 0;
                     if (Avx512F.IsSupported)
                         for (V8d vd = V8.Create(d); j < top8; j += (nuint)V8d.Count)
                             V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
-                                V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref pc, j)),
-                                ref pc, j);
+                                V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref c, j)),
+                                ref c, j);
                     if (Avx.IsSupported)
                         for (V4d vd = V4.Create(d); j < top4; j += (nuint)V4d.Count)
-                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j).MultiplyAdd(
+                            V4.StoreUnsafe(V4.LoadUnsafe(ref c, j).MultiplyAdd(
                                 V4.LoadUnsafe(ref pb, j), vd),
-                                ref pc, j);
+                                ref c, j);
                     for (; j < (nuint)p; j++)
-                        Unsafe.Add(ref pc, j) = FusedMultiplyAdd(
-                            Unsafe.Add(ref pb, j), d, Unsafe.Add(ref pc, j));
+                        Unsafe.Add(ref c, j) = FusedMultiplyAdd(
+                            Unsafe.Add(ref pb, j), d, Unsafe.Add(ref c, j));
                     pb = ref Unsafe.Add(ref pb, p);
                 }
-                pa = ref Unsafe.Add(ref pa, n);
-                pc = ref Unsafe.Add(ref pc, p);
+                a = ref Unsafe.Add(ref a, n);
+                c = ref Unsafe.Add(ref c, p);
             }
         }
         else if (size < MAXSIZE)
