@@ -1406,7 +1406,7 @@ public readonly struct Matrix :
     /// <summary>Applies a function to each cell of the matrix.</summary>
     /// <param name="mapper">The transformation function.</param>
     /// <returns>A new matrix with transformed cells.</returns>
-    public Matrix Map(Func<double, double> mapper) => new(Rows, Cols, values.Map(mapper));
+    public Matrix Map(Func<double, double> mapper) => new(Rows, Cols, values.AsSpan().Map(mapper));
 
     /// <summary>Checks whether the predicate is satified by all cells.</summary>
     /// <param name="predicate">The predicate to be checked.</param>

@@ -62,7 +62,7 @@ public readonly struct DVector :
     public DVector(int size, Random random, double offset, double width)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        values.AsSpan().CreateRandom(random, offset, width);
+        values.CreateRandom(random, offset, width);
     }
 
     /// <summary>Creates a vector filled with a uniform distribution generator.</summary>
@@ -72,7 +72,7 @@ public readonly struct DVector :
     public DVector(int size, Random random)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        values.AsSpan().CreateRandom(random);
+        values.CreateRandom(random);
     }
 
     /// <summary>Creates a vector filled with a normal distribution generator.</summary>
@@ -81,7 +81,7 @@ public readonly struct DVector :
     public DVector(int size, NormalRandom random)
     {
         values = GC.AllocateUninitializedArray<double>(size);
-        values.AsSpan().CreateRandom(random);
+        values.CreateRandom(random);
     }
 
     /// <summary>Creates a vector using a formula to fill its items.</summary>
@@ -269,7 +269,7 @@ public readonly struct DVector :
     public double AMax()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().AMax();
+        return values.AMax();
     }
 
     /// <summary>Gets the cell with the minimum absolute value.</summary>
@@ -277,7 +277,7 @@ public readonly struct DVector :
     public double AMin()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().AMin();
+        return values.AMin();
     }
 
     /// <summary>Gets the item with the maximum value.</summary>
@@ -285,7 +285,7 @@ public readonly struct DVector :
     public double Maximum()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().Max();
+        return values.Max();
     }
 
     /// <summary>Gets the item with the minimum value.</summary>
@@ -293,7 +293,7 @@ public readonly struct DVector :
     public double Minimum()
     {
         Contract.Requires(IsInitialized);
-        return values.AsSpan().Min();
+        return values.Min();
     }
 
     /// <summary>Adds two vectors.</summary>
@@ -308,7 +308,7 @@ public readonly struct DVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
-        v1.values.AsSpan().Add(v2.values, result);
+        v1.values.Add(v2.values, result);
         return result;
     }
 
@@ -323,7 +323,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         if (Length != v.Length)
             throw new VectorLengthException();
-        values.AsSpan().Add(v.values);
+        values.Add(v.values);
         return this;
     }
 
@@ -340,7 +340,7 @@ public readonly struct DVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         double[] result = GC.AllocateUninitializedArray<double>(v1.Length);
-        v1.values.AsSpan().Sub(v2.values, result);
+        v1.values.Sub(v2.values, result);
         return result;
     }
 
@@ -355,7 +355,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         if (Length != v.Length)
             throw new VectorLengthException();
-        values.AsSpan().Sub(v.values);
+        values.Sub(v.values);
         return this;
     }
 
@@ -367,7 +367,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.values.Length);
-        v.values.AsSpan().Neg(result);
+        v.values.Neg(result);
         return result;
     }
 
@@ -375,7 +375,7 @@ public readonly struct DVector :
     /// <returns>The same vector instance, with items negated.</returns>
     public DVector InplaceNegate()
     {
-        values.AsSpan().Neg();
+        values.Neg();
         return this;
     }
 
@@ -388,7 +388,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        v.values.AsSpan().Add(d, result);
+        v.values.Add(d, result);
         return result;
     }
 
@@ -408,7 +408,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        v.values.AsSpan().Sub(d, result);
+        v.values.Sub(d, result);
         return result;
     }
 
@@ -436,7 +436,7 @@ public readonly struct DVector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<DVector>().Length == Length);
-        return values.AsSpan().Mul(other.values);
+        return values.Mul(other.values);
     }
 
     /// <summary>Pointwise division.</summary>
@@ -450,7 +450,7 @@ public readonly struct DVector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<DVector>().Length == Length);
-        return values.AsSpan().Div(other.values);
+        return values.Div(other.values);
     }
 
     /// <summary>Dot product of two vectors.</summary>
@@ -465,7 +465,7 @@ public readonly struct DVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         Contract.EndContractBlock();
-        return v1.values.AsSpan().Dot(v2.values);
+        return v1.values.Dot(v2.values);
     }
 
     /// <summary>Gets the squared norm of this vector.</summary>
@@ -521,7 +521,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.values.Length);
-        v.values.AsSpan().Mul(d, result);
+        v.values.Mul(d, result);
         return result;
     }
 
@@ -554,7 +554,7 @@ public readonly struct DVector :
         ref double r = ref MM.GetArrayDataReference(result);
         foreach (double d in v1.values)
         {
-            v2.values.AsSpan().Mul(d, MM.CreateSpan(ref r, cols));
+            v2.values.Mul(d, MM.CreateSpan(ref r, cols));
             r = ref Add(ref r, cols);
         }
         return new(rows, cols, result);
@@ -934,13 +934,13 @@ public readonly struct DVector :
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool All(Func<double, bool> predicate) => values.AsSpan().All(predicate);
+    public bool All(Func<double, bool> predicate) => values.All(predicate);
 
     /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Any(Func<double, bool> predicate) => values.AsSpan().Any(predicate);
+    public bool Any(Func<double, bool> predicate) => values.Any(predicate);
 
     /// <summary>Checks if the vector contains the given value.</summary>
     /// <param name="value">Value to locate.</param>
@@ -951,7 +951,7 @@ public readonly struct DVector :
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
-    public DVector Distinct() => values.AsSpan().Distinct();
+    public DVector Distinct() => values.Distinct();
 
     /// <summary>Returns all indexes containing ocurrences of a value.</summary>
     /// <param name="value">Value to find.</param>
@@ -1024,7 +1024,7 @@ public readonly struct DVector :
     /// <returns>The final synthesized value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double Reduce(double seed, Func<double, double, double> reducer) =>
-        values.AsSpan().Reduce(seed, reducer);
+        values.Reduce(seed, reducer);
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
@@ -1055,7 +1055,7 @@ public readonly struct DVector :
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
     public DVector Zip(DVector other, Func<double, double, double> zipper) =>
-        values.AsSpan().Zip(other.values, zipper);
+        values.Zip(other.values, zipper);
 
     /// <summary>Computes the autocorrelation for a fixed lag.</summary>
     /// <param name="lag">Lag number in samples.</param>

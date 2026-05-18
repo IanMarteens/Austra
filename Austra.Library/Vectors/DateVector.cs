@@ -277,7 +277,7 @@ public readonly struct DateVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
-        Cast<int>(v1.values).Sub(v2.values.AsSpan(), result);
+        Cast<int>(v1.values).Sub(v2.values, result);
         return new DateVector(result.Length, i => new Date((uint)result[i]));
     }
 
@@ -310,12 +310,12 @@ public readonly struct DateVector :
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-    public bool All(Func<Date, bool> predicate) => values.AsSpan().All(predicate);
+    public bool All(Func<Date, bool> predicate) => values.All(predicate);
 
     /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-    public bool Any(Func<Date, bool> predicate) => values.AsSpan().Any(predicate);
+    public bool Any(Func<Date, bool> predicate) => values.Any(predicate);
 
     /// <summary>Checks if the vector contains the given value.</summary>
     /// <param name="value">Value to locate.</param>
@@ -325,7 +325,7 @@ public readonly struct DateVector :
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
-    public DateVector Distinct() => values.AsSpan().Distinct();
+    public DateVector Distinct() => values.Distinct();
 
     /// <summary>Creates a new vector by filtering items with the given predicate.</summary>
     /// <param name="predicate">The predicate to evaluate.</param>
@@ -400,7 +400,7 @@ public readonly struct DateVector :
     /// <returns>The final synthesized value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Date Reduce(Date seed, Func<Date, Date, Date> reducer) =>
-        values.AsSpan().Reduce(seed, reducer);
+        values.Reduce(seed, reducer);
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
@@ -419,7 +419,7 @@ public readonly struct DateVector :
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
     public DateVector Zip(DateVector other, Func<Date, Date, Date> zipper) =>
-        values.AsSpan().Zip(other.values, zipper);
+        values.Zip(other.values, zipper);
 
     /// <summary>Gets a textual representation of this vector.</summary>
     /// <returns>Space-separated components.</returns>

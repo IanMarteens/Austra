@@ -287,7 +287,7 @@ public readonly struct NVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
-        v1.values.AsSpan().Add(v2.values, result);
+        v1.values.Add(v2.values, result);
         return result;
     }
 
@@ -302,7 +302,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         if (Length != v.Length)
             throw new VectorLengthException();
-        values.AsSpan().Add(v.values);
+        values.Add(v.values);
         return this;
     }
 
@@ -318,7 +318,7 @@ public readonly struct NVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         int[] result = GC.AllocateUninitializedArray<int>(v1.Length);
-        v1.values.AsSpan().Sub(v2.values, result);
+        v1.values.Sub(v2.values, result);
         return result;
     }
 
@@ -333,7 +333,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         if (Length != v.Length)
             throw new VectorLengthException();
-        values.AsSpan().Sub(v.values);
+        values.Sub(v.values);
         return this;
     }
 
@@ -345,7 +345,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.values.Length);
-        v.values.AsSpan().Neg(result);
+        v.values.Neg(result);
         return result;
     }
 
@@ -358,7 +358,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        v.values.AsSpan().Add(d, result);
+        v.values.Add(d, result);
         return result;
     }
 
@@ -378,7 +378,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        v.values.AsSpan().Sub(d, result);
+        v.values.Sub(d, result);
         return result;
     }
 
@@ -406,7 +406,7 @@ public readonly struct NVector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<NVector>().Length == Length);
-        return values.AsSpan().Mul(other.values);
+        return values.Mul(other.values);
     }
 
     /// <summary>Pointwise division.</summary>
@@ -420,14 +420,14 @@ public readonly struct NVector :
         if (Length != other.Length)
             throw new VectorLengthException();
         Contract.Ensures(Contract.Result<NVector>().Length == Length);
-        return values.AsSpan().Div(other.values);
+        return values.Div(other.values);
     }
 
     /// <summary>Inplace negation of the vector.</summary>
     /// <returns>The same vector instance, with items negated.</returns>
     public NVector InplaceNegate()
     {
-        values.AsSpan().Neg();
+        values.Neg();
         return this;
     }
 
@@ -623,7 +623,7 @@ public readonly struct NVector :
         if (v1.Length != v2.Length)
             throw new VectorLengthException();
         Contract.EndContractBlock();
-        return v1.values.AsSpan().Dot(v2.values);
+        return v1.values.Dot(v2.values);
     }
 
     /// <summary>Multiplies a vector by a scalar value.</summary>
@@ -635,7 +635,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.values.Length);
-        v.values.AsSpan().Mul(d, result);
+        v.values.Mul(d, result);
         return result;
     }
 
@@ -650,7 +650,7 @@ public readonly struct NVector :
     /// <param name="v">Vector to be divided.</param>
     /// <param name="d">A scalar divisor.</param>
     /// <returns>The quotient of the vector over the scalar.</returns>
-    public static NVector operator /(NVector v, int d) => v.values.AsSpan().Div(d);
+    public static NVector operator /(NVector v, int d) => v.values.Div(d);
 
     /// <summary>Gets the absolute values of the vector's items.</summary>
     /// <returns>A new vector with non-negative items.</returns>
@@ -664,12 +664,12 @@ public readonly struct NVector :
     /// <summary>Checks whether the predicate is satisfied by all items.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-    public bool All(Func<int, bool> predicate) => values.AsSpan().All(predicate);
+    public bool All(Func<int, bool> predicate) => values.All(predicate);
 
     /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
     /// <param name="predicate">The predicate to be checked.</param>
     /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-    public bool Any(Func<int, bool> predicate) => values.AsSpan().Any(predicate);
+    public bool Any(Func<int, bool> predicate) => values.Any(predicate);
 
     /// <summary>Checks if the vector contains the given value.</summary>
     /// <param name="value">Value to locate.</param>
@@ -679,7 +679,7 @@ public readonly struct NVector :
     /// <summary>Returns a new vector with the distinct values in the original one.</summary>
     /// <remarks>Results are unordered.</remarks>
     /// <returns>A new vector with distinct values.</returns>
-    public NVector Distinct() => values.AsSpan().Distinct();
+    public NVector Distinct() => values.Distinct();
 
     /// <summary>Creates a new vector by filtering items with the given predicate.</summary>
     /// <param name="predicate">The predicate to evaluate.</param>
@@ -773,7 +773,7 @@ public readonly struct NVector :
     public int Maximum()
     {
         Contract.Requires(IsInitialized);
-        return Vec.Max(values.AsSpan());
+        return Vec.Max(values);
     }
 
     /// <summary>Gets the item with the minimum value.</summary>
@@ -781,7 +781,7 @@ public readonly struct NVector :
     public int Minimum()
     {
         Contract.Requires(IsInitialized);
-        return Vec.Min(values.AsSpan());
+        return Vec.Min(values);
     }
 
     /// <summary>Calculates the product of the vector's items.</summary>
@@ -798,7 +798,7 @@ public readonly struct NVector :
     /// <returns>The final synthesized value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Reduce(int seed, Func<int, int, int> reducer) =>
-        values.AsSpan().Reduce(seed, reducer);
+        values.Reduce(seed, reducer);
 
     /// <summary>Creates a reversed copy of the vector.</summary>
     /// <returns>An independent reversed copy.</returns>
@@ -825,7 +825,7 @@ public readonly struct NVector :
     /// <param name="zipper">The combining function.</param>
     /// <returns>The combining function applied to each pair of items.</returns>
     public NVector Zip(NVector other, Func<int, int, int> zipper) =>
-        values.AsSpan().Zip(other.values, zipper);
+        values.Zip(other.values, zipper);
 
     /// <summary>Convert this vector to a vector of reals.</summary>
     /// <returns>A new vector of reals.</returns>
