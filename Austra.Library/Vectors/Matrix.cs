@@ -118,7 +118,7 @@ public readonly struct Matrix :
     public Matrix(int rows, int cols, Random random, double offset, double width)
     {
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
-        values.AsSpan().CreateRandom(random, offset, width);
+        values.CreateRandom(random, offset, width);
     }
 
     /// <summary>Creates a square matrix filled with a uniform distribution generator.</summary>
@@ -137,7 +137,7 @@ public readonly struct Matrix :
     public Matrix(int rows, int cols, Random random)
     {
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(rows * cols));
-        values.AsSpan().CreateRandom(random);
+        values.CreateRandom(random);
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public readonly struct Matrix :
     {
         int len = rows * cols;
         (Rows, Cols, values) = (rows, cols, GC.AllocateUninitializedArray<double>(len));
-        values.AsSpan().CreateRandom(random);
+        values.CreateRandom(random);
     }
 
     /// <summary>Creates a squared matrix filled with a standard normal distribution.</summary>
@@ -1358,7 +1358,7 @@ public readonly struct Matrix :
     public bool Contains(double value)
     {
         Contract.Requires(IsInitialized);
-        return Vec.IndexOf(new ReadOnlySpan<double>(values), value) != -1;
+        return values.IndexOf(value) != -1;
     }
 
     /// <summary>Computes the maximum difference between cells.</summary>

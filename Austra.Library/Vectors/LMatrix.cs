@@ -827,7 +827,7 @@ public readonly struct LMatrix :
     public bool Contains(double value)
     {
         Contract.Requires(IsInitialized);
-        return Vec.IndexOf(new ReadOnlySpan<double>(values), value) != -1;
+        return values.IndexOf(value) != -1;
     }
 
     /// <summary>Checks if the provided argument is a matrix with the same values.</summary>

@@ -861,7 +861,7 @@ public abstract partial class DSequence : IFormattable
         protected override double[] Materialize()
         {
             double[] data = GC.AllocateUninitializedArray<double>(length);
-            data.AsSpan().CreateRandom(random);
+            data.CreateRandom(random);
             return data;
         }
     }
@@ -898,7 +898,7 @@ public abstract partial class DSequence : IFormattable
         protected override double[] Materialize()
         {
             double[] data = GC.AllocateUninitializedArray<double>(length);
-            data.AsSpan().CreateRandom(random);
+            data.CreateRandom(random);
             return data;
         }
     }

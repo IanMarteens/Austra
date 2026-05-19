@@ -992,7 +992,7 @@ public readonly struct DVector :
         Contract.Requires(from >= 0 && from < Length);
         Contract.Ensures(Contract.Result<int>() >= -1 && Contract.Result<int>() < Length);
 
-        int result = Vec.IndexOf(new ReadOnlySpan<double>(values, from, Length - from), value);
+        int result = new Span<double>(values, from, Length - from).IndexOf(value);
         return result >= 0 ? result + from : -1;
     }
 

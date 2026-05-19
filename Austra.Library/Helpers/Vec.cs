@@ -12,8 +12,8 @@ public static class Vec
     public static int TERMINAL_COLUMNS { get; set; } = 80;
 
     /// <summary>Extension block for operations on generic numeric spans.</summary>
-    /// <typeparam name="T">The type of the span elements.</typeparam>
-    /// <param name="span1">The span to operate on.</param>
+    /// <typeparam name="T">The type of the values elements.</typeparam>
+    /// <param name="span1">The values to operate on.</param>
     extension<T>(Span<T> span1) where T : INumberBase<T>
     {
         /// <summary>Gets the absolute values of the array items.</summary>
@@ -45,7 +45,7 @@ public static class Vec
 
         /// <summary>Pointwise sum of two equally sized spans.</summary>
         /// <param name="span2">Second operand.</param>
-        /// <param name="target">The span to receive the sum of the first two argument.</param>
+        /// <param name="target">The values to receive the sum of the first two argument.</param>
         public void Add(Span<T> span2, Span<T> target)
         {
             ref T a = ref MM.GetReference(span1);
@@ -89,7 +89,7 @@ public static class Vec
                 Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
         }
 
-        /// <summary>Pointwise addition of a scalar to a span.</summary>
+        /// <summary>Pointwise addition of a scalar to a values.</summary>
         /// <param name="scalar">Scalar summand.</param>
         /// <param name="target">Target memory for the operation.</param>
         public void Add(T scalar, Span<T> target)
@@ -175,7 +175,7 @@ public static class Vec
             return result;
         }
 
-        /// <summary>Pointwise multiplication of a span and a scalar.</summary>
+        /// <summary>Pointwise multiplication of a values and a scalar.</summary>
         /// <param name="scalar">Scalar multiplier.</param>
         /// <param name="target">Target memory for the operation.</param>
         public void Mul(T scalar, Span<T> target)
@@ -203,7 +203,7 @@ public static class Vec
                     Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) * scalar;
         }
 
-        /// <summary>Pointwise negation of a span.</summary>
+        /// <summary>Pointwise negation of a values.</summary>
         /// <param name="target">Target memory for the operation.</param>
         public void Neg(Span<T> target)
         {
@@ -228,7 +228,7 @@ public static class Vec
                     Unsafe.Add(ref q, i) = -Unsafe.Add(ref p, i);
         }
 
-        /// <summary>Inplace pointwise negation of a span.</summary>
+        /// <summary>Inplace pointwise negation of a values.</summary>
         public void Neg()
         {
             ref T p = ref MM.GetReference(span1);
@@ -283,7 +283,7 @@ public static class Vec
 
         /// <summary>Pointwise subtraction of two equally sized spans.</summary>
         /// <param name="span2">Subtrahend.</param>
-        /// <param name="target">The span to receive the result.</param>
+        /// <param name="target">The values to receive the result.</param>
         public void Sub(Span<T> span2, Span<T> target)
         {
             ref T a = ref MM.GetReference(span1);
@@ -327,7 +327,7 @@ public static class Vec
                 Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
         }
 
-        /// <summary>Pointwise subtraction of a scalar from a span.</summary>
+        /// <summary>Pointwise subtraction of a scalar from a values.</summary>
         /// <param name="scalar">Scalar subtrahend.</param>
         /// <param name="target">Target memory for the operation.</param>
         public void Sub(T scalar, Span<T> target)
@@ -395,9 +395,9 @@ public static class Vec
     /// <summary>
     /// Extension blocks for operations on generic spans with struct elements.
     /// </summary>
-    /// <typeparam name="T">The type of the span elements.</typeparam>
-    /// <param name="span">The span to operate on.</param>
-    extension<T>(Span<T> span) where T : struct
+    /// <typeparam name="T">The type of the values elements.</typeparam>
+    /// <param name="span">The values to operate on.</param>
+    extension<T>(Span<T> span) where T : unmanaged, IEquatable<T>, IEqualityOperators<T, T, bool>
     {
         /// <summary>Checks whether the predicate is satisfied by all items.</summary>
         /// <param name="predicate">The predicate to be checked.</param>
@@ -421,7 +421,7 @@ public static class Vec
             return false;
         }
 
-        /// <summary>Returns a new array with the distinct values in the span.</summary>
+        /// <summary>Returns a new array with the distinct values in the values.</summary>
         /// <remarks>Results are unordered.</remarks>
         /// <returns>A new array with distinct values.</returns>
         public T[] Distinct() =>
@@ -453,6 +453,50 @@ public static class Vec
                 if (predicate(value))
                     newValues[j++] = mapper(value);
             return j == 0 ? [] : j == span.Length ? span.ToArray() : newValues[..j];
+        }
+
+        /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
+        /// <param name="value">The value to locate.</param>
+        /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
+        public int IndexOf(T value)
+        {
+            ref T p = ref MM.GetReference(span);
+            nuint size = (nuint)span.Length;
+            if (V8.IsHardwareAccelerated && size >= (nuint)Vector512<T>.Count)
+            {
+                Vector512<T> v = V8.Create(value);
+                nuint t = size - (nuint)Vector512<T>.Count;
+                ulong mask;
+                for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                {
+                    mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, i), v));
+                    if (mask != 0)
+                        return (int)i + BitOperations.TrailingZeroCount(mask);
+                }
+                mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, t), v));
+                if (mask != 0)
+                    return (int)t + BitOperations.TrailingZeroCount(mask);
+            }
+            else if (V4.IsHardwareAccelerated && size >= (nuint)Vector256<T>.Count)
+            {
+                Vector256<T> v = V4.Create(value);
+                nuint t = size - (nuint)Vector256<T>.Count;
+                uint mask;
+                for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                {
+                    mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, i), v));
+                    if (mask != 0)
+                        return (int)i + BitOperations.TrailingZeroCount(mask);
+                }
+                mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, t), v));
+                if (mask != 0)
+                    return (int)t + BitOperations.TrailingZeroCount(mask);
+            }
+            else
+                for (nuint i = 0; i < size; i++)
+                    if (Unsafe.Add(ref p, i).Equals(value))
+                        return (int)i;
+            return -1;
         }
 
         /// <summary>
@@ -540,7 +584,7 @@ public static class Vec
         }
 
         /// <summary>Combines the common prefix of two spans.</summary>
-        /// <param name="other">Second span to combine.</param>
+        /// <param name="other">Second values to combine.</param>
         /// <param name="zipper">The combining function.</param>
         /// <returns>The combining function applied to each pair of items.</returns>
         public T[] Zip(Span<T> other, Func<T, T, T> zipper)
@@ -557,11 +601,100 @@ public static class Vec
     }
 
     /// <summary>
-    /// Extension block for operations on double span coming from matrices.
+    /// Extension block for operations on double values coming from matrices.
     /// </summary>
-    /// <param name="values">The span to be transformed or queried.</param>
+    /// <param name="values">The values to be transformed or queried.</param>
     extension(Span<double> values)
     {
+        /// <summary>Initializes a values with random values.</summary>
+        /// <param name="random">A random number generator.</param>
+        public void CreateRandom(Random random)
+        {
+            ref double p = ref MM.GetReference(values);
+            if (Avx512F.IsSupported && values.Length >= V8d.Count && random == Random.Shared)
+            {
+                nuint t = (nuint)(values.Length - V8d.Count);
+                Random512 rnd512 = Random512.Shared;
+                for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                    V8.StoreUnsafe(rnd512.NextDouble(), ref p, i);
+                V8.StoreUnsafe(rnd512.NextDouble(), ref p, t);
+            }
+            else if (Avx2.IsSupported && values.Length >= V4d.Count && random == Random.Shared)
+            {
+                nuint t = (nuint)(values.Length - V4d.Count);
+                Random256 rnd256 = Random256.Shared;
+                for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                    V4.StoreUnsafe(rnd256.NextDouble(), ref p, i);
+                V4.StoreUnsafe(rnd256.NextDouble(), ref p, t);
+            }
+            else
+                for (int i = 0; i < values.Length; i++)
+                    Unsafe.Add(ref p, i) = random.NextDouble();
+        }
+
+        /// <summary>Initializes a values with random values.</summary>
+        /// <param name="random">A random number generator.</param>
+        /// <param name="offset">An offset for the random numbers.</param>
+        /// <param name="width">Width for the uniform distribution.</param>
+        public void CreateRandom(Random random, double offset, double width)
+        {
+            ref double p = ref MM.GetReference(values);
+            if (Avx512F.IsSupported && values.Length >= V8d.Count && random == Random.Shared)
+            {
+                nuint t = (nuint)(values.Length - V8d.Count);
+                V8d vOff = V8.Create(offset);
+                V8d vWidth = V8.Create(width);
+                Random512 rnd512 = Random512.Shared;
+                for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                    V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref p, i);
+                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref p, t);
+            }
+            else if (Avx2.IsSupported && values.Length >= V4d.Count && random == Random.Shared)
+            {
+                nuint t = (nuint)(values.Length - V4d.Count);
+                V4d vOff = V4.Create(offset);
+                V4d vWidth = V4.Create(width);
+                Random256 rnd256 = Random256.Shared;
+                for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                    V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref p, i);
+                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref p, t);
+            }
+            else
+                for (int i = 0; i < values.Length; i++)
+                    Unsafe.Add(ref p, i) = FusedMultiplyAdd(random.NextDouble(), width, offset);
+        }
+
+        /// <summary>Initializes a values with normal random values.</summary>
+        /// <param name="random">A random number generator.</param>
+        public void CreateRandom(NormalRandom random)
+        {
+            ref double p = ref MM.GetReference(values);
+            if (Avx512F.IsSupported && values.Length >= V8d.Count && random == NormalRandom.Shared)
+            {
+                nuint t = (nuint)(values.Length - V8d.Count);
+                Random512 rnd512 = Random512.Shared;
+                for (nuint i = 0; i < t; i += (nuint)V8d.Count)
+                    V8.StoreUnsafe(rnd512.NextNormal(), ref p, i);
+                V8.StoreUnsafe(rnd512.NextNormal(), ref p, t);
+            }
+            else if (Avx2.IsSupported && values.Length >= V4d.Count && random == NormalRandom.Shared)
+            {
+                nuint t = (nuint)(values.Length - V4d.Count);
+                Random256 rnd256 = Random256.Shared;
+                for (nuint i = 0; i < t; i += (nuint)V4d.Count)
+                    V4.StoreUnsafe(rnd256.NextNormal(), ref p, i);
+                V4.StoreUnsafe(rnd256.NextNormal(), ref p, t);
+            }
+            else
+            {
+                int i = 0;
+                for (int t = values.Length & ~1; i < t; i += 2)
+                    random.NextDoubles(ref Unsafe.Add(ref p, i));
+                if (i < values.Length)
+                    Unsafe.Add(ref p, i) = random.NextDouble();
+            }
+        }
+
         /// <summary>Gets the main diagonal of a 1D-array.</summary>
         /// <param name="rows">Number of rows.</param>
         /// <param name="cols">Number of columns.</param>
@@ -594,7 +727,7 @@ public static class Vec
 
         /// <summary>Computes the maximum difference between two spans.</summary>
         /// <remarks>Spans can be of different lengths.</remarks>
-        /// <param name="other">Second span.</param>
+        /// <param name="other">Second values.</param>
         /// <returns>The max-norm of the vector difference.</returns>
         public double Distance(Span<double> other)
         {
@@ -634,8 +767,8 @@ public static class Vec
         }
 
         /// <summary>Calculates the dot product of two spans.</summary>
-        /// <remarks>The second span can be longer than the first span.</remarks>
-        /// <param name="span2">Second span operand.</param>
+        /// <remarks>The second values can be longer than the first values.</remarks>
+        /// <param name="span2">Second values operand.</param>
         /// <returns>The dot product of the vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double Dot(Span<double> span2)
@@ -828,7 +961,7 @@ public static class Vec
         }
 
         /// <summary>
-        /// Multiplies a span by a scalar and sums the result to a memory location.
+        /// Multiplies a values by a scalar and sums the result to a memory location.
         /// </summary>
         /// <param name="d">Scale factor.</param>
         /// <param name="target">The target memory of the whole operation.</param>
@@ -858,7 +991,7 @@ public static class Vec
         }
 
         /// <summary>
-        /// Multiplies a span by a scalar and subtracts the result to a memory location.
+        /// Multiplies a values by a scalar and subtracts the result to a memory location.
         /// </summary>
         /// <param name="d">Scale factor.</param>
         /// <param name="target">The target memory of the whole operation.</param>
@@ -1046,8 +1179,8 @@ public static class Vec
         }
     }
 
-    /// <summary>Gets the item in a span with the maximum absolute value.</summary>
-    /// <param name="span">The values span.</param>
+    /// <summary>Gets the item in a values with the maximum absolute value.</summary>
+    /// <param name="span">The values values.</param>
     /// <returns>The maximum absolute value in the samples.</returns>
     public static double AMax(this Span<double> span)
     {
@@ -1077,8 +1210,8 @@ public static class Vec
         return max;
     }
 
-    /// <summary>Gets the item in a span with the minimum absolute value.</summary>
-    /// <param name="span">The values span.</param>
+    /// <summary>Gets the item in a values with the minimum absolute value.</summary>
+    /// <param name="span">The values values.</param>
     /// <returns>The minimum absolute value in the samples.</returns>
     public static double AMin(this Span<double> span)
     {
@@ -1135,99 +1268,6 @@ public static class Vec
         return values;
     }
 
-    /// <summary>Initializes a span with random values.</summary>
-    /// <param name="span">The memory target for the operation.</param>
-    /// <param name="random">A random number generator.</param>
-    public static void CreateRandom(this Span<double> span, Random random)
-    {
-        ref double p = ref MM.GetReference(span);
-        if (Avx512F.IsSupported && span.Length >= V8d.Count && random == Random.Shared)
-        {
-            nuint t = (nuint)(span.Length - V8d.Count);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(rnd512.NextDouble(), ref p, i);
-            V8.StoreUnsafe(rnd512.NextDouble(), ref p, t);
-        }
-        else if (Avx2.IsSupported && span.Length >= V4d.Count && random == Random.Shared)
-        {
-            nuint t = (nuint)(span.Length - V4d.Count);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextDouble(), ref p, i);
-            V4.StoreUnsafe(rnd256.NextDouble(), ref p, t);
-        }
-        else
-            for (int i = 0; i < span.Length; i++)
-                Unsafe.Add(ref p, i) = random.NextDouble();
-    }
-
-    /// <summary>Initializes a span with random values.</summary>
-    /// <param name="span">The memory target for the operation.</param>
-    /// <param name="random">A random number generator.</param>
-    /// <param name="offset">An offset for the random numbers.</param>
-    /// <param name="width">Width for the uniform distribution.</param>
-    public static void CreateRandom(this Span<double> span, Random random,
-        double offset, double width)
-    {
-        ref double p = ref MM.GetReference(span);
-        if (Avx512F.IsSupported && span.Length >= V8d.Count && random == Random.Shared)
-        {
-            nuint t = (nuint)(span.Length - V8d.Count);
-            V8d vOff = V8.Create(offset);
-            V8d vWidth = V8.Create(width);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref p, i);
-            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(rnd512.NextDouble(), vWidth, vOff), ref p, t);
-        }
-        else if (Avx2.IsSupported && span.Length >= V4d.Count && random == Random.Shared)
-        {
-            nuint t = (nuint)(span.Length - V4d.Count);
-            V4d vOff = V4.Create(offset);
-            V4d vWidth = V4.Create(width);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref p, i);
-            V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref p, t);
-        }
-        else
-            for (int i = 0; i < span.Length; i++)
-                Unsafe.Add(ref p, i) = FusedMultiplyAdd(random.NextDouble(), width, offset);
-    }
-
-    /// <summary>Initializes a span with normal random values.</summary>
-    /// <param name="span">The memory target for the operation.</param>
-    /// <param name="random">A random number generator.</param>
-    public static void CreateRandom(this Span<double> span, NormalRandom random)
-    {
-        ref double p = ref MM.GetReference(span);
-        if (Avx512F.IsSupported && span.Length >= V8d.Count && random == NormalRandom.Shared)
-        {
-            nuint t = (nuint)(span.Length - V8d.Count);
-            Random512 rnd512 = Random512.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(rnd512.NextNormal(), ref p, i);
-            V8.StoreUnsafe(rnd512.NextNormal(), ref p, t);
-        }
-        else if (Avx2.IsSupported && span.Length >= V4d.Count && random == NormalRandom.Shared)
-        {
-            nuint t = (nuint)(span.Length - V4d.Count);
-            Random256 rnd256 = Random256.Shared;
-            for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(rnd256.NextNormal(), ref p, i);
-            V4.StoreUnsafe(rnd256.NextNormal(), ref p, t);
-        }
-        else
-        {
-            int i = 0;
-            for (int t = span.Length & ~1; i < t; i += 2)
-                random.NextDoubles(ref Unsafe.Add(ref p, i));
-            if (i < span.Length)
-                Unsafe.Add(ref p, i) = random.NextDouble();
-        }
-    }
-
     /// <summary>Deconstruct a complex number into its real and imaginary parts.</summary>
     /// <param name="complex">The value to be deconstructed.</param>
     /// <param name="real">The real part.</param>
@@ -1236,7 +1276,7 @@ public static class Vec
     public static void Deconstruct(this Complex complex, out double real, out double imaginary) =>
         (real, imaginary) = (complex.Real, complex.Imaginary);
 
-    /// <summary>Pointwise division of a span by an integer.</summary>
+    /// <summary>Pointwise division of a values by an integer.</summary>
     /// <param name="span">Span dividend.</param>
     /// <param name="divisor">Scalar divisor.</param>
     /// <returns>The pointwise quotient of the two arguments.</returns>
@@ -1347,55 +1387,8 @@ public static class Vec
         return true;
     }
 
-    /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
-    /// <typeparam name="T">The type of the span.</typeparam>
-    /// <param name="values">The span to search.</param>
-    /// <param name="value">The value to locate.</param>
-    /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-    public static int IndexOf<T>(this ReadOnlySpan<T> values, T value)
-        where T : struct, IEquatable<T>
-    {
-        ref T p = ref MM.GetReference(values);
-        nuint size = (nuint)values.Length;
-        if (V8.IsHardwareAccelerated && size >= (nuint)Vector512<T>.Count)
-        {
-            Vector512<T> v = V8.Create(value);
-            nuint t = size - (nuint)Vector512<T>.Count;
-            ulong mask;
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-            {
-                mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, i), v));
-                if (mask != 0)
-                    return (int)i + BitOperations.TrailingZeroCount(mask);
-            }
-            mask = V8.ExtractMostSignificantBits(V8.Equals(V8.LoadUnsafe(ref p, t), v));
-            if (mask != 0)
-                return (int)t + BitOperations.TrailingZeroCount(mask);
-        }
-        else if (V4.IsHardwareAccelerated && size >= (nuint)Vector256<T>.Count)
-        {
-            Vector256<T> v = V4.Create(value);
-            nuint t = size - (nuint)Vector256<T>.Count;
-            uint mask;
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-            {
-                mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, i), v));
-                if (mask != 0)
-                    return (int)i + BitOperations.TrailingZeroCount(mask);
-            }
-            mask = V4.ExtractMostSignificantBits(V4.Equals(V4.LoadUnsafe(ref p, t), v));
-            if (mask != 0)
-                return (int)t + BitOperations.TrailingZeroCount(mask);
-        }
-        else
-            for (nuint i = 0; i < size; i++)
-                if (Unsafe.Add(ref p, i).Equals(value))
-                    return (int)i;
-        return -1;
-    }
-
     /// <summary>Gets the item with the maximum value in the array.</summary>
-    /// <typeparam name="T">The type of the span.</typeparam>
+    /// <typeparam name="T">The type of the values.</typeparam>
     /// <param name="values">Array with values.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1428,7 +1421,7 @@ public static class Vec
     }
 
     /// <summary>Gets the item with the minimum value in the array.</summary>
-    /// <typeparam name="T">The type of the span.</typeparam>
+    /// <typeparam name="T">The type of the values.</typeparam>
     /// <param name="values">Array with values.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1493,7 +1486,7 @@ public static class Vec
         return result;
     }
 
-    /// <summary>Pointwise subtraction of a span from a scalar.</summary>
+    /// <summary>Pointwise subtraction of a values from a scalar.</summary>
     /// <typeparam name="T">The type of the spans.</typeparam>
     /// <param name="scalar">Scalar minuend.</param>
     /// <param name="span">Span subtrahend.</param>
@@ -1525,9 +1518,9 @@ public static class Vec
     }
 
     /// <summary>Calculates the dot product of two spans.</summary>
-    /// <remarks>The second span can be longer than the first span.</remarks>
-    /// <param name="span1">First span operand.</param>
-    /// <param name="span2">Second span operand.</param>
+    /// <remarks>The second values can be longer than the first values.</remarks>
+    /// <param name="span1">First values operand.</param>
+    /// <param name="span2">Second values operand.</param>
     /// <returns>The dot product of the vectors.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Dot(this Span<int> span1, Span<int> span2)
