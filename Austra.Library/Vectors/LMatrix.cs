@@ -657,7 +657,7 @@ public readonly struct LMatrix :
         // First row is special.
         pB = m.values[0] * vector[0];
         for (int i = 1, offset = c; i < r; i++, offset += c)
-            Add(ref pB, i) = m.values.AsSpan(offset, Min(i + 1, c)).Dot(vector.AsSpan());
+            Add(ref pB, i) = m.values.AsSpan(offset, Min(i + 1, c)).Dot(vector);
         return result;
     }
 
@@ -679,7 +679,7 @@ public readonly struct LMatrix :
         pB = values[0] * vector[0] + pC;
         for (int i = 1, offset = c; i < r; i++, offset += c)
             Add(ref pB, i) = values.AsSpan(offset, Min(i + 1, c))
-                .Dot(vector.AsSpan()) + Add(ref pC, i);
+                .Dot(vector) + Add(ref pC, i);
         return result;
     }
 
@@ -706,7 +706,7 @@ public readonly struct LMatrix :
         pB = values[0] * vector[0] - pC;
         for (int i = 1, offset = c; i < r; i++, offset += c)
             Add(ref pB, i) = values.AsSpan(offset, Min(i + 1, c))
-                .Dot(vector.AsSpan()) - Add(ref pC, i);
+                .Dot(vector) - Add(ref pC, i);
         return result;
     }
 

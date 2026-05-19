@@ -11,42 +11,38 @@ public static class Vec
     /// <summary>Number of characters in a line.</summary>
     public static int TERMINAL_COLUMNS { get; set; } = 80;
 
-    /// <summary>Gets the absolute values of the array items.</summary>
-    /// <typeparam name="T">The type of the array.</typeparam>
-    /// <param name="values">The array to transform.</param>
-    /// <returns>A new array with non-negative items.</returns>
-    public static T[] Abs<T>(this T[] values) where T : struct, INumberBase<T>
-    {
-        T[] result = GC.AllocateUninitializedArray<T>(values.Length);
-        ref T p = ref MM.GetArrayDataReference(values);
-        ref T q = ref MM.GetArrayDataReference(result);
-        if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
-        {
-            nuint t = (nuint)(result.Length - Vector512<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
-            V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
-        }
-        else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
-        {
-            nuint t = (nuint)(result.Length - Vector256<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
-            V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
-        }
-        else
-            for (int i = 0; i < result.Length; i++)
-                Unsafe.Add(ref q, i) = T.Abs(Unsafe.Add(ref p, i));
-        return result;
-    }
-
-    /// <summary>
-    /// Extension block for operations on generic spans.
-    /// </summary>
+    /// <summary>Extension block for operations on generic numeric spans.</summary>
     /// <typeparam name="T">The type of the span elements.</typeparam>
     /// <param name="span1">The span to operate on.</param>
     extension<T>(Span<T> span1) where T : INumberBase<T>
     {
+        /// <summary>Gets the absolute values of the array items.</summary>
+        /// <returns>A new array with non-negative items.</returns>
+        public T[] Abs()
+        {
+            T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
+            ref T p = ref MM.GetReference(span1);
+            ref T q = ref MM.GetArrayDataReference(result);
+            if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
+            {
+                nuint t = (nuint)(result.Length - Vector512<T>.Count);
+                for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                    V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, i)), ref q, i);
+                V8.StoreUnsafe(V8.Abs(V8.LoadUnsafe(ref p, t)), ref q, t);
+            }
+            else if (V4.IsHardwareAccelerated && result.Length >= Vector256<T>.Count)
+            {
+                nuint t = (nuint)(result.Length - Vector256<T>.Count);
+                for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                    V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, i)), ref q, i);
+                V4.StoreUnsafe(V4.Abs(V4.LoadUnsafe(ref p, t)), ref q, t);
+            }
+            else
+                for (int i = 0; i < result.Length; i++)
+                    Unsafe.Add(ref q, i) = T.Abs(Unsafe.Add(ref p, i));
+            return result;
+        }
+
         /// <summary>Pointwise sum of two equally sized spans.</summary>
         /// <param name="span2">Second operand.</param>
         /// <param name="target">The span to receive the sum of the first two argument.</param>
@@ -560,8 +556,498 @@ public static class Vec
         }
     }
 
+    /// <summary>
+    /// Extension block for operations on double span coming from matrices.
+    /// </summary>
+    /// <param name="values">The span to be transformed or queried.</param>
+    extension(Span<double> values)
+    {
+        /// <summary>Gets the main diagonal of a 1D-array.</summary>
+        /// <param name="rows">Number of rows.</param>
+        /// <param name="cols">Number of columns.</param>
+        /// <returns>A vector containing values in the main diagonal.</returns>
+        public double[] Diagonal(int rows, int cols)
+        {
+            Contract.Ensures(Contract.Result<DVector>().Length == Math.Min(rows, cols));
+
+            int r = cols + 1, size = Math.Min(rows, cols);
+            double[] result = GC.AllocateUninitializedArray<double>(size);
+            ref double a = ref MM.GetReference(values);
+            ref double b = ref MM.GetArrayDataReference(result);
+            for (; size-- > 0; a = ref Unsafe.Add(ref a, r), b = ref Unsafe.Add(ref b, 1))
+                b = a;
+            return result;
+        }
+
+        /// <summary>Gets the product of the cells in the main diagonal.</summary>
+        /// <param name="rows">Number of rows.</param>
+        /// <param name="cols">Number of columns.</param>
+        /// <returns>The product of the main diagonal.</returns>
+        public double Det(int rows, int cols)
+        {
+            int r = cols + 1, size = Math.Min(rows, cols);
+            double product = 1.0;
+            for (ref double p = ref MM.GetReference(values); size-- > 0; p = ref Unsafe.Add(ref p, r))
+                product *= p;
+            return product;
+        }
+
+        /// <summary>Computes the maximum difference between two spans.</summary>
+        /// <remarks>Spans can be of different lengths.</remarks>
+        /// <param name="other">Second span.</param>
+        /// <returns>The max-norm of the vector difference.</returns>
+        public double Distance(Span<double> other)
+        {
+            int len = Math.Min(values.Length, other.Length);
+            if (V8.IsHardwareAccelerated && len >= V8d.Count)
+            {
+                ref double p = ref MM.GetReference(values);
+                ref double q = ref MM.GetReference(other);
+                ref double lastp = ref Unsafe.Add(ref p, len - V8d.Count);
+                ref double lastq = ref Unsafe.Add(ref q, len - V8d.Count);
+                V8d vm = V8d.Zero;
+                for (; IsAddressLessThan(ref p, ref lastp); p = ref Unsafe.Add(ref p, V8d.Count),
+                    q = ref Unsafe.Add(ref q, V8d.Count))
+                    vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p) - V8.LoadUnsafe(ref q)));
+                return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref lastp) - V8.LoadUnsafe(ref lastq))).Max();
+            }
+            if (V4.IsHardwareAccelerated && len >= V4d.Count)
+            {
+                ref double p = ref MM.GetReference(values);
+                ref double q = ref MM.GetReference(other);
+                ref double lastp = ref Unsafe.Add(ref p, len - V4d.Count);
+                ref double lastq = ref Unsafe.Add(ref q, len - V4d.Count);
+                V4d vm = V4d.Zero;
+                for (; IsAddressLessThan(ref p, ref lastp); p = ref Unsafe.Add(ref p, V4d.Count),
+                    q = ref Unsafe.Add(ref q, V4d.Count))
+                    vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p) - V4.LoadUnsafe(ref q)));
+                return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref lastp) - V4.LoadUnsafe(ref lastq))).Max();
+            }
+            double max = 0;
+            for (int i = 0; i < len; i++)
+            {
+                double v = Math.Abs(values[i] - other[i]);
+                if (v > max)
+                    max = v;
+            }
+            return max;
+        }
+
+        /// <summary>Calculates the dot product of two spans.</summary>
+        /// <remarks>The second span can be longer than the first span.</remarks>
+        /// <param name="span2">Second span operand.</param>
+        /// <returns>The dot product of the vectors.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double Dot(Span<double> span2)
+        {
+            double sum = 0;
+            ref double p = ref MM.GetReference(values);
+            ref double q = ref MM.GetReference(span2);
+            nuint i = 0;
+            if (V8.IsHardwareAccelerated && Avx512F.IsSupported)
+            {
+                V8d acc = V8d.Zero;
+                for (nuint top = (nuint)values.Length & Simd.MASK8; i < top; i += (nuint)V8d.Count)
+                    acc = Avx512F.FusedMultiplyAdd(V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), acc);
+                sum = V8.Sum(acc);
+            }
+            else if (V4.IsHardwareAccelerated)
+            {
+                V4d acc = V4d.Zero;
+                for (nuint top = (nuint)values.Length & Simd.MASK4; i < top; i += (nuint)V4d.Count)
+                    acc = acc.MultiplyAdd(V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i));
+                sum = V4.Sum(acc);
+            }
+            for (int j = (int)i; j < values.Length; j++)
+                sum = FusedMultiplyAdd(Unsafe.Add(ref p, j), Unsafe.Add(ref q, j), sum);
+            return sum;
+        }
+
+        /// <summary>Matrix multiplication implementation.</summary>
+        /// <param name="other">Second matrix.</param>
+        /// <param name="result">Result matrix.</param>
+        /// <param name="m">Number of rows in the first matrix.</param>
+        /// <param name="n">Number of columns in the first matrix / rows in the second matrix.</param>
+        /// <param name="p">Number of columns in the second matrix.</param>
+        public void MatrixMult(double[] other, double[] result, int m, int n, int p)
+        {
+            const long MINSIZE = 64L * 64L * 64L;
+            const long MAXSIZE = 1024L * 1024L * 1024L;
+            long size = (long)m * n * p;
+
+            ref double a = ref MM.GetReference(values);
+            ref double b = ref MM.GetArrayDataReference(other);
+            ref double c = ref MM.GetArrayDataReference(result);
+
+            if (size <= MINSIZE)
+            {
+                nuint top8 = (nuint)(p & Simd.MASK8);
+                nuint top4 = (nuint)(p & Simd.MASK4);
+                for (int i = 0, top = p & Simd.MASK4; i < m; i++)
+                {
+                    ref double pb = ref b;
+                    for (int k = 0; k < n; k++)
+                    {
+                        double d = Unsafe.Add(ref a, k);
+                        nuint j = 0;
+                        if (Avx512F.IsSupported)
+                            for (V8d vd = V8.Create(d); j < top8; j += (nuint)V8d.Count)
+                                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                    V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref c, j)),
+                                    ref c, j);
+                        if (Avx.IsSupported)
+                            for (V4d vd = V4.Create(d); j < top4; j += (nuint)V4d.Count)
+                                V4.StoreUnsafe(V4.LoadUnsafe(ref c, j).MultiplyAdd(
+                                    V4.LoadUnsafe(ref pb, j), vd),
+                                    ref c, j);
+                        for (; j < (nuint)p; j++)
+                            Unsafe.Add(ref c, j) = FusedMultiplyAdd(
+                                Unsafe.Add(ref pb, j), d, Unsafe.Add(ref c, j));
+                        pb = ref Unsafe.Add(ref pb, p);
+                    }
+                    a = ref Unsafe.Add(ref a, n);
+                    c = ref Unsafe.Add(ref c, p);
+                }
+            }
+            else if (size < MAXSIZE)
+            {
+                const int BLK_SIZE = 128;
+                int pbl = p * BLK_SIZE;
+                for (int ii = 0; ii < m; ii += BLK_SIZE)
+                    for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
+                        for (int jj = 0; jj < p; jj += BLK_SIZE)
+                        {
+                            ref double pa = ref Unsafe.Add(ref a, n * ii);
+                            ref double pc = ref Unsafe.Add(ref c, p * ii);
+                            int topi = Math.Min(m, ii + BLK_SIZE);
+                            nuint topj = (nuint)Math.Min(p, jj + BLK_SIZE);
+                            nuint top = (nuint)((((uint)topj - jj) & ~15) + jj);
+                            for (int i = ii; i < topi; i++)
+                            {
+                                ref double pb = ref Unsafe.Add(ref b, pkk);
+                                int topk = Math.Min(n, kk + BLK_SIZE);
+                                for (int k = kk; k < topk; k++)
+                                {
+                                    double d = Unsafe.Add(ref pa, k);
+                                    nuint j = (nuint)jj;
+                                    if (Avx512F.IsSupported)
+                                        for (V8d vd = V8.Create(d); j < top; j += 16)
+                                        {
+                                            V8d op1 = V8.LoadUnsafe(ref pb, j);
+                                            V8d op2 = V8.LoadUnsafe(ref pb, j + 8);
+                                            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                                op1, vd, V8.LoadUnsafe(ref pc, j)),
+                                                ref pc, j);
+                                            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                                op2, vd, V8.LoadUnsafe(ref pc, j + 8)),
+                                                ref pc, j + 8);
+                                        }
+                                    else if (Avx.IsSupported)
+                                        for (V4d vd = V4.Create(d); j < top; j += 16)
+                                        {
+                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j)
+                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j), vd),
+                                                ref pc, j);
+                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 4)
+                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 4), vd),
+                                                ref pc, j + 4);
+                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 8)
+                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 8), vd),
+                                                ref pc, j + 8);
+                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 12)
+                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 12), vd),
+                                                ref pc, j + 12);
+                                        }
+                                    for (; j < topj; j++)
+                                        Unsafe.Add(ref pc, j) = FusedMultiplyAdd(
+                                            d, Unsafe.Add(ref pb, j), Unsafe.Add(ref pc, j));
+                                    pb = ref Unsafe.Add(ref pb, p);
+                                }
+                                pa = ref Unsafe.Add(ref pa, n);
+                                pc = ref Unsafe.Add(ref pc, p);
+                            }
+                        }
+            }
+            else
+            {
+                const int BLK_SIZE = 256;
+                int pbl = p * BLK_SIZE;
+                for (int ii = 0; ii < m; ii += BLK_SIZE)
+                    for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
+                        for (int jj = 0; jj < p; jj += BLK_SIZE)
+                        {
+                            ref double pa = ref Unsafe.Add(ref a, n * ii);
+                            ref double pc = ref Unsafe.Add(ref c, p * ii);
+                            int topi = Math.Min(m, ii + BLK_SIZE);
+                            nuint topj = (nuint)Math.Min(p, jj + BLK_SIZE);
+                            nuint top = (nuint)((((uint)topj - jj) & ~15) + jj);
+                            for (int i = ii; i < topi; i++)
+                            {
+                                ref double pb = ref Unsafe.Add(ref b, pkk);
+                                int topk = Math.Min(n, kk + BLK_SIZE);
+                                for (int k = kk; k < topk; k++)
+                                {
+                                    double d = Unsafe.Add(ref pa, k);
+                                    nuint j = (nuint)jj;
+                                    if (Avx512F.IsSupported)
+                                        for (V8d vd = V8.Create(d); j < top; j += 16)
+                                        {
+                                            V8d op1 = V8.LoadUnsafe(ref pb, j);
+                                            V8d op2 = V8.LoadUnsafe(ref pb, j + 8);
+                                            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                                op1, vd, V8.LoadUnsafe(ref pc, j)), ref pc, j);
+                                            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                                op2, vd, V8.LoadUnsafe(ref pc, j + 8)), ref pc, j + 8);
+                                        }
+                                    if (Avx.IsSupported)
+                                        for (var vd = V4.Create(d); j < top; j += 16)
+                                        {
+                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j)
+                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j), vd),
+                                                ref pc, j);
+                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 4)
+                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 4), vd),
+                                                ref pc, j + 4);
+                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 8)
+                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 8), vd),
+                                                ref pc, j + 8);
+                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 12)
+                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 12), vd),
+                                                ref pc, j + 12);
+                                        }
+                                    for (; j < topj; j++)
+                                        Unsafe.Add(ref pc, j) = FusedMultiplyAdd(
+                                            d, Unsafe.Add(ref pb, j), Unsafe.Add(ref pc, j));
+                                    pb = ref Unsafe.Add(ref pb, p);
+                                }
+                                pa = ref Unsafe.Add(ref pa, n);
+                                pc = ref Unsafe.Add(ref pc, p);
+                            }
+                        }
+            }
+        }
+
+        /// <summary>
+        /// Multiplies a span by a scalar and sums the result to a memory location.
+        /// </summary>
+        /// <param name="d">Scale factor.</param>
+        /// <param name="target">The target memory of the whole operation.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void MulAddStore(double d, Span<double> target)
+        {
+            ref double p = ref MM.GetReference(values);
+            ref double q = ref MM.GetReference(target);
+
+            nuint j = 0, c = (nuint)target.Length;
+            if (Avx512F.IsSupported)
+            {
+                V8d vec = V8.Create(d);
+                for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
+                    V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                        V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
+            }
+            else if (Avx.IsSupported)
+            {
+                V4d vec = V4.Create(d);
+                for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
+                    V4.StoreUnsafe(V4.LoadUnsafe(ref q, j)
+                        .MultiplyAdd(V4.LoadUnsafe(ref p, j), vec), ref q, j);
+            }
+            for (; j < c; j++)
+                Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), d, Unsafe.Add(ref q, j));
+        }
+
+        /// <summary>
+        /// Multiplies a span by a scalar and subtracts the result to a memory location.
+        /// </summary>
+        /// <param name="d">Scale factor.</param>
+        /// <param name="target">The target memory of the whole operation.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void MulNegStore(double d, Span<double> target)
+        {
+            ref double p = ref MM.GetReference(values);
+            ref double q = ref MM.GetReference(target);
+
+            nuint j = 0, c = (nuint)target.Length;
+            if (Avx512F.IsSupported)
+            {
+                V8d vec = V8.Create(d);
+                for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
+                    V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(
+                        V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
+            }
+            else if (Avx.IsSupported)
+            {
+                V4d vec = V4.Create(d);
+                for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
+                    V4.StoreUnsafe(V4.LoadUnsafe(ref q, j)
+                        .MultiplyAddNeg(V4.LoadUnsafe(ref p, j), vec), ref q, j);
+            }
+            for (; j < c; j++)
+                Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), -d, Unsafe.Add(ref q, j));
+        }
+
+        /// <summary>Calculates the trace of a 1D-array.</summary>
+        /// <param name="rows">Number of rows.</param>
+        /// <param name="cols">Number of columns.</param>
+        /// <returns>The sum of the cells in the main diagonal.</returns>
+        public double Trace(int rows, int cols)
+        {
+            double trace = 0;
+            int r = cols + 1, size = Math.Min(rows, cols);
+            for (ref double p = ref MM.GetReference(values); size-- > 0; p = ref Unsafe.Add(ref p, r))
+                trace += p;
+            return trace;
+        }
+
+        /// <summary>Gets a text representation of a matrix.</summary>
+        /// <param name="rowCount">Number of rows.</param>
+        /// <param name="colCount">Number of columns.</param>
+        /// <param name="formatter">Converts items to text.</param>
+        /// <param name="triangularity">Which part of the matrix is significative.</param>
+        /// <returns>A text representation of the matrix.</returns>
+        public string ToString(
+            int rowCount, int colCount,
+            Func<double, string> formatter, sbyte triangularity)
+        {
+            const int upperRows = 8, lowerRows = 4, minLeftColumns = 5, rightColumns = 2;
+
+            int upper = rowCount <= upperRows ? rowCount : upperRows;
+            int lower = rowCount <= upperRows
+                ? 0
+                : rowCount <= upperRows + lowerRows
+                ? rowCount - upperRows
+                : lowerRows;
+            bool rowEllipsis = rowCount > upper + lower;
+            int rows = rowEllipsis ? upper + lower + 1 : upper + lower;
+
+            int left = colCount <= minLeftColumns ? colCount : minLeftColumns;
+            int right = colCount <= minLeftColumns
+                ? 0
+                : colCount <= minLeftColumns + rightColumns
+                ? colCount - minLeftColumns
+                : rightColumns;
+
+            List<(int, string[])> columnsLeft = new(left);
+            for (int j = 0; j < left; j++)
+                columnsLeft.Add(FormatColumn(values, j, rows, upper, lower));
+
+            List<(int, string[])> columnsRight = new(right);
+            for (int j = 0; j < right; j++)
+                columnsRight.Add(FormatColumn(values, colCount - right + j, rows, upper, lower));
+
+            int chars = columnsLeft.Sum(t => t.Item1 + 2) + columnsRight.Sum(t => t.Item1 + 2);
+            for (int j = left; j < colCount - right; j++)
+            {
+                (int, string[]) candidate = FormatColumn(values, j, rows, upper, lower);
+                chars += candidate.Item1 + 2;
+                if (chars > TERMINAL_COLUMNS - 4)
+                    break;
+                columnsLeft.Add(candidate);
+            }
+
+            int cols = columnsLeft.Count + columnsRight.Count;
+            bool colEllipsis = colCount > cols;
+            if (colEllipsis)
+                cols++;
+
+            string[,] array = new string[rows, cols];
+            int colIndex = 0;
+            foreach ((int, string[]) column in columnsLeft)
+            {
+                for (int i = 0; i < column.Item2.Length; i++)
+                    array[i, colIndex] = column.Item2[i];
+                colIndex++;
+            }
+            int saveCol = colEllipsis ? colIndex++ : colIndex;
+            foreach ((int, string[]) column in columnsRight)
+            {
+                for (int i = 0; i < column.Item2.Length; i++)
+                    array[i, colIndex] = column.Item2[i];
+                colIndex++;
+            }
+            if (colEllipsis)
+            {
+                colIndex = saveCol;
+                int rowIndex = 0;
+                if (triangularity == 0)
+                {
+                    for (int row = 0; row < upper; row++)
+                        array[rowIndex++, colIndex] = "..";
+                    if (rowEllipsis)
+                        array[rowIndex++, colIndex] = "..";
+                    for (int row = rowCount - lower; row < rowCount; row++)
+                        array[rowIndex++, colIndex] = "..";
+                }
+                else
+                {
+                    (_, string[] refCol) = triangularity < 0 ? columnsLeft[^1] : columnsRight[0];
+                    for (int row = 0; row < upper; row++, rowIndex++)
+                        if (refCol[rowIndex] != "")
+                            array[rowIndex, colIndex] = "..";
+                    if (rowEllipsis)
+                        if (triangularity < 0)
+                            rowIndex++;
+                        else
+                            array[rowIndex++, colIndex] = "..";
+                    for (int row = rowCount - lower; row < rowCount; row++, rowIndex++)
+                        if (refCol[rowIndex] != "")
+                            array[rowIndex, colIndex] = "..";
+                }
+            }
+            return FormatStringArrayToString(array);
+
+            string Filter(double value, int row, int column) =>
+                triangularity switch
+                {
+                    1 => row > column ? "" : formatter(value),
+                    -1 => row < column ? "" : formatter(value),
+                    _ => formatter(value)
+                };
+
+            (int, string[]) FormatColumn(Span<double> values, int column, int height, int upper, int lower)
+            {
+                string[] c = new string[height];
+                int index = 0;
+                for (int row = 0; row < upper; row++)
+                    c[index++] = Filter(values[row * colCount + column], row, column);
+                if (rowEllipsis)
+                    c[index++] = "";
+                for (int row = rowCount - lower; row < rowCount; row++)
+                    c[index++] = Filter(values[row * colCount + column], row, column);
+                int w = c.Max(x => x.Length);
+                if (rowEllipsis)
+                    if (triangularity == 0 ||
+                        triangularity < 0 && column <= upper ||
+                        triangularity > 0 && column >= upper)
+                        c[upper] = "..";
+                    else
+                        c[upper] = "";
+                return (w, c);
+            }
+
+            static string FormatStringArrayToString(string[,] data)
+            {
+                int rows = data.GetLength(0), cols = data.GetLength(1);
+                Span<int> widths = stackalloc int[cols];
+                for (int i = 0; i < rows; i++)
+                    for (int j = 0; j < cols; j++)
+                        widths[j] = Math.Max(widths[j], data[i, j]?.Length ?? 0);
+                StringBuilder sb = new();
+                for (int i = 0; i < rows; i++)
+                {
+                    sb.Append(data[i, 0].PadLeft(widths[0]));
+                    for (int j = 1; j < cols; j++)
+                        sb.Append("  ").Append((data[i, j] ?? "").PadLeft(widths[j]));
+                    sb.AppendLine();
+                }
+                return sb.ToString();
+            }
+        }
+    }
+
     /// <summary>Gets the item in a span with the maximum absolute value.</summary>
-    /// <param name="span">The data span.</param>
+    /// <param name="span">The values span.</param>
     /// <returns>The maximum absolute value in the samples.</returns>
     public static double AMax(this Span<double> span)
     {
@@ -592,7 +1078,7 @@ public static class Vec
     }
 
     /// <summary>Gets the item in a span with the minimum absolute value.</summary>
-    /// <param name="span">The data span.</param>
+    /// <param name="span">The values span.</param>
     /// <returns>The minimum absolute value in the samples.</returns>
     public static double AMin(this Span<double> span)
     {
@@ -742,25 +1228,6 @@ public static class Vec
         }
     }
 
-    /// <summary>Gets the main diagonal of a 1D-array.</summary>
-    /// <param name="values">A 1D-array containing a matrix.</param>
-    /// <param name="rows">Number of rows.</param>
-    /// <param name="cols">Number of columns.</param>
-    /// <returns>A vector containing values in the main diagonal.</returns>
-    public static DVector Diagonal(this double[] values, int rows, int cols)
-    {
-        ArgumentNullException.ThrowIfNull(values);
-        Contract.Ensures(Contract.Result<DVector>().Length == Math.Min(rows, cols));
-
-        int r = cols + 1, size = Math.Min(rows, cols);
-        double[] result = GC.AllocateUninitializedArray<double>(size);
-        ref double a = ref MM.GetArrayDataReference(values);
-        ref double b = ref MM.GetArrayDataReference(result);
-        for (; size-- > 0; a = ref Unsafe.Add(ref a, r), b = ref Unsafe.Add(ref b, 1))
-            b = a;
-        return result;
-    }
-
     /// <summary>Deconstruct a complex number into its real and imaginary parts.</summary>
     /// <param name="complex">The value to be deconstructed.</param>
     /// <param name="real">The real part.</param>
@@ -768,62 +1235,6 @@ public static class Vec
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Deconstruct(this Complex complex, out double real, out double imaginary) =>
         (real, imaginary) = (complex.Real, complex.Imaginary);
-
-    /// <summary>Gets the product of the cells in the main diagonal.</summary>
-    /// <param name="values">A 1D-array.</param>
-    /// <param name="rows">Number of rows.</param>
-    /// <param name="cols">Number of columns.</param>
-    /// <returns>The product of the main diagonal.</returns>
-    public static double Det(this double[] values, int rows, int cols)
-    {
-        int r = cols + 1, size = Math.Min(rows, cols);
-        double product = 1.0;
-        for (ref double p = ref MM.GetArrayDataReference(values); size-- > 0; p = ref Unsafe.Add(ref p, r))
-            product *= p;
-        return product;
-    }
-
-    /// <summary>Computes the maximum difference between two arrays.</summary>
-    /// <remarks>Arrays can be of different lengths.</remarks>
-    /// <param name="first">First array.</param>
-    /// <param name="second">Second array.</param>
-    /// <returns>The max-norm of the vector difference.</returns>
-    public static double Distance(this double[] first, double[] second)
-    {
-        int len = Math.Min(first.Length, second.Length);
-        if (V8.IsHardwareAccelerated && len >= V8d.Count)
-        {
-            ref double p = ref MM.GetArrayDataReference(first);
-            ref double q = ref MM.GetArrayDataReference(second);
-            ref double lastp = ref Unsafe.Add(ref p, len - V8d.Count);
-            ref double lastq = ref Unsafe.Add(ref q, len - V8d.Count);
-            V8d vm = V8d.Zero;
-            for (; IsAddressLessThan(ref p, ref lastp); p = ref Unsafe.Add(ref p, V8d.Count),
-                q = ref Unsafe.Add(ref q, V8d.Count))
-                vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p) - V8.LoadUnsafe(ref q)));
-            return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref lastp) - V8.LoadUnsafe(ref lastq))).Max();
-        }
-        if (V4.IsHardwareAccelerated && len >= V4d.Count)
-        {
-            ref double p = ref MM.GetArrayDataReference(first);
-            ref double q = ref MM.GetArrayDataReference(second);
-            ref double lastp = ref Unsafe.Add(ref p, len - V4d.Count);
-            ref double lastq = ref Unsafe.Add(ref q, len - V4d.Count);
-            V4d vm = V4d.Zero;
-            for (; IsAddressLessThan(ref p, ref lastp); p = ref Unsafe.Add(ref p, V4d.Count),
-                q = ref Unsafe.Add(ref q, V4d.Count))
-                vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p) - V4.LoadUnsafe(ref q)));
-            return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref lastp) - V4.LoadUnsafe(ref lastq))).Max();
-        }
-        double max = 0;
-        for (int i = 0; i < len; i++)
-        {
-            double v = Math.Abs(first[i] - second[i]);
-            if (v > max)
-                max = v;
-        }
-        return max;
-    }
 
     /// <summary>Pointwise division of a span by an integer.</summary>
     /// <param name="span">Span dividend.</param>
@@ -985,7 +1396,7 @@ public static class Vec
 
     /// <summary>Gets the item with the maximum value in the array.</summary>
     /// <typeparam name="T">The type of the span.</typeparam>
-    /// <param name="values">Array with data.</param>
+    /// <param name="values">Array with values.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Max<T>(this Span<T> values) where T : INumber<T>, IMinMaxValue<T>
@@ -1018,7 +1429,7 @@ public static class Vec
 
     /// <summary>Gets the item with the minimum value in the array.</summary>
     /// <typeparam name="T">The type of the span.</typeparam>
-    /// <param name="values">Array with data.</param>
+    /// <param name="values">Array with values.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Min<T>(this Span<T> values) where T : INumber<T>, IMinMaxValue<T>
@@ -1047,171 +1458,6 @@ public static class Vec
         foreach (T d in values)
             min = T.Min(min, d);
         return min;
-    }
-
-    /// <summary>Matrix multiplication implementation.</summary>
-    /// <param name="m1">First matrix.</param>
-    /// <param name="m2">Second matrix.</param>
-    /// <param name="result">Result matrix.</param>
-    /// <param name="m">Number of rows in the first matrix.</param>
-    /// <param name="n">Number of columns in the first matrix / rows in the second matrix.</param>
-    /// <param name="p">Number of columns in the second matrix.</param>
-    public static void MulMatrix(this double[] m1, double[] m2, double[] result, int m, int n, int p)
-    {
-        const long MINSIZE = 64L * 64L * 64L;
-        const long MAXSIZE = 1024L * 1024L * 1024L;
-        long size = (long)m * n * p;
-
-        ref double a = ref MM.GetArrayDataReference(m1);
-        ref double b = ref MM.GetArrayDataReference(m2);
-        ref double c = ref MM.GetArrayDataReference(result);
-
-        if (size <= MINSIZE)
-        {
-            nuint top8 = (nuint)(p & Simd.MASK8);
-            nuint top4 = (nuint)(p & Simd.MASK4);
-            for (int i = 0, top = p & Simd.MASK4; i < m; i++)
-            {
-                ref double pb = ref b;
-                for (int k = 0; k < n; k++)
-                {
-                    double d = Unsafe.Add(ref a, k);
-                    nuint j = 0;
-                    if (Avx512F.IsSupported)
-                        for (V8d vd = V8.Create(d); j < top8; j += (nuint)V8d.Count)
-                            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
-                                V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref c, j)),
-                                ref c, j);
-                    if (Avx.IsSupported)
-                        for (V4d vd = V4.Create(d); j < top4; j += (nuint)V4d.Count)
-                            V4.StoreUnsafe(V4.LoadUnsafe(ref c, j).MultiplyAdd(
-                                V4.LoadUnsafe(ref pb, j), vd),
-                                ref c, j);
-                    for (; j < (nuint)p; j++)
-                        Unsafe.Add(ref c, j) = FusedMultiplyAdd(
-                            Unsafe.Add(ref pb, j), d, Unsafe.Add(ref c, j));
-                    pb = ref Unsafe.Add(ref pb, p);
-                }
-                a = ref Unsafe.Add(ref a, n);
-                c = ref Unsafe.Add(ref c, p);
-            }
-        }
-        else if (size < MAXSIZE)
-        {
-            const int BLK_SIZE = 128;
-            int pbl = p * BLK_SIZE;
-            for (int ii = 0; ii < m; ii += BLK_SIZE)
-                for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
-                    for (int jj = 0; jj < p; jj += BLK_SIZE)
-                    {
-                        ref double pa = ref Unsafe.Add(ref a, n * ii);
-                        ref double pc = ref Unsafe.Add(ref c, p * ii);
-                        int topi = Math.Min(m, ii + BLK_SIZE);
-                        nuint topj = (nuint)Math.Min(p, jj + BLK_SIZE);
-                        nuint top = (nuint)((((uint)topj - jj) & ~15) + jj);
-                        for (int i = ii; i < topi; i++)
-                        {
-                            ref double pb = ref Unsafe.Add(ref b, pkk);
-                            int topk = Math.Min(n, kk + BLK_SIZE);
-                            for (int k = kk; k < topk; k++)
-                            {
-                                double d = Unsafe.Add(ref pa, k);
-                                nuint j = (nuint)jj;
-                                if (Avx512F.IsSupported)
-                                    for (V8d vd = V8.Create(d); j < top; j += 16)
-                                    {
-                                        V8d op1 = V8.LoadUnsafe(ref pb, j);
-                                        V8d op2 = V8.LoadUnsafe(ref pb, j + 8);
-                                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
-                                            op1, vd, V8.LoadUnsafe(ref pc, j)),
-                                            ref pc, j);
-                                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
-                                            op2, vd, V8.LoadUnsafe(ref pc, j + 8)),
-                                            ref pc, j + 8);
-                                    }
-                                else if (Avx.IsSupported)
-                                    for (V4d vd = V4.Create(d); j < top; j += 16)
-                                    {
-                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j)
-                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j), vd),
-                                            ref pc, j);
-                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 4)
-                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 4), vd),
-                                            ref pc, j + 4);
-                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 8)
-                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 8), vd),
-                                            ref pc, j + 8);
-                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 12)
-                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 12), vd),
-                                            ref pc, j + 12);
-                                    }
-                                for (; j < topj; j++)
-                                    Unsafe.Add(ref pc, j) = FusedMultiplyAdd(
-                                        d, Unsafe.Add(ref pb, j), Unsafe.Add(ref pc, j));
-                                pb = ref Unsafe.Add(ref pb, p);
-                            }
-                            pa = ref Unsafe.Add(ref pa, n);
-                            pc = ref Unsafe.Add(ref pc, p);
-                        }
-                    }
-        }
-        else
-        {
-            const int BLK_SIZE = 256;
-            int pbl = p * BLK_SIZE;
-            for (int ii = 0; ii < m; ii += BLK_SIZE)
-                for (int kk = 0, pkk = 0; kk < n; kk += BLK_SIZE, pkk += pbl)
-                    for (int jj = 0; jj < p; jj += BLK_SIZE)
-                    {
-                        ref double pa = ref Unsafe.Add(ref a, n * ii);
-                        ref double pc = ref Unsafe.Add(ref c, p * ii);
-                        int topi = Math.Min(m, ii + BLK_SIZE);
-                        nuint topj = (nuint)Math.Min(p, jj + BLK_SIZE);
-                        nuint top = (nuint)((((uint)topj - jj) & ~15) + jj);
-                        for (int i = ii; i < topi; i++)
-                        {
-                            ref double pb = ref Unsafe.Add(ref b, pkk);
-                            int topk = Math.Min(n, kk + BLK_SIZE);
-                            for (int k = kk; k < topk; k++)
-                            {
-                                double d = Unsafe.Add(ref pa, k);
-                                nuint j = (nuint)jj;
-                                if (Avx512F.IsSupported)
-                                    for (V8d vd = V8.Create(d); j < top; j += 16)
-                                    {
-                                        V8d op1 = V8.LoadUnsafe(ref pb, j);
-                                        V8d op2 = V8.LoadUnsafe(ref pb, j + 8);
-                                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
-                                            op1, vd, V8.LoadUnsafe(ref pc, j)), ref pc, j);
-                                        V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
-                                            op2, vd, V8.LoadUnsafe(ref pc, j + 8)), ref pc, j + 8);
-                                    }
-                                if (Avx.IsSupported)
-                                    for (var vd = V4.Create(d); j < top; j += 16)
-                                    {
-                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j)
-                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j), vd),
-                                            ref pc, j);
-                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 4)
-                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 4), vd),
-                                            ref pc, j + 4);
-                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 8)
-                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 8), vd),
-                                            ref pc, j + 8);
-                                        V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 12)
-                                            .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 12), vd),
-                                            ref pc, j + 12);
-                                    }
-                                for (; j < topj; j++)
-                                    Unsafe.Add(ref pc, j) = FusedMultiplyAdd(
-                                        d, Unsafe.Add(ref pb, j), Unsafe.Add(ref pc, j));
-                                pb = ref Unsafe.Add(ref pb, p);
-                            }
-                            pa = ref Unsafe.Add(ref pa, n);
-                            pc = ref Unsafe.Add(ref pc, p);
-                        }
-                    }
-        }
     }
 
     /// <summary>Creates a reversed copy of an array.</summary>
@@ -1278,115 +1524,6 @@ public static class Vec
                 Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
     }
 
-    /// <summary>Calculates the trace of a 1D-array.</summary>
-    /// <param name="values">A 1D-array.</param>
-    /// <param name="rows">Number of rows.</param>
-    /// <param name="cols">Number of columns.</param>
-    /// <returns>The sum of the cells in the main diagonal.</returns>
-    public static double Trace(this double[] values, int rows, int cols)
-    {
-        if (values is null)
-            return 0;
-        double trace = 0;
-        int r = cols + 1, size = Math.Min(rows, cols);
-        for (ref double p = ref MM.GetArrayDataReference(values); size-- > 0; p = ref Unsafe.Add(ref p, r))
-            trace += p;
-        return trace;
-    }
-
-    /// <summary>
-    /// Multiplies a span by a scalar and sums the result to a memory location.
-    /// </summary>
-    /// <param name="span">Source vector.</param>
-    /// <param name="d">Scale factor.</param>
-    /// <param name="target">The target memory of the whole operation.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void MulAddStore(this Span<double> span, double d, Span<double> target)
-    {
-        ref double p = ref MM.GetReference(span);
-        ref double q = ref MM.GetReference(target);
-
-        nuint j = 0, c = (nuint)target.Length;
-        if (Avx512F.IsSupported)
-        {
-            V8d vec = V8.Create(d);
-            for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
-                    V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
-        }
-        else if (Avx.IsSupported)
-        {
-            V4d vec = V4.Create(d);
-            for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref q, j)
-                    .MultiplyAdd(V4.LoadUnsafe(ref p, j), vec), ref q, j);
-        }
-        for (; j < c; j++)
-            Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), d, Unsafe.Add(ref q, j));
-    }
-
-    /// <summary>
-    /// Multiplies a span by a scalar and subtracts the result to a memory location.
-    /// </summary>
-    /// <param name="span">Source vector.</param>
-    /// <param name="d">Scale factor.</param>
-    /// <param name="target">The target memory of the whole operation.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void MulNegStore(this Span<double> span, double d, Span<double> target)
-    {
-        ref double p = ref MM.GetReference(span);
-        ref double q = ref MM.GetReference(target);
-
-        nuint j = 0, c = (nuint)target.Length;
-        if (Avx512F.IsSupported)
-        {
-            V8d vec = V8.Create(d);
-            for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(
-                    V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
-        }
-        else if (Avx.IsSupported)
-        {
-            V4d vec = V4.Create(d);
-            for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref q, j)
-                    .MultiplyAddNeg(V4.LoadUnsafe(ref p, j), vec), ref q, j);
-        }
-        for (; j < c; j++)
-            Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), -d, Unsafe.Add(ref q, j));
-    }
-
-    /// <summary>Calculates the dot product of two spans.</summary>
-    /// <remarks>The second span can be longer than the first span.</remarks>
-    /// <param name="span1">First span operand.</param>
-    /// <param name="span2">Second span operand.</param>
-    /// <returns>The dot product of the vectors.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Dot(this Span<double> span1, Span<double> span2)
-    {
-        double sum = 0;
-        ref double p = ref MM.GetReference(span1);
-        ref double q = ref MM.GetReference(span2);
-        nuint i = 0;
-        if (V8.IsHardwareAccelerated)
-        {
-            V8d acc = V8d.Zero;
-            for (nuint top = (nuint)span1.Length & Simd.MASK8; i < top; i += (nuint)V8d.Count)
-                acc = Avx512F.FusedMultiplyAdd(V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), acc);
-            sum = V8.Sum(acc);
-        }
-        else if (V4.IsHardwareAccelerated)
-        {
-            V4d acc = V4d.Zero;
-            for (nuint top = (nuint)span1.Length & Simd.MASK4; i < top; i += (nuint)V4d.Count)
-                acc = acc.MultiplyAdd(V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i));
-            sum = V4.Sum(acc);
-        }
-        for (int j = (int)i; j < span1.Length; j++)
-            sum = FusedMultiplyAdd(Unsafe.Add(ref p, j), Unsafe.Add(ref q, j), sum);
-        return sum;
-    }
-
     /// <summary>Calculates the dot product of two spans.</summary>
     /// <remarks>The second span can be longer than the first span.</remarks>
     /// <param name="span1">First span operand.</param>
@@ -1421,7 +1558,7 @@ public static class Vec
     /// <summary>In-place transposition of a square matrix.</summary>
     /// <param name="rows">Number of rows.</param>
     /// <param name="cols">Number of columns.</param>
-    /// <param name="data">A 1D-array with data.</param>
+    /// <param name="data">A 1D-array with values.</param>
     public unsafe static void Transpose(int rows, int cols, double[] data)
     {
         Contract.Requires(rows == cols);
@@ -1430,7 +1567,7 @@ public static class Vec
     }
 
     /// <summary>In place transposition of a square matrix.</summary>
-    /// <param name="a">Pointer to raw data.</param>
+    /// <param name="a">Pointer to raw values.</param>
     /// <param name="size">The size of the matrix.</param>
     internal unsafe static void Transpose(double* a, int size)
     {
@@ -1506,151 +1643,6 @@ public static class Vec
                     (a[col * size + row], b[col]) = (b[col], a[col * size + row]);
                 b += size;
             }
-        }
-    }
-
-    /// <summary>Gets a text representation of a matrix.</summary>
-    /// <param name="data">A 1D-array from a matrix.</param>
-    /// <param name="rowCount">Number of rows.</param>
-    /// <param name="colCount">Number of columns.</param>
-    /// <param name="formatter">Converts items to text.</param>
-    /// <param name="triangularity">Which part of the matrix is significative.</param>
-    /// <returns>A text representation of the matrix.</returns>
-    public static string ToString(this double[] data, int rowCount, int colCount,
-        Func<double, string> formatter, sbyte triangularity)
-    {
-        const int upperRows = 8, lowerRows = 4, minLeftColumns = 5, rightColumns = 2;
-
-        int upper = rowCount <= upperRows ? rowCount : upperRows;
-        int lower = rowCount <= upperRows
-            ? 0
-            : rowCount <= upperRows + lowerRows
-            ? rowCount - upperRows
-            : lowerRows;
-        bool rowEllipsis = rowCount > upper + lower;
-        int rows = rowEllipsis ? upper + lower + 1 : upper + lower;
-
-        int left = colCount <= minLeftColumns ? colCount : minLeftColumns;
-        int right = colCount <= minLeftColumns
-            ? 0
-            : colCount <= minLeftColumns + rightColumns
-            ? colCount - minLeftColumns
-            : rightColumns;
-
-        List<(int, string[])> columnsLeft = new(left);
-        for (int j = 0; j < left; j++)
-            columnsLeft.Add(FormatColumn(j, rows, upper, lower));
-
-        List<(int, string[])> columnsRight = new(right);
-        for (int j = 0; j < right; j++)
-            columnsRight.Add(FormatColumn(colCount - right + j, rows, upper, lower));
-
-        int chars = columnsLeft.Sum(t => t.Item1 + 2) + columnsRight.Sum(t => t.Item1 + 2);
-        for (int j = left; j < colCount - right; j++)
-        {
-            (int, string[]) candidate = FormatColumn(j, rows, upper, lower);
-            chars += candidate.Item1 + 2;
-            if (chars > TERMINAL_COLUMNS - 4)
-                break;
-            columnsLeft.Add(candidate);
-        }
-
-        int cols = columnsLeft.Count + columnsRight.Count;
-        bool colEllipsis = colCount > cols;
-        if (colEllipsis)
-            cols++;
-
-        string[,] array = new string[rows, cols];
-        int colIndex = 0;
-        foreach ((int, string[]) column in columnsLeft)
-        {
-            for (int i = 0; i < column.Item2.Length; i++)
-                array[i, colIndex] = column.Item2[i];
-            colIndex++;
-        }
-        int saveCol = colEllipsis ? colIndex++ : colIndex;
-        foreach ((int, string[]) column in columnsRight)
-        {
-            for (int i = 0; i < column.Item2.Length; i++)
-                array[i, colIndex] = column.Item2[i];
-            colIndex++;
-        }
-        if (colEllipsis)
-        {
-            colIndex = saveCol;
-            int rowIndex = 0;
-            if (triangularity == 0)
-            {
-                for (int row = 0; row < upper; row++)
-                    array[rowIndex++, colIndex] = "..";
-                if (rowEllipsis)
-                    array[rowIndex++, colIndex] = "..";
-                for (int row = rowCount - lower; row < rowCount; row++)
-                    array[rowIndex++, colIndex] = "..";
-            }
-            else
-            {
-                (_, string[] refCol) = triangularity < 0 ? columnsLeft[^1] : columnsRight[0];
-                for (int row = 0; row < upper; row++, rowIndex++)
-                    if (refCol[rowIndex] != "")
-                        array[rowIndex, colIndex] = "..";
-                if (rowEllipsis)
-                    if (triangularity < 0)
-                        rowIndex++;
-                    else
-                        array[rowIndex++, colIndex] = "..";
-                for (int row = rowCount - lower; row < rowCount; row++, rowIndex++)
-                    if (refCol[rowIndex] != "")
-                        array[rowIndex, colIndex] = "..";
-            }
-        }
-        return FormatStringArrayToString(array);
-
-        string Filter(double value, int row, int column) =>
-            triangularity switch
-            {
-                1 => row > column ? "" : formatter(value),
-                -1 => row < column ? "" : formatter(value),
-                _ => formatter(value)
-            };
-
-        (int, string[]) FormatColumn(int column, int height, int upper, int lower)
-        {
-            string[] c = new string[height];
-            int index = 0;
-            for (int row = 0; row < upper; row++)
-                c[index++] = Filter(data[row * colCount + column], row, column);
-            if (rowEllipsis)
-                c[index++] = "";
-            for (int row = rowCount - lower; row < rowCount; row++)
-                c[index++] = Filter(data[row * colCount + column], row, column);
-            int w = c.Max(x => x.Length);
-            if (rowEllipsis)
-                if (triangularity == 0 ||
-                    triangularity < 0 && column <= upper ||
-                    triangularity > 0 && column >= upper)
-                    c[upper] = "..";
-                else
-                    c[upper] = "";
-            return (w, c);
-        }
-
-        static string FormatStringArrayToString(string[,] data)
-        {
-            int rows = data.GetLength(0), cols = data.GetLength(1);
-            Span<int> widths = stackalloc int[cols];
-            for (int i = 0; i < rows; i++)
-                for (int j = 0; j < cols; j++)
-                    widths[j] = Math.Max(widths[j], data[i, j]?.Length ?? 0);
-            StringBuilder sb = new();
-            for (int i = 0; i < rows; i++)
-            {
-                sb.Append(data[i, 0].PadLeft(widths[0]));
-                for (int j = 1; j < cols; j++)
-                    sb.Append("  ").Append((data[i, j] ?? "").PadLeft(widths[j]));
-                sb.AppendLine();
-            }
-            return sb.ToString();
         }
     }
 }

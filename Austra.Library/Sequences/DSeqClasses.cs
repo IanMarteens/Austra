@@ -937,7 +937,7 @@ public abstract partial class DSequence : IFormattable
                         nextTerms = Random512.Shared.NextNormal() * V8.Create(generator.StandardDeviation);
                         next = 0;
                     }
-                    value = nextTerms[next++] + coefficients.AsSpan().Dot(previousTerms);
+                    value = nextTerms[next++] + coefficients.Dot(previousTerms);
                 }
                 else if (Avx2.IsSupported)
                 {
@@ -946,10 +946,10 @@ public abstract partial class DSequence : IFormattable
                         nextTerms256 = Random256.Shared.NextNormal() * V4.Create(generator.StandardDeviation);
                         next = 0;
                     }
-                    value = nextTerms256[next++] + coefficients.AsSpan().Dot(previousTerms);
+                    value = nextTerms256[next++] + coefficients.Dot(previousTerms);
                 }
                 else
-                    value = generator.NextDouble() + coefficients.AsSpan().Dot(previousTerms);
+                    value = generator.NextDouble() + coefficients.Dot(previousTerms);
                 Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
                 previousTerms[0] = value;
                 current++;
@@ -1009,7 +1009,7 @@ public abstract partial class DSequence : IFormattable
                 }
                 else
                     innovation = generator.NextDouble();
-                value = mean + innovation + coefficients.AsSpan().Dot(previousTerms);
+                value = mean + innovation + coefficients.Dot(previousTerms);
                 Array.Copy(previousTerms, 0, previousTerms, 1, previousTerms.Length - 1);
                 previousTerms[0] = innovation;
                 current++;

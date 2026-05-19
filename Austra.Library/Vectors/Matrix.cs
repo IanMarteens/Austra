@@ -979,7 +979,7 @@ public readonly struct Matrix :
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        m1.values.MulMatrix(m2.values, result, m, n, p);
+        m1.values.MatrixMult(m2.values, result, m, n, p);
         return new(m, p, result);
     }
 
