@@ -421,7 +421,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        Vec.Sub(d, v.values, result);
+        v.values.Sub(result, d);
         return result;
     }
 

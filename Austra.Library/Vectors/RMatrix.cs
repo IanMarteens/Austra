@@ -291,8 +291,7 @@ public readonly struct RMatrix :
         int r = m.Rows, c = m.Cols;
         double[] result = new double[m.values.Length];
         for (int row = 0, offset = 0; row < r; row++, offset += c)
-            Vec.Sub(d, m.values.AsSpan(offset + row, c - row),
-                result.AsSpan(offset + row, c - row));
+            m.values.AsSpan(offset + row, c - row).Sub(result.AsSpan(offset + row, c - row), d);
         return new(r, c, result);
     }
 

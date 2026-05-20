@@ -1,15 +1,197 @@
 ﻿namespace Austra.Library.Helpers;
 
-/// <summary>Implements common matrix and vector operations.</summary>
+/// <summary>Implements internal common matrix and vector operations.</summary>
 /// <remarks>
 /// We have three matrix types: <see cref="Matrix"/>, <see cref="LMatrix"/>,
 /// and <see cref="RMatrix"/>, with common operations. On the other hand, matrices
 /// also belong to a vector space, so they share some code with <see cref="DVector"/>.
 /// </remarks>
-public static class Vec
+internal static class Vec
 {
-    /// <summary>Number of characters in a line.</summary>
-    public static int TERMINAL_COLUMNS { get; set; } = 80;
+    /// <summary>Extension block for number vectors.</summary>
+    /// <typeparam name="T">The type of the values, which must be numeric.</typeparam>
+    /// <param name="v">A 512-bit vector.</param>
+    extension<T>(Vector512<T> v) where T : INumber<T>
+    {
+        /// <summary>Gets the maximum component in a vector register.</summary>
+        /// <returns>The maximum component.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal T Max() => T.Max(v.GetLower().Max(), v.GetUpper().Max());
+
+        /// <summary>Gets the minimum component in a vector register.</summary>
+        /// <returns>The minimum component.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal T Min() => T.Min(v.GetLower().Min(), v.GetUpper().Min());
+    }
+
+    /// <summary>Extension block for number vectors.</summary>
+    /// <typeparam name="T">The type of the values, which must be numeric.</typeparam>
+    /// <param name="v">A 256-bit vector.</param>
+    extension<T>(Vector256<T> v) where T : INumber<T>
+    {
+        /// <summary>Gets the maximum component in a vector register.</summary>
+        /// <returns>The maximum component.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe T Max()
+        {
+            Vector128<T> x = Vector128.Max(v.GetLower(), v.GetUpper());
+#pragma warning disable CS8500
+            if (sizeof(T) == sizeof(int))
+            {
+                Vector64<T> y = Vector64.Max(x.GetLower(), x.GetUpper());
+                return T.Max(y.ToScalar(), y.GetElement(1));
+            }
+#pragma warning restore CS8500
+            return T.Max(x.ToScalar(), x.GetElement(1));
+        }
+
+        /// <summary>Gets the minimum component in a vector register.</summary>
+        /// <returns>The minimum component.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe T Min()
+        {
+            Vector128<T> x = Vector128.Min(v.GetLower(), v.GetUpper());
+#pragma warning disable CS8500
+            if (sizeof(T) == sizeof(int))
+            {
+                Vector64<T> y = Vector64.Min(x.GetLower(), x.GetUpper());
+                return T.Min(y.ToScalar(), y.GetElement(1));
+            }
+#pragma warning restore CS8500
+            return T.Min(x.ToScalar(), x.GetElement(1));
+        }
+    }
+
+    /// <summary>Extension block for <see cref="V4d"/>.</summary>
+    /// <param name="x">A double vector with four elements.</param>
+    extension(V4d x)
+    {
+        /// <summary>
+        /// Execute the best available version of a SIMD multiplication and addition.
+        /// </summary>
+        /// <remarks>Must only be called when <c>Avx.IsSupported</c>.</remarks>
+        /// <param name="multiplicand">The operation's multiplicand.</param>
+        /// <param name="multiplier">The operations's multiplier.</param>
+        /// <returns><c>multiplicand * multiplier + x</c></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal V4d MultiplyAdd(
+            V4d multiplicand,
+            V4d multiplier) =>
+            Fma.IsSupported
+                ? Fma.MultiplyAdd(multiplicand, multiplier, x)
+                : multiplicand * multiplier + x;
+
+        /// <summary>
+        /// Execute the best available version of a SIMD multiplication and addition.
+        /// </summary>
+        /// <remarks>This version takes also care of loading the multiplicand.</remarks>
+        /// <param name="multiplicand">The address if the multiplicand.</param>
+        /// <param name="multiplier">The operations's multiplier.</param>
+        /// <returns><c>multiplicand * multiplier + x</c></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe V4d MultiplyAdd(
+            double* multiplicand,
+            V4d multiplier) =>
+            Fma.IsSupported
+                ? Fma.MultiplyAdd(Avx.LoadVector256(multiplicand), multiplier, x)
+                : Avx.LoadVector256(multiplicand) * multiplier + x;
+
+        /// <summary>
+        /// Execute the best available version of a SIMD multiplication and addition.
+        /// </summary>
+        /// <remarks>This version takes also care of loading some of the vectors.</remarks>
+        /// <param name="multiplicand">The address of the multiplicand.</param>
+        /// <param name="multiplier">The address of the multiplier.</param>
+        /// <returns><c>multiplicand * multiplier + x</c></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe V4d MultiplyAdd(
+            double* multiplicand,
+            double* multiplier) =>
+            Fma.IsSupported
+                ? Fma.MultiplyAdd(
+                    Avx.LoadVector256(multiplicand), Avx.LoadVector256(multiplier), x)
+                : Avx.LoadVector256(multiplicand) * Avx.LoadVector256(multiplier) + x;
+
+        /// <summary>
+        /// Execute the best available version of a SIMD multiplication and subtraction.
+        /// </summary>
+        /// <remarks>Must only be called when <c>Avx.IsSupported</c>.</remarks>
+        /// <param name="multiplicand">The operation's multiplicand.</param>
+        /// <param name="multiplier">The operations's multiplier.</param>
+        /// <returns><c>multiplicand * multiplier - x</c></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal V4d MultiplySub(
+            V4d multiplicand,
+            V4d multiplier) =>
+            Fma.IsSupported
+                ? Fma.MultiplySubtract(multiplicand, multiplier, x)
+                : multiplicand * multiplier - x;
+
+        /// <summary>
+        /// Execute the best available version of a SIMD multiplication and subtraction.
+        /// </summary>
+        /// <remarks>This version takes also care of loading the multiplicand.</remarks>
+        /// <param name="multiplicand">The operation's multiplicand.</param>
+        /// <param name="multiplier">The operations's multiplier.</param>
+        /// <returns><c>x - multiplicand * multiplier</c></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal V4d MultiplyAddNeg(
+            V4d multiplicand,
+            V4d multiplier) =>
+            Fma.IsSupported
+                ? Fma.MultiplyAddNegated(multiplicand, multiplier, x)
+                : x - multiplicand * multiplier;
+
+        /// <summary>
+        /// Execute the best available version of a SIMD multiplication and subtraction.
+        /// </summary>
+        /// <remarks>This version takes also care of loading the multiplicand.</remarks>
+        /// <param name="multiplicand">The address of the multiplicand.</param>
+        /// <param name="multiplier">The operations's multiplier.</param>
+        /// <returns><c>x - multiplicand * multiplier</c></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe V4d MultiplyAddNeg(
+            double* multiplicand,
+            V4d multiplier) =>
+            Fma.IsSupported
+                ? Fma.MultiplyAddNegated(Avx.LoadVector256(multiplicand), multiplier, x)
+                : x - Avx.LoadVector256(multiplicand) * multiplier;
+    }
+
+    /// <summary>Extension block for <see cref="V8d"/>.</summary>
+    /// <param name="x">A double vector with eight elements.</param>
+    extension(V8d x)
+    {
+        /// <summary>
+        /// Execute the best available version of a SIMD multiplication and addition.
+        /// </summary>
+        /// <remarks>This version takes also care of loading the multiplicand.</remarks>
+        /// <param name="multiplicand">The address if the multiplicand.</param>
+        /// <param name="multiplier">The operations's multiplier.</param>
+        /// <returns><c>multiplicand * multiplier + summand</c></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe V8d MultiplyAdd(
+            double* multiplicand,
+            V8d multiplier) =>
+            Avx512F.FusedMultiplyAdd(Avx512F.LoadVector512(multiplicand), multiplier, x);
+    }
+
+    /// <summary>Multiplies all the elements in a vector.</summary>
+    /// <param name="v">A intrinsics vector with four or eight values.</param>
+    /// <returns>The product of all items.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal unsafe static T Product<T>(this Vector256<T> v) where T : INumberBase<T>
+    {
+        Vector128<T> x = v.GetLower() * v.GetUpper();
+#pragma warning disable CS8500
+        if (sizeof(T) == sizeof(int))
+        {
+            Vector64<T> y = x.GetLower() * x.GetUpper();
+            return y.ToScalar() * y.GetElement(1);
+        }
+#pragma warning restore CS8500
+        return x.ToScalar() * x.GetElement(1);
+    }
 
     /// <summary>Extension block for operations on generic numeric spans.</summary>
     /// <typeparam name="T">The type of the values elements.</typeparam>
@@ -18,7 +200,7 @@ public static class Vec
     {
         /// <summary>Gets the absolute values of the array items.</summary>
         /// <returns>A new array with non-negative items.</returns>
-        public T[] Abs()
+        internal T[] Abs()
         {
             T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
             ref T p = ref MM.GetReference(span1);
@@ -46,7 +228,7 @@ public static class Vec
         /// <summary>Pointwise sum of two equally sized spans.</summary>
         /// <param name="span2">Second operand.</param>
         /// <param name="target">The values to receive the sum of the first two argument.</param>
-        public void Add(Span<T> span2, Span<T> target)
+        internal void Add(Span<T> span2, Span<T> target)
         {
             ref T a = ref MM.GetReference(span1);
             ref T b = ref MM.GetReference(span2);
@@ -72,7 +254,7 @@ public static class Vec
 
         /// <summary>Pointwise inplace sum of two equally sized spans.</summary>
         /// <param name="span2">Second summand.</param>
-        public void Add(Span<T> span2)
+        internal void Add(Span<T> span2)
         {
             ref T a = ref MM.GetReference(span1);
             ref T b = ref MM.GetReference(span2);
@@ -92,7 +274,7 @@ public static class Vec
         /// <summary>Pointwise addition of a scalar to a values.</summary>
         /// <param name="scalar">Scalar summand.</param>
         /// <param name="target">Target memory for the operation.</param>
-        public void Add(T scalar, Span<T> target)
+        internal void Add(T scalar, Span<T> target)
         {
             ref T p = ref MM.GetReference(span1);
             ref T q = ref MM.GetReference(target);
@@ -120,7 +302,7 @@ public static class Vec
         /// <summary>Pointwise division of two equally sized spans.</summary>
         /// <param name="span2">Span divisor.</param>
         /// <returns>The pointwise quotient of the two arguments.</returns>
-        public T[] Div(Span<T> span2)
+        internal T[] Div(Span<T> span2)
         {
             T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
             ref T a = ref MM.GetReference(span1);
@@ -149,7 +331,7 @@ public static class Vec
         /// <summary>Pointwise multiplication of two equally sized spans.</summary>
         /// <param name="span2">Span multiplier.</param>
         /// <returns>The pointwise multiplication of the two arguments.</returns>
-        public T[] Mul(Span<T> span2)
+        internal T[] Mul(Span<T> span2)
         {
             T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
             ref T a = ref MM.GetReference(span1);
@@ -178,7 +360,7 @@ public static class Vec
         /// <summary>Pointwise multiplication of a values and a scalar.</summary>
         /// <param name="scalar">Scalar multiplier.</param>
         /// <param name="target">Target memory for the operation.</param>
-        public void Mul(T scalar, Span<T> target)
+        internal void Mul(T scalar, Span<T> target)
         {
             ref T p = ref MM.GetReference(span1);
             ref T q = ref MM.GetReference(target);
@@ -205,7 +387,7 @@ public static class Vec
 
         /// <summary>Pointwise negation of a values.</summary>
         /// <param name="target">Target memory for the operation.</param>
-        public void Neg(Span<T> target)
+        internal void Neg(Span<T> target)
         {
             ref T p = ref MM.GetReference(span1);
             ref T q = ref MM.GetReference(target);
@@ -229,7 +411,7 @@ public static class Vec
         }
 
         /// <summary>Inplace pointwise negation of a values.</summary>
-        public void Neg()
+        internal void Neg()
         {
             ref T p = ref MM.GetReference(span1);
             int i = 0;
@@ -247,7 +429,7 @@ public static class Vec
 
         /// <summary>Calculates the product of the items of an array.</summary>
         /// <returns>The product of all array items.</returns>
-        public T Product()
+        internal T Product()
         {
             T result = T.MultiplicativeIdentity;
             ref T p = ref MM.GetReference(span1);
@@ -284,7 +466,7 @@ public static class Vec
         /// <summary>Pointwise subtraction of two equally sized spans.</summary>
         /// <param name="span2">Subtrahend.</param>
         /// <param name="target">The values to receive the result.</param>
-        public void Sub(Span<T> span2, Span<T> target)
+        internal void Sub(Span<T> span2, Span<T> target)
         {
             ref T a = ref MM.GetReference(span1);
             ref T b = ref MM.GetReference(span2);
@@ -310,7 +492,7 @@ public static class Vec
 
         /// <summary>Pointwise inplace subtraction of two equally sized spans.</summary>
         /// <param name="span2">Subtrahend.</param>
-        public void Sub(Span<T> span2)
+        internal void Sub(Span<T> span2)
         {
             ref T a = ref MM.GetReference(span1);
             ref T b = ref MM.GetReference(span2);
@@ -330,7 +512,7 @@ public static class Vec
         /// <summary>Pointwise subtraction of a scalar from a values.</summary>
         /// <param name="scalar">Scalar subtrahend.</param>
         /// <param name="target">Target memory for the operation.</param>
-        public void Sub(T scalar, Span<T> target)
+        internal void Sub(T scalar, Span<T> target)
         {
             ref T p = ref MM.GetReference(span1);
             ref T q = ref MM.GetReference(target);
@@ -355,9 +537,37 @@ public static class Vec
                     Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) - scalar;
         }
 
+        /// <summary>Pointwise subtraction of values from a scalar.</summary>
+        /// <param name="target">Target memory for the operation.</param>
+        /// <param name="scalar">Scalar minuend.</param>
+        internal void Sub(Span<T> target, T scalar)
+        {
+            ref T p = ref MM.GetReference(span1);
+            ref T q = ref MM.GetReference(target);
+            if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
+            {
+                Vector512<T> vec = V8.Create(scalar);
+                nuint t = (nuint)(target.Length - Vector512<T>.Count);
+                for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
+                    V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, i), ref q, i);
+                V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, t), ref q, t);
+            }
+            else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
+            {
+                Vector256<T> vec = V4.Create(scalar);
+                nuint t = (nuint)(target.Length - Vector256<T>.Count);
+                for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
+                    V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, i), ref q, i);
+                V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, t), ref q, t);
+            }
+            else
+                for (int i = 0; i < target.Length; i++)
+                    Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
+        }
+
         /// <summary>Calculates the sum of the vector's items.</summary>
         /// <returns>The sum of all vector's items.</returns>
-        public T Sum()
+        internal T Sum()
         {
             T result = T.AdditiveIdentity;
             ref T p = ref MM.GetReference(span1);
@@ -402,7 +612,7 @@ public static class Vec
         /// <summary>Checks whether the predicate is satisfied by all items.</summary>
         /// <param name="predicate">The predicate to be checked.</param>
         /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
-        public bool All(Func<T, bool> predicate)
+        internal bool All(Func<T, bool> predicate)
         {
             foreach (T item in span)
                 if (!predicate(item))
@@ -413,7 +623,7 @@ public static class Vec
         /// <summary>Checks whether the predicate is satisfied by at least one item.</summary>
         /// <param name="predicate">The predicate to be checked.</param>
         /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
-        public bool Any(Func<T, bool> predicate)
+        internal bool Any(Func<T, bool> predicate)
         {
             foreach (T item in span)
                 if (predicate(item))
@@ -424,13 +634,13 @@ public static class Vec
         /// <summary>Returns a new array with the distinct values in the values.</summary>
         /// <remarks>Results are unordered.</remarks>
         /// <returns>A new array with distinct values.</returns>
-        public T[] Distinct() =>
+        internal T[] Distinct() =>
             [.. (HashSet<T>)[.. span]];
 
         /// <summary>Creates a new array by filtering items with the given predicate.</summary>
         /// <param name="predicate">The predicate to evaluate.</param>
         /// <returns>A new array with the filtered items.</returns>
-        public T[] Filter(Func<T, bool> predicate)
+        internal T[] Filter(Func<T, bool> predicate)
         {
             T[] newValues = GC.AllocateUninitializedArray<T>(span.Length);
             int j = 0;
@@ -445,7 +655,7 @@ public static class Vec
         /// <param name="predicate">The predicate to evaluate.</param>
         /// <param name="mapper">The mapping function.</param>
         /// <returns>A new array with the filtered items.</returns>
-        public T[] FilterMap(Func<T, bool> predicate, Func<T, T> mapper)
+        internal T[] FilterMap(Func<T, bool> predicate, Func<T, T> mapper)
         {
             T[] newValues = GC.AllocateUninitializedArray<T>(span.Length);
             int j = 0;
@@ -458,7 +668,7 @@ public static class Vec
         /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
         /// <param name="value">The value to locate.</param>
         /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
-        public int IndexOf(T value)
+        internal int IndexOf(T value)
         {
             ref T p = ref MM.GetReference(span);
             nuint size = (nuint)span.Length;
@@ -504,7 +714,7 @@ public static class Vec
         /// </summary>
         /// <param name="mapper">The mapping function.</param>
         /// <returns>A new array with the transformed content.</returns>
-        public T[] Map(Func<T, T> mapper)
+        internal T[] Map(Func<T, T> mapper)
         {
             T[] newValues = GC.AllocateUninitializedArray<T>(span.Length);
             ref T p = ref MM.GetReference(span);
@@ -528,7 +738,7 @@ public static class Vec
         /// <param name="seed">The initial value.</param>
         /// <param name="reducer">The reducing function.</param>
         /// <returns>The final synthesized value.</returns>
-        public T Reduce(T seed, Func<T, T, T> reducer)
+        internal T Reduce(T seed, Func<T, T, T> reducer)
         {
             foreach (T item in span)
                 seed = reducer(seed, item);
@@ -538,14 +748,15 @@ public static class Vec
         /// <summary>Gets a text representation of an array.</summary>
         /// <param name="formatter">A formatter for items.</param>
         /// <returns>A text representation of the vector.</returns>
-        public string ToString(Func<T, string> formatter)
+        internal string ToString(Func<T, string> formatter)
         {
             if (span.Length == 0)
                 return "";
             string[] cells = [.. span.ToArray().Select(formatter)];
             int width = Math.Max(3, cells.Max(c => c.Length));
-            int cols = (TERMINAL_COLUMNS + 2) / (width + 2);
-            StringBuilder sb = new(Math.Min(span.Length / cols, 12) * (TERMINAL_COLUMNS + 2));
+            int cols = (MatrixExtensions.TERMINAL_COLUMNS + 2) / (width + 2);
+            StringBuilder sb = new(Math.Min(span.Length / cols, 12) 
+                * (MatrixExtensions.TERMINAL_COLUMNS + 2));
             int offset = 0;
             for (int row = 0; row < 11 && offset < span.Length; row++)
             {
@@ -587,7 +798,7 @@ public static class Vec
         /// <param name="other">Second values to combine.</param>
         /// <param name="zipper">The combining function.</param>
         /// <returns>The combining function applied to each pair of items.</returns>
-        public T[] Zip(Span<T> other, Func<T, T, T> zipper)
+        internal T[] Zip(Span<T> other, Func<T, T, T> zipper)
         {
             int len = Math.Min(span.Length, other.Length);
             T[] newValues = GC.AllocateUninitializedArray<T>(len);
@@ -606,9 +817,69 @@ public static class Vec
     /// <param name="values">The values to be transformed or queried.</param>
     extension(Span<double> values)
     {
+        /// <summary>Gets the item in a values with the maximum absolute value.</summary>
+        /// <returns>The maximum absolute value in the samples.</returns>
+        internal double AMax()
+        {
+            if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
+            {
+                ref double p = ref MM.GetReference(values);
+                ref double t = ref Unsafe.Add(ref p, values.Length - V8d.Count);
+                V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
+                p = ref Unsafe.Add(ref p, V8d.Count);
+                for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
+                    vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p)));
+                return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref t))).Max();
+            }
+            else if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
+            {
+                ref double p = ref MM.GetReference(values);
+                ref double t = ref Unsafe.Add(ref p, values.Length - V4d.Count);
+                V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
+                p = ref Unsafe.Add(ref p, V4d.Count);
+                for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
+                    vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p)));
+                return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref t))).Max();
+            }
+            double max = Math.Abs(values[0]);
+            for (int i = 1; i < values.Length; i++)
+                max = Math.Max(max, Math.Abs(values[i]));
+            return max;
+        }
+
+        /// <summary>Gets the item in a values with the minimum absolute value.</summary>
+        /// <returns>The minimum absolute value in the samples.</returns>
+        internal double AMin()
+        {
+            if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
+            {
+                ref double p = ref MM.GetReference(values);
+                ref double t = ref Unsafe.Add(ref p, values.Length - V8d.Count);
+                V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
+                p = ref Unsafe.Add(ref p, V8d.Count);
+                for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
+                    vm = V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref p)));
+                return V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref t))).Min();
+            }
+            else if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
+            {
+                ref double p = ref MM.GetReference(values);
+                ref double t = ref Unsafe.Add(ref p, values.Length - V4d.Count);
+                V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
+                p = ref Unsafe.Add(ref p, V4d.Count);
+                for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
+                    vm = V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref p)));
+                return V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref t))).Min();
+            }
+            double min = Math.Abs(values[0]);
+            for (int i = 1; i < values.Length; i++)
+                min = Math.Min(min, Math.Abs(values[i]));
+            return min;
+        }
+
         /// <summary>Initializes a values with random values.</summary>
         /// <param name="random">A random number generator.</param>
-        public void CreateRandom(Random random)
+        internal void CreateRandom(Random random)
         {
             ref double p = ref MM.GetReference(values);
             if (Avx512F.IsSupported && values.Length >= V8d.Count && random == Random.Shared)
@@ -636,7 +907,7 @@ public static class Vec
         /// <param name="random">A random number generator.</param>
         /// <param name="offset">An offset for the random numbers.</param>
         /// <param name="width">Width for the uniform distribution.</param>
-        public void CreateRandom(Random random, double offset, double width)
+        internal void CreateRandom(Random random, double offset, double width)
         {
             ref double p = ref MM.GetReference(values);
             if (Avx512F.IsSupported && values.Length >= V8d.Count && random == Random.Shared)
@@ -666,7 +937,7 @@ public static class Vec
 
         /// <summary>Initializes a values with normal random values.</summary>
         /// <param name="random">A random number generator.</param>
-        public void CreateRandom(NormalRandom random)
+        internal void CreateRandom(NormalRandom random)
         {
             ref double p = ref MM.GetReference(values);
             if (Avx512F.IsSupported && values.Length >= V8d.Count && random == NormalRandom.Shared)
@@ -699,7 +970,7 @@ public static class Vec
         /// <param name="rows">Number of rows.</param>
         /// <param name="cols">Number of columns.</param>
         /// <returns>A vector containing values in the main diagonal.</returns>
-        public double[] Diagonal(int rows, int cols)
+        internal double[] Diagonal(int rows, int cols)
         {
             Contract.Ensures(Contract.Result<DVector>().Length == Math.Min(rows, cols));
 
@@ -716,7 +987,7 @@ public static class Vec
         /// <param name="rows">Number of rows.</param>
         /// <param name="cols">Number of columns.</param>
         /// <returns>The product of the main diagonal.</returns>
-        public double Det(int rows, int cols)
+        internal double Det(int rows, int cols)
         {
             int r = cols + 1, size = Math.Min(rows, cols);
             double product = 1.0;
@@ -729,7 +1000,7 @@ public static class Vec
         /// <remarks>Spans can be of different lengths.</remarks>
         /// <param name="other">Second values.</param>
         /// <returns>The max-norm of the vector difference.</returns>
-        public double Distance(Span<double> other)
+        internal double Distance(Span<double> other)
         {
             int len = Math.Min(values.Length, other.Length);
             if (V8.IsHardwareAccelerated && len >= V8d.Count)
@@ -771,7 +1042,7 @@ public static class Vec
         /// <param name="span2">Second values operand.</param>
         /// <returns>The dot product of the vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Dot(Span<double> span2)
+        internal double Dot(Span<double> span2)
         {
             double sum = 0;
             ref double p = ref MM.GetReference(values);
@@ -802,7 +1073,7 @@ public static class Vec
         /// <param name="m">Number of rows in the first matrix.</param>
         /// <param name="n">Number of columns in the first matrix / rows in the second matrix.</param>
         /// <param name="p">Number of columns in the second matrix.</param>
-        public void MatrixMult(double[] other, double[] result, int m, int n, int p)
+        internal void MatrixMult(double[] other, double[] result, int m, int n, int p)
         {
             const long MINSIZE = 64L * 64L * 64L;
             const long MAXSIZE = 1024L * 1024L * 1024L;
@@ -966,7 +1237,7 @@ public static class Vec
         /// <param name="d">Scale factor.</param>
         /// <param name="target">The target memory of the whole operation.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void MulAddStore(double d, Span<double> target)
+        internal void MulAddStore(double d, Span<double> target)
         {
             ref double p = ref MM.GetReference(values);
             ref double q = ref MM.GetReference(target);
@@ -996,7 +1267,7 @@ public static class Vec
         /// <param name="d">Scale factor.</param>
         /// <param name="target">The target memory of the whole operation.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void MulNegStore(double d, Span<double> target)
+        internal void MulNegStore(double d, Span<double> target)
         {
             ref double p = ref MM.GetReference(values);
             ref double q = ref MM.GetReference(target);
@@ -1024,7 +1295,7 @@ public static class Vec
         /// <param name="rows">Number of rows.</param>
         /// <param name="cols">Number of columns.</param>
         /// <returns>The sum of the cells in the main diagonal.</returns>
-        public double Trace(int rows, int cols)
+        internal double Trace(int rows, int cols)
         {
             double trace = 0;
             int r = cols + 1, size = Math.Min(rows, cols);
@@ -1032,219 +1303,12 @@ public static class Vec
                 trace += p;
             return trace;
         }
-
-        /// <summary>Gets a text representation of a matrix.</summary>
-        /// <param name="rowCount">Number of rows.</param>
-        /// <param name="colCount">Number of columns.</param>
-        /// <param name="formatter">Converts items to text.</param>
-        /// <param name="triangularity">Which part of the matrix is significative.</param>
-        /// <returns>A text representation of the matrix.</returns>
-        public string ToString(
-            int rowCount, int colCount,
-            Func<double, string> formatter, sbyte triangularity)
-        {
-            const int upperRows = 8, lowerRows = 4, minLeftColumns = 5, rightColumns = 2;
-
-            int upper = rowCount <= upperRows ? rowCount : upperRows;
-            int lower = rowCount <= upperRows
-                ? 0
-                : rowCount <= upperRows + lowerRows
-                ? rowCount - upperRows
-                : lowerRows;
-            bool rowEllipsis = rowCount > upper + lower;
-            int rows = rowEllipsis ? upper + lower + 1 : upper + lower;
-
-            int left = colCount <= minLeftColumns ? colCount : minLeftColumns;
-            int right = colCount <= minLeftColumns
-                ? 0
-                : colCount <= minLeftColumns + rightColumns
-                ? colCount - minLeftColumns
-                : rightColumns;
-
-            List<(int, string[])> columnsLeft = new(left);
-            for (int j = 0; j < left; j++)
-                columnsLeft.Add(FormatColumn(values, j, rows, upper, lower));
-
-            List<(int, string[])> columnsRight = new(right);
-            for (int j = 0; j < right; j++)
-                columnsRight.Add(FormatColumn(values, colCount - right + j, rows, upper, lower));
-
-            int chars = columnsLeft.Sum(t => t.Item1 + 2) + columnsRight.Sum(t => t.Item1 + 2);
-            for (int j = left; j < colCount - right; j++)
-            {
-                (int, string[]) candidate = FormatColumn(values, j, rows, upper, lower);
-                chars += candidate.Item1 + 2;
-                if (chars > TERMINAL_COLUMNS - 4)
-                    break;
-                columnsLeft.Add(candidate);
-            }
-
-            int cols = columnsLeft.Count + columnsRight.Count;
-            bool colEllipsis = colCount > cols;
-            if (colEllipsis)
-                cols++;
-
-            string[,] array = new string[rows, cols];
-            int colIndex = 0;
-            foreach ((int, string[]) column in columnsLeft)
-            {
-                for (int i = 0; i < column.Item2.Length; i++)
-                    array[i, colIndex] = column.Item2[i];
-                colIndex++;
-            }
-            int saveCol = colEllipsis ? colIndex++ : colIndex;
-            foreach ((int, string[]) column in columnsRight)
-            {
-                for (int i = 0; i < column.Item2.Length; i++)
-                    array[i, colIndex] = column.Item2[i];
-                colIndex++;
-            }
-            if (colEllipsis)
-            {
-                colIndex = saveCol;
-                int rowIndex = 0;
-                if (triangularity == 0)
-                {
-                    for (int row = 0; row < upper; row++)
-                        array[rowIndex++, colIndex] = "..";
-                    if (rowEllipsis)
-                        array[rowIndex++, colIndex] = "..";
-                    for (int row = rowCount - lower; row < rowCount; row++)
-                        array[rowIndex++, colIndex] = "..";
-                }
-                else
-                {
-                    (_, string[] refCol) = triangularity < 0 ? columnsLeft[^1] : columnsRight[0];
-                    for (int row = 0; row < upper; row++, rowIndex++)
-                        if (refCol[rowIndex] != "")
-                            array[rowIndex, colIndex] = "..";
-                    if (rowEllipsis)
-                        if (triangularity < 0)
-                            rowIndex++;
-                        else
-                            array[rowIndex++, colIndex] = "..";
-                    for (int row = rowCount - lower; row < rowCount; row++, rowIndex++)
-                        if (refCol[rowIndex] != "")
-                            array[rowIndex, colIndex] = "..";
-                }
-            }
-            return FormatStringArrayToString(array);
-
-            string Filter(double value, int row, int column) =>
-                triangularity switch
-                {
-                    1 => row > column ? "" : formatter(value),
-                    -1 => row < column ? "" : formatter(value),
-                    _ => formatter(value)
-                };
-
-            (int, string[]) FormatColumn(Span<double> values, int column, int height, int upper, int lower)
-            {
-                string[] c = new string[height];
-                int index = 0;
-                for (int row = 0; row < upper; row++)
-                    c[index++] = Filter(values[row * colCount + column], row, column);
-                if (rowEllipsis)
-                    c[index++] = "";
-                for (int row = rowCount - lower; row < rowCount; row++)
-                    c[index++] = Filter(values[row * colCount + column], row, column);
-                int w = c.Max(x => x.Length);
-                if (rowEllipsis)
-                    if (triangularity == 0 ||
-                        triangularity < 0 && column <= upper ||
-                        triangularity > 0 && column >= upper)
-                        c[upper] = "..";
-                    else
-                        c[upper] = "";
-                return (w, c);
-            }
-
-            static string FormatStringArrayToString(string[,] data)
-            {
-                int rows = data.GetLength(0), cols = data.GetLength(1);
-                Span<int> widths = stackalloc int[cols];
-                for (int i = 0; i < rows; i++)
-                    for (int j = 0; j < cols; j++)
-                        widths[j] = Math.Max(widths[j], data[i, j]?.Length ?? 0);
-                StringBuilder sb = new();
-                for (int i = 0; i < rows; i++)
-                {
-                    sb.Append(data[i, 0].PadLeft(widths[0]));
-                    for (int j = 1; j < cols; j++)
-                        sb.Append("  ").Append((data[i, j] ?? "").PadLeft(widths[j]));
-                    sb.AppendLine();
-                }
-                return sb.ToString();
-            }
-        }
-    }
-
-    /// <summary>Gets the item in a values with the maximum absolute value.</summary>
-    /// <param name="span">The values values.</param>
-    /// <returns>The maximum absolute value in the samples.</returns>
-    public static double AMax(this Span<double> span)
-    {
-        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
-        {
-            ref double p = ref MM.GetReference(span);
-            ref double t = ref Unsafe.Add(ref p, span.Length - V8d.Count);
-            V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
-            p = ref Unsafe.Add(ref p, V8d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
-                vm = V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref p)));
-            return V8.Max(vm, V8.Abs(V8.LoadUnsafe(ref t))).Max();
-        }
-        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
-        {
-            ref double p = ref MM.GetReference(span);
-            ref double t = ref Unsafe.Add(ref p, span.Length - V4d.Count);
-            V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
-            p = ref Unsafe.Add(ref p, V4d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
-                vm = V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref p)));
-            return V4.Max(vm, V4.Abs(V4.LoadUnsafe(ref t))).Max();
-        }
-        double max = Math.Abs(span[0]);
-        for (int i = 1; i < span.Length; i++)
-            max = Math.Max(max, Math.Abs(span[i]));
-        return max;
-    }
-
-    /// <summary>Gets the item in a values with the minimum absolute value.</summary>
-    /// <param name="span">The values values.</param>
-    /// <returns>The minimum absolute value in the samples.</returns>
-    public static double AMin(this Span<double> span)
-    {
-        if (V8.IsHardwareAccelerated && span.Length >= V8d.Count)
-        {
-            ref double p = ref MM.GetReference(span);
-            ref double t = ref Unsafe.Add(ref p, span.Length - V8d.Count);
-            V8d vm = V8.Abs(V8.LoadUnsafe(ref p));
-            p = ref Unsafe.Add(ref p, V8d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V8d.Count))
-                vm = V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref p)));
-            return V8.Min(vm, V8.Abs(V8.LoadUnsafe(ref t))).Min();
-        }
-        else if (V4.IsHardwareAccelerated && span.Length >= V4d.Count)
-        {
-            ref double p = ref MM.GetReference(span);
-            ref double t = ref Unsafe.Add(ref p, span.Length - V4d.Count);
-            V4d vm = V4.Abs(V4.LoadUnsafe(ref p));
-            p = ref Unsafe.Add(ref p, V4d.Count);
-            for (; IsAddressLessThan(ref p, ref t); p = ref Unsafe.Add(ref p, V4d.Count))
-                vm = V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref p)));
-            return V4.Min(vm, V4.Abs(V4.LoadUnsafe(ref t))).Min();
-        }
-        double min = Math.Abs(span[0]);
-        for (int i = 1; i < span.Length; i++)
-            min = Math.Min(min, Math.Abs(span[i]));
-        return min;
     }
 
     /// <summary>Creates a diagonal matrix given its diagonal.</summary>
     /// <param name="diagonal">Values in the diagonal.</param>
     /// <returns>An array with its main diagonal initialized.</returns>
-    public static double[] CreateDiagonal(this DVector diagonal)
+    internal static double[] CreateDiagonal(this DVector diagonal)
     {
         int size = diagonal.Length, r = size + 1; ;
         double[] values = new double[size * size];
@@ -1258,7 +1322,7 @@ public static class Vec
     /// <summary>Creates an identity matrix given a size.</summary>
     /// <param name="size">Number of rows and columns.</param>
     /// <returns>An identity matrix with the requested size.</returns>
-    public static double[] CreateIdentity(int size)
+    internal static double[] CreateIdentity(int size)
     {
         double[] values = new double[size * size];
         int r = size + 1;
@@ -1273,14 +1337,14 @@ public static class Vec
     /// <param name="real">The real part.</param>
     /// <param name="imaginary">The imaginary part.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Deconstruct(this Complex complex, out double real, out double imaginary) =>
+    internal static void Deconstruct(this Complex complex, out double real, out double imaginary) =>
         (real, imaginary) = (complex.Real, complex.Imaginary);
 
     /// <summary>Pointwise division of a values by an integer.</summary>
     /// <param name="span">Span dividend.</param>
     /// <param name="divisor">Scalar divisor.</param>
     /// <returns>The pointwise quotient of the two arguments.</returns>
-    public static int[] Div(this Span<int> span, int divisor)
+    internal static int[] Div(this Span<int> span, int divisor)
     {
         int[] result = GC.AllocateUninitializedArray<int>(span.Length);
         ref int a = ref MM.GetReference(span);
@@ -1311,7 +1375,7 @@ public static class Vec
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>
     /// <returns><see langword="true"/> if both array has the same items.</returns>
-    public static bool Eqs(this Date[] array1, Date[] array2)
+    internal static bool Eqs(this Date[] array1, Date[] array2)
     {
         if (array1.Length != array2.Length)
             return false;
@@ -1351,7 +1415,7 @@ public static class Vec
     /// <param name="array1">First array operand.</param>
     /// <param name="array2">Second array operand.</param>
     /// <returns><see langword="true"/> if both array has the same items.</returns>
-    public static bool Eqs<T>(this T[] array1, T[] array2)
+    internal static bool Eqs<T>(this T[] array1, T[] array2)
         where T : IEquatable<T>, IEqualityOperators<T, T, bool>
     {
         if (array1.Length != array2.Length)
@@ -1392,7 +1456,7 @@ public static class Vec
     /// <param name="values">Array with values.</param>
     /// <returns>The item with the maximum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Max<T>(this Span<T> values) where T : INumber<T>, IMinMaxValue<T>
+    internal static T Max<T>(this Span<T> values) where T : INumber<T>, IMinMaxValue<T>
     {
         if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
         {
@@ -1425,7 +1489,7 @@ public static class Vec
     /// <param name="values">Array with values.</param>
     /// <returns>The item with the minimum value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Min<T>(this Span<T> values) where T : INumber<T>, IMinMaxValue<T>
+    internal static T Min<T>(this Span<T> values) where T : INumber<T>, IMinMaxValue<T>
     {
         if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
         {
@@ -1457,7 +1521,7 @@ public static class Vec
     /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to reverse.</param>
     /// <returns>An independent reversed copy.</returns>
-    public static T[] Reverse<T>(this T[] values) where T : struct
+    internal static T[] Reverse<T>(this T[] values) where T : struct
     {
         T[] result = (T[])values.Clone();
         Array.Reverse(result);
@@ -1468,7 +1532,7 @@ public static class Vec
     /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to sort.</param>
     /// <returns>A new array with sorted values.</returns>
-    public static T[] Sort<T>(this T[] values) where T : IComparable<T>
+    internal static T[] Sort<T>(this T[] values) where T : IComparable<T>
     {
         T[] result = (T[])values.Clone();
         Array.Sort(result);
@@ -1479,42 +1543,11 @@ public static class Vec
     /// <typeparam name="T">The type of the array.</typeparam>
     /// <param name="values">The array to sort.</param>
     /// <returns>A new array with sorted values.</returns>
-    public static T[] SortDescending<T>(this T[] values) where T : IComparable<T>
+    internal static T[] SortDescending<T>(this T[] values) where T : IComparable<T>
     {
         T[] result = (T[])values.Clone();
         Array.Sort(result, static (x, y) => y.CompareTo(x));
         return result;
-    }
-
-    /// <summary>Pointwise subtraction of a values from a scalar.</summary>
-    /// <typeparam name="T">The type of the spans.</typeparam>
-    /// <param name="scalar">Scalar minuend.</param>
-    /// <param name="span">Span subtrahend.</param>
-    /// <param name="target">Target memory for the operation.</param>
-    public static void Sub<T>(T scalar, Span<T> span, Span<T> target)
-        where T : INumberBase<T>
-    {
-        ref T p = ref MM.GetReference(span);
-        ref T q = ref MM.GetReference(target);
-        if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
-        {
-            Vector512<T> vec = V8.Create(scalar);
-            nuint t = (nuint)(target.Length - Vector512<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, i), ref q, i);
-            V8.StoreUnsafe(vec - V8.LoadUnsafe(ref p, t), ref q, t);
-        }
-        else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
-        {
-            Vector256<T> vec = V4.Create(scalar);
-            nuint t = (nuint)(target.Length - Vector256<T>.Count);
-            for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, i), ref q, i);
-            V4.StoreUnsafe(vec - V4.LoadUnsafe(ref p, t), ref q, t);
-        }
-        else
-            for (int i = 0; i < target.Length; i++)
-                Unsafe.Add(ref q, i) = scalar - Unsafe.Add(ref p, i);
     }
 
     /// <summary>Calculates the dot product of two spans.</summary>
@@ -1523,7 +1556,7 @@ public static class Vec
     /// <param name="span2">Second values operand.</param>
     /// <returns>The dot product of the vectors.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Dot(this Span<int> span1, Span<int> span2)
+    internal static int Dot(this Span<int> span1, Span<int> span2)
     {
         int sum = 0;
         ref int p = ref MM.GetReference(span1);
@@ -1549,17 +1582,6 @@ public static class Vec
     }
 
     /// <summary>In-place transposition of a square matrix.</summary>
-    /// <param name="rows">Number of rows.</param>
-    /// <param name="cols">Number of columns.</param>
-    /// <param name="data">A 1D-array with values.</param>
-    public unsafe static void Transpose(int rows, int cols, double[] data)
-    {
-        Contract.Requires(rows == cols);
-        fixed (double* a = data)
-            Transpose(a, rows);
-    }
-
-    /// <summary>In place transposition of a square matrix.</summary>
     /// <param name="a">Pointer to raw values.</param>
     /// <param name="size">The size of the matrix.</param>
     internal unsafe static void Transpose(double* a, int size)
@@ -1636,6 +1658,160 @@ public static class Vec
                     (a[col * size + row], b[col]) = (b[col], a[col * size + row]);
                 b += size;
             }
+        }
+    }
+}
+
+/// <summary>Implements public common matrix and vector operations.</summary>
+public static class MatrixExtensions
+{
+    /// <summary>Number of characters in a line.</summary>
+    public static int TERMINAL_COLUMNS { get; set; } = 80;
+
+    /// <summary>Gets a text representation of a matrix.</summary>
+    /// <param name="values">The values to be formatted.</param>
+    /// <param name="rowCount">Number of rows.</param>
+    /// <param name="colCount">Number of columns.</param>
+    /// <param name="formatter">Converts items to text.</param>
+    /// <param name="triangularity">Which part of the matrix is significative.</param>
+    /// <returns>A text representation of the matrix.</returns>
+    public static string ToString(
+        this Span<double> values,
+        int rowCount, int colCount,
+        Func<double, string> formatter, sbyte triangularity)
+    {
+        const int upperRows = 8, lowerRows = 4, minLeftColumns = 5, rightColumns = 2;
+
+        int upper = rowCount <= upperRows ? rowCount : upperRows;
+        int lower = rowCount <= upperRows
+            ? 0
+            : rowCount <= upperRows + lowerRows
+            ? rowCount - upperRows
+            : lowerRows;
+        bool rowEllipsis = rowCount > upper + lower;
+        int rows = rowEllipsis ? upper + lower + 1 : upper + lower;
+
+        int left = colCount <= minLeftColumns ? colCount : minLeftColumns;
+        int right = colCount <= minLeftColumns
+            ? 0
+            : colCount <= minLeftColumns + rightColumns
+            ? colCount - minLeftColumns
+            : rightColumns;
+
+        List<(int, string[])> columnsLeft = new(left);
+        for (int j = 0; j < left; j++)
+            columnsLeft.Add(FormatColumn(values, j, rows, upper, lower));
+
+        List<(int, string[])> columnsRight = new(right);
+        for (int j = 0; j < right; j++)
+            columnsRight.Add(FormatColumn(values, colCount - right + j, rows, upper, lower));
+
+        int chars = columnsLeft.Sum(t => t.Item1 + 2) + columnsRight.Sum(t => t.Item1 + 2);
+        for (int j = left; j < colCount - right; j++)
+        {
+            (int, string[]) candidate = FormatColumn(values, j, rows, upper, lower);
+            chars += candidate.Item1 + 2;
+            if (chars > TERMINAL_COLUMNS - 4)
+                break;
+            columnsLeft.Add(candidate);
+        }
+
+        int cols = columnsLeft.Count + columnsRight.Count;
+        bool colEllipsis = colCount > cols;
+        if (colEllipsis)
+            cols++;
+
+        string[,] array = new string[rows, cols];
+        int colIndex = 0;
+        foreach ((int, string[]) column in columnsLeft)
+        {
+            for (int i = 0; i < column.Item2.Length; i++)
+                array[i, colIndex] = column.Item2[i];
+            colIndex++;
+        }
+        int saveCol = colEllipsis ? colIndex++ : colIndex;
+        foreach ((int, string[]) column in columnsRight)
+        {
+            for (int i = 0; i < column.Item2.Length; i++)
+                array[i, colIndex] = column.Item2[i];
+            colIndex++;
+        }
+        if (colEllipsis)
+        {
+            colIndex = saveCol;
+            int rowIndex = 0;
+            if (triangularity == 0)
+            {
+                for (int row = 0; row < upper; row++)
+                    array[rowIndex++, colIndex] = "..";
+                if (rowEllipsis)
+                    array[rowIndex++, colIndex] = "..";
+                for (int row = rowCount - lower; row < rowCount; row++)
+                    array[rowIndex++, colIndex] = "..";
+            }
+            else
+            {
+                (_, string[] refCol) = triangularity < 0 ? columnsLeft[^1] : columnsRight[0];
+                for (int row = 0; row < upper; row++, rowIndex++)
+                    if (refCol[rowIndex] != "")
+                        array[rowIndex, colIndex] = "..";
+                if (rowEllipsis)
+                    if (triangularity < 0)
+                        rowIndex++;
+                    else
+                        array[rowIndex++, colIndex] = "..";
+                for (int row = rowCount - lower; row < rowCount; row++, rowIndex++)
+                    if (refCol[rowIndex] != "")
+                        array[rowIndex, colIndex] = "..";
+            }
+        }
+        return FormatStringArrayToString(array);
+
+        string Filter(double value, int row, int column) =>
+            triangularity switch
+            {
+                1 => row > column ? "" : formatter(value),
+                -1 => row < column ? "" : formatter(value),
+                _ => formatter(value)
+            };
+
+        (int, string[]) FormatColumn(Span<double> values, int column, int height, int upper, int lower)
+        {
+            string[] c = new string[height];
+            int index = 0;
+            for (int row = 0; row < upper; row++)
+                c[index++] = Filter(values[row * colCount + column], row, column);
+            if (rowEllipsis)
+                c[index++] = "";
+            for (int row = rowCount - lower; row < rowCount; row++)
+                c[index++] = Filter(values[row * colCount + column], row, column);
+            int w = c.Max(x => x.Length);
+            if (rowEllipsis)
+                if (triangularity == 0 ||
+                    triangularity < 0 && column <= upper ||
+                    triangularity > 0 && column >= upper)
+                    c[upper] = "..";
+                else
+                    c[upper] = "";
+            return (w, c);
+        }
+
+        static string FormatStringArrayToString(string[,] data)
+        {
+            int rows = data.GetLength(0), cols = data.GetLength(1);
+            Span<int> widths = stackalloc int[cols];
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                    widths[j] = Math.Max(widths[j], data[i, j]?.Length ?? 0);
+            StringBuilder sb = new();
+            for (int i = 0; i < rows; i++)
+            {
+                sb.Append(data[i, 0].PadLeft(widths[0]));
+                for (int j = 1; j < cols; j++)
+                    sb.Append("  ").Append((data[i, j] ?? "").PadLeft(widths[j]));
+                sb.AppendLine();
+            }
+            return sb.ToString();
         }
     }
 }

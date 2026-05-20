@@ -1,4 +1,6 @@
-﻿namespace Austra.Library;
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace Austra.Library;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
@@ -814,6 +816,19 @@ public readonly struct Matrix :
         return this;
     }
 
+    /// <summary>
+    /// In-place transposition of a square matrix.
+    /// </summary>
+    /// <exception cref="MatrixSizeException">When the matrix is not square.</exception>
+    public unsafe void InplaceSquareTranspose()
+    {
+        Contract.Requires(IsInitialized);
+        if (!IsSquare)
+            throw new MatrixSizeException();
+        fixed (double* a = values)
+            Vec.Transpose(a, Rows);
+    }
+
     /// <summary>Subtracts two matrices with the same size.</summary>
     /// <param name="m1">First matrix operand.</param>
     /// <param name="m2">Second matrix operand.</param>
@@ -890,7 +905,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
-        Vec.Sub(d, m.values, result);
+        m.values.Sub(result, d);
         return new(m.Rows, m.Cols, result);
     }
 

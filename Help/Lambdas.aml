@@ -66,9 +66,14 @@ prices.map(x => min(x, <markup><font color="Blue">1000</font></markup>))
         <para>Some methods require lambda arguments with more than one parameter. When a lambda requires two or more parameters, their names must be enclosed inside parenthesis, and must be separated by commas.</para>
         <para>That is the case of the <codeInline>zip</codeInline> method, from <link xlink:href="1800e13a-baf2-48f8-aefa-746082fe23df">series</link>, <link xlink:href="aae4328b-9ead-40dc-b407-54e8d0614cd5">vectors</link>, and <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">sequences</link>, that combines two data samples into one:</para>
         <code language="Austra">
-        aapl_prices.zip((x, y) => max(x, y))
+        aaa.zip(bbb, (x, y) => max(x, y))
         </code>
         <para><codeInline>zip</codeInline> can act on arguments with different lengths, so it only acts in the common part of both. It generates a new series, vector or sequence, and each item will be the combined value created by the lambda function. In the above example, it will be the maximum price for each common date.</para>
+        <para>You can also use a method name to replace a full lambda expression.</para>
+        <code language="Austra">
+aaa.zip(bbb, <markup><b><font color="DarkCyan">math::</font></b></markup>max) 
+aaa.zip(bbb, max)
+        </code>
       </content>
     </section>
 	  <section address="opfree">
@@ -131,7 +136,7 @@ reference it from our nested lambda function. This way, we avoid recalculating t
       <content>
       <para>Another kind of capture takes place when a lambda function is defined inside another lambda. This formula finds all prime numbers up to 100, and uses nested lambdas:</para>
       <code language="Austra">
-iseq(2, 100).filter(<markup><u><font color="DarkBlue"><b>x</b></font> =&gt; iseq(2, <font color="DarkBlue"><b>x</b></font> - 1).all(<font color="DarkRed"><b>div</b></font> => <font color="DarkBlue"><b>x</b></font> % <font color="DarkRed"><b>div</b></font> != 0)</u></markup>)
+iseq(<markup><font color="Blue">2</font></markup>, <markup><font color="Blue">100</font></markup>).filter(<markup><u><font color="DarkBlue"><b>x</b></font> =&gt; iseq(2, <font color="DarkBlue"><b>x</b></font> - <font color="Blue">1</font>).all(<font color="DarkRed"><b>div</b></font> => <font color="DarkBlue"><b>x</b></font> % <font color="DarkRed"><b>div</b></font> != <font color="Blue">0</font>)</u></markup>)
       </code>
 	  <alert class="note">
 		<para>The above code also uses <link xlink:href="d1757dd1-7bbd-4d90-88b9-cc034c5ad326">sequences</link> for generating a range or list of integers.</para>

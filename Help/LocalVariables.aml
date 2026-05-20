@@ -9,7 +9,7 @@
       <content>
         <para>The functional technique for declaring local variables in a formula is the <legacyBold>let</legacyBold> clause.</para>
         <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>lrandom(5),
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>lrandom(<markup><font color="Blue">5</font></markup>),
     m1 = m * m',
     c = m1.chol <markup><font color="RoyalBlue"><b>in</b></font></markup>
     (c * c' - m1).aMax
@@ -28,7 +28,7 @@ matrix difference.</para>
       <content>
         <para>When writing several statements in a script, <codeInline>let/in</codeInline> clauses are valid only for the statement they precede, but not for other statements:</para>
         <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>lrandom(5),
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>lrandom(<markup><font color="Blue">5</font></markup>),
     m1 = m * m',
     c = m1.chol <markup><b>in</b></markup>
     (c * c' - m1).aMax;
@@ -37,7 +37,7 @@ m
         </code>
         <para>If you need a local variable to be available for all statements that follow in a script, you must use a variant of <codeInline>let</codeInline> which does not terminate with an <codeInline>in</codeInline> keyword, but with a semicolon:</para>
         <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>lrandom(5);
+<markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>lrandom(<markup><font color="Blue">5</font></markup>);
 <markup><font color="DarkGreen">-- Now, "m" is available for the rest of the script.</font><br/></markup>
 <markup><font color="RoyalBlue"><b>let</b></font></markup> m1 = m * m',
     c = m1.chol <markup><font color="RoyalBlue"><b>in</b></font></markup>
@@ -56,8 +56,8 @@ m
       <content>
         <para>Functions can be defined in <codeInline>let</codeInline> clauses. For instance:</para>
         <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> = <markup><font color="RoyalBlue"><b>if</b></font></markup> a % b = 0 <markup><font color="RoyalBlue"><b>then</b></font></markup> b <markup><font color="RoyalBlue"><b>else</b></font></markup> mcd(b, a % b) <markup><font color="RoyalBlue"><b>in</b></font></markup>
-    mcd(80, 140)
+<markup><font color="RoyalBlue"><b>let</b></font></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> = <markup><font color="RoyalBlue"><b>if</b></font></markup> a % b = <markup><font color="Blue">0 </font><font color="RoyalBlue"><b>then</b></font></markup> b <markup><font color="RoyalBlue"><b>else</b></font></markup> mcd(b, a % b) <markup><font color="RoyalBlue"><b>in</b></font></markup>
+    mcd(<markup><font color="Blue">80</font></markup>, <markup><font color="Blue">140</font></markup>)
         </code>
         <para>In the above example, the function is defined in a <codeInline>let</codeInline>/<codeInline>in</codeInline> clause, but it could also be defined as a script-scoped local function.</para>
 		<alert class="note">
@@ -66,15 +66,15 @@ m
 		<para>Function definitions may have their own local variables, as in this variant of the above example:</para>
         <code language="Austra">
 <markup><font color="RoyalBlue"><b>let</b></font></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
-    <markup><font color="RoyalBlue"><b>let</b></font></markup> m = a % b <markup><font color="RoyalBlue"><b>in</b></font></markup> iff(m = 0, b, mcd(b, m)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
-        mcd(80, 140)
+    <markup><font color="RoyalBlue"><b>let</b></font></markup> m = a % b <markup><font color="RoyalBlue"><b>in</b></font></markup> iff(m = <markup><font color="Blue">0</font></markup>, b, mcd(b, m)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
+        mcd(<markup><font color="Blue">80</font></markup>, <markup><font color="Blue">140</font></markup>)
         </code>
         <para>This way, we save one evaluation of the remainder.</para>
         <para>Local functions may also be declared inside other functions. For instance, this code defines a function for the factorial, but uses an intermediate function that can be evaluated using tail recursion, for efficiency:</para>
         <code language="Austra">
 <markup><font color="RoyalBlue"><b>let</b></font></markup> fact(n: <markup><b>int</b></markup>) =
-    <markup><font color="RoyalBlue"><b>let</b></font></markup> f(n, acc: <markup><b>int</b></markup>): <markup><b>int</b></markup> = iff(n &lt;= 1, acc, f(n - 1, n * acc)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
-        f(n, 1);
+    <markup><font color="RoyalBlue"><b>let</b></font></markup> f(n, acc: <markup><b>int</b></markup>): <markup><b>int</b></markup> = iff(n &lt;= <markup><font color="Blue">1</font></markup>, acc, f(n - <markup><font color="Blue">1</font></markup>, n * acc)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
+        f(n, <markup><font color="Blue">1</font></markup>);
 fact(10);
         </code>
         <para>Please note that the <codeInline>in</codeInline> keyword applies to the right-side of the definition of <codeInline>factorial</codeInline>. The <codeInline>let</codeInline> clause that defines <codeInline>factorial</codeInline>, on the contrary, is a script-level clause, with no associated <codeInline>in</codeInline>.</para>

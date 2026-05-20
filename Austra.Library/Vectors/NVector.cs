@@ -391,7 +391,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        Vec.Sub(d, v.values, result);
+        v.values.Sub(result, d);
         return result;
     }
 

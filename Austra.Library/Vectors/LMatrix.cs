@@ -368,11 +368,11 @@ public readonly struct LMatrix :
             r = c;
         result[0] = d - m.values[0];    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            Vec.Sub(d, m.values.AsSpan(offset, row + 1), result.AsSpan(offset, row + 1));
+            m.values.AsSpan(offset, row + 1).Sub(result.AsSpan(offset, row + 1), d);
         if (m.Rows > c)
         {
             int c2 = c * c;
-            Vec.Sub(d, m.values.AsSpan(c2), result.AsSpan(c2));
+            m.values.AsSpan(c2).Sub(result.AsSpan(c2), d);
         }
         return new(m.Rows, m.Cols, result);
     }

@@ -36,7 +36,7 @@ public sealed partial class RootModel : Entity
     /// <summary>Creates a new instance of the root view-model.</summary>
     public RootModel()
     {
-        Vec.TERMINAL_COLUMNS = 160;
+        MatrixExtensions.TERMINAL_COLUMNS = 160;
         timer.Tick += (e, a) =>
         {
             ErrorText = "";
