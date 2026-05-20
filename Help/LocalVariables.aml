@@ -75,7 +75,7 @@ m
 <markup><font color="RoyalBlue"><b>let</b></font></markup> fact(n: <markup><b>int</b></markup>) =
     <markup><font color="RoyalBlue"><b>let</b></font></markup> f(n, acc: <markup><b>int</b></markup>): <markup><b>int</b></markup> = iff(n &lt;= <markup><font color="Blue">1</font></markup>, acc, f(n - <markup><font color="Blue">1</font></markup>, n * acc)) <markup><font color="RoyalBlue"><b>in</b></font></markup>
         f(n, <markup><font color="Blue">1</font></markup>);
-fact(10);
+fact(<markup><font color="Blue">10</font></markup>);
         </code>
         <para>Please note that the <codeInline>in</codeInline> keyword applies to the right-side of the definition of <codeInline>factorial</codeInline>. The <codeInline>let</codeInline> clause that defines <codeInline>factorial</codeInline>, on the contrary, is a script-level clause, with no associated <codeInline>in</codeInline>.</para>
       </content>

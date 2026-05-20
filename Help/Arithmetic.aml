@@ -379,7 +379,7 @@ sin(pi/<markup><font color="Blue">4</font></markup>) = sqrt(<markup><font color=
 		    </table>
 		    <para>The Newton-Raphson solver is a function accepting from three up to five arguments:</para>
 		    <code language="Austra">
-solve(x => sin(x) - 1, x => cos(x), 0, 1e-9, 100)
+solve(x => sin(x) - <markup><font color="Blue">1</font></markup>, x => cos(x), <markup><font color="Blue">1</font></markup>, <markup><font color="Blue">1e-9</font></markup>, <markup><font color="Blue">100</font></markup>)
 			</code>
 			<para>The first two arguments are lambda functions: one for the function we want to
 solve for a root, and the second for the first derivative of that function. Please note
@@ -393,11 +393,11 @@ maximum numbers of iterations, which by default is <codeInline>100</codeInline>.
 list of coefficients, either in a single vector or as a list of real values, and evaluates
 the polynomial at the supplied value:</para>
 		    <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> x1 = complex(-1, sqrt(2)), x2 = x1';
+<markup><font color="RoyalBlue"><b>let</b></font></markup> x1 = complex(<markup><font color="Blue">-1</font></markup>, sqrt(<markup><font color="Blue">2</font></markup>)), x2 = x1';
 <markup><font color="DarkGreen">-- 1, 2, 3 represents the polynomial x² + 2x + 3</font></markup>
-polyEval(x1, 1, 2, 3);
+polyEval(x1, <markup><font color="Blue">1</font></markup>, <markup><font color="Blue">2</font></markup>, <markup><font color="Blue">3</font></markup>);
 <markup><font color="DarkGreen">-- Coefficients can be grouped in a vector.</font></markup>
-polyEval(x2, [1, 2, 3]);
+polyEval(x2, [<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">2</font></markup>, <markup><font color="Blue">3</font></markup>]);
 			</code>
 			<para>The inverse of <codeInline>polyEval</codeInline> is the <codeInline>polySolve</codeInline> function. It takes either a vector or a list of reals and considers them as
 the coefficients of a polynomial. The first value is the coefficient of the highest
@@ -405,20 +405,20 @@ degree term. For instance, the vector <codeInline>[1, 2, 3, 4]</codeInline> stan
 polynomial, or when there are no available roots. The returned value is always a
 complex vector, even when all roots are real-valued. For instance:</para>
 		    <code language="Austra">
-polySolve(1, 2, 3)
+polySolve(<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">2</font></markup>, <markup><font color="Blue">3</font></markup>)
 			</code>
 			<para>You can check the accuracy of the answers from the solver using this trick:</para>
 		    <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> poly = [1, 2, 3] <markup><font color="RoyalBlue"><b>in</b></font></markup>
-  polySolve(poly).all(c => abs(polyEval(c, poly)) &lt;= 1e-15)
+<markup><font color="RoyalBlue"><b>let</b></font></markup> poly = [<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">2</font></markup>, <markup><font color="Blue">3</font></markup>] <markup><font color="RoyalBlue"><b>in</b></font></markup>
+  polySolve(poly).all(c => abs(polyEval(c, poly)) &lt;= <markup><font color="Blue">1e-15</font></markup>)
 			</code>
 			<para>The accuracy of the roots may vary according to the polynomial.</para>
 <para>A close relative of <codeInline>polyEval</codeInline> is <codeInline>polyDerivative</codeInline>, which calculates the derivative of a
 given polynomial at the specified argument:</para>
 		    <code language="Austra">
-<markup><font color="RoyalBlue"><b>let</b></font></markup> v = [1, 2, 3, 4];
-polyEval(2, v) = 26;
-polyDerivative(2, v) = 23
+<markup><font color="RoyalBlue"><b>let</b></font></markup> v = [<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">2</font></markup>, <markup><font color="Blue">3</font></markup>, <markup><font color="Blue">4</font></markup>];
+polyEval(<markup><font color="Blue">2</font></markup>, v) = <markup><font color="Blue">26</font></markup>;
+polyDerivative(<markup><font color="Blue">2</font></markup>, v) = <markup><font color="Blue">23</font></markup>
 			</code>
 <para><codeInline>polyDerivative</codeInline> can be useful when finding a real root for a polynomial using the
 Newton-Raphson algorithm.</para>
@@ -481,7 +481,7 @@ Newton-Raphson algorithm.</para>
 	    </table>
 	    <para>Though the value returned by the <codeInline>dow</codeInline> property of a date is technically an enumerative value, you still can compare it to a string constant:</para>
 	    <code language="Austra">
-[d &lt;- today..today+365 : d.dow = <markup><font color="DarkRed">"Saturday"</font></markup>]
+[d &lt;- today..today+<markup><font color="Blue">365</font></markup> : d.dow = <markup><font color="DarkRed">"Saturday"</font></markup>]
         </code>
         <para>All enumerative values in Austra allow this conversion.</para>
       </content>
@@ -563,7 +563,7 @@ enough to deserve it:</para>
 <markup><font color="DarkGreen">-- Using a column name from the header, if available.</font></markup>
 vec(curves, <markup><font color="DarkRed">"Discount factor"</font></markup>);
 <markup><font color="DarkGreen">-- Using the column position inside the file.</font></markup>
-vec(curves, 15); 
+vec(curves, <markup><font color="Blue">15</font></markup>); 
 			</code>
 			<para>The content of the file can be filtered using one of the two variants of the
 <codeInline>withFilter()</codeInline> method:</para>

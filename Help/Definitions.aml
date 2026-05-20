@@ -110,7 +110,7 @@ extProduct! = extProduct
       	<para>You can use local variables when defining a function:</para>
         <code language="Austra">
 <markup><font color="RoyalBlue"><b>def</b></font></markup> mcd(a, b: <markup><b>int</b></markup>): <markup><b>int</b></markup> =
-    <markup><font color="RoyalBlue"><b>let</b></font></markup> m = a % b <markup><font color="RoyalBlue"><b>in</b></font></markup> iff(m = 0, b, mcd(b, m))
+    <markup><font color="RoyalBlue"><b>let</b></font></markup> m = a % b <markup><font color="RoyalBlue"><b>in</b></font></markup> iff(m = <markup><font color="Blue">0</font></markup>, b, mcd(b, m))
         </code>
       	<para>And you can also define auxiliary functions inside a function definition:</para>
         <code language="Austra">
