@@ -136,21 +136,7 @@ public readonly struct EVD : IFormattable
                 e[i] = scale * g;
                 h -= f * g;
                 d[i - 1] = f - g;
-                m = 0;
-                if (Avx512F.IsSupported)
-                {
-                    V8d zero = V8d.Zero;
-                    for (int t = i & Simd.MASK8; m < t; m += V8d.Count)
-                        Avx512F.Store(e + m, zero);
-                }
-                else if (Avx.IsSupported)
-                {
-                    V4d zero = V4d.Zero;
-                    for (int t = i & Simd.MASK4; m < t; m += V4d.Count)
-                        Avx.Store(e + m, zero);
-                }
-                for (; m < i; m++)
-                    e[m] = 0.0;
+                new Span<double>(e, i).Clear();
 
                 // Apply similarity transformation to remaining columns.
                 double* ai = a + i * r, aj = a;
@@ -268,21 +254,7 @@ public readonly struct EVD : IFormattable
                     new Span<double>(d, i + 1).MulNegStore(g, new Span<double>(aj, i + 1));
                 }
             }
-            int kk = 0;
-            if (Avx512F.IsSupported)
-            {
-                V8d z = V8d.Zero;
-                for (int t = (i + 1) & Simd.MASK8; kk < t; kk += V8d.Count)
-                    Avx512F.Store(ai1 + kk, z);
-            }
-            else if (Avx.IsSupported)
-            {
-                V4d z = V4d.Zero;
-                for (int t = (i + 1) & Simd.MASK4; kk < t; kk += V4d.Count)
-                    Avx.Store(ai1 + kk, z);
-            }
-            for (; kk <= i; kk++)
-                ai1[kk] = 0.0;
+            new Span<double>(ai1, i + 1).Clear();
         }
 
         for (int j = 0, idx = r - 1; j < r; j++, idx += r)
