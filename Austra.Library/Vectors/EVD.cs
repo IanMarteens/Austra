@@ -13,9 +13,10 @@ public readonly struct EVD : IFormattable
     public unsafe EVD(Matrix m, bool isSymmetric)
     {
         int r = m.Rows;
-        double[] d = new double[r], e = new double[r];
+        double[] d, e = new double[r];
         if (isSymmetric)
         {
+            d = GC.AllocateUninitializedArray<double>(r);
             Vectors = m.Clone();
             fixed (double* pA = (double[])Vectors, pd = d, pe = e)
             {
@@ -31,6 +32,7 @@ public readonly struct EVD : IFormattable
         }
         else
         {
+            d = new double[r];
             Vectors = Matrix.Identity(r);
             fixed (double* pA = (double[])Vectors, pH = (double[])m.Transpose(),
                 pd = d, pe = e)
@@ -66,24 +68,7 @@ public readonly struct EVD : IFormattable
         for (int i = r - 1; i > 0; i--)
         {
             // Scale to avoid under/overflow.
-            double scale = 0.0;
-            int kk = 0;
-            if (Avx512F.IsSupported)
-            {
-                V8d sum = V8d.Zero;
-                for (int t = i & Simd.MASK8; kk < t; kk += V8d.Count)
-                    sum += V8.Abs(Avx512F.LoadVector512(d + kk));
-                scale = V8.Sum(sum);
-            }
-            else if (Avx.IsSupported)
-            {
-                V4d mask = V4.Create(-0d), sum = V4d.Zero;
-                for (int t = i & Simd.MASK4; kk < t; kk += V4d.Count)
-                    sum += Avx.AndNot(mask, Avx.LoadVector256(d + kk));
-                scale = V4.Sum(sum);
-            }
-            for (; kk < i; kk++)
-                scale += Abs(d[kk]);
+            double scale = SumAbs(new Span<double>(d, i));
             if (scale == 0.0)
             {
                 e[i] = d[i - 1];
@@ -428,25 +413,7 @@ public readonly struct EVD : IFormattable
         {
             int mm1O = (m - 1) * rank;
             // Scale column.
-            double scale = 0.0;
-            int ii = m;
-            if (Avx512F.IsSupported)
-            {
-                V8d sum = V8d.Zero;
-                for (int t = ((rank - m) & Simd.MASK8) + m; ii < t; ii += 4)
-                    sum += V8.Abs(Avx512F.LoadVector512(h + mm1O + ii));
-                scale = V8.Sum(sum);
-            }
-            else if (Avx.IsSupported)
-            {
-                V4d sum = V4d.Zero;
-                for (int t = ((rank - m) & Simd.MASK4) + m; ii < t; ii += 4)
-                    sum += V4.Abs(Avx.LoadVector256(h + mm1O + ii));
-                scale = V4.Sum(sum);
-            }
-            for (; ii < rank; ii++)
-                scale += Abs(h[mm1O + ii]);
-
+            double scale = SumAbs(new Span<double>(h + mm1O + m, rank - m));
             if (scale != 0.0)
             {
                 // Compute Householder transformation.
@@ -1072,6 +1039,30 @@ public readonly struct EVD : IFormattable
                 return ((xi + xr * d) / den, (-xr + xi * d) / den);
             }
         }
+    }
+
+    private static double SumAbs(Span<double> span)
+    {
+        double sum = 0.0;
+        ref double v = ref MM.GetReference(span);
+        int length = span.Length, i = 0;
+        if (Avx512F.IsSupported)
+        {
+            V8d vsum = V8d.Zero;
+            for (; i + V8d.Count <= length; i += V8d.Count)
+                vsum += V8.Abs(V8.LoadUnsafe(ref v, (nuint)i));
+            sum = V8.Sum(vsum);
+        }
+        else if (Avx.IsSupported)
+        {
+            V4d vsum = V4d.Zero;
+            for (; i + V4d.Count <= length; i += V4d.Count)
+                vsum += V4.Abs(V4.LoadUnsafe(ref v, (nuint)i));
+            sum = V4.Sum(vsum);
+        }
+        for (; i < length; i++)
+            sum += Abs(Add(ref v, i));
+        return sum;
     }
 
     /// <summary>Creates a block diagonal matrix from the eigenvalues.</summary>
