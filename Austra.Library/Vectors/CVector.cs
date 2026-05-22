@@ -413,12 +413,12 @@ public readonly struct CVector :
                 V8d vpr = V8.LoadUnsafe(ref pr, i), vpi = V8.LoadUnsafe(ref pi, i);
                 V8d vqr = V8.LoadUnsafe(ref qr, i), vqi = V8.LoadUnsafe(ref qi, i);
                 V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(vpi, vqi, vpr * vqr), ref vr, i);
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(vpi, vqr, vpr * vqi), ref vm, i);
+                V8.StoreUnsafe(V8.FusedMultiplyAdd(vpi, vqr, vpr * vqi), ref vm, i);
             }
             V8d wpr = V8.LoadUnsafe(ref pr, t), wpi = V8.LoadUnsafe(ref pi, t);
             V8d wqr = V8.LoadUnsafe(ref qr, t), wqi = V8.LoadUnsafe(ref qi, t);
             V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(wpi, wqi, wpr * wqr), ref vr, t);
-            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(wpi, wqr, wpr * wqi), ref vm, t);
+            V8.StoreUnsafe(V8.FusedMultiplyAdd(wpi, wqr, wpr * wqi), ref vm, t);
         }
         else if (V4.IsHardwareAccelerated && r.Length >= V4d.Count)
         {
@@ -428,12 +428,12 @@ public readonly struct CVector :
                 V4d vpr = V4.LoadUnsafe(ref pr, i), vpi = V4.LoadUnsafe(ref pi, i);
                 V4d vqr = V4.LoadUnsafe(ref qr, i), vqi = V4.LoadUnsafe(ref qi, i);
                 V4.StoreUnsafe((vpr * vqr).MultiplyAddNeg(vpi, vqi), ref vr, i);
-                V4.StoreUnsafe((vpr * vqi).MultiplyAdd(vpi, vqr), ref vm, i);
+                V4.StoreUnsafe(V4.FusedMultiplyAdd(vpi, vqr, vpr * vqi), ref vm, i);
             }
             V4d wpr = V4.LoadUnsafe(ref pr, t), wpi = V4.LoadUnsafe(ref pi, t);
             V4d wqr = V4.LoadUnsafe(ref qr, t), wqi = V4.LoadUnsafe(ref qi, t);
             V4.StoreUnsafe((wpr * wqr).MultiplyAddNeg(wpi, wqi), ref vr, t);
-            V4.StoreUnsafe((wpr * wqi).MultiplyAdd(wpi, wqr), ref vm, t);
+            V4.StoreUnsafe(V4.FusedMultiplyAdd(wpi, wqr, wpr * wqi), ref vm, t);
         }
         else
             for (int i = 0; i < r.Length; i++)
@@ -470,13 +470,13 @@ public readonly struct CVector :
                 V8d vpr = V8.LoadUnsafe(ref pr, i), vpi = V8.LoadUnsafe(ref pi, i);
                 V8d vqr = V8.LoadUnsafe(ref qr, i), vqi = V8.LoadUnsafe(ref qi, i);
                 V8d quot = V8d.One / Avx512F.FusedMultiplyAdd(vqi, vqi, vqr * vqr);
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(vpi, vqi, vpr * vqr) * quot, ref vr, i);
+                V8.StoreUnsafe(V8.FusedMultiplyAdd(vpi, vqi, vpr * vqr) * quot, ref vr, i);
                 V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(vpr, vqi, vpi * vqr) * quot, ref vm, i);
             }
             V8d wpr = V8.LoadUnsafe(ref pr, t), wpi = V8.LoadUnsafe(ref pi, t);
             V8d wqr = V8.LoadUnsafe(ref qr, t), wqi = V8.LoadUnsafe(ref qi, t);
             V8d wquot = V8d.One / Avx512F.FusedMultiplyAdd(wqi, wqi, wqr * wqr);
-            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(wpi, wqi, wpr * wqr) * wquot, ref vr, t);
+            V8.StoreUnsafe(V8.FusedMultiplyAdd(wpi, wqi, wpr * wqr) * wquot, ref vr, t);
             V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(wpr, wqi, wpi * wqr) * wquot, ref vm, t);
         }
         else if (V4.IsHardwareAccelerated && r.Length >= V4d.Count)
@@ -486,14 +486,14 @@ public readonly struct CVector :
             {
                 V4d vpr = V4.LoadUnsafe(ref pr, i), vpi = V4.LoadUnsafe(ref pi, i);
                 V4d vqr = V4.LoadUnsafe(ref qr, i), vqi = V4.LoadUnsafe(ref qi, i);
-                V4d quot = (vqr * vqr).MultiplyAdd(vqi, vqi);
-                V4.StoreUnsafe((vpr * vqr).MultiplyAdd(vpi, vqi) / quot, ref vr, i);
+                V4d quot = V4.FusedMultiplyAdd(vqi, vqi, vqr * vqr);
+                V4.StoreUnsafe(V4.FusedMultiplyAdd(vpi, vqi, vpr * vqr) / quot, ref vr, i);
                 V4.StoreUnsafe((vpi * vqr).MultiplyAddNeg(vpr, vqi) / quot, ref vm, i);
             }
             V4d wpr = V4.LoadUnsafe(ref pr, t), wpi = V4.LoadUnsafe(ref pi, t);
             V4d wqr = V4.LoadUnsafe(ref qr, t), wqi = V4.LoadUnsafe(ref qi, t);
-            V4d wquot = (wqr * wqr).MultiplyAdd(wqi, wqi);
-            V4.StoreUnsafe((wpr * wqr).MultiplyAdd(wpi, wqi) / wquot, ref vr, t);
+            V4d wquot = V4.FusedMultiplyAdd(wqi, wqi, wqr * wqr);
+            V4.StoreUnsafe(V4.FusedMultiplyAdd(wpi, wqi, wpr * wqr) / wquot, ref vr, t);
             V4.StoreUnsafe((wpi * wqr).MultiplyAddNeg(wpr, wqi) / wquot, ref vm, t);
         }
         else
@@ -531,7 +531,7 @@ public readonly struct CVector :
                 V8d vpi = V8.LoadUnsafe(ref Add(ref pi, i));
                 V8d vqr = V8.LoadUnsafe(ref Add(ref qr, i));
                 V8d vqi = V8.LoadUnsafe(ref Add(ref qi, i));
-                accRe += Avx512F.FusedMultiplyAdd(vpi, vqi, vpr * vqr);
+                accRe += V8.FusedMultiplyAdd(vpi, vqi, vpr * vqr);
                 accIm += Avx512F.FusedMultiplyAddNegated(vpr, vqi, vpi * vqr);
             }
             sumRe = V8.Sum(accRe);
@@ -546,7 +546,7 @@ public readonly struct CVector :
                 V4d vpi = V4.LoadUnsafe(ref Add(ref pi, i));
                 V4d vqr = V4.LoadUnsafe(ref Add(ref qr, i));
                 V4d vqi = V4.LoadUnsafe(ref Add(ref qi, i));
-                accRe += (vpr * vqr).MultiplyAdd(vpi, vqi);
+                accRe += V4.FusedMultiplyAdd(vpi, vqi, vpr * vqr);
                 accIm += (vpi * vqr).MultiplyAddNeg(vpr, vqi);
             }
             sumRe = V4.Sum(accRe);
@@ -575,7 +575,7 @@ public readonly struct CVector :
             for (nuint top = (nuint)Length & Simd.MASK8; i < top; i += (nuint)V8d.Count)
             {
                 V8d v = V8.LoadUnsafe(ref p, i), w = V8.LoadUnsafe(ref q, i);
-                acc += Avx512F.FusedMultiplyAdd(w, w, v * v);
+                acc += V8.FusedMultiplyAdd(w, w, v * v);
             }
             sum = V8.Sum(acc);
         }
@@ -585,7 +585,7 @@ public readonly struct CVector :
             for (nuint top = (nuint)Length & Simd.MASK4; i < top; i += (nuint)V4d.Count)
             {
                 V4d v = V4.LoadUnsafe(ref p, i), w = V4.LoadUnsafe(ref q, i);
-                acc += (v * v).MultiplyAdd(w, w);
+                acc += V4.FusedMultiplyAdd(w, w, v * v);
             }
             sum = V4.Sum(acc);
         }
@@ -621,7 +621,7 @@ public readonly struct CVector :
                 V4d vpr = V4.LoadUnsafe(ref Add(ref pr, i));
                 V4d vpi = V4.LoadUnsafe(ref Add(ref pi, i));
                 V4.StoreUnsafe((vpr * vr).MultiplyAddNeg(vpi, vi), ref Add(ref qr, i));
-                V4.StoreUnsafe((vpr * vi).MultiplyAdd(vpi, vr), ref Add(ref qi, i));
+                V4.StoreUnsafe(V4.FusedMultiplyAdd(vpi, vr, vpr * vi), ref Add(ref qi, i));
             }
         }
         for (; i < len; i++)
@@ -829,7 +829,7 @@ public readonly struct CVector :
             {
                 V4d v = V4.LoadUnsafe(ref Add(ref p, i));
                 V4d w = V4.LoadUnsafe(ref Add(ref q, i));
-                V4.StoreUnsafe(Avx.Sqrt((v * v).MultiplyAdd(w, w)), ref Add(ref r, i));
+                V4.StoreUnsafe(Avx.Sqrt(V4.FusedMultiplyAdd(w, w, v * v)), ref Add(ref r, i));
             }
         for (; i < n; i++)
             Add(ref r, i) = Sqrt(Add(ref p, i) * Add(ref p, i) + Add(ref q, i) * Add(ref q, i));
@@ -867,7 +867,7 @@ public readonly struct CVector :
             {
                 V4d v = V4.LoadUnsafe(ref Add(ref p, i));
                 V4d w = V4.LoadUnsafe(ref Add(ref q, i));
-                max = Avx.Max(max, Avx.Sqrt((v * v).MultiplyAdd(w, w)));
+                max = Avx.Max(max, Avx.Sqrt(V4.FusedMultiplyAdd(w, w, v * v)));
             }
             result = max.Max();
         }
@@ -895,7 +895,7 @@ public readonly struct CVector :
             {
                 V4d v = V4.LoadUnsafe(ref Add(ref p, i));
                 V4d w = V4.LoadUnsafe(ref Add(ref q, i));
-                min = Avx.Min(min, Avx.Sqrt((v * v).MultiplyAdd(w, w)));
+                min = Avx.Min(min, Avx.Sqrt(V4.FusedMultiplyAdd(w, w, v * v)));
             }
             result = min.Min();
         }

@@ -333,7 +333,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         if (Length != v.Length)
             throw new VectorLengthException();
-        values.Sub(v.values);
+        values.InplaceSub(v.values);
         return this;
     }
 
@@ -427,7 +427,7 @@ public readonly struct NVector :
     /// <returns>The same vector instance, with items negated.</returns>
     public NVector InplaceNegate()
     {
-        values.Neg();
+        values.InplaceNeg();
         return this;
     }
 

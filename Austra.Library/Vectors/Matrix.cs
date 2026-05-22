@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace Austra.Library;
+﻿namespace Austra.Library;
 
 /// <summary>Represents a dense rectangular matrix.</summary>
 /// <remarks>
@@ -804,7 +802,7 @@ public readonly struct Matrix :
         Contract.Requires(m.IsInitialized);
         if (Rows != m.Rows || Cols != m.Cols)
             throw new MatrixSizeException();
-        values.AsSpan().Sub(m.values);
+        values.AsSpan().InplaceSub(m.values);
         return this;
     }
 
@@ -812,7 +810,7 @@ public readonly struct Matrix :
     /// <returns>The same matrix instance, with items negated.</returns>
     public Matrix InplaceNegate()
     {
-        values.AsSpan().Neg();
+        values.AsSpan().InplaceNeg();
         return this;
     }
 
@@ -1022,7 +1020,8 @@ public readonly struct Matrix :
                     int j = 0;
                     if (Avx.IsSupported)
                         for (V4d vd = V4.Create(d); j < top; j += V4d.Count)
-                            Avx.Store(pc + j, Avx.LoadVector256(pc + j).MultiplyAdd(pb + j, vd));
+                            Avx.Store(pc + j, V4.FusedMultiplyAdd(
+                                Avx.LoadVector256(pb + j), vd, Avx.LoadVector256(pc + j)));
                     for (; j < p; j++)
                         pc[j] = FusedMultiplyAdd(pb[j], d, pc[j]);
                     pb += p;

@@ -358,7 +358,7 @@ public class Series<T> : IContainer<double>, ISafeIndexed where T : struct, ICom
                     V4d y = Avx.LoadVector256(pB + i) - meany;
                     vex += x;
                     vey += y;
-                    vexy = vexy.MultiplyAdd(x, y);
+                    vexy = V4.FusedMultiplyAdd(x, y, vexy);
                 }
                 ex = V4.Sum(vex);
                 ey = V4.Sum(vey);
@@ -594,7 +594,8 @@ public class Series<T> : IContainer<double>, ISafeIndexed where T : struct, ICom
                     {
                         V4d vec = V4.Create(w);
                         for (int top = size & Simd.MASK4; j < top; j += 4)
-                            Avx.Store(p + j, Avx.LoadVector256(p + j).MultiplyAdd(pa + j, vec));
+                            Avx.Store(p + j, V4.FusedMultiplyAdd(
+                                Avx.LoadVector256(pa + j), vec, Avx.LoadVector256(p + j)));
                     }
                     for (; j < size; j++)
                         p[j] += pa[j] * w;

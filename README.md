@@ -33,7 +33,8 @@ Full source code for both applications are included in [AUSTRA's repository](htt
 ## Acknowledgments
 
 I have used two libraries as a reference, and as a source of inspiration, for developing Austra: [AlgLib](https://www.alglib.net/) and [Math.NET](https://numerics.mathdotnet.com/). Regarding the algorithms, my main source of information has been these books:
-* Time Series Analysis, Forecasting and Control, by George Box, Gwilym Jenkins and Gregory Reinsel* Linear Algebra, by J.H. Wilkinson and C. Reinsch
+* Time Series Analysis, Forecasting and Control, by George Box, Gwilym Jenkins and Gregory Reinsel
+* Linear Algebra, by J.H. Wilkinson and C. Reinsch
 * Matrix Mathematics, by S.R. Garcia and Roger A. Horn
 
 Last, but not least, the main resource for AVX/AVX2 optimizations has been the excellent [Agner Fog's manuals](https://www.agner.org/optimize/).
@@ -46,7 +47,7 @@ The online Austra help covers both the library and the language, and is availabl
 ## Last changes
 
 * Support for 64 bits integers.
-* Date vectors. Time series arguments are available now as date vectors.
+* Date vectors and sequences. Time series arguments are available now as date vectors.
 * Functions! We have user-defined functions now. Even recursive ones.
 * Sequences of numeric values have been fully implemented, using the `seq`, `cseq` and `iseq` classes. They are very similar to C#'s `IEnumerable` and LINQ. They can be converted to vectors and can use a vector as their source of data.
 * Moving Average models can be generated and estimated.

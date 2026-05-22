@@ -355,7 +355,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         if (Length != v.Length)
             throw new VectorLengthException();
-        values.Sub(v.values);
+        values.InplaceSub(v.values);
         return this;
     }
 
@@ -375,7 +375,7 @@ public readonly struct DVector :
     /// <returns>The same vector instance, with items negated.</returns>
     public DVector InplaceNegate()
     {
-        values.Neg();
+        values.InplaceNeg();
         return this;
     }
 
@@ -488,7 +488,7 @@ public readonly struct DVector :
             do
             {
                 V8d v = V8.LoadUnsafe(ref p);
-                acc = Avx512F.FusedMultiplyAdd(v, v, acc);
+                acc = V8.FusedMultiplyAdd(v, v, acc);
                 p = ref Add(ref p, V8d.Count);
             }
             while (IsAddressLessThan(ref p, ref last));
@@ -501,7 +501,7 @@ public readonly struct DVector :
             do
             {
                 V4d v = V4.LoadUnsafe(ref p);
-                acc = acc.MultiplyAdd(v, v);
+                acc = V4.FusedMultiplyAdd(v, v, acc);
                 p = ref Add(ref p, V4d.Count);
             }
             while (IsAddressLessThan(ref p, ref last));
@@ -582,10 +582,10 @@ public readonly struct DVector :
         {
             nuint t = (nuint)(result.Length - V8d.Count);
             for (nuint i = 0; i < t; i += (nuint)V8d.Count)
-                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                V8.StoreUnsafe(V8.FusedMultiplyAdd(
                     V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), V8.LoadUnsafe(ref r, i)),
                     ref s, i);
-            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+            V8.StoreUnsafe(V8.FusedMultiplyAdd(
                 V8.LoadUnsafe(ref p, t), V8.LoadUnsafe(ref q, t), V8.LoadUnsafe(ref r, t)),
                 ref s, t);
         }
@@ -593,10 +593,12 @@ public readonly struct DVector :
         {
             nuint t = (nuint)(result.Length - V4d.Count);
             for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                V4.StoreUnsafe(V4.LoadUnsafe(ref r, i).MultiplyAdd(
-                    V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i)), ref s, i);
-            V4.StoreUnsafe(V4.LoadUnsafe(ref r, t).MultiplyAdd(
-                V4.LoadUnsafe(ref p, t), V4.LoadUnsafe(ref q, t)), ref s, t);
+                V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                    V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i), V4.LoadUnsafe(ref r, i)),
+                    ref s, i);
+            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                V4.LoadUnsafe(ref p, t), V4.LoadUnsafe(ref q, t), V4.LoadUnsafe(ref r, t)),
+                ref s, t);
         }
         else
             for (int i = 0; i < result.Length; i++)
@@ -1076,9 +1078,9 @@ public readonly struct DVector :
             {
                 V8d x = V8.LoadUnsafe(ref p, i) - avg, y = V8.LoadUnsafe(ref q, i) - avg;
                 vex += x; vey += y;
-                vexx = Avx512F.FusedMultiplyAdd(x, x, vexx);
-                vexy = Avx512F.FusedMultiplyAdd(x, y, vexy);
-                veyy = Avx512F.FusedMultiplyAdd(y, y, veyy);
+                vexx = V8.FusedMultiplyAdd(x, x, vexx);
+                vexy = V8.FusedMultiplyAdd(x, y, vexy);
+                veyy = V8.FusedMultiplyAdd(y, y, veyy);
             }
             ex = V8.Sum(vex); ey = V8.Sum(vey);
             exx = V8.Sum(vexx); exy = V8.Sum(vexy); eyy = V8.Sum(veyy);
@@ -1092,9 +1094,9 @@ public readonly struct DVector :
             {
                 V4d x = V4.LoadUnsafe(ref p, i) - avg, y = V4.LoadUnsafe(ref q, i) - avg;
                 vex += x; vey += y;
-                vexx = vexx.MultiplyAdd(x, x);
-                vexy = vexy.MultiplyAdd(x, y);
-                veyy = veyy.MultiplyAdd(y, y);
+                vexx = V4.FusedMultiplyAdd(x, x, vexx);
+                vexy = V4.FusedMultiplyAdd(x, y, vexy);
+                veyy = V4.FusedMultiplyAdd(y, y, veyy);
             }
             ex = V4.Sum(vex); ey = V4.Sum(vey);
             exx = V4.Sum(vexx); exy = V4.Sum(vexy); eyy = V4.Sum(veyy);

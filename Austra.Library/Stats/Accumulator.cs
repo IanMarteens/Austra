@@ -127,10 +127,10 @@ public sealed class Accumulator
                 V4d t1 = vt * vs * V4.Create((double)(c * (c - 3) + 3));
                 V4d t2 = vs * μ2 * v6;
                 V4d t3 = v4 * μ3;
-                μ4 = μ4.MultiplyAdd(t1 + t2 - t3, vs);
+                μ4 = V4.FusedMultiplyAdd(t1 + t2 - t3, vs, μ4);
                 t1 = vt * V4.Create((double)(c - 2));
                 t2 = μ2 * v3;
-                μ3 = μ3.MultiplyAdd(t1 - t2, vs);
+                μ3 = V4.FusedMultiplyAdd(t1 - t2, vs, μ3);
                 μ2 += vt;
             }
             var a01 = Mix(c,
@@ -209,9 +209,9 @@ public sealed class Accumulator
                     μ1 += vs;
                     V4d t1 = vt * vs * V4.Create((double)(c * (c - 3) + 3));
                     V4d t2 = vs * μ2 * v6, t3 = v4 * μ3;
-                    μ4 = μ4.MultiplyAdd(t1 + t2 - t3, vs);
+                    μ4 = V4.FusedMultiplyAdd(t1 + t2 - t3, vs, μ4);
                     t1 = vt * V4.Create((double)(c - 2)); t2 = μ2 * v3;
-                    μ3 = μ3.MultiplyAdd(t1 - t2, vs); μ2 += vt;
+                    μ3 = V4.FusedMultiplyAdd(t1 - t2, vs, μ3); μ2 += vt;
                 }
             }
             var a01 = Mix(c,

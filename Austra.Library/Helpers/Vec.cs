@@ -67,52 +67,6 @@ internal static class Vec
     extension(V4d x)
     {
         /// <summary>
-        /// Execute the best available version of a SIMD multiplication and addition.
-        /// </summary>
-        /// <remarks>Must only be called when <c>Avx.IsSupported</c>.</remarks>
-        /// <param name="multiplicand">The operation's multiplicand.</param>
-        /// <param name="multiplier">The operations's multiplier.</param>
-        /// <returns><c>multiplicand * multiplier + x</c></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal V4d MultiplyAdd(
-            V4d multiplicand,
-            V4d multiplier) =>
-            Fma.IsSupported
-                ? Fma.MultiplyAdd(multiplicand, multiplier, x)
-                : multiplicand * multiplier + x;
-
-        /// <summary>
-        /// Execute the best available version of a SIMD multiplication and addition.
-        /// </summary>
-        /// <remarks>This version takes also care of loading the multiplicand.</remarks>
-        /// <param name="multiplicand">The address if the multiplicand.</param>
-        /// <param name="multiplier">The operations's multiplier.</param>
-        /// <returns><c>multiplicand * multiplier + x</c></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe V4d MultiplyAdd(
-            double* multiplicand,
-            V4d multiplier) =>
-            Fma.IsSupported
-                ? Fma.MultiplyAdd(Avx.LoadVector256(multiplicand), multiplier, x)
-                : Avx.LoadVector256(multiplicand) * multiplier + x;
-
-        /// <summary>
-        /// Execute the best available version of a SIMD multiplication and addition.
-        /// </summary>
-        /// <remarks>This version takes also care of loading some of the vectors.</remarks>
-        /// <param name="multiplicand">The address of the multiplicand.</param>
-        /// <param name="multiplier">The address of the multiplier.</param>
-        /// <returns><c>multiplicand * multiplier + x</c></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe V4d MultiplyAdd(
-            double* multiplicand,
-            double* multiplier) =>
-            Fma.IsSupported
-                ? Fma.MultiplyAdd(
-                    Avx.LoadVector256(multiplicand), Avx.LoadVector256(multiplier), x)
-                : Avx.LoadVector256(multiplicand) * Avx.LoadVector256(multiplier) + x;
-
-        /// <summary>
         /// Execute the best available version of a SIMD multiplication and subtraction.
         /// </summary>
         /// <remarks>Must only be called when <c>Avx.IsSupported</c>.</remarks>
@@ -158,24 +112,6 @@ internal static class Vec
                 : x - Avx.LoadVector256(multiplicand) * multiplier;
     }
 
-    /// <summary>Extension block for <see cref="V8d"/>.</summary>
-    /// <param name="x">A double vector with eight elements.</param>
-    extension(V8d x)
-    {
-        /// <summary>
-        /// Execute the best available version of a SIMD multiplication and addition.
-        /// </summary>
-        /// <remarks>This version takes also care of loading the multiplicand.</remarks>
-        /// <param name="multiplicand">The address if the multiplicand.</param>
-        /// <param name="multiplier">The operations's multiplier.</param>
-        /// <returns><c>multiplicand * multiplier + summand</c></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe V8d MultiplyAdd(
-            double* multiplicand,
-            V8d multiplier) =>
-            Avx512F.FusedMultiplyAdd(Avx512F.LoadVector512(multiplicand), multiplier, x);
-    }
-
     /// <summary>Multiplies all the elements in a vector.</summary>
     /// <param name="v">A intrinsics vector with four or eight values.</param>
     /// <returns>The product of all items.</returns>
@@ -195,15 +131,15 @@ internal static class Vec
 
     /// <summary>Extension block for operations on generic numeric spans.</summary>
     /// <typeparam name="T">The type of the values elements.</typeparam>
-    /// <param name="span1">The values to operate on.</param>
-    extension<T>(Span<T> span1) where T : INumberBase<T>
+    /// <param name="values">The values to operate on.</param>
+    extension<T>(Span<T> values) where T : INumberBase<T>
     {
         /// <summary>Gets the absolute values of the array items.</summary>
         /// <returns>A new array with non-negative items.</returns>
         internal T[] Abs()
         {
-            T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
-            ref T p = ref MM.GetReference(span1);
+            T[] result = GC.AllocateUninitializedArray<T>(values.Length);
+            ref T p = ref MM.GetReference(values);
             ref T q = ref MM.GetArrayDataReference(result);
             if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
             {
@@ -226,12 +162,12 @@ internal static class Vec
         }
 
         /// <summary>Pointwise sum of two equally sized spans.</summary>
-        /// <param name="span2">Second operand.</param>
+        /// <param name="other">Second operand.</param>
         /// <param name="target">The values to receive the sum of the first two argument.</param>
-        internal void Add(Span<T> span2, Span<T> target)
+        internal void Add(Span<T> other, Span<T> target)
         {
-            ref T a = ref MM.GetReference(span1);
-            ref T b = ref MM.GetReference(span2);
+            ref T a = ref MM.GetReference(values);
+            ref T b = ref MM.GetReference(other);
             ref T c = ref MM.GetReference(target);
             if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
             {
@@ -253,21 +189,21 @@ internal static class Vec
         }
 
         /// <summary>Pointwise inplace sum of two equally sized spans.</summary>
-        /// <param name="span2">Second summand.</param>
-        internal void Add(Span<T> span2)
+        /// <param name="other">Second summand.</param>
+        internal void Add(Span<T> other)
         {
-            ref T a = ref MM.GetReference(span1);
-            ref T b = ref MM.GetReference(span2);
+            ref T a = ref MM.GetReference(values);
+            ref T b = ref MM.GetReference(other);
             nuint i = 0;
-            if (V8.IsHardwareAccelerated && span1.Length >= Vector512<T>.Count)
-                for (nuint top = (nuint)(span1.Length & ~(Vector512<T>.Count - 1));
+            if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
+                for (nuint top = (nuint)(values.Length & ~(Vector512<T>.Count - 1));
                     i < top; i += (nuint)Vector512<T>.Count)
                     V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) + V8.LoadUnsafe(ref b, i), ref a, i);
-            else if (V4.IsHardwareAccelerated && span1.Length >= Vector256<T>.Count)
-                for (nuint top = (nuint)(span1.Length & ~(Vector256<T>.Count - 1));
+            else if (V4.IsHardwareAccelerated && values.Length >= Vector256<T>.Count)
+                for (nuint top = (nuint)(values.Length & ~(Vector256<T>.Count - 1));
                     i < top; i += (nuint)Vector256<T>.Count)
                     V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) + V4.LoadUnsafe(ref b, i), ref a, i);
-            for (; i < (nuint)span1.Length; i++)
+            for (; i < (nuint)values.Length; i++)
                 Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
         }
 
@@ -276,7 +212,7 @@ internal static class Vec
         /// <param name="target">Target memory for the operation.</param>
         internal void Add(T scalar, Span<T> target)
         {
-            ref T p = ref MM.GetReference(span1);
+            ref T p = ref MM.GetReference(values);
             ref T q = ref MM.GetReference(target);
             if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
             {
@@ -300,13 +236,13 @@ internal static class Vec
         }
 
         /// <summary>Pointwise division of two equally sized spans.</summary>
-        /// <param name="span2">Span divisor.</param>
+        /// <param name="other">Span divisor.</param>
         /// <returns>The pointwise quotient of the two arguments.</returns>
-        internal T[] Div(Span<T> span2)
+        internal T[] Div(Span<T> other)
         {
-            T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
-            ref T a = ref MM.GetReference(span1);
-            ref T b = ref MM.GetReference(span2);
+            T[] result = GC.AllocateUninitializedArray<T>(values.Length);
+            ref T a = ref MM.GetReference(values);
+            ref T b = ref MM.GetReference(other);
             ref T c = ref MM.GetArrayDataReference(result);
             if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
             {
@@ -329,13 +265,13 @@ internal static class Vec
         }
 
         /// <summary>Pointwise multiplication of two equally sized spans.</summary>
-        /// <param name="span2">Span multiplier.</param>
+        /// <param name="other">Span multiplier.</param>
         /// <returns>The pointwise multiplication of the two arguments.</returns>
-        internal T[] Mul(Span<T> span2)
+        internal T[] Mul(Span<T> other)
         {
-            T[] result = GC.AllocateUninitializedArray<T>(span1.Length);
-            ref T a = ref MM.GetReference(span1);
-            ref T b = ref MM.GetReference(span2);
+            T[] result = GC.AllocateUninitializedArray<T>(values.Length);
+            ref T a = ref MM.GetReference(values);
+            ref T b = ref MM.GetReference(other);
             ref T c = ref MM.GetArrayDataReference(result);
             if (V8.IsHardwareAccelerated && result.Length >= Vector512<T>.Count)
             {
@@ -362,7 +298,7 @@ internal static class Vec
         /// <param name="target">Target memory for the operation.</param>
         internal void Mul(T scalar, Span<T> target)
         {
-            ref T p = ref MM.GetReference(span1);
+            ref T p = ref MM.GetReference(values);
             ref T q = ref MM.GetReference(target);
             if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
             {
@@ -389,7 +325,7 @@ internal static class Vec
         /// <param name="target">Target memory for the operation.</param>
         internal void Neg(Span<T> target)
         {
-            ref T p = ref MM.GetReference(span1);
+            ref T p = ref MM.GetReference(values);
             ref T q = ref MM.GetReference(target);
             if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
             {
@@ -411,19 +347,19 @@ internal static class Vec
         }
 
         /// <summary>Inplace pointwise negation of a values.</summary>
-        internal void Neg()
+        internal void InplaceNeg()
         {
-            ref T p = ref MM.GetReference(span1);
+            ref T p = ref MM.GetReference(values);
             int i = 0;
-            if (V8.IsHardwareAccelerated && span1.Length >= Vector512<T>.Count)
-                for (int top = span1.Length & ~(Vector512<T>.Count - 1); i < top;
+            if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
+                for (int top = values.Length & ~(Vector512<T>.Count - 1); i < top;
                     i += Vector512<T>.Count, p = ref Unsafe.Add(ref p, Vector512<T>.Count))
                     V8.StoreUnsafe(-V8.LoadUnsafe(ref p), ref p);
-            else if (V4.IsHardwareAccelerated && span1.Length >= Vector256<T>.Count)
-                for (int top = span1.Length & ~(Vector256<T>.Count - 1); i < top;
+            else if (V4.IsHardwareAccelerated && values.Length >= Vector256<T>.Count)
+                for (int top = values.Length & ~(Vector256<T>.Count - 1); i < top;
                     i += Vector256<T>.Count, p = ref Unsafe.Add(ref p, Vector256<T>.Count))
                     V4.StoreUnsafe(-V4.LoadUnsafe(ref p), ref p);
-            for (; i < span1.Length; i++, p = ref Unsafe.Add(ref p, 1))
+            for (; i < values.Length; i++, p = ref Unsafe.Add(ref p, 1))
                 p = -p;
         }
 
@@ -432,11 +368,11 @@ internal static class Vec
         internal T Product()
         {
             T result = T.MultiplicativeIdentity;
-            ref T p = ref MM.GetReference(span1);
-            ref T q = ref Unsafe.Add(ref p, span1.Length);
-            if (V8.IsHardwareAccelerated && span1.Length > Vector512<T>.Count)
+            ref T p = ref MM.GetReference(values);
+            ref T q = ref Unsafe.Add(ref p, values.Length);
+            if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
             {
-                ref T last = ref Unsafe.Add(ref p, span1.Length & ~(Vector512<T>.Count - 1));
+                ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector512<T>.Count - 1));
                 Vector512<T> prod = Vector512<T>.One;
                 do
                 {
@@ -446,9 +382,9 @@ internal static class Vec
                 while (IsAddressLessThan(ref p, ref last));
                 result = (prod.GetLower() * prod.GetUpper()).Product();
             }
-            else if (V4.IsHardwareAccelerated && span1.Length > Vector256<T>.Count)
+            else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
             {
-                ref T last = ref Unsafe.Add(ref p, span1.Length & ~(Vector256<T>.Count - 1));
+                ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector256<T>.Count - 1));
                 Vector256<T> prod = Vector256<T>.One;
                 do
                 {
@@ -464,12 +400,12 @@ internal static class Vec
         }
 
         /// <summary>Pointwise subtraction of two equally sized spans.</summary>
-        /// <param name="span2">Subtrahend.</param>
+        /// <param name="other">Subtrahend.</param>
         /// <param name="target">The values to receive the result.</param>
-        internal void Sub(Span<T> span2, Span<T> target)
+        internal void Sub(Span<T> other, Span<T> target)
         {
-            ref T a = ref MM.GetReference(span1);
-            ref T b = ref MM.GetReference(span2);
+            ref T a = ref MM.GetReference(values);
+            ref T b = ref MM.GetReference(other);
             ref T c = ref MM.GetReference(target);
             if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
             {
@@ -486,26 +422,26 @@ internal static class Vec
                 V4.StoreUnsafe(V4.LoadUnsafe(ref a, t) - V4.LoadUnsafe(ref b, t), ref c, t);
             }
             else
-                for (int i = 0; i < target.Length; i++)
+                for (int i = 0; i < target.Length; i++)         
                     Unsafe.Add(ref c, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
         }
 
         /// <summary>Pointwise inplace subtraction of two equally sized spans.</summary>
-        /// <param name="span2">Subtrahend.</param>
-        internal void Sub(Span<T> span2)
+        /// <param name="other">Subtrahend.</param>
+        internal void InplaceSub(Span<T> other)
         {
-            ref T a = ref MM.GetReference(span1);
-            ref T b = ref MM.GetReference(span2);
+            ref T a = ref MM.GetReference(values);
+            ref T b = ref MM.GetReference(other);
             nuint i = 0;
-            if (V8.IsHardwareAccelerated && span1.Length >= Vector512<T>.Count)
-                for (nuint top = (nuint)(span1.Length & ~(Vector512<T>.Count - 1)); i < top;
+            if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
+                for (nuint top = (nuint)(values.Length & ~(Vector512<T>.Count - 1)); i < top;
                     i += (nuint)Vector512<T>.Count)
                     V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) - V8.LoadUnsafe(ref b, i), ref a, i);
-            else if (V4.IsHardwareAccelerated && span1.Length >= Vector256<T>.Count)
-                for (nuint top = (nuint)(span1.Length & ~(Vector256<T>.Count - 1));
+            else if (V4.IsHardwareAccelerated && values.Length >= Vector256<T>.Count)
+                for (nuint top = (nuint)(values.Length & ~(Vector256<T>.Count - 1));
                     i < top; i += (nuint)Vector256<T>.Count)
                     V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) - V4.LoadUnsafe(ref b, i), ref a, i);
-            for (; i < (nuint)span1.Length; i++)
+            for (; i < (nuint)values.Length; i++)
                 Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
         }
 
@@ -514,7 +450,7 @@ internal static class Vec
         /// <param name="target">Target memory for the operation.</param>
         internal void Sub(T scalar, Span<T> target)
         {
-            ref T p = ref MM.GetReference(span1);
+            ref T p = ref MM.GetReference(values);
             ref T q = ref MM.GetReference(target);
             if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
             {
@@ -542,7 +478,7 @@ internal static class Vec
         /// <param name="scalar">Scalar minuend.</param>
         internal void Sub(Span<T> target, T scalar)
         {
-            ref T p = ref MM.GetReference(span1);
+            ref T p = ref MM.GetReference(values);
             ref T q = ref MM.GetReference(target);
             if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
             {
@@ -570,11 +506,11 @@ internal static class Vec
         internal T Sum()
         {
             T result = T.AdditiveIdentity;
-            ref T p = ref MM.GetReference(span1);
-            ref T q = ref Unsafe.Add(ref p, span1.Length);
-            if (V8.IsHardwareAccelerated && span1.Length > Vector512<T>.Count)
+            ref T p = ref MM.GetReference(values);
+            ref T q = ref Unsafe.Add(ref p, values.Length);
+            if (V8.IsHardwareAccelerated && values.Length > Vector512<T>.Count)
             {
-                ref T last = ref Unsafe.Add(ref p, span1.Length & ~(Vector512<T>.Count - 1));
+                ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector512<T>.Count - 1));
                 Vector512<T> sum = Vector512<T>.Zero;
                 do
                 {
@@ -584,9 +520,9 @@ internal static class Vec
                 while (IsAddressLessThan(ref p, ref last));
                 result = V8.Sum(sum);
             }
-            else if (V4.IsHardwareAccelerated && span1.Length > Vector256<T>.Count)
+            else if (V4.IsHardwareAccelerated && values.Length > Vector256<T>.Count)
             {
-                ref T last = ref Unsafe.Add(ref p, span1.Length & ~(Vector256<T>.Count - 1));
+                ref T last = ref Unsafe.Add(ref p, values.Length & ~(Vector256<T>.Count - 1));
                 Vector256<T> sum = Vector256<T>.Zero;
                 do
                 {
@@ -606,15 +542,15 @@ internal static class Vec
     /// Extension blocks for operations on generic spans with struct elements.
     /// </summary>
     /// <typeparam name="T">The type of the values elements.</typeparam>
-    /// <param name="span">The values to operate on.</param>
-    extension<T>(Span<T> span) where T : unmanaged, IEquatable<T>, IEqualityOperators<T, T, bool>
+    /// <param name="values">The values to operate on.</param>
+    extension<T>(Span<T> values) where T : unmanaged, IEquatable<T>, IEqualityOperators<T, T, bool>
     {
         /// <summary>Checks whether the predicate is satisfied by all items.</summary>
         /// <param name="predicate">The predicate to be checked.</param>
         /// <returns><see langword="true"/> if all items satisfy the predicate.</returns>
         internal bool All(Func<T, bool> predicate)
         {
-            foreach (T item in span)
+            foreach (T item in values)
                 if (!predicate(item))
                     return false;
             return true;
@@ -625,7 +561,7 @@ internal static class Vec
         /// <returns><see langword="true"/> if there exists a item satisfying the predicate.</returns>
         internal bool Any(Func<T, bool> predicate)
         {
-            foreach (T item in span)
+            foreach (T item in values)
                 if (predicate(item))
                     return true;
             return false;
@@ -635,19 +571,19 @@ internal static class Vec
         /// <remarks>Results are unordered.</remarks>
         /// <returns>A new array with distinct values.</returns>
         internal T[] Distinct() =>
-            [.. (HashSet<T>)[.. span]];
+            [.. (HashSet<T>)[.. values]];
 
         /// <summary>Creates a new array by filtering items with the given predicate.</summary>
         /// <param name="predicate">The predicate to evaluate.</param>
         /// <returns>A new array with the filtered items.</returns>
         internal T[] Filter(Func<T, bool> predicate)
         {
-            T[] newValues = GC.AllocateUninitializedArray<T>(span.Length);
+            T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
             int j = 0;
-            foreach (T value in span)
+            foreach (T value in values)
                 if (predicate(value))
                     newValues[j++] = value;
-            return j == 0 ? [] : j == span.Length ? span.ToArray() : newValues[..j];
+            return j == 0 ? [] : j == values.Length ? values.ToArray() : newValues[..j];
         }
 
         /// <summary>Creates a new vector by filtering and mapping at the same time.</summary>
@@ -657,12 +593,12 @@ internal static class Vec
         /// <returns>A new array with the filtered items.</returns>
         internal T[] FilterMap(Func<T, bool> predicate, Func<T, T> mapper)
         {
-            T[] newValues = GC.AllocateUninitializedArray<T>(span.Length);
+            T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
             int j = 0;
-            foreach (T value in span)
+            foreach (T value in values)
                 if (predicate(value))
                     newValues[j++] = mapper(value);
-            return j == 0 ? [] : j == span.Length ? span.ToArray() : newValues[..j];
+            return j == 0 ? [] : j == values.Length ? values.ToArray() : newValues[..j];
         }
 
         /// <summary>Returns the zero-based index of the first occurrence of a value.</summary>
@@ -670,8 +606,8 @@ internal static class Vec
         /// <returns>Index of the first ocurrence, if found; <c>-1</c>, otherwise.</returns>
         internal int IndexOf(T value)
         {
-            ref T p = ref MM.GetReference(span);
-            nuint size = (nuint)span.Length;
+            ref T p = ref MM.GetReference(values);
+            nuint size = (nuint)values.Length;
             if (V8.IsHardwareAccelerated && size >= (nuint)Vector512<T>.Count)
             {
                 Vector512<T> v = V8.Create(value);
@@ -716,8 +652,8 @@ internal static class Vec
         /// <returns>A new array with the transformed content.</returns>
         internal T[] Map(Func<T, T> mapper)
         {
-            T[] newValues = GC.AllocateUninitializedArray<T>(span.Length);
-            ref T p = ref MM.GetReference(span);
+            T[] newValues = GC.AllocateUninitializedArray<T>(values.Length);
+            ref T p = ref MM.GetReference(values);
             ref T q = ref MM.GetArrayDataReference(newValues);
             int i = 0;
             for (int size = newValues.Length & (~3); i < size; i += 4)
@@ -740,7 +676,7 @@ internal static class Vec
         /// <returns>The final synthesized value.</returns>
         internal T Reduce(T seed, Func<T, T, T> reducer)
         {
-            foreach (T item in span)
+            foreach (T item in values)
                 seed = reducer(seed, item);
             return seed;
         }
@@ -750,17 +686,17 @@ internal static class Vec
         /// <returns>A text representation of the vector.</returns>
         internal string ToString(Func<T, string> formatter)
         {
-            if (span.Length == 0)
+            if (values.Length == 0)
                 return "";
-            string[] cells = [.. span.ToArray().Select(formatter)];
+            string[] cells = [.. values.ToArray().Select(formatter)];
             int width = Math.Max(3, cells.Max(c => c.Length));
             int cols = (MatrixExtensions.TERMINAL_COLUMNS + 2) / (width + 2);
-            StringBuilder sb = new(Math.Min(span.Length / cols, 12) 
+            StringBuilder sb = new(Math.Min(values.Length / cols, 12) 
                 * (MatrixExtensions.TERMINAL_COLUMNS + 2));
             int offset = 0;
-            for (int row = 0; row < 11 && offset < span.Length; row++)
+            for (int row = 0; row < 11 && offset < values.Length; row++)
             {
-                for (int col = 0; col < cols && offset < span.Length; col++, offset++)
+                for (int col = 0; col < cols && offset < values.Length; col++, offset++)
                 {
                     sb.Append(cells[offset].PadLeft(width));
                     if (col < cols - 1)
@@ -768,10 +704,10 @@ internal static class Vec
                 }
                 sb.AppendLine();
             }
-            if (offset < span.Length)
+            if (offset < values.Length)
             {
-                if (span.Length - offset <= cols)
-                    for (int col = 0; col < cols && offset < span.Length; col++, offset++)
+                if (values.Length - offset <= cols)
+                    for (int col = 0; col < cols && offset < values.Length; col++, offset++)
                     {
                         sb.Append(cells[offset].PadLeft(width));
                         if (col < cols - 1)
@@ -800,9 +736,9 @@ internal static class Vec
         /// <returns>The combining function applied to each pair of items.</returns>
         internal T[] Zip(Span<T> other, Func<T, T, T> zipper)
         {
-            int len = Math.Min(span.Length, other.Length);
+            int len = Math.Min(values.Length, other.Length);
             T[] newValues = GC.AllocateUninitializedArray<T>(len);
-            ref T p = ref MM.GetReference(span);
+            ref T p = ref MM.GetReference(values);
             ref T q = ref MM.GetReference(other);
             ref T r = ref MM.GetArrayDataReference(newValues);
             for (int i = 0; i < len; i++)
@@ -927,8 +863,8 @@ internal static class Vec
                 V4d vWidth = V4.Create(width);
                 Random256 rnd256 = Random256.Shared;
                 for (nuint i = 0; i < t; i += (nuint)V4d.Count)
-                    V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref p, i);
-                V4.StoreUnsafe(rnd256.NextDouble().MultiplyAdd(vWidth, vOff), ref p, t);
+                    V4.StoreUnsafe(V4.FusedMultiplyAdd(vWidth, vOff, rnd256.NextDouble()), ref p, i);
+                V4.StoreUnsafe(V4.FusedMultiplyAdd(vWidth, vOff, rnd256.NextDouble()), ref p, t);
             }
             else
                 for (int i = 0; i < values.Length; i++)
@@ -1039,27 +975,27 @@ internal static class Vec
 
         /// <summary>Calculates the dot product of two spans.</summary>
         /// <remarks>The second values can be longer than the first values.</remarks>
-        /// <param name="span2">Second values operand.</param>
+        /// <param name="other">Second values operand.</param>
         /// <returns>The dot product of the vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal double Dot(Span<double> span2)
+        internal double Dot(Span<double> other)
         {
             double sum = 0;
             ref double p = ref MM.GetReference(values);
-            ref double q = ref MM.GetReference(span2);
+            ref double q = ref MM.GetReference(other);
             nuint i = 0;
-            if (V8.IsHardwareAccelerated && Avx512F.IsSupported)
+            if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
             {
                 V8d acc = V8d.Zero;
                 for (nuint top = (nuint)values.Length & Simd.MASK8; i < top; i += (nuint)V8d.Count)
-                    acc = Avx512F.FusedMultiplyAdd(V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), acc);
+                    acc = V8.FusedMultiplyAdd(V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), acc);
                 sum = V8.Sum(acc);
             }
-            else if (V4.IsHardwareAccelerated)
+            else if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
             {
                 V4d acc = V4d.Zero;
                 for (nuint top = (nuint)values.Length & Simd.MASK4; i < top; i += (nuint)V4d.Count)
-                    acc = acc.MultiplyAdd(V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i));
+                    acc = V4.FusedMultiplyAdd(V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i), acc);
                 sum = V4.Sum(acc);
             }
             for (int j = (int)i; j < values.Length; j++)
@@ -1096,13 +1032,13 @@ internal static class Vec
                         nuint j = 0;
                         if (Avx512F.IsSupported)
                             for (V8d vd = V8.Create(d); j < top8; j += (nuint)V8d.Count)
-                                V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                V8.StoreUnsafe(V8.FusedMultiplyAdd(
                                     V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref c, j)),
                                     ref c, j);
                         if (Avx.IsSupported)
                             for (V4d vd = V4.Create(d); j < top4; j += (nuint)V4d.Count)
-                                V4.StoreUnsafe(V4.LoadUnsafe(ref c, j).MultiplyAdd(
-                                    V4.LoadUnsafe(ref pb, j), vd),
+                                V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                    V4.LoadUnsafe(ref pb, j), vd, V4.LoadUnsafe(ref c, j)),
                                     ref c, j);
                         for (; j < (nuint)p; j++)
                             Unsafe.Add(ref c, j) = FusedMultiplyAdd(
@@ -1149,17 +1085,17 @@ internal static class Vec
                                     else if (Avx.IsSupported)
                                         for (V4d vd = V4.Create(d); j < top; j += 16)
                                         {
-                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j)
-                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j), vd),
+                                            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                                V4.LoadUnsafe(ref pb, j), vd, V4.LoadUnsafe(ref pc, j)),
                                                 ref pc, j);
-                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 4)
-                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 4), vd),
+                                            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                                V4.LoadUnsafe(ref pb, j + 4), vd, V4.LoadUnsafe(ref pc, j + 4)),
                                                 ref pc, j + 4);
-                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 8)
-                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 8), vd),
+                                            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                                V4.LoadUnsafe(ref pb, j + 8), vd, V4.LoadUnsafe(ref pc, j + 8)),
                                                 ref pc, j + 8);
-                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 12)
-                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 12), vd),
+                                            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                                V4.LoadUnsafe(ref pb, j + 12), vd, V4.LoadUnsafe(ref pc, j + 12)),
                                                 ref pc, j + 12);
                                         }
                                     for (; j < topj; j++)
@@ -1198,25 +1134,25 @@ internal static class Vec
                                         {
                                             V8d op1 = V8.LoadUnsafe(ref pb, j);
                                             V8d op2 = V8.LoadUnsafe(ref pb, j + 8);
-                                            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                            V8.StoreUnsafe(V8.FusedMultiplyAdd(
                                                 op1, vd, V8.LoadUnsafe(ref pc, j)), ref pc, j);
-                                            V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                                            V8.StoreUnsafe(V8.FusedMultiplyAdd(
                                                 op2, vd, V8.LoadUnsafe(ref pc, j + 8)), ref pc, j + 8);
                                         }
                                     if (Avx.IsSupported)
                                         for (var vd = V4.Create(d); j < top; j += 16)
                                         {
-                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j)
-                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j), vd),
+                                            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                                V4.LoadUnsafe(ref pb, j), vd, V4.LoadUnsafe(ref pc, j)),
                                                 ref pc, j);
-                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 4)
-                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 4), vd),
+                                            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                                V4.LoadUnsafe(ref pb, j + 4), vd, V4.LoadUnsafe(ref pc, j + 4)),
                                                 ref pc, j + 4);
-                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 8)
-                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 8), vd),
+                                            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                                V4.LoadUnsafe(ref pb, j + 8), vd, V4.LoadUnsafe(ref pc, j + 8)),
                                                 ref pc, j + 8);
-                                            V4.StoreUnsafe(V4.LoadUnsafe(ref pc, j + 12)
-                                                .MultiplyAdd(V4.LoadUnsafe(ref pb, j + 12), vd),
+                                            V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                                                V4.LoadUnsafe(ref pb, j + 12), vd, V4.LoadUnsafe(ref pc, j + 12)),
                                                 ref pc, j + 12);
                                         }
                                     for (; j < topj; j++)
@@ -1254,8 +1190,8 @@ internal static class Vec
             {
                 V4d vec = V4.Create(d);
                 for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
-                    V4.StoreUnsafe(V4.LoadUnsafe(ref q, j)
-                        .MultiplyAdd(V4.LoadUnsafe(ref p, j), vec), ref q, j);
+                    V4.StoreUnsafe(V4.FusedMultiplyAdd(
+                        V4.LoadUnsafe(ref p, j), vec, V4.LoadUnsafe(ref q, j)), ref q, j);
             }
             for (; j < c; j++)
                 Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), d, Unsafe.Add(ref q, j));
@@ -1273,14 +1209,14 @@ internal static class Vec
             ref double q = ref MM.GetReference(target);
 
             nuint j = 0, c = (nuint)target.Length;
-            if (Avx512F.IsSupported)
+            if (Avx512F.IsSupported && c >= (nuint)V8d.Count)
             {
                 V8d vec = V8.Create(d);
                 for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
                     V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(
                         V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
             }
-            else if (Avx.IsSupported)
+            else if (Avx.IsSupported && c >= (nuint)V4d.Count)
             {
                 V4d vec = V4.Create(d);
                 for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
@@ -1289,6 +1225,33 @@ internal static class Vec
             }
             for (; j < c; j++)
                 Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), -d, Unsafe.Add(ref q, j));
+        }
+
+        /// <summary>Computes the sum of absolute values.</summary>
+        /// <returns>The sum of absolute values.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal double SumAbs()
+        {
+            double sum = 0.0;
+            ref double v = ref MM.GetReference(values);
+            int length = values.Length, i = 0;
+            if (V8.IsHardwareAccelerated && length >= V8d.Count)
+            {
+                V8d vsum = V8d.Zero;
+                for (; i + V8d.Count <= length; i += V8d.Count)
+                    vsum += V8.Abs(V8.LoadUnsafe(ref v, (nuint)i));
+                sum = V8.Sum(vsum);
+            }
+            else if (V4.IsHardwareAccelerated)
+            {
+                V4d vsum = V4d.Zero;
+                for (; i + V4d.Count <= length; i += V4d.Count)
+                    vsum += V4.Abs(V4.LoadUnsafe(ref v, (nuint)i));
+                sum = V4.Sum(vsum);
+            }
+            for (; i < length; i++)
+                sum += Math.Abs(Unsafe.Add(ref v, i));
+            return sum;
         }
 
         /// <summary>Calculates the trace of a 1D-array.</summary>
