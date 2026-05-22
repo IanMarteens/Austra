@@ -13,79 +13,80 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
     /// <param name="cholesky">Contains a full or partial decomposition.</param>
     /// <returns><see langword="true"/> when successful.</returns>
     [SkipLocalsInit]
-    internal unsafe static bool TryDecompose(Matrix matrix, out Cholesky cholesky)
+    internal static bool TryDecompose(Matrix matrix, out Cholesky cholesky)
     {
         int n = matrix.Rows;
         cholesky = new(new(n));
-        fixed (double* pS = (double[])matrix, pD = (double[])cholesky.L)
+        // Allocate a buffer.
+        Span<double> tmp = stackalloc double[n + n];
+        ref double pS = ref MM.GetArrayDataReference((double[])matrix);
+        ref double pD = ref MM.GetArrayDataReference((double[])cholesky.L);
+        ref double tmpRef = ref MM.GetReference(tmp);
+        // First column is special.
+        double ajj = pS;
+        if (ajj <= 0)
         {
-            // Allocate a buffer.
-            double* tmp = stackalloc double[n + n];
-            // First column is special.
-            double ajj = *pS;
+            pD = double.NaN;
+            return false;
+        }
+        pD = ajj = Sqrt(ajj);
+        double r = 1 / ajj;
+        int rows = n--, max = n * rows;
+        for (int i = rows; i <= max; i += rows)
+            Add(ref pD, i) = Add(ref pS, i) * r;
+        for (int j = 1; j <= n; j++)
+        {
+            // Compute the diagonal cell.
+            ref double pDj = ref Add(ref pD, j * rows);
+            double v = 0.0;
+            int m = 0;
+            if (V8.IsHardwareAccelerated && m >= V8d.Count)
+            {
+                V8d acc = V8d.Zero;
+                for (int top = j & Simd.MASK8; m < top; m += V8d.Count)
+                {
+                    V8d vec = V8.LoadUnsafe(ref pDj, (nuint)m);
+                    acc = V8.FusedMultiplyAdd(vec, vec, acc);
+                }
+                v = V8.Sum(acc);
+            }
+            else if (V4.IsHardwareAccelerated && m >= V4d.Count)
+            {
+                V4d acc = V4d.Zero;
+                for (int top = j & Simd.MASK4; m < top; m += V4d.Count)
+                {
+                    V4d vec = V4.LoadUnsafe(ref pDj, (nuint)m);
+                    acc = V4.FusedMultiplyAdd(vec, vec, acc);
+                }
+                v = V4.Sum(acc);
+            }
+            for (; m < j; m++)
+            {
+                double a = Add(ref pDj, m);
+                v += a * a;
+            }
+            ajj = Add(ref pS, j * rows + j) - v;
             if (ajj <= 0)
             {
-                *pD = double.NaN;
+                Add(ref pDj, j) = double.NaN;
                 return false;
             }
-            *pD = ajj = Sqrt(ajj);
-            double r = 1 / ajj;
-            int rows = n--, max = n * rows;
-            for (int i = rows; i <= max; i += rows)
-                pD[i] = pS[i] * r;
-            for (int j = 1; j <= n; j++)
+            Add(ref pDj, j) = ajj = Sqrt(ajj);
+            // Compute the other cells of column J.
+            if (j < n)
             {
-                // Compute the diagonal cell.
-                double* pDj = pD + j * rows;
-                double v = 0.0;
-                int m = 0;
-                if (Avx512F.IsSupported)
+                r = 1 / ajj;
+                CopyBlockUnaligned(
+                    ref As<double, byte>(ref tmpRef),
+                    ref As<double, byte>(ref pDj),
+                    (uint)(sizeof(double) * j));
+                for (int i = j; i < n; i++)
                 {
-                    V8d acc = V8d.Zero;
-                    for (int top = j & Simd.MASK8; m < top; m += V8d.Count)
-                    {
-                        V8d vec = Avx512F.LoadVector512(pDj + m);
-                        acc = V8.FusedMultiplyAdd(vec, vec, acc);
-                    }
-                    v = V8.Sum(acc);
+                    ref double pDi = ref Add(ref pD, (i + 1) * rows);
+                    tmp[i] = MM.CreateSpan(ref pDi, j).Dot(MM.CreateSpan(ref tmpRef, j));
                 }
-                else if (Avx.IsSupported)
-                {
-                    V4d acc = V4d.Zero;
-                    for (int top = j & Simd.MASK4; m < top; m += V4d.Count)
-                    {
-                        V4d vec = Avx.LoadVector256(pDj + m);
-                        acc = V4.FusedMultiplyAdd(vec, vec, acc);
-                    }
-                    v = V4.Sum(acc);
-                }
-                for (; m < j; m++)
-                {
-                    double a = pDj[m];
-                    v += a * a;
-                }
-                ajj = pS[j * rows + j] - v;
-                if (ajj <= 0)
-                {
-                    pDj[j] = double.NaN;
-                    return false;
-                }
-                pDj[j] = ajj = Sqrt(ajj);
-
-                // Compute the other cells of column J.
-                if (j < n)
-                {
-                    r = 1 / ajj;
-                    Buffer.MemoryCopy(
-                        pDj, tmp, sizeof(double) * j, sizeof(double) * j);
-                    for (int i = j; i < n; i++)
-                    {
-                        double* pDi = pD + (i + 1) * rows;
-                        tmp[i] = new Span<double>(pDi, j).Dot(new Span<double>(tmp, j));
-                    }
-                    for (int i = j, idx = (j + 1) * rows + j; i < n; i++, idx += rows)
-                        pD[idx] = (pS[idx] - tmp[i]) * r;
-                }
+                for (int i = j, idx = (j + 1) * rows + j; i < n; i++, idx += rows)
+                    Add(ref pD, idx) = (Add(ref pS, idx) - tmp[i]) * r;
             }
         }
         return true;

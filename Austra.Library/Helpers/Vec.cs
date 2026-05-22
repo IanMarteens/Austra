@@ -95,21 +95,6 @@ internal static class Vec
             Fma.IsSupported
                 ? Fma.MultiplyAddNegated(multiplicand, multiplier, x)
                 : x - multiplicand * multiplier;
-
-        /// <summary>
-        /// Execute the best available version of a SIMD multiplication and subtraction.
-        /// </summary>
-        /// <remarks>This version takes also care of loading the multiplicand.</remarks>
-        /// <param name="multiplicand">The address of the multiplicand.</param>
-        /// <param name="multiplier">The operations's multiplier.</param>
-        /// <returns><c>x - multiplicand * multiplier</c></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe V4d MultiplyAddNeg(
-            double* multiplicand,
-            V4d multiplier) =>
-            Fma.IsSupported
-                ? Fma.MultiplyAddNegated(Avx.LoadVector256(multiplicand), multiplier, x)
-                : x - Avx.LoadVector256(multiplicand) * multiplier;
     }
 
     /// <summary>Multiplies all the elements in a vector.</summary>
@@ -1179,14 +1164,14 @@ internal static class Vec
             ref double q = ref MM.GetReference(target);
 
             nuint j = 0, c = (nuint)target.Length;
-            if (Avx512F.IsSupported)
+            if (V8.IsHardwareAccelerated)
             {
                 V8d vec = V8.Create(d);
                 for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
-                    V8.StoreUnsafe(Avx512F.FusedMultiplyAdd(
+                    V8.StoreUnsafe(V8.FusedMultiplyAdd(
                         V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
             }
-            else if (Avx.IsSupported)
+            else if (V4.IsHardwareAccelerated)
             {
                 V4d vec = V4.Create(d);
                 for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)

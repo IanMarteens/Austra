@@ -472,7 +472,7 @@ public readonly struct EVD : IFormattable
                         V4d vf = V4.Create(f);
                         for (int t = ((rank - m) & Simd.MASK4) + m; i < t; i += V4d.Count)
                             Avx.Store(h + jO + i,
-                                Avx.LoadVector256(h + jO + i).MultiplyAddNeg(ort + i, vf));
+                                Avx.LoadVector256(h + jO + i).MultiplyAddNeg(Avx.LoadVector256(ort + i), vf));
                     }
                     for (; i < rank; i++)
                         h[jO + i] -= f * ort[i];
