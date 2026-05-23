@@ -290,7 +290,7 @@ public readonly struct DateVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         Date[] result = GC.AllocateUninitializedArray<Date>(v.Length);
-        Cast<int>(v.values).Sub(d, Cast<int>(result));
+        Cast<int>(v.values).Add(-d, Cast<int>(result));
         return result;
     }
 
@@ -303,7 +303,7 @@ public readonly struct DateVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        Cast<int>(v.values).Sub((int)(uint)d, result);
+        Cast<int>(v.values).Add(-(int)(uint)d, result);
         return result;
     }
 

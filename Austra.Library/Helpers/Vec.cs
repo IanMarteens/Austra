@@ -192,7 +192,7 @@ internal static class Vec
                 Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) + Unsafe.Add(ref b, i);
         }
 
-        /// <summary>Pointwise addition of a scalar to a values.</summary>
+        /// <summary>Pointwise addition of a scalar to values.</summary>
         /// <param name="scalar">Scalar summand.</param>
         /// <param name="target">Target memory for the operation.</param>
         internal void Add(T scalar, Span<T> target)
@@ -428,34 +428,6 @@ internal static class Vec
                     V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) - V4.LoadUnsafe(ref b, i), ref a, i);
             for (; i < (nuint)values.Length; i++)
                 Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
-        }
-
-        /// <summary>Pointwise subtraction of a scalar from a values.</summary>
-        /// <param name="scalar">Scalar subtrahend.</param>
-        /// <param name="target">Target memory for the operation.</param>
-        internal void Sub(T scalar, Span<T> target)
-        {
-            ref T p = ref MM.GetReference(values);
-            ref T q = ref MM.GetReference(target);
-            if (V8.IsHardwareAccelerated && target.Length >= Vector512<T>.Count)
-            {
-                Vector512<T> vec = V8.Create(scalar);
-                nuint t = (nuint)(target.Length - Vector512<T>.Count);
-                for (nuint i = 0; i < t; i += (nuint)Vector512<T>.Count)
-                    V8.StoreUnsafe(V8.LoadUnsafe(ref p, i) - vec, ref q, i);
-                V8.StoreUnsafe(V8.LoadUnsafe(ref p, t) - vec, ref q, t);
-            }
-            else if (V4.IsHardwareAccelerated && target.Length >= Vector256<T>.Count)
-            {
-                Vector256<T> vec = V4.Create(scalar);
-                nuint t = (nuint)(target.Length - Vector256<T>.Count);
-                for (nuint i = 0; i < t; i += (nuint)Vector256<T>.Count)
-                    V4.StoreUnsafe(V4.LoadUnsafe(ref p, i) - vec, ref q, i);
-                V4.StoreUnsafe(V4.LoadUnsafe(ref p, t) - vec, ref q, t);
-            }
-            else
-                for (int i = 0; i < target.Length; i++)
-                    Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) - scalar;
         }
 
         /// <summary>Pointwise subtraction of values from a scalar.</summary>
@@ -1153,8 +1125,9 @@ internal static class Vec
         }
 
         /// <summary>
-        /// Multiplies a values by a scalar and sums the result to a memory location.
+        /// Multiplies values by a scalar and sums the result to a memory location.
         /// </summary>
+        /// <remarks><c>target += values * d</c></remarks>
         /// <param name="d">Scale factor.</param>
         /// <param name="target">The target memory of the whole operation.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1164,14 +1137,14 @@ internal static class Vec
             ref double q = ref MM.GetReference(target);
 
             nuint j = 0, c = (nuint)target.Length;
-            if (V8.IsHardwareAccelerated)
+            if (V8.IsHardwareAccelerated && c >= (nuint)V8d.Count)
             {
                 V8d vec = V8.Create(d);
                 for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
                     V8.StoreUnsafe(V8.FusedMultiplyAdd(
                         V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
             }
-            else if (V4.IsHardwareAccelerated)
+            else if (V4.IsHardwareAccelerated && c >= (nuint)V4d.Count)
             {
                 V4d vec = V4.Create(d);
                 for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
@@ -1180,36 +1153,6 @@ internal static class Vec
             }
             for (; j < c; j++)
                 Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), d, Unsafe.Add(ref q, j));
-        }
-
-        /// <summary>
-        /// Multiplies a values by a scalar and subtracts the result to a memory location.
-        /// </summary>
-        /// <param name="d">Scale factor.</param>
-        /// <param name="target">The target memory of the whole operation.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void MulNegStore(double d, Span<double> target)
-        {
-            ref double p = ref MM.GetReference(values);
-            ref double q = ref MM.GetReference(target);
-
-            nuint j = 0, c = (nuint)target.Length;
-            if (Avx512F.IsSupported && c >= (nuint)V8d.Count)
-            {
-                V8d vec = V8.Create(d);
-                for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
-                    V8.StoreUnsafe(Avx512F.FusedMultiplyAddNegated(
-                        V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
-            }
-            else if (Avx.IsSupported && c >= (nuint)V4d.Count)
-            {
-                V4d vec = V4.Create(d);
-                for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
-                    V4.StoreUnsafe(V4.LoadUnsafe(ref q, j)
-                        .MultiplyAddNeg(V4.LoadUnsafe(ref p, j), vec), ref q, j);
-            }
-            for (; j < c; j++)
-                Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), -d, Unsafe.Add(ref q, j));
         }
 
         /// <summary>Computes the sum of absolute values.</summary>

@@ -889,7 +889,7 @@ public readonly struct Matrix :
         Contract.Ensures(Contract.Result<Matrix>().Rows == m.Rows);
         Contract.Ensures(Contract.Result<Matrix>().Cols == m.Cols);
         double[] result = GC.AllocateUninitializedArray<double>(m.values.Length);
-        m.values.AsSpan().Sub(d, result);
+        m.values.AsSpan().Add(-d, result);
         return new(m.Rows, m.Cols, result);
     }
 

@@ -408,7 +408,7 @@ public readonly struct DVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<DVector>().Length == v.Length);
         double[] result = GC.AllocateUninitializedArray<double>(v.Length);
-        v.values.Sub(d, result);
+        v.values.Add(-d, result);
         return result;
     }
 

@@ -342,11 +342,11 @@ public readonly struct LMatrix :
             r = c;
         result[0] = m.values[0] - d;    // First row is special.
         for (int row = 1, offset = c; row < r; row++, offset += c)
-            m.values.AsSpan(offset, row + 1).Sub(d, result.AsSpan(offset, row + 1));
+            m.values.AsSpan(offset, row + 1).Add(-d, result.AsSpan(offset, row + 1));
         if (m.Rows > c)
         {
             int c2 = c * c;
-            m.values.AsSpan(c2).Sub(d, result.AsSpan(c2));
+            m.values.AsSpan(c2).Add(-d, result.AsSpan(c2));
         }
         return new(m.Rows, m.Cols, result);
     }

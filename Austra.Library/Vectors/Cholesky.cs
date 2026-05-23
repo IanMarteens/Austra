@@ -210,13 +210,13 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                 double* pbi = pB + isize;
                 for (int k = i - 1; k >= 0; k--)
                     new Span<double>(pB + k * size, size)
-                        .MulNegStore(pA[isize + k], new Span<double>(pbi, size));
+                        .MulAddStore(-pA[isize + k], new Span<double>(pbi, size));
                 double m1 = 1.0 / pA[isize + i];
                 int j = 0;
-                if (Avx512F.IsSupported)
+                if (Avx512F.IsSupported && size >= V8d.Count)
                     for (V8d vm1 = V8.Create(m1); j < top; j += V8d.Count)
                         Avx512F.Store(pbi + j, Avx512F.LoadVector512(pbi + j) * vm1);
-                else if (Avx.IsSupported)
+                else if (Avx.IsSupported && size >= V4d.Count)
                     for (V4d vm1 = V4.Create(m1); j < top; j += V4d.Count)
                         Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
                 for (; j < size; j++)
@@ -229,14 +229,14 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                 {
                     int ksize = k * size;
                     new Span<double>(pB + ksize, size)
-                        .MulNegStore(pA[ksize + i], new Span<double>(pbi, size));
+                        .MulAddStore(-pA[ksize + i], new Span<double>(pbi, size));
                 }
                 double m1 = 1.0 / pA[isize + i];
                 int j = 0;
-                if (Avx512F.IsSupported)
+                if (Avx512F.IsSupported && size >= V8d.Count)
                     for (V8d vm1 = V8.Create(m1); j < top; j += V8d.Count)
                         Avx512F.Store(pbi + j, Avx512F.LoadVector512(pbi + j) * vm1);
-                else if (Avx.IsSupported)
+                else if (Avx.IsSupported && size >= V4d.Count)
                     for (V4d vm1 = V4.Create(m1); j < top; j += V4d.Count)
                         Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
                 for (; j < size; j++)

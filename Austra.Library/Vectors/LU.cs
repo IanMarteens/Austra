@@ -339,7 +339,7 @@ public readonly struct LU : IFormattable
                 double* pck = pC + k * size;
                 for (int i = k + 1; i < size; i++)
                     new Span<double>(pck, size)
-                        .MulNegStore(pA[i * size + k], new Span<double>(pC + i * size, size));
+                        .MulAddStore(-pA[i * size + k], new Span<double>(pC + i * size, size));
             }
             for (int k = size - 1; k >= 0; k--)
             {
@@ -356,7 +356,7 @@ public readonly struct LU : IFormattable
                     pck[l] /= mult;
                 double* pai = pA + k, pci = pC;
                 for (int i = 0; i < k; i++, pai += size, pci += size)
-                    new Span<double>(pck, size).MulNegStore(*pai, new Span<double>(pci, size));
+                    new Span<double>(pck, size).MulAddStore(-*pai, new Span<double>(pci, size));
             }
         }
     }

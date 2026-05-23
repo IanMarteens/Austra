@@ -191,7 +191,7 @@ public readonly struct EVD : IFormattable
                     f += e[m] * d[m];
                 }
 
-                new Span<double>(d, i).MulNegStore(f / (h + h), new Span<double>(e, i));
+                new Span<double>(d, i).MulAddStore(-f / (h + h), new Span<double>(e, i));
 
                 aj = a;
                 for (int j = 0; j < i; j++, aj += r)
@@ -237,7 +237,7 @@ public readonly struct EVD : IFormattable
                 for (int j = 0; j <= i; j++, aj += r)
                 {
                     double g = new Span<double>(ai1, i + 1).Dot(new Span<double>(aj, i + 1));
-                    new Span<double>(d, i + 1).MulNegStore(g, new Span<double>(aj, i + 1));
+                    new Span<double>(d, i + 1).MulAddStore(-g, new Span<double>(aj, i + 1));
                 }
             }
             new Span<double>(ai1, i + 1).Clear();

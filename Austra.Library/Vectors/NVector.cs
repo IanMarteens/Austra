@@ -378,7 +378,7 @@ public readonly struct NVector :
         Contract.Requires(v.IsInitialized);
         Contract.Ensures(Contract.Result<NVector>().Length == v.Length);
         int[] result = GC.AllocateUninitializedArray<int>(v.Length);
-        v.values.Sub(d, result);
+        v.values.Add(-d, result);
         return result;
     }
 
