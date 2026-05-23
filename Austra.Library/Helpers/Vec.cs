@@ -1,4 +1,6 @@
-﻿namespace Austra.Library.Helpers;
+﻿using static Austra.Library.MVO.Simplex;
+
+namespace Austra.Library.Helpers;
 
 /// <summary>Implements internal common matrix and vector operations.</summary>
 /// <remarks>
@@ -940,23 +942,35 @@ internal static class Vec
             double sum = 0;
             ref double p = ref MM.GetReference(values);
             ref double q = ref MM.GetReference(other);
-            nuint i = 0;
+            ref double r = ref Unsafe.Add(ref p, values.Length);
             if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
             {
+                ref double last = ref Unsafe.Add(ref p, values.Length & ~(V8d.Count - 1));
                 V8d acc = V8d.Zero;
-                for (nuint top = (nuint)values.Length & Simd.MASK8; i < top; i += (nuint)V8d.Count)
-                    acc = V8.FusedMultiplyAdd(V8.LoadUnsafe(ref p, i), V8.LoadUnsafe(ref q, i), acc);
+                do
+                {
+                    acc = V8.FusedMultiplyAdd(V8.LoadUnsafe(ref p), V8.LoadUnsafe(ref q), acc);
+                    p = ref Unsafe.Add(ref p, V8d.Count);
+                    q = ref Unsafe.Add(ref q, V8d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref last));
                 sum = V8.Sum(acc);
             }
             else if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
             {
+                ref double last = ref Unsafe.Add(ref p, values.Length & ~(V4d.Count - 1));
                 V4d acc = V4d.Zero;
-                for (nuint top = (nuint)values.Length & Simd.MASK4; i < top; i += (nuint)V4d.Count)
-                    acc = V4.FusedMultiplyAdd(V4.LoadUnsafe(ref p, i), V4.LoadUnsafe(ref q, i), acc);
+                do
+                {
+                    acc = V4.FusedMultiplyAdd(V4.LoadUnsafe(ref p), V4.LoadUnsafe(ref q), acc);
+                    p = ref Unsafe.Add(ref p, V4d.Count);
+                    q = ref Unsafe.Add(ref q, V4d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref last));
                 sum = V4.Sum(acc);
             }
-            for (int j = (int)i; j < values.Length; j++)
-                sum = FusedMultiplyAdd(Unsafe.Add(ref p, j), Unsafe.Add(ref q, j), sum);
+            for (; IsAddressLessThan(ref p, ref r); p = ref Unsafe.Add(ref p, 1), q = ref Unsafe.Add(ref q, 1))
+                sum = FusedMultiplyAdd(p, q, sum);
             return sum;
         }
 
