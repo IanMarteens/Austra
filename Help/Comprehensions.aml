@@ -9,29 +9,29 @@
       <content>
         <para>Suppose you need to write a formula like this one:</para>
         <code language="Austra">
-iseq(1, 100).filter(x =&gt; x.odd).map(x =&gt; x<sup>2</sup>)
+iseq(<markup><font color="Blue">1</font>, <font color="Blue">100</font></markup>).filter(x =&gt; x.odd).map(x =&gt; x<sup>2</sup>)
         </code>
         <para>It is not a candidate for the Turing Award: it takes the squares of all odd numbers between 0 and 100. You had to type two lambda functions, including arrows and lambda parameters, and you also had to explicitly mention the <codeInline>filter</codeInline> and the <codeInline>map</codeInline> methods, including the parentheses enclosing their arguments.</para>
         <para>This alternative expression does the same, is shorter to type and easier to read:</para>
         <code language="Austra">
-[x &lt;- iseq(1, 100) : x.odd =&gt; x<sup>2</sup>]
+[x &lt;- iseq(<markup><font color="Blue">1</font>, <font color="Blue">100</font></markup>) : x.odd =&gt; x<sup>2</sup>]
         </code>
         <para>With this trick, we have avoided repeating the declaration of the parameter <codeInline>x</codeInline> in the two lambda definitions used in the expression.</para>
         <para>In this example, since the source of all numbers is a range sequence, you could also use a simpler expression for the range:</para>
         <code language="Austra">
-[x &lt;- 1..100 : x.odd =&gt; x<sup>2</sup>]
+[x &lt;- <markup><font color="Blue">1</font>..<font color="Blue">100</font></markup> : x.odd =&gt; x<sup>2</sup>]
         </code>
         <para>The new syntax even takes care of any type conversion performed by the mapper.</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- This expression doesn’t compile!!!</font></markup>
-iseq(1, 100).filter(x => x.odd).map(x => sqrt(x));
+iseq(<markup><font color="Blue">1</font>, <font color="Blue">100</font></markup>).filter(x => x.odd).map(x => sqrt(x));
 <markup><font color="DarkGreen">-- We need to use mapReal.</font></markup>
-iseq(1, 100).filter(x => x.odd).mapReal(x => sqrt(x));
+iseq(<markup><font color="Blue">1</font>, <font color="Blue">100</font></markup>).filter(x => x.odd).mapReal(x => sqrt(x));
         </code>        
         <para>However, if we perform the change in the list comprehension, the compiler automatically picks <codeInline>mapReal</codeInline> for the mapper:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- A-OK!</font></markup>
-[x &lt;- 1..100 : x.odd =&gt; sqrt(x)]
+[x &lt;- <markup><font color="Blue">1</font>..<font color="Blue">100</font></markup> : x.odd =&gt; sqrt(x)]
         </code>
         <para>The syntax for this construct can be summarized like this:</para>
         <code language="Austra">
@@ -40,9 +40,9 @@ iseq(1, 100).filter(x => x.odd).mapReal(x => sqrt(x));
         <para>Both <legacyItalic>filter</legacyItalic> and <legacyItalic>mapping</legacyItalic> are optional:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- This expression...</font></markup>
-[x &lt;- 1..100];
+[x &lt;- <markup><font color="Blue">1</font>..<font color="Blue">100</font></markup>];
 <markup><font color="DarkGreen">-- ... is equivalent to this one:</font></markup>
-iseq(1, 100)
+iseq(<markup><font color="Blue">1</font>, <font color="Blue">100</font></markup>)
         </code>
         <sections>
           <section address="compSeries">
@@ -50,8 +50,8 @@ iseq(1, 100)
             <content>
         	  <para>The type assigned to the whole list comprehension expression is the same as the type returned by the mapper, or the generator’s type, when there is no mapper. You can keep applying methods or operators to the result:</para>
         	  <code language="Austra">
-[x &lt;- 1..100 : x % 2 = 1 =&gt; x^2].sortDesc;
-[x &lt;- 1..100] .* ([x &lt;- 1..100] + 1)
+[x &lt;- <markup><font color="Blue">1</font>..<font color="Blue">100</font></markup> : x % 2 = 1 =&gt; x^2].sortDesc;
+[x &lt;- <markup><font color="Blue">1</font>..<font color="Blue">100</font></markup>] .* ([x &lt;- <markup><font color="Blue">1</font>..<font color="Blue">100</font></markup>] + 1)
         	  </code>
         	  <para>Special care is needed when the generator is a time series, because the identifier in the head of the list comprehension is typed as <codeInline>double</codeInline> in the mapping section, but it is a <codeInline>Point&lt;Date&gt;</codeInline> in the filter section:</para>
         	  <code language="Austra">
@@ -66,9 +66,9 @@ iseq(1, 100)
         	  <para>As we have seen, range expressions can be used as generators. We support four variants of range expressions inside list comprehensions:</para>
         	  <code language="Austra">
 <markup><font color="DarkGreen">-- Equivalent to iseq(1, 100)</font></markup>
-[x &lt;- 1..100];
+[x &lt;- <markup><font color="Blue">1</font>..<font color="Blue">100</font></markup>];
 <markup><font color="DarkGreen">-- Equivalent to seq(1, 100)</font></markup>
-[x &lt;- 1.0..100.0];
+[x &lt;- <markup><font color="Blue">1.0</font>..<font color="Blue">100.0</font></markup>];
 <markup><font color="DarkGreen">-- Even integers from 0 to 100.</font></markup>
 [x &lt;- 0..2..100];
 <markup><font color="DarkGreen">-- The same as seq(0, 1024, 2 * pi)).</font></markup>
@@ -84,7 +84,7 @@ iseq(1, 100)
         	  </code>
         	  <para>We have mostly used constants for the range generators so far but each part of the generator could be an expression:</para>
         	  <code language="Austra">
-[x &lt;- pi - 1..32 * 32..sqrt(200)];
+[x &lt;- pi - <markup><font color="Blue">1</font>..<font color="Blue">32</font></markup> * <markup><font color="Blue">32</font></markup>..sqrt(<markup><font color="Blue">200</font></markup>)];
         	  </code>
         	  <para>Any data type compatible with a sequence, such as vectors, series and matrices, can 
 also be used in a generator, instead of a range. The compiler takes care of creating a 
@@ -100,23 +100,23 @@ sequence from the source.</para>
         <para>Logical quantifiers can be used at the beginning of a list comprehension. The allowed quantifiers are <codeInline>all</codeInline> and <codeInline>any</codeInline>, as the corresponding methods in vectors and sequences. They are no keywords, but used at the beginning of a list comprehension, they are considered <newTerm>contextual keywords</newTerm> for syntax highlighting.</para>
         <para>This is a very simple example of a quantifier in a list comprehension expression and its equivalent form using methods:</para>
         <code language="Austra">
-[<markup><b>any</b></markup> x &lt;- 10..100 : x * x = x + x];
-iseq(10, 100).any(x =&gt; x * x = x + x)
+[<markup><b>any</b></markup> x &lt;- <markup><font color="Blue">10</font>..<font color="Blue">100</font></markup> : x * x = x + x];
+iseq(<markup><font color="Blue">10</font>, <font color="Blue">100</font></markup>).any(x =&gt; x * x = x + x)
         </code>
         <para>Both expressions are compiled as Boolean expressions. Note that a qualified list comprehension does not allow a mapping section.</para>
         <para>The quantified list comprehension is marginally shorter than a call to <codeInline>any</codeInline> or <codeInline>all</codeInline>. Why, then, do we bother supporting this syntax? The reason is that we can embed a qualified predicate inside a normal list comprehension:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- Find all prime numbers between 2 and 100:</font></markup>
-[x &lt;- 2..100 : <markup><b>all</b></markup> div <markup><font color="RoyalBlue"><b>in</b></font></markup> 2 .. x - 1 : x % div != 0];
+[x &lt;- <markup><font color="Blue">2</font>..<font color="Blue">100</font></markup> : <markup><b>all</b></markup> div &lt;- <markup><font color="Blue">2</font></markup> .. x - <markup><font color="Blue">1</font></markup> : x % div != <markup><font color="Blue">0</font></markup>];
 <markup><font color="DarkGreen">-- Equivalent, but longer:</font></markup>
-iseq(2, 100).filter(x =&gt; iseq(2, x - 1).all(div => x % div != 0))
+iseq(<markup><font color="Blue">2</font>, <font color="Blue">100</font></markup>).filter(x =&gt; iseq(<markup><font color="Blue">2</font></markup>, x - <markup><font color="Blue">1</font></markup>).all(div => x % div != <markup><font color="Blue">0</font></markup>))
         </code>
         <para>We need no inner brackets inside the main list comprehension, since it is evident how the qualified condition is nested. We could even add a mapping at the end of the comprehension to transform the calculated prime numbers, if required.</para>
         <para>If we use regular lambdas, we will be nesting a lambda definition inside another. The generated code for the list comprehension also use nested lambdas, but with an easier to understand syntax. The inner lambda is "capturing" the parameter of the outer lambda, so we must be careful naming local variables.</para>
         <para>The mathematical symbols <codeInline>∀</codeInline> and <codeInline>∃</codeInline> are also accepted as synonyms of <codeInline>all</codeInline> and <codeInline>any</codeInline>:</para>
         <code language="Austra">
-[∃x &lt;- 10..100 : x * x = x + x];
-[x &lt;- 2..100 : ∀y &lt;- 2 .. x - 1 : x % y != 0];
+[∃x &lt;- <markup><font color="Blue">10</font></markup>..<markup><font color="Blue">100</font></markup> : x * x = x + x];
+[x &lt;- <markup><font color="Blue">2</font></markup>..<markup><font color="Blue">100</font></markup> : ∀y &lt;- <markup><font color="Blue">2</font></markup> .. x - <markup><font color="Blue">1</font></markup> : x % y != <markup><font color="Blue">0</font></markup>];
         </code>
         <para>These symbols can be typed by pressing <codeInline>CtrlQ+A</codeInline> or <codeInline>CtrlQ+E</codeInline> in the <legacyBold>Code Editor</legacyBold>.</para>
        </content>
