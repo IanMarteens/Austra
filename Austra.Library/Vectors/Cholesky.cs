@@ -185,16 +185,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                 for (int k = i - 1; k >= 0; k--)
                     new Span<double>(pB + k * size, size)
                         .MulAddStore(-pA[isize + k], new Span<double>(pbi, size));
-                double m1 = 1.0 / pA[isize + i];
-                int j = 0;
-                if (Avx512F.IsSupported && size >= V8d.Count)
-                    for (V8d vm1 = V8.Create(m1); j < top; j += V8d.Count)
-                        Avx512F.Store(pbi + j, Avx512F.LoadVector512(pbi + j) * vm1);
-                else if (Avx.IsSupported && size >= V4d.Count)
-                    for (V4d vm1 = V4.Create(m1); j < top; j += V4d.Count)
-                        Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
-                for (; j < size; j++)
-                    pbi[j] *= m1;
+                new Span<double>(pbi, size).InplaceMul(1.0 / pA[isize + i]);
             }
             for (int i = size - 1, isize = i * size; i >= 0; i--, isize -= size)
             {
@@ -205,16 +196,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
                     new Span<double>(pB + ksize, size)
                         .MulAddStore(-pA[ksize + i], new Span<double>(pbi, size));
                 }
-                double m1 = 1.0 / pA[isize + i];
-                int j = 0;
-                if (Avx512F.IsSupported && size >= V8d.Count)
-                    for (V8d vm1 = V8.Create(m1); j < top; j += V8d.Count)
-                        Avx512F.Store(pbi + j, Avx512F.LoadVector512(pbi + j) * vm1);
-                else if (Avx.IsSupported && size >= V4d.Count)
-                    for (V4d vm1 = V4.Create(m1); j < top; j += V4d.Count)
-                        Avx.Store(pbi + j, Avx.LoadVector256(pbi + j) * vm1);
-                for (; j < size; j++)
-                    pbi[j] *= m1;
+                new Span<double>(pbi, size).InplaceMul(1.0 / pA[isize + i]);
             }
         }
         return m;

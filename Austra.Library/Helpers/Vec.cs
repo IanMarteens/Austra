@@ -306,6 +306,39 @@ internal static class Vec
                     Unsafe.Add(ref q, i) = Unsafe.Add(ref p, i) * scalar;
         }
 
+        /// <summary>Scales a span in-place.</summary>
+        /// <param name="scalar">Scalar multiplier.</param>
+        internal void InplaceMul(T scalar)
+        {
+            int len = values.Length;
+            ref T p = ref MM.GetReference(values);
+            ref T q = ref Unsafe.Add(ref p, len);
+            if (V8.IsHardwareAccelerated && len >= Vector512<T>.Count)
+            {
+                Vector512<T> vec = V8.Create(scalar);
+                ref T last = ref Unsafe.Add(ref p, len & ~(Vector512<T>.Count - 1));
+                do
+                {
+                    V8.StoreUnsafe(V8.LoadUnsafe(ref p) * vec, ref p);
+                    p = ref Unsafe.Add(ref p, Vector512<T>.Count);
+                }
+                while (IsAddressLessThan(ref p, ref last));
+            }
+            else if (V4.IsHardwareAccelerated && len >= Vector256<T>.Count)
+            {
+                Vector256<T> vec = V4.Create(scalar);
+                ref T last = ref Unsafe.Add(ref p, len & ~(Vector256<T>.Count - 1));
+                do
+                {
+                    V4.StoreUnsafe(V4.LoadUnsafe(ref p) * vec, ref p);
+                    p = ref Unsafe.Add(ref p, Vector256<T>.Count);
+                }
+                while (IsAddressLessThan(ref p, ref last));
+            }
+            for (; IsAddressLessThan(ref p, ref q); p = ref Unsafe.Add(ref p, 1))
+                p *= scalar;
+        }
+
         /// <summary>Pointwise negation of a values.</summary>
         /// <param name="target">Target memory for the operation.</param>
         internal void Neg(Span<T> target)

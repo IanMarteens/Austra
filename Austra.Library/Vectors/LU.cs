@@ -345,15 +345,7 @@ public readonly struct LU : IFormattable
             {
                 double* pck = pC + k * size;
                 double mult = pA[k * size + k];
-                int l = 0;
-                if (Avx512F.IsSupported)
-                    for (V8d vm = V8.Create(1.0 / mult); l < top; l += V8d.Count)
-                        Avx512F.Store(pck + l, Avx512F.LoadVector512(pck + l) * vm);
-                else if (Avx.IsSupported)
-                    for (V4d vm = V4.Create(1.0 / mult); l < top; l += V4d.Count)
-                        Avx.Store(pck + l, Avx.LoadVector256(pck + l) * vm);
-                for (; l < size; l++)
-                    pck[l] /= mult;
+                new Span<double>(pck, size).InplaceMul(1.0 / mult);
                 double* pai = pA + k, pci = pC;
                 for (int i = 0; i < k; i++, pai += size, pci += size)
                     new Span<double>(pck, size).MulAddStore(-*pai, new Span<double>(pci, size));
