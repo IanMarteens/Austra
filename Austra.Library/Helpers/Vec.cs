@@ -973,6 +973,45 @@ internal static class Vec
             return sum;
         }
 
+        /// <summary>Calculates the squared norm of a span.</summary>
+        /// <returns>The sum of squares.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal double Dot()
+        {
+            double sum = 0;
+            ref double p = ref MM.GetReference(values);
+            ref double r = ref Unsafe.Add(ref p, values.Length);
+            if (V8.IsHardwareAccelerated && values.Length >= V8d.Count)
+            {
+                ref double last = ref Unsafe.Add(ref p, values.Length & ~(V8d.Count - 1));
+                V8d acc = V8d.Zero;
+                do
+                {
+                    V8d v = V8.LoadUnsafe(ref p);
+                    acc = V8.FusedMultiplyAdd(v, v, acc);
+                    p = ref Unsafe.Add(ref p, V8d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref last));
+                sum = V8.Sum(acc);
+            }
+            else if (V4.IsHardwareAccelerated && values.Length >= V4d.Count)
+            {
+                ref double last = ref Unsafe.Add(ref p, values.Length & ~(V4d.Count - 1));
+                V4d acc = V4d.Zero;
+                do
+                {
+                    V4d v = V4.LoadUnsafe(ref p);
+                    acc = V4.FusedMultiplyAdd(v, v, acc);
+                    p = ref Unsafe.Add(ref p, V4d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref last));
+                sum = V4.Sum(acc);
+            }
+            for (; IsAddressLessThan(ref p, ref r); p = ref Unsafe.Add(ref p, 1))
+                sum = FusedMultiplyAdd(p, p, sum);
+            return sum;
+        }
+
         /// <summary>Matrix multiplication implementation.</summary>
         /// <param name="other">Second matrix.</param>
         /// <param name="result">Result matrix.</param>

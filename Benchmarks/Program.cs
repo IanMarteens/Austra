@@ -8,6 +8,6 @@ WriteLine("Benchmarks for AUSTRA");
 //BenchmarkRunner.Run<FunctionsBenchmark>();
 //BenchmarkRunner.Run<VectorBenchmark>();
 //BenchmarkRunner.Run<EvdBenchmark>();
-BenchmarkRunner.Run<MatrixMultBenchmark>();
-//BenchmarkRunner.Run<CholeskyBenchmark>();
+//BenchmarkRunner.Run<MatrixMultBenchmark>();
+BenchmarkRunner.Run<CholeskyBenchmark>();
 //BenchmarkRunner.Run<LuBenchmark>();

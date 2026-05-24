@@ -477,39 +477,7 @@ public readonly struct DVector :
     public double Squared()
     {
         Contract.Requires(IsInitialized);
-
-        double sum = 0d;
-        ref double p = ref MM.GetArrayDataReference(values);
-        ref double q = ref Add(ref p, values.Length);
-        if (V8.IsHardwareAccelerated && Length > V8d.Count)
-        {
-            ref double last = ref Add(ref p, values.Length & Simd.MASK8);
-            V8d acc = V8d.Zero;
-            do
-            {
-                V8d v = V8.LoadUnsafe(ref p);
-                acc = V8.FusedMultiplyAdd(v, v, acc);
-                p = ref Add(ref p, V8d.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            sum = V8.Sum(acc);
-        }
-        else if (V4.IsHardwareAccelerated && Length > V4d.Count)
-        {
-            ref double last = ref Add(ref p, values.Length & Simd.MASK4);
-            V4d acc = V4d.Zero;
-            do
-            {
-                V4d v = V4.LoadUnsafe(ref p);
-                acc = V4.FusedMultiplyAdd(v, v, acc);
-                p = ref Add(ref p, V4d.Count);
-            }
-            while (IsAddressLessThan(ref p, ref last));
-            sum = V4.Sum(acc);
-        }
-        for (; IsAddressLessThan(ref p, ref q); p = ref Add(ref p, 1))
-            sum = FusedMultiplyAdd(p, p, sum);
-        return sum;
+        return values.Dot();
     }
 
     /// <summary>Multiplies a vector by a scalar value.</summary>

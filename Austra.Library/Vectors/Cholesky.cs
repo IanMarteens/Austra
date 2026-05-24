@@ -38,33 +38,7 @@ public readonly struct Cholesky(LMatrix matrix) : IFormattable
         {
             // Compute the diagonal cell.
             ref double pDj = ref Add(ref pD, j * rows);
-            double v = 0.0;
-            int m = 0;
-            if (V8.IsHardwareAccelerated && m >= V8d.Count)
-            {
-                V8d acc = V8d.Zero;
-                for (int top = j & Simd.MASK8; m < top; m += V8d.Count)
-                {
-                    V8d vec = V8.LoadUnsafe(ref pDj, (nuint)m);
-                    acc = V8.FusedMultiplyAdd(vec, vec, acc);
-                }
-                v = V8.Sum(acc);
-            }
-            else if (V4.IsHardwareAccelerated && m >= V4d.Count)
-            {
-                V4d acc = V4d.Zero;
-                for (int top = j & Simd.MASK4; m < top; m += V4d.Count)
-                {
-                    V4d vec = V4.LoadUnsafe(ref pDj, (nuint)m);
-                    acc = V4.FusedMultiplyAdd(vec, vec, acc);
-                }
-                v = V4.Sum(acc);
-            }
-            for (; m < j; m++)
-            {
-                double a = Add(ref pDj, m);
-                v += a * a;
-            }
+            double v = MM.CreateSpan(ref pDj, j).Dot();
             ajj = Add(ref pS, j * rows + j) - v;
             if (ajj <= 0)
             {
