@@ -1,6 +1,4 @@
-﻿using static Austra.Library.MVO.Simplex;
-
-namespace Austra.Library.Helpers;
+﻿namespace Austra.Library.Helpers;
 
 /// <summary>Implements internal common matrix and vector operations.</summary>
 /// <remarks>
@@ -969,7 +967,8 @@ internal static class Vec
                 while (IsAddressLessThan(ref p, ref last));
                 sum = V4.Sum(acc);
             }
-            for (; IsAddressLessThan(ref p, ref r); p = ref Unsafe.Add(ref p, 1), q = ref Unsafe.Add(ref q, 1))
+            for (; IsAddressLessThan(ref p, ref r);
+                p = ref Unsafe.Add(ref p, 1), q = ref Unsafe.Add(ref q, 1))
                 sum = FusedMultiplyAdd(p, q, sum);
             return sum;
         }
@@ -985,37 +984,17 @@ internal static class Vec
             const long MINSIZE = 64L * 64L * 64L;
             const long MAXSIZE = 1024L * 1024L * 1024L;
             long size = (long)m * n * p;
-
             ref double a = ref MM.GetReference(values);
             ref double b = ref MM.GetArrayDataReference(other);
             ref double c = ref MM.GetArrayDataReference(result);
-
             if (size <= MINSIZE)
             {
-                nuint top8 = (nuint)(p & Simd.MASK8);
-                nuint top4 = (nuint)(p & Simd.MASK4);
                 for (int i = 0, top = p & Simd.MASK4; i < m; i++)
                 {
                     ref double pb = ref b;
-                    for (int k = 0; k < n; k++)
-                    {
-                        double d = Unsafe.Add(ref a, k);
-                        nuint j = 0;
-                        if (Avx512F.IsSupported)
-                            for (V8d vd = V8.Create(d); j < top8; j += (nuint)V8d.Count)
-                                V8.StoreUnsafe(V8.FusedMultiplyAdd(
-                                    V8.LoadUnsafe(ref pb, j), vd, V8.LoadUnsafe(ref c, j)),
-                                    ref c, j);
-                        if (Avx.IsSupported)
-                            for (V4d vd = V4.Create(d); j < top4; j += (nuint)V4d.Count)
-                                V4.StoreUnsafe(V4.FusedMultiplyAdd(
-                                    V4.LoadUnsafe(ref pb, j), vd, V4.LoadUnsafe(ref c, j)),
-                                    ref c, j);
-                        for (; j < (nuint)p; j++)
-                            Unsafe.Add(ref c, j) = FusedMultiplyAdd(
-                                Unsafe.Add(ref pb, j), d, Unsafe.Add(ref c, j));
-                        pb = ref Unsafe.Add(ref pb, p);
-                    }
+                    for (int k = 0; k < n; k++, pb = ref Unsafe.Add(ref pb, p))
+                        MM.CreateSpan(ref pb, p).MulAddStore(
+                            Unsafe.Add(ref a, k), MM.CreateSpan(ref c, p));
                     a = ref Unsafe.Add(ref a, n);
                     c = ref Unsafe.Add(ref c, p);
                 }
@@ -1147,26 +1126,39 @@ internal static class Vec
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void MulAddStore(double d, Span<double> target)
         {
+            int len = target.Length;
             ref double p = ref MM.GetReference(values);
             ref double q = ref MM.GetReference(target);
-
-            nuint j = 0, c = (nuint)target.Length;
-            if (V8.IsHardwareAccelerated && c >= (nuint)V8d.Count)
+            ref double r = ref Unsafe.Add(ref p, len);
+            if (V8.IsHardwareAccelerated && len >= V8d.Count)
             {
+                ref double last = ref Unsafe.Add(ref p, len & ~(V8d.Count - 1));
                 V8d vec = V8.Create(d);
-                for (nuint t = c & Simd.MASK8; j < t; j += (nuint)V8d.Count)
+                do
+                {
                     V8.StoreUnsafe(V8.FusedMultiplyAdd(
-                        V8.LoadUnsafe(ref p, j), vec, V8.LoadUnsafe(ref q, j)), ref q, j);
+                        V8.LoadUnsafe(ref p), vec, V8.LoadUnsafe(ref q)), ref q);
+                    p = ref Unsafe.Add(ref p, V8d.Count);
+                    q = ref Unsafe.Add(ref q, V8d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref last));
             }
-            else if (V4.IsHardwareAccelerated && c >= (nuint)V4d.Count)
+            else if (V4.IsHardwareAccelerated && len >= V4d.Count)
             {
+                ref double last = ref Unsafe.Add(ref p, len & ~(V4d.Count - 1));
                 V4d vec = V4.Create(d);
-                for (nuint t = c & Simd.MASK4; j < t; j += (nuint)V4d.Count)
+                do
+                {
                     V4.StoreUnsafe(V4.FusedMultiplyAdd(
-                        V4.LoadUnsafe(ref p, j), vec, V4.LoadUnsafe(ref q, j)), ref q, j);
+                        V4.LoadUnsafe(ref p), vec, V4.LoadUnsafe(ref q)), ref q);
+                    p = ref Unsafe.Add(ref p, V4d.Count);
+                    q = ref Unsafe.Add(ref q, V4d.Count);
+                }
+                while (IsAddressLessThan(ref p, ref last));
             }
-            for (; j < c; j++)
-                Unsafe.Add(ref q, j) = FusedMultiplyAdd(Unsafe.Add(ref p, j), d, Unsafe.Add(ref q, j));
+            for (; IsAddressLessThan(ref p, ref r);
+                p = ref Unsafe.Add(ref p, 1), q = ref Unsafe.Add(ref q, 1))
+                q = FusedMultiplyAdd(p, d, q);
         }
 
         /// <summary>Computes the sum of absolute values.</summary>
