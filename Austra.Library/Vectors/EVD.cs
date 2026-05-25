@@ -291,20 +291,7 @@ public readonly struct EVD : IFormattable
 
                     double dl1 = d[l + 1], h = g - d[l];
                     int i = l + 2;
-                    if (Avx512F.IsSupported)
-                    {
-                        V8d vh = V8.Create(h);
-                        for (int top = ((r - i) & Simd.MASK8) + i; i < top; i += V8d.Count)
-                            Avx512F.Store(d + i, Avx512F.LoadVector512(d + i) - vh);
-                    }
-                    else if (Avx.IsSupported)
-                    {
-                        V4d vh = V4.Create(h);
-                        for (int top = ((r - i) & Simd.MASK4) + i; i < top; i += V4d.Count)
-                            Avx.Store(d + i, Avx.LoadVector256(d + i) - vh);
-                    }
-                    for (; i < r; i++)
-                        d[i] -= h;
+                    new Span<double>(d + i, r - i).InplaceSub(h);
                     ff += h;
 
                     // Implicit QL transformation.
@@ -911,20 +898,7 @@ public readonly struct EVD : IFormattable
                         // Overflow control
                         double t = Abs(h[nO + i]);
                         if (ε * t * t > 1)
-                        {
-                            int j = i;
-                            if (Avx512F.IsSupported)
-                            {
-                                V8d vt = V8.Create(1 / t);
-                                for (int top = ((n + 1 - i) & Simd.MASK8) + 1; j < top; j += V8d.Count)
-                                    Avx512F.Store(h + nO + j, Avx512F.LoadVector512(h + nO + j) * vt);
-                            }
-                            else if (Avx.IsSupported)
-                                for (V4d vt = V4.Create(1 / t); j + 4 <= n; j += V4d.Count)
-                                    Avx.Store(h + nO + j, Avx.LoadVector256(h + nO + j) * vt);
-                            for (; j <= n; j++)
-                                h[nO + j] /= t;
-                        }
+                            new Span<double>(h + nO + i, n - i + 1).InplaceMul(1 / t);
                     }
                 }
             }
@@ -988,7 +962,13 @@ public readonly struct EVD : IFormattable
                         if (ε * t * t > 1)
                         {
                             int j = i;
-                            if (Avx.IsSupported)
+                            if (Avx512F.IsSupported)
+                                for (V8d vt = V8.Create(1 / t); j + 8 <= n; j += 8)
+                                {
+                                    Avx512F.Store(h + nm1O + j, Avx512F.LoadVector512(h + nm1O + j) * vt);
+                                    Avx512F.Store(h + nO + j, Avx512F.LoadVector512(h + nO + j) * vt);
+                                }
+                            else if (Avx.IsSupported)
                                 for (V4d vt = V4.Create(1 / t); j + 4 <= n; j += 4)
                                 {
                                     Avx.Store(h + nm1O + j, Avx.LoadVector256(h + nm1O + j) * vt);

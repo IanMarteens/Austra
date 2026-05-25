@@ -463,6 +463,30 @@ internal static class Vec
                 Unsafe.Add(ref a, i) = Unsafe.Add(ref a, i) - Unsafe.Add(ref b, i);
         }
 
+        /// <summary>Pointwise inplace subtraction of a scalar from the vector's items.</summary>
+        /// <param name="scalar">Scalar subtrahend.</param>
+        internal void InplaceSub(T scalar)
+        {
+            ref T a = ref MM.GetReference(values);
+            nuint i = 0;
+            if (V8.IsHardwareAccelerated && values.Length >= Vector512<T>.Count)
+            {
+                Vector512<T> vec = V8.Create(scalar);
+                for (nuint top = (nuint)(values.Length & ~(Vector512<T>.Count - 1));
+                    i < top; i += (nuint)Vector512<T>.Count)
+                    V8.StoreUnsafe(V8.LoadUnsafe(ref a, i) - vec, ref a, i);
+            }
+            else if (V4.IsHardwareAccelerated && values.Length >= Vector256<T>.Count)
+            {
+                Vector256<T> vec = V4.Create(scalar);
+                for (nuint top = (nuint)(values.Length & ~(Vector256<T>.Count - 1));
+                    i < top; i += (nuint)Vector256<T>.Count)
+                    V4.StoreUnsafe(V4.LoadUnsafe(ref a, i) - vec, ref a, i);
+            }
+            for (; i < (nuint)values.Length; i++)
+                Unsafe.Add(ref a, i) -= scalar;
+        }
+
         /// <summary>Pointwise subtraction of values from a scalar.</summary>
         /// <param name="target">Target memory for the operation.</param>
         /// <param name="scalar">Scalar minuend.</param>
