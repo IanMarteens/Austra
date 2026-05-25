@@ -766,7 +766,26 @@ public readonly struct EVD : IFormattable
                         // Column modification
                         int upper = Min(n, k + 3);
                         int i = 0;
-                        if (Avx.IsSupported)
+                        if (Avx512F.IsSupported && upper >= V8d.Count)
+                        {
+                            V8d vx = V8.Create(x), vy = V8.Create(y), vz = V8.Create(z);
+                            V8d vr = V8.Create(r), vq = V8.Create(q);
+                            for (int top = (upper + 1) & Simd.MASK8; i < top; i += V8d.Count)
+                            {
+                                V8d v1 = Avx512F.LoadVector512(h + kO + i);
+                                V8d v2 = Avx512F.LoadVector512(h + kp1O + i);
+                                V8d vp = V8.FusedMultiplyAdd(vy, v2, vx * v1);
+                                if (notlast)
+                                {
+                                    V8d v3 = Avx512F.LoadVector512(h + kp2O + i);
+                                    vp = V8.FusedMultiplyAdd(vz, v3, vp);
+                                    Avx512F.Store(h + kp2O + i, Avx512F.FusedMultiplyAddNegated(vp, vr, v3));
+                                }
+                                Avx512F.Store(h + kO + i, v1 - vp);
+                                Avx512F.Store(h + kp1O + i, Avx512F.FusedMultiplyAddNegated(vp, vq, v2));
+                            }
+                        }
+                        else if (Avx.IsSupported && upper >= V4d.Count)
                         {
                             V4d vx = V4.Create(x), vy = V4.Create(y), vz = V4.Create(z);
                             V4d vr = V4.Create(r), vq = V4.Create(q);
