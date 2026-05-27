@@ -13,10 +13,10 @@ public class EvdBenchmark : BenchmarkControl
         acm1 = new Matrix(size, size, rnd, 0.1, 1);
     }
 
-    //[Benchmark]
+    [Benchmark]
     public EVD AustraEvdMatrix() => cm1.EVD(true);
 
-    //[Benchmark]
+    [Benchmark]
     public EVD AustraEvdAsymMatrix() => acm1.EVD(false);
 
     [Benchmark]
