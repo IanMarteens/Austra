@@ -321,7 +321,7 @@ public readonly struct RMatrix :
     /// <param name="m1">A rectangular matrix.</param>
     /// <param name="m2">An upper triangular matrix.</param>
     /// <returns>The resulting rectangular matrix.</returns>
-    public static unsafe Matrix operator *(Matrix m1, RMatrix m2)
+    public static Matrix operator *(Matrix m1, RMatrix m2)
     {
         Contract.Requires(m1.IsInitialized);
         Contract.Requires(m2.IsInitialized);
@@ -331,16 +331,16 @@ public readonly struct RMatrix :
 
         int m = m1.Rows, n = m1.Cols, p = m2.Cols;
         double[] result = new double[m * p];
-        fixed (double* pA = (double[])m1, pB = m2.values, pC = result)
+        ref double pA = ref MM.GetArrayDataReference((double[])m1);
+        ref double pB = ref MM.GetArrayDataReference(m2.values);
+        ref double pC = ref MM.GetArrayDataReference(result);
+        for (int i = 0; i < m; i++, pA = ref Add(ref pA, n), pC = ref Add(ref pC, n))
         {
-            double* pAi = pA, pCi = pC;
-            for (int i = 0; i < m; i++, pAi += n, pCi += n)
-            {
-                double* pBk = pB;
-                for (int k = 0; k < n; k++, pBk += p)
-                    new Span<double>(pBk + k, p - k + 1)
-                        .MulAddStore(pAi[k], new Span<double>(pCi + k, p - k + 1));
-            }
+            ref double pBk = ref pB;
+            for (int k = 0; k < n; k++, pBk = ref Add(ref pBk, p))
+                MM.CreateSpan(ref Add(ref pBk, k), p - k + 1)
+                    .MulAddStore(Add(ref pA, k),
+                    MM.CreateSpan(ref Add(ref pC, k), p - k + 1));
         }
         return new(m, p, result);
     }
@@ -590,7 +590,7 @@ public readonly struct RMatrix :
             {
                 double sum = 0;
                 ref double pBc = ref Add(ref pB, c + n);
-                for (int k = 1; k <= c; k++, pBc = ref Add(ref pBc, n)) 
+                for (int k = 1; k <= c; k++, pBc = ref Add(ref pBc, n))
                     sum = FusedMultiplyAdd(Add(ref pA, k), pBc, sum);
                 Add(ref pB, c) = -sum * invDiag;
             }

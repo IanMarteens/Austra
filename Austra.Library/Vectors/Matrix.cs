@@ -402,21 +402,18 @@ public readonly struct Matrix :
 
     /// <summary>Checks if the matrix is a symmetric one.</summary>
     /// <returns><see langword="true"/> when there's symmetry accross the diagonal.</returns>
-    public unsafe bool IsSymmetric()
+    public bool IsSymmetric()
     {
         if (Rows != Cols)
             return false;
         int size = Rows;
-        fixed (double* p = values)
+        ref double p = ref MM.GetArrayDataReference(values);
+        for (int row = 0; row < size; row++, p = ref Add(ref p, size))
         {
-            double* q = p;
-            for (int row = 0; row < size; row++, q += size)
-            {
-                double* r = q + size + row;
-                for (int col = row + 1; col < Cols; col++, r += size)
-                    if (q[col] != *r)
-                        return false;
-            }
+            ref double q = ref Add(ref p, size + row);
+            for (int col = row + 1; col < Cols; col++, q = ref Add(ref q, size))
+                if (Add(ref p, col) != q)
+                    return false;
         }
         return true;
     }
