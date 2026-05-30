@@ -1473,9 +1473,11 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     if (GetLambdaFromFunctionName("math." + saveId, out lambda))
                         return lambda;
+                    if (localLambdas.TryGetValue(saveId, out var lmbd)
+                        && lmbd.Type.IsAssignableTo(funcType) == true)
+                        return lmbd;
                     Definition? def = source.GetDefinition(saveId);
-                    if (def != null &&
-                        def.Type.IsAssignableTo(typeof(Func<,>).MakeGenericType(t1, retType)))
+                    if (def != null && def.Type.IsAssignableTo(funcType))
                     {
                         if (isParsingDefinition)
                             references.Add(def);
@@ -2400,6 +2402,7 @@ internal sealed partial class Parser : Scanner, IDisposable
         Token.ClassName => IsQualifiedLambdaFunctor(),
         Token.Id => LambdaHeader1().IsMatch(text.AsSpan()[start..])
         || bindings.ContainsClassMethod("math." + id)
+        || localLambdas.ContainsKey(id)
         || source.GetDefinition(id) != null,
         _ => LambdaHeader2().IsMatch(text.AsSpan()[start..]),
     };
