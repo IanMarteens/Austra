@@ -1469,9 +1469,19 @@ internal sealed partial class Parser : Scanner, IDisposable
                 if (kind != Token.Id)
                     throw Error("Lambda parameter name expected");
                 Move();
-                if (kind != Token.Arrow
-                    && GetLambdaFromFunctionName("math." + saveId, out lambda))
-                    return lambda;
+                if (kind != Token.Arrow)
+                {
+                    if (GetLambdaFromFunctionName("math." + saveId, out lambda))
+                        return lambda;
+                    Definition? def = source.GetDefinition(saveId);
+                    if (def != null &&
+                        def.Type.IsAssignableTo(typeof(Func<,>).MakeGenericType(t1, retType)))
+                    {
+                        if (isParsingDefinition)
+                            references.Add(def);
+                        return def.Expression;
+                    }
+                }
                 lambdaBlock.Add(Expression.Parameter(t1, saveId));
             }
             else if (kind == Token.ClassName)
@@ -2389,7 +2399,8 @@ internal sealed partial class Parser : Scanner, IDisposable
     {
         Token.ClassName => IsQualifiedLambdaFunctor(),
         Token.Id => LambdaHeader1().IsMatch(text.AsSpan()[start..])
-        || bindings.ContainsClassMethod("math." + id),
+        || bindings.ContainsClassMethod("math." + id)
+        || source.GetDefinition(id) != null,
         _ => LambdaHeader2().IsMatch(text.AsSpan()[start..]),
     };
 
