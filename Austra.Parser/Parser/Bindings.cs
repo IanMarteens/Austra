@@ -883,6 +883,7 @@ internal sealed class Bindings
             ["math.polyeval"] = new(
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), DVArg),
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(double), typeof(double[])),
+                typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(int), typeof(NVector)),
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(DVector)),
                 typeof(Polynomials).MD(nameof(Polynomials.PolyEval), typeof(Complex), typeof(double[]))),
             ["math.polysolve"] = new(

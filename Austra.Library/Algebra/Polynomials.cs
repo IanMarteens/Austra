@@ -37,6 +37,18 @@ public static class Polynomials
         return result;
     }
 
+    /// <summary>Evaluates a polynomial with integer coefficients.</summary>
+    /// <param name="value">Value to substitute.</param>
+    /// <param name="coefficients">Polynomial coefficients.</param>
+    /// <returns>The evaluation of the polynomial.</returns>
+    public static long PolyEval(int value, NVector coefficients)
+    {
+        long result = 0;
+        foreach (int c in coefficients)
+            result = result * value + c;
+        return result;
+    }
+
     /// <summary>Evaluates a polynomial with real coefficients.</summary>
     /// <param name="value">Value to substitute.</param>
     /// <param name="coefficients">Polynomial coefficients.</param>
