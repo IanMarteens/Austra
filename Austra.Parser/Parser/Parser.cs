@@ -911,8 +911,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             }
             else if (e2 is BinaryExpression { NodeType: ExpressionType.Multiply } b2)
                 return OptimizeVectorSum(opAdd, b2, e1, itemType, true);
-            else if (e1 is NewExpression or BinaryExpression
-                || e1 is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name))
+            else if (e1.CanBeInplaced(bindings))
                 return opAdd == Token.Plus
                     ? Expression.Call(e1, e1.Type.Get(nameof(DVector.InplaceAdd)), e2)
                     : Expression.Call(e1, e1.Type.Get(nameof(DVector.InplaceSub)), e2);
@@ -966,8 +965,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             : opKind == Token.Plus
             ? u
             : (u.Type.IsAssignableTo(typeof(INumericVector)) || u.Type == typeof(Matrix))
-                && (u is BinaryExpression or NewExpression
-                || u is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name))
+                && u.CanBeInplaced(bindings)
             ? Expression.Call(u, u.Type.Get(nameof(DVector.InplaceNegate)))
             : Expression.Negate(u);
     }

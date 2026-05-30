@@ -100,6 +100,12 @@ internal static class TreeExtensions
                 : Expression.Convert(e, typeof(double));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool CanBeInplaced(Bindings bindings) =>
+            e is BinaryExpression or NewExpression
+                || e is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name);
+
+
         public bool TryMembership(ref Expression e2)
         {
             if (!e2.Type.IsAssignableTo(typeof(IContainer<>).MakeGenericType(e.Type)))

@@ -149,6 +149,10 @@ public abstract partial class NSequence : Sequence<int, NSequence>,
     public override NSequence Until(int value) =>
         new SeqUntilValue(this, value);
 
+    /// <summary>Gets a sequence up to a fixed point of a function.</summary>
+    /// <returns>A prefix of the original sequence.</returns>
+    public NSequence FixedPoint() => new FixedPointSeq(this);
+
     /// <summary>Gets a range from the sequence.</summary>
     /// <param name="range">A range inside the sequence.</param>
     /// <returns>The sequence for the given range.</returns>

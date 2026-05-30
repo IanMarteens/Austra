@@ -321,7 +321,8 @@ public abstract partial class NSequence
         public override bool Next(out int value)
         {
             if (!done && source.Next(out value))
-            {   done = condition(value);
+            {   
+                done = condition(value);
                 return true;
             }
             value = default;
@@ -364,6 +365,44 @@ public abstract partial class NSequence
         public override NSequence Reset()
         {
             done = false;
+            source.Reset();
+            return this;
+        }
+    }
+
+    /// <summary>Returns a sequence until a fixed point is reached.</summary>
+    /// <param name="source">The original sequence.</param>
+    private class FixedPointSeq(NSequence source) : NSequence
+    {
+        private bool done;
+        private int? last;
+
+        /// <summary>Gets the next number in the computed sequence.</summary>
+        /// <param name="value">The next number in the sequence.</param>
+        /// <returns><see langword="true"/>, when there is a next number.</returns>
+        public override bool Next(out int value)
+        {
+            if (!done && source.Next(out value))
+            {
+                if (value == last)
+                {
+                    done = true;
+                    value = default;
+                    return false;
+                }
+                last = value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>Resets the sequence.</summary>
+        /// <returns>Echoes this sequence.</returns>
+        public override NSequence Reset()
+        {
+            done = false;
+            last = null;
             source.Reset();
             return this;
         }

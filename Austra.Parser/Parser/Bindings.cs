@@ -567,6 +567,7 @@ internal sealed class Bindings
             [typeof(NSequence)] = [
                 new("distinct", "Get the unique values in the sequence"),
                 new("first", "Gets the first value in the sequence"),
+                new("fixedpoint", "Gets a subsequence until a value is repeated"),
                 new("last", "Gets the last value in the sequence"),
                 new("length", "Gets the number of values in the sequence"),
                 new("longProd", "Gets the product of all values in the sequence as a long integer"),
@@ -1301,6 +1302,7 @@ internal sealed class Bindings
 
             [new(typeof(NSequence), "distinct")] = typeof(NSequence).Get(nameof(NSequence.Distinct)),
             [new(typeof(NSequence), "first")] = typeof(NSequence).Get(nameof(NSequence.First)),
+            [new(typeof(NSequence), "fixedpoint")] = typeof(NSequence).Get(nameof(NSequence.FixedPoint)),
             [new(typeof(NSequence), "last")] = typeof(NSequence).Get(nameof(NSequence.Last)),
             [new(typeof(NSequence), "length")] = typeof(NSequence).Get(nameof(NSequence.Length)),
             [new(typeof(NSequence), "longprod")] = typeof(NSequence).Get(nameof(NSequence.LongProduct)),
@@ -1625,7 +1627,8 @@ internal sealed class Bindings
             nameof(DVector.MultiplyAdd), nameof(DVector.MultiplySubtract),
             nameof(DVector.SubtractMultiply),
             nameof(DVector.InplaceNegate),
-            nameof(DVector.Combine2), nameof(DVector.Combine)
+            nameof(DVector.Combine2), nameof(DVector.Combine),
+            nameof(DVector.Map)
         }.ToFrozenSet();
 
     private readonly Dictionary<ClassOp, Expression> classOperators =

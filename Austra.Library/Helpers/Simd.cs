@@ -20,6 +20,9 @@ public static class Simd
     private const double PI_2 = PI / 2.0;
     /// <summary>PI over four.</summary>
     private const double PI_4 = PI / 4.0;
+    /// <summary>One divided by the natural logarithm of 2 (log₂e).</summary>
+    private const double VM_LOG2E = 1.44269504088896340736;
+
 
     /// <summary>Computes four <see cref="Math.Atan2(double, double)"/> at once.</summary>
     /// <remarks>Requires AVX/AVX2/FMA support.</remarks>
@@ -115,7 +118,7 @@ public static class Simd
             Fma.MultiplyAddNegated(x2, V4.Create(0.5), m));
     }
 
-    /// <summary>Calculates <c>c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <summary>Calculates <c>c₄xx⁴+c₃xx³+c₂xx²+c₁xx+c₀</c>.</summary>
     /// <param name="x">A double vector with four elements.</param>
     /// <param name="c0">The constant term.</param>
     /// <param name="c1">The linear term.</param>
@@ -134,7 +137,7 @@ public static class Simd
             V4.Create(c1)), x,
             V4.Create(c0));
 
-    /// <summary>Calculates <c>c₅x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <summary>Calculates <c>c₅xx⁵+c₄xx⁴+c₃xx³+c₂xx²+c₁xx+c₀</c>.</summary>
     /// <param name="x">A double vector with four elements.</param>
     /// <param name="c0">The constant term.</param>
     /// <param name="c1">The linear term.</param>
@@ -155,7 +158,7 @@ public static class Simd
             V4.Create(c1)), x,
             V4.Create(c0));
 
-    /// <summary>Calculates <c>x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <summary>Calculates <c>xx⁵+c₄xx⁴+c₃xx³+c₂xx²+c₁xx+c₀</c>.</summary>
     /// <param name="x">A double vector with four elements.</param>
     /// <param name="c0">The constant term.</param>
     /// <param name="c1">The linear term.</param>
@@ -209,7 +212,7 @@ public static class Simd
         V4d x2 = xx * xx;
         V4d s = Poly5(x2, P0sin, P1sin, P2sin, P3sin, P4sin, P5sin);
         V4d c = Poly5(x2, P0cos, P1cos, P2cos, P3cos, P4cos, P5cos);
-        // s = x + (x * x2) * s;
+        // s = xx + (xx * x2) * s;
         s = Fma.MultiplyAdd(xx * x2, s, xx);
         // c = 1.0 - x2 * 0.5 + (x2 * x2) * c;
         c = Fma.MultiplyAdd(x2 * x2, c,
@@ -313,7 +316,7 @@ public static class Simd
             Avx512F.FusedMultiplyAddNegated(x2, V8.Create(0.5), m));
     }
 
-    /// <summary>Calculates <c>c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <summary>Calculates <c>c₄xx⁴+c₃xx³+c₂xx²+c₁xx+c₀</c>.</summary>
     /// <param name="x">A double vector with eight elements.</param>
     /// <param name="c0">The constant term.</param>
     /// <param name="c1">The linear term.</param>
@@ -333,7 +336,7 @@ public static class Simd
                 V8.Create(c1)), x,
                 V8.Create(c0));
 
-    /// <summary>Calculates <c>c₅x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <summary>Calculates <c>c₅xx⁵+c₄xx⁴+c₃xx³+c₂xx²+c₁xx+c₀</c>.</summary>
     /// <param name="x">A double vector with eight elements.</param>
     /// <param name="c0">The constant term.</param>
     /// <param name="c1">The linear term.</param>
@@ -355,7 +358,7 @@ public static class Simd
                 V8.Create(c1)), x,
                 V8.Create(c0));
 
-    /// <summary>Calculates <c>x⁵+c₄x⁴+c₃x³+c₂x²+c₁x+c₀</c>.</summary>
+    /// <summary>Calculates <c>xx⁵+c₄xx⁴+c₃xx³+c₂xx²+c₁xx+c₀</c>.</summary>
     /// <param name="x">A double vector with eight elements.</param>
     /// <param name="c0">The constant term.</param>
     /// <param name="c1">The linear term.</param>
@@ -411,7 +414,7 @@ public static class Simd
         V8d x2 = xx * xx;
         V8d s = x2.Poly5(P0sin, P1sin, P2sin, P3sin, P4sin, P5sin);
         V8d c = x2.Poly5(P0cos, P1cos, P2cos, P3cos, P4cos, P5cos);
-        // s = x + (x * z2) * s;
+        // s = xx + (xx * z2) * s;
         s = Avx512F.FusedMultiplyAdd(xx * x2, s, xx);
         // c = 1.0 - z2 * 0.5 + (z2 * z2) * c;
         c = Avx512F.FusedMultiplyAdd(x2 * x2, c,
