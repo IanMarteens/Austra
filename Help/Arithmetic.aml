@@ -399,13 +399,17 @@ polyEval(x1, <markup><font color="Blue">1</font></markup>, <markup><font color="
 <markup><font color="DarkGreen">-- Coefficients can be grouped in a vector.</font></markup>
 polyEval(x2, [<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">2</font></markup>, <markup><font color="Blue">3</font></markup>]);
 			</code>
+			<para>There is also a variant that receives a vector of integers and an integer value, and returns the result as a long integer:</para>
+		    <code language="Austra">
+polyEval(<markup><font color="Blue">10</font></markup>, [<markup><b>int</b></markup>:<markup><font color="Blue">1</font>, <font color="Blue">2</font>, <font color="Blue">3</font>, <font color="Blue">4</font></markup>]) = <markup><font color="Blue">1234</font></markup>;
+			</code>
 			<para>The inverse of <codeInline>polyEval</codeInline> is the <codeInline>polySolve</codeInline> function. It takes either a vector or a list of reals and considers them as
 the coefficients of a polynomial. The first value is the coefficient of the highest
 degree term. For instance, the vector <codeInline>[1, 2, 3, 4]</codeInline> stands for the polynomial <math>x^3 + 2*x^2 + 3*x + 4</math>. This function can throw an exception if it does not know how to handle a given
 polynomial, or when there are no available roots. The returned value is always a
 complex vector, even when all roots are real-valued. For instance:</para>
 		    <code language="Austra">
-polySolve(<markup><font color="Blue">1</font></markup>, <markup><font color="Blue">2</font></markup>, <markup><font color="Blue">3</font></markup>)
+polySolve(<markup><font color="Blue">1</font>, <font color="Blue">2</font>, <font color="Blue">3</font></markup>)
 			</code>
 			<para>You can check the accuracy of the answers from the solver using this trick:</para>
 		    <code language="Austra">
@@ -569,7 +573,7 @@ vec(curves, <markup><font color="Blue">15</font></markup>);
 <codeInline>withFilter()</codeInline> method:</para>
 		    <code language="Austra">
 vec(curves.withFilter(<markup><font color="DarkRed">"Curve name"</font></markup>, <markup><font color="DarkRed">"SONIA"</font></markup>), <markup><font color="DarkRed">"Discount factor"</font></markup>); 
-vec(curves.withFilter(1, <markup><font color="DarkRed">"SONIA"</font></markup>), <markup><font color="DarkRed">"Discount factor"</font></markup>);
+vec(curves.withFilter(<markup><font color="Blue">1</font></markup>, <markup><font color="DarkRed">"SONIA"</font></markup>), <markup><font color="DarkRed">"Discount factor"</font></markup>);
             </code>
             <para>The first line of a CSV file can be recovered using the <codeInline>first</codeInline> property:</para>
 		    <code language="Austra">
