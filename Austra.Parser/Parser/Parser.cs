@@ -684,6 +684,11 @@ internal sealed partial class Parser : Scanner, IDisposable
                             if (!Fold<double>(ref e1, ref e2))
                                 Fold<double>(ref e2, ref e1);
                             break;
+                        default:
+                            if (e1.Type == typeof(Complex))
+                                if (!Fold<Complex>(ref e1, ref e2))
+                                    Fold<Complex>(ref e2, ref e1);
+                            break;
                     }
                     return
                         opKind == Token.Eq ? Expression.Equal(e1, e2)
