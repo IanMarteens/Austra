@@ -1,4 +1,7 @@
-﻿namespace Austra.Parser;
+﻿using System.Numerics;
+using System.Windows.Markup;
+
+namespace Austra.Parser;
 
 /// <summary>Syntactic and lexical analysis for AUSTRA.</summary>
 internal sealed partial class Parser : Scanner, IDisposable
@@ -665,9 +668,25 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Move();
                     Expression e2 = ParseAdditiveMultiplicative();
-                    return DifferentTypes(ref e1, ref e2) && !(e1.IsMatrix && e2.IsMatrix)
-                        ? throw Error("Equality operands are not compatible", pos)
-                        : opKind == Token.Eq ? Expression.Equal(e1, e2)
+                    if (DifferentTypes(ref e1, ref e2) && !(e1.IsMatrix && e2.IsMatrix))
+                        throw Error("Equality operands are not compatible", pos);
+                    switch (Type.GetTypeCode(e1.Type))
+                    {
+                        case TypeCode.Int32:
+                            if (!Fold<int>(ref e1, ref e2))
+                                Fold<int>(ref e2, ref e1);
+                            break;
+                        case TypeCode.Int64:
+                            if (!Fold<long>(ref e1, ref e2))
+                                Fold<long>(ref e2, ref e1);
+                            break;
+                        case TypeCode.Double:
+                            if (!Fold<double>(ref e1, ref e2))
+                                Fold<double>(ref e2, ref e1);
+                            break;
+                    }
+                    return
+                        opKind == Token.Eq ? Expression.Equal(e1, e2)
                         : Expression.NotEqual(e1, e2);
                 }
 
@@ -747,6 +766,58 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
             default:
                 return e1;
+        }
+
+        static bool ExtractConstant<T>(Expression e,
+            out Expression branch, out ExpressionType op, out T value)
+            where T : INumberBase<T>
+        {
+            if (e is BinaryExpression { NodeType: ExpressionType op1 } be1)
+                if (be1.Right is ConstantExpression { Value: T d1 })
+                {
+                    op = op1;
+                    value = d1;
+                    branch = be1.Left;
+                    return true;
+                }
+                // The operator must be conmutative.
+                else if (op1 != ExpressionType.Subtract && op1 != ExpressionType.Divide
+                    && be1.Left is ConstantExpression { Value: T d2})
+                {
+                    op = op1;
+                    value = d2;
+                    branch = be1.Right;
+                    return true;
+                }
+            op = default;
+            value = T.Zero;
+            branch = e;
+            return false;
+        }
+
+        static bool Fold<T>(ref Expression e1, ref Expression e2) where T : INumberBase<T>
+        {
+            if (ExtractConstant(e1, out Expression branch, out ExpressionType op, out T d1)
+                && e2 is ConstantExpression { Value: T d2 })
+            {
+                if (op is ExpressionType.Add or ExpressionType.Subtract
+                    or ExpressionType.Multiply or ExpressionType.Divide
+                && (op != ExpressionType.Multiply || d1 != T.Zero)
+                && (op != ExpressionType.Multiply && op != ExpressionType.Divide
+                    || typeof(T) != typeof(int) && typeof(T) != typeof(long)))
+                {
+                    e1 = branch;
+                    e2 = Expression.Constant(op switch
+                    {
+                        ExpressionType.Add => d2 - d1,
+                        ExpressionType.Subtract => d2 + d1,
+                        ExpressionType.Multiply => d2 / d1,
+                        _ => d2 * d1
+                    });
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
