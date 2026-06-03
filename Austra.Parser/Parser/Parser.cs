@@ -935,12 +935,15 @@ internal sealed partial class Parser : Scanner, IDisposable
                             _ => typeof(double)
                         }, bindings);
                     else
-                        e1 = e1 is ConstantExpression { Value: double d1 } &&
-                                e2 is ConstantExpression { Value: double d2 }
+                        e1 = e2 is ConstantExpression { Value: double d2 }
+                            ? e1 is ConstantExpression { Value: double d1 }
                             // Double constants folded.
                             ? Expression.Constant(opAdd == Token.Plus ? d1 + d2 : d1 - d2)
-                            : e1 is ConstantExpression { Value: int i1 } &&
-                                e2 is ConstantExpression { Value: int i2 }
+                            : opAdd == Token.Plus && e1 is BinaryExpression be1 { NodeType: ExpressionType.Add }
+                                && be1.Right is ConstantExpression { Value: double k1 }
+                                ? Expression.Add(b1.Left, Expression.Constant(k1 + d2))
+                            : e2 is ConstantExpression { Value: int i2 } &&
+                                e1 is ConstantExpression { Value: int i1 }
                             // Integer constants folded.
                             ? Expression.Constant(opAdd == Token.Plus ? i1 + i2 : i1 - i2)
                             : opAdd == Token.Plus
