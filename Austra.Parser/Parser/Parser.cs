@@ -787,7 +787,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 }
                 // The operator must be conmutative.
                 else if (op1 != ExpressionType.Subtract && op1 != ExpressionType.Divide
-                    && be1.Left is ConstantExpression { Value: T d2})
+                    && be1.Left is ConstantExpression { Value: T d2 })
                 {
                     op = op1;
                     value = d2;
@@ -935,20 +935,11 @@ internal sealed partial class Parser : Scanner, IDisposable
                             _ => typeof(double)
                         }, bindings);
                     else
-                        e1 = e2 is ConstantExpression { Value: double d2 }
-                            ? e1 is ConstantExpression { Value: double d1 }
-                            // Double constants folded.
-                            ? Expression.Constant(opAdd == Token.Plus ? d1 + d2 : d1 - d2)
-                            : opAdd == Token.Plus && e1 is BinaryExpression be1 { NodeType: ExpressionType.Add }
-                                && be1.Right is ConstantExpression { Value: double k1 }
-                                ? Expression.Add(b1.Left, Expression.Constant(k1 + d2))
-                            : e2 is ConstantExpression { Value: int i2 } &&
-                                e1 is ConstantExpression { Value: int i1 }
-                            // Integer constants folded.
-                            ? Expression.Constant(opAdd == Token.Plus ? i1 + i2 : i1 - i2)
-                            : opAdd == Token.Plus
-                            ? Expression.Add(e1, e2)
-                            : Expression.Subtract(e1, e2);
+                        e1 = e2 is ConstantExpression { Value: double d2 } && TryFold(e1, d2, opAdd, out var result)
+                            ? result
+                            : e2 is ConstantExpression { Value: int i2 } && TryFold(e1, i2, opAdd, out result)
+                            ? result                            
+                            : AddSub(opAdd, e1, e2);
                 }
                 catch
                 {
@@ -995,8 +986,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     ? Expression.Call(e1, e1.Type.Get(nameof(DVector.InplaceAdd)), e2)
                     : Expression.Call(e1, e1.Type.Get(nameof(DVector.InplaceSub)), e2);
             else
-                return opAdd == Token.Plus
-                    ? Expression.Add(e1, e2) : Expression.Subtract(e1, e2);
+                return AddSub(opAdd, e1, e2);
         }
 
         static Expression OptimizeVectorSum(Token opAdd, BinaryExpression b1, Expression e2,
@@ -1020,10 +1010,41 @@ internal sealed partial class Parser : Scanner, IDisposable
                 ? Expression.Call(b1.Left,
                     b1.Left.Type.GetMethod(method, [b1.Right.Type, e2.Type])!,
                     b1.Right, e2)
-                : opAdd == Token.Plus
-                ? Expression.Add(b1, e2)
-                : Expression.Subtract(b1, e2);
+                : AddSub(opAdd, b1, e2);
         }
+
+        // Fold associative sums and subtractions.
+        static bool TryFold<T>(Expression e1, T d2, Token opAdd, out Expression folded) where T : INumberBase<T>
+        {
+            if (e1 is ConstantExpression { Value: T d1 })
+            {
+                folded = Expression.Constant(opAdd == Token.Plus ? d1 + d2 : d1 - d2);
+                return true;
+            }
+            if (e1 is BinaryExpression { NodeType: var op } be1 
+                && op is ExpressionType.Add or ExpressionType.Subtract)
+            {
+                Token op1 = op == ExpressionType.Add ? Token.Plus : Token.Minus;
+                if (be1.Right is ConstantExpression { Value: T k1 })
+                {
+                    folded = AddSub(opAdd,
+                        be1.Left, Expression.Constant(opAdd == op1 ? d2 + k1 : d2 - k1));
+                    return true;
+                }
+                else if (be1.Left is ConstantExpression { Value: T k2 })
+                {
+                    folded = AddSub(op1,
+                        Expression.Constant(opAdd == Token.Plus ? k2 + d2 : k2 - d2), be1.Right);
+                    return true;
+                }
+            }
+            folded = default!;
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static BinaryExpression AddSub(Token plusMinus, Expression e1, Expression e2) =>
+            plusMinus == Token.Plus ? Expression.Add(e1, e2) : Expression.Subtract(e1, e2);
     }
 
     /// <summary>Parses a unary expression.</summary>
