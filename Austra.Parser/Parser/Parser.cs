@@ -871,6 +871,10 @@ internal sealed partial class Parser : Scanner, IDisposable
                                 : e2 == e3
                                 ? Expression.Call(e2, typeof(Matrix).Get(nameof(Matrix.Square)))
                                 : Expression.Multiply(e2, e3))
+                            : opMul == Token.Times && e2.Type == typeof(LMatrix)
+                                && e3 is MethodCallExpression { Method.Name : nameof(LMatrix.Transpose) } mcl
+                                && mcl.Object!.Type == typeof(LMatrix)
+                            ? Expression.Call(e2, typeof(LMatrix).Get(nameof(LMatrix.MultiplyTranspose)), mcl.Object!)
                             : e2 is ConstantExpression { Value: double d1 } &&
                                 e3 is ConstantExpression { Value: double d2 }
                             ? Expression.Constant(opMul switch
