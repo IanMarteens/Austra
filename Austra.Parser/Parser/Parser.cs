@@ -1726,10 +1726,8 @@ internal sealed partial class Parser : Scanner, IDisposable
         SkipFunctor();
         // Check for a parameter in a lambda header.
         if (lambdaBlock.TryMatch(function, out ParameterExpression? lambda)
-            && lambda.Type.IsAssignableTo(typeof(Delegate)))
-            return ParseArgumentsAndBind(lambda);
-        // Check for a local lambda in a LET clause.
-        if (TryGetLambda(function, out lambda))
+            && lambda.Type.IsAssignableTo(typeof(Delegate))
+            || TryGetLambda(function, out lambda))
             return ParseArgumentsAndBind(lambda);
         // Check macro definitions.
         Definition? def = source.GetDefinition(function);
@@ -1740,9 +1738,15 @@ internal sealed partial class Parser : Scanner, IDisposable
             return ParseArgumentsAndBind(def.Expression);
         }
         if (bindings.TryGetClassMethod("math." + function, out MethodList info))
-            return info.Methods.Length == 1
+        {
+            Expression e = info.Methods.Length == 1
                 ? ParseClassSingleMethod(info.Methods[0])
                 : ParseClassMultiMethod(info);
+            if (e is MethodCallExpression mce && mce.Arguments.Count == 1 &&
+                mce.Method.IsStatic && mce.Arguments[0] is ConstantExpression { Value: double d})
+                return Expression.Constant(mce.Method.Invoke(null, [d]) );
+            return e;
+        }
         if (function != "iff")
             throw Error("Invalid function name", pos);
         Expression a0 = ParseConditional();
