@@ -53,6 +53,9 @@ internal static class ParserExtensions
         public NewExpression New() =>
             Expression.New(type.GetConstructor(Type.EmptyTypes)!);
 
+        /// <summary>Creates a new array expression of the specified type and arguments.</summary>
+        /// <param name="args">A list of expressions for the array elements.</param>
+        /// <returns>A new array expression.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NewArrayExpression Make(IEnumerable<Expression> args) =>
             Expression.NewArrayInit(type, args);

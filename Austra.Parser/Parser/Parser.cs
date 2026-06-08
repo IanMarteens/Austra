@@ -1139,38 +1139,20 @@ internal sealed partial class Parser : Scanner, IDisposable
         switch (kind)
         {
             case Token.Int:
-                {
-                    int value = asInt;
-                    Move();
-                    return Expression.Constant(value);
-                }
+                e = CreateConstant(asInt);
+                break;
             case Token.Real:
-                {
-                    double value = asReal;
-                    Move();
-                    e = Expression.Constant(value);
-                    break;
-                }
+                e = CreateConstant(asReal);
+                break;
             case Token.Imag:
-                {
-                    double value = asReal;
-                    Move();
-                    e = Expression.Constant(new Complex(0, value));
-                    break;
-                }
+                e = CreateConstant(new Complex(0, asReal));
+                break;
             case Token.Str:
-                {
-                    string text = id;
-                    Move();
-                    return Expression.Constant(text);
-                }
+                e = CreateConstant(id);
+                break;
             case Token.Date:
-                {
-                    Date value = new((uint)asInt);
-                    Move();
-                    e = Expression.Constant(value);
-                    break;
-                }
+                e = CreateConstant(new Date((uint)asInt));
+                break;
             case Token.False:
                 Move();
                 return FalseExpr;
@@ -1319,6 +1301,12 @@ internal sealed partial class Parser : Scanner, IDisposable
                 default:
                     return e;
             }
+
+        ConstantExpression CreateConstant<T>(T value)
+        {
+            Move();
+            return Expression.Constant(value, typeof(T));
+        }
     }
 
     private MethodCallExpression ParseSafeIndexer(Expression e)
@@ -1988,7 +1976,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     for (int j = i; j < args.Count; j++)
                         if (args[i].Type is var a && a != et &&
-                            (et != typeof(double) || a != typeof(int)))
+                            (et != typeof(double) || a != typeof(int) || a != typeof(Date)))
                             throw Error($"Expected {expected.Name}", starts[i]);
                     args[i] = et.Make(args.Skip(i).Select(a => a.Type == et ? a : a.ToDouble));
                     args.RemoveRange(i + 1, args.Count - i - 1);
