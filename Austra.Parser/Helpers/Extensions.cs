@@ -1,7 +1,7 @@
 ﻿namespace Austra.Parser;
 
 /// <summary>Extension methods for <see cref="Expression"/>.</summary>
-internal static class TreeExtensions
+internal static class Extensions
 {
     extension(Expression e)
     {
@@ -105,7 +105,6 @@ internal static class TreeExtensions
             e is BinaryExpression or NewExpression
                 || e is MethodCallExpression m && bindings.IsOptimizableCall(m.Method.Name);
 
-
         public bool TryMembership(ref Expression e2)
         {
             if (!e2.Type.IsAssignableTo(typeof(IContainer<>).MakeGenericType(e.Type)))
@@ -129,4 +128,53 @@ internal static class TreeExtensions
         b.Variables.Count == 0
         ? "{" + DescribeBlock(b) + "}"
         : "{" + DescribeVariables(b) + "; " + DescribeBlock(b) + " }";
+
+    /// <summary>
+    /// Extension methods for <see cref="Type"/> to create expressions.
+    /// </summary>
+    /// <param name="type">The type for which to create extension methods.</param>
+    extension(Type type)
+    {
+        /// <summary>Avoids repeating the bang operator (!) in the code.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public MethodInfo Get(string method) =>
+             type.GetMethod(method)!;
+
+        /// <summary>Gets the property getter method for the specified property.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public MethodInfo Prop(string property) =>
+             type.GetProperty(property)!.GetGetMethod()!;
+
+        public MethodData MD(params Type[] argTypes) =>
+            new(type, null, argTypes);
+
+        public MethodData MD(string member, params Type[] argTypes) =>
+            new(type, member, argTypes);
+
+        /// <summary>
+        /// Gets the constructor for the specified types and creates a new expression.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NewExpression New(params Expression[] args) =>
+            Expression.New(type.GetConstructor([.. args.Select(a => a.Type)])!, args);
+
+        /// <summary>Creates a new array expression of the specified type and arguments.</summary>
+        /// <param name="args">A list of expressions for the array elements.</param>
+        /// <returns>A new array expression.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NewArrayExpression Make(IEnumerable<Expression> args) =>
+            Expression.NewArrayInit(type, args);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public MethodCallExpression Call(Expression? instance, string method, Expression arg) =>
+            Expression.Call(instance, type.GetMethod(method, [arg.Type])!, arg);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public MethodCallExpression Call(string method, Expression a) =>
+            Expression.Call(type.GetMethod(method, [a.Type])!, a);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public MethodCallExpression Call(string method, Expression a1, Expression a2) =>
+            Expression.Call(type.GetMethod(method, [a1.Type, a2.Type])!, a1, a2);
+    }
 }
