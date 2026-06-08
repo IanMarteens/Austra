@@ -1,4 +1,6 @@
-﻿namespace Austra.Parser;
+﻿using Clndr = Austra.Library.Dates.Calendar;
+
+namespace Austra.Parser;
 
 /// <summary>A symbol table for predefined classes and methods.</summary>
 /// <remarks>
@@ -72,12 +74,15 @@ internal sealed class Bindings
             ["date"] = typeof(Date),
             ["string"] = typeof(string),
             ["csv"] = typeof(Csv),
+            ["calendar"] = typeof(Clndr),
         }.ToFrozenDictionary();
 
     /// <summary>Code completion descriptors for root classes.</summary>
     private readonly Member[] rootClasses =
     [
+        new("calendar::", "Allows the creation of business day calendars."),
         new("cseq::", "Allows access to complex sequence constructors"),
+        new("csv::", "Allows creation and configuration of csv files."),
         new("cvec::", "Allows access to complex vector constructors"),
         new("dseq::", "Allows access to date sequence constructors"),
         new("dvec::", "Allows access to date vector constructors"),
@@ -90,7 +95,6 @@ internal sealed class Bindings
         new("series::", "Allows access to series constructors"),
         new("spline::", "Allows access to spline constructors"),
         new("vec::", "Allows access to vector constructors"),
-        new("csv::", "Allows creation and configuration of csv files.")
     ];
 
     /// <summary>Code completion descriptors for class methods or constructors.</summary>
@@ -107,6 +111,9 @@ internal sealed class Bindings
             ["csv"] = [
                 new ("new(", "Creates a CSV file for reading data"),
             ],
+            ["calendar"] = [
+                new("new(", "Creates a business day calendar"),
+            ],
             ["cvec"] = [
                 new("new(", "Creates a complex vector given a size and an optional lambda"),
                 new("nrandom(", "Creates a random vector using a standard normal distribution given a length"),
@@ -119,6 +126,7 @@ internal sealed class Bindings
             ["dseq"] = [
                 new("new(", "Creates a date sequence either from a range, a range and a step, or a vector"),
                 new("eom(", "Creates a date sequence, rolling to the end of the month"),
+                new("expand(", "Expands a vector of date templates between two years"),
                 new("repeat(", "Creates a sequence with a repeated value"),
                 new("unfold", "Creates a date sequence from a seed and a lambda"),
             ],
@@ -249,6 +257,13 @@ internal sealed class Bindings
                 new("rss", "Gets the Residual Sum of Squares"),
                 new("tss", "Gets the Total Sum of Squares"),
             ],
+            [typeof(Clndr)] = [
+                new("following", "Rolls the argument to the next business day"),
+                new("modfollowing", "Rolls the argument to the next business day in the same month"),
+                new("modprevious", "Rolls the argument to the previous business day in the same month"),
+                new("previous", "Rolls the argument to the previous business day"),
+                new("roll", "Rolls a date a number of day forward or backward"),
+            ],
             [typeof(Cholesky)] = [
                 new("lower", "Gets the lower-triangular matrix from the decomposition"),
                 new("solve(", "Solves a linear system involving the original matrix"),
@@ -260,7 +275,7 @@ internal sealed class Bindings
                 new("real", "Gets the real part of the complex number"),
             ],
             [typeof(CSequence)] = [
-                new("distinct", "Get the unique values in the sequence"),
+                new("distinct", "Gets the unique values in the sequence"),
                 new("fft", "Performs a Fast Fourier Transform"),
                 new("first", "Gets the first value in the sequence"),
                 new("last", "Gets the last value in the sequence"),
@@ -738,6 +753,9 @@ internal sealed class Bindings
     private readonly FrozenDictionary<string, MethodList> classMethods =
         new Dictionary<string, MethodList>()
         {
+            ["calendar.new"] = new(
+                typeof(Clndr).MD(typeof(string), typeof(DateVector)),
+                typeof(Clndr).MD(typeof(DateVector))),
             ["csv.new"] = new(
                 typeof(Csv).MD(typeof(string))),
             ["cseq.new"] = new(
@@ -784,6 +802,8 @@ internal sealed class Bindings
                 typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(int), typeof(Date)]),
                 typeof(DateSequence).MD(nameof(DateSequence.Create), [typeof(Date), typeof(int), typeof(int)]),
                 typeof(DateSequence).MD(nameof(DateSequence.Create), typeof(DateVector))),
+            ["dseq.expand"] = new(
+                typeof(DateSequence).MD(nameof(DateSequence.Expand), typeof(int), typeof(int), typeof(DateVector))),
             ["dseq.repeat"] = new(
                 typeof(DateSequence).MD(nameof(DateSequence.Repeat), typeof(int), typeof(Date))),
             ["dseq.unfold"] = new(
@@ -1423,6 +1443,12 @@ internal sealed class Bindings
     private readonly FrozenDictionary<TypeId, MethodInfo> methods =
         new Dictionary<TypeId, MethodInfo>()
         {
+            [new(typeof(Clndr), "following")] = typeof(Clndr).Get(nameof(Clndr.RollFollowing)),
+            [new(typeof(Clndr), "modfollowing")] = typeof(Clndr).Get(nameof(Clndr.RollModifiedFollowing)),
+            [new(typeof(Clndr), "modprevious")] = typeof(Clndr).Get(nameof(Clndr.RollModifiedPrevious)),
+            [new(typeof(Clndr), "previous")] = typeof(Clndr).Get(nameof(Clndr.RollPrevious)),
+            [new(typeof(Clndr), "roll")] = typeof(Clndr).Get(nameof(Clndr.Roll)),
+
             [new(typeof(CSequence), "all")] = typeof(CSequence).Get(nameof(CSequence.All)),
             [new(typeof(CSequence), "any")] = typeof(CSequence).Get(nameof(CSequence.Any)),
             [new(typeof(CSequence), "filter")] = typeof(CSequence).Get(nameof(CSequence.Filter)),

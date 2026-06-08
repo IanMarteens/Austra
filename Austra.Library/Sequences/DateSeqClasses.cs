@@ -771,6 +771,54 @@ public abstract partial class DateSequence
         }
     }
 
+    /// <summary>
+    /// Expands a vector of date templates using a date interval.
+    /// </summary>
+    /// <param name="fromYear">First year of the interval.</param>
+    /// <param name="toYear">Last year of the interval.</param>
+    /// <param name="holidays">A vector of template dates.</param>
+    private sealed class ExpandedSequence(int fromYear, int toYear, DateVector holidays) : DateSequence
+    {
+        private readonly DateVector templates = holidays.Map(d =>
+            { 
+                var (_, m, day) = d;
+                return new Date(fromYear, m, day);
+            }).Distinct().Sort();
+        private readonly int fromYear = fromYear;
+        private int currentYear = fromYear;
+        private int templateCursor = 0;
+
+        /// <inheritdoc/>
+        public override bool Next(out Date value)
+        {
+            if (templateCursor >= templates.Length)
+            {
+                if (currentYear >= toYear)
+                {
+                    value = default;
+                    return false;
+                }
+                currentYear++;
+                var (_, m, d) = templates[0];
+                value = new Date(currentYear, m, d);
+                templateCursor = 1;
+                return true;
+            }
+            var (_, month, day) = templates[templateCursor];
+            value = new Date(currentYear, month, day);
+            templateCursor++;
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public override DateSequence Reset()
+        {
+            currentYear = fromYear;
+            templateCursor = 0;
+            return this;
+        }
+    }
+
     /// <summary>Implements a sequence using a vector as its storage.</summary>
     /// <param name="source">The underlying vector.</param>
     private sealed class VectorSequence(DateVector source) : CursorSequence(source.Length)

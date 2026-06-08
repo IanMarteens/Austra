@@ -55,6 +55,20 @@ public abstract partial class DateSequence : BaseSequence<Date, DateSequence>,
     public static DateSequence Create(DateVector values) =>
         new VectorSequence(values);
 
+    /// <summary>
+    /// Expands a list of date templates into a sequence of dates between two bounds.
+    /// </summary>
+    /// <remarks>
+    /// Years from the template dates are ignored.
+    /// This method is useful for creating business day calendars.
+    /// </remarks>
+    /// <param name="fromYear">First year of the interval.</param>
+    /// <param name="toYear">Last year of the interval.</param>
+    /// <param name="holidays">A vector of template dates.</param>
+    /// <returns>The expanded sequence of holidays.</returns>
+    public static DateSequence Expand(int fromYear, int toYear, DateVector holidays) =>
+        new ExpandedSequence(fromYear, toYear, holidays);
+
     /// <summary>Creates a sequence by repeating a value a given number of times.</summary>
     /// <param name="size">The size of the sequence.</param>
     /// <param name="value">The repeated value.</param>

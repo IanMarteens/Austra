@@ -22,6 +22,19 @@ public sealed class Calendar
         TomorrowNext = RollFollowing(Tomorrow + 1);
     }
 
+    /// <summary>Initializes a business days calendar.</summary>
+    /// <param name="name">Symbolic name of the calendar.</param>
+    /// <param name="holidays">A collection of dates.</param>
+    public Calendar(string name, DateVector holidays) :
+        this(name, Date.Today, (Date[])holidays)
+    { }
+
+    /// <summary>Initializes a business days calendar.</summary>
+    /// <param name="holidays">A collection of dates.</param>
+    public Calendar(DateVector holidays) :
+        this("Calendar ", Date.Today, (Date[])holidays)
+    { }
+
     /// <summary>Creates a new calendar by merging two existing ones.</summary>
     /// <param name="c1">First calendar to merge.</param>
     /// <param name="c2">Second calendar to merge.</param>
@@ -60,7 +73,7 @@ public sealed class Calendar
     /// <summary>Is the given date a good business day or not?</summary>
     /// <param name="date">The date to be tested.</param>
     /// <returns><c>True</c> if the date is a holiday.</returns>
-    public bool IsHoliday(Date date) => 
+    public bool IsHoliday(Date date) =>
         ((uint)date + 2) % 7 <= 1 || holidays.Contains(date);
 
     /// <summary>Rolls a date up or down a number of working days.</summary>
