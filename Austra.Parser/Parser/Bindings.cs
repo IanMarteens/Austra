@@ -259,6 +259,7 @@ internal sealed class Bindings
             ],
             [typeof(Clndr)] = [
                 new("following", "Rolls the argument to the next business day"),
+                new("isholiday", "Checks if a date is a holiday"),
                 new("modfollowing", "Rolls the argument to the next business day in the same month"),
                 new("modprevious", "Rolls the argument to the previous business day in the same month"),
                 new("previous", "Rolls the argument to the previous business day"),
@@ -755,7 +756,8 @@ internal sealed class Bindings
         {
             ["calendar.new"] = new(
                 typeof(Clndr).MD(typeof(string), typeof(DateVector)),
-                typeof(Clndr).MD(typeof(DateVector))),
+                typeof(Clndr).MD(typeof(DateVector)),
+                typeof(Clndr).MD(typeof(Date[]))),
             ["csv.new"] = new(
                 typeof(Csv).MD(typeof(string))),
             ["cseq.new"] = new(
@@ -1444,6 +1446,7 @@ internal sealed class Bindings
         new Dictionary<TypeId, MethodInfo>()
         {
             [new(typeof(Clndr), "following")] = typeof(Clndr).Get(nameof(Clndr.RollFollowing)),
+            [new(typeof(Clndr), "isholiday")] = typeof(Clndr).Get(nameof(Clndr.IsHoliday)),
             [new(typeof(Clndr), "modfollowing")] = typeof(Clndr).Get(nameof(Clndr.RollModifiedFollowing)),
             [new(typeof(Clndr), "modprevious")] = typeof(Clndr).Get(nameof(Clndr.RollModifiedPrevious)),
             [new(typeof(Clndr), "previous")] = typeof(Clndr).Get(nameof(Clndr.RollPrevious)),

@@ -538,6 +538,10 @@ collatz(137)
 	 		      <entry><para>Creates a sequence starting with a date, adding months and rolling each date to the end of the month.</para></entry>
 			    </row>
 	 		    <row>
+	 		      <entry><para><codeInline>dseq::expand</codeInline></para></entry>
+	 		      <entry><para>Receives two years as integers, for delimiting a date interval, and a vector with <legacyItalic>template</legacyItalic> dates. The method ignores the year in the template dates and generates a set of dates with the supplied days and months for the years in the interval.</para></entry>
+			    </row>
+	 		    <row>
 	 		      <entry><para><codeInline>cseq::repeat</codeInline></para></entry>
 	 		      <entry><para>Creates a sequence of repetitions of a single date.</para></entry>
 			    </row>
@@ -546,13 +550,29 @@ collatz(137)
 	 		      <entry><para>Like <codeInline>seq::unfold</codeInline>, but using date arguments.</para></entry>
 			    </row>
 			  </table>
-			  <para>The two most useful class methods probably are the ones that create schedules:</para>
+              <para>The expand method can be used to generate regular holidays for calendars. A regular holiday is one that fits in a solar calendar, so it falls at the same date every year. For instance, if you want to generate a simple calendar with just three dates for all years between 2000 and 2050, you can use this code:</para>
+			  <code language="Austra">
+<markup><b><font color="DarkCyan">dseq</font></b>::expand(<font color="Blue">2000</font>, <font color="Blue">2050</font>, [jan26, <font color="Blue">4</font>@jul26, <font color="Blue">25</font>@dec26]);</markup>
+              </code>
+              <para>The supplied dates as used as templates, and the included year is ignored.</para>
+              <para>The two most useful class methods probably are the ones that create schedules:</para>
 			  <code language="Austra">
 <markup><font color="DarkGreen">-- Generates twelve dates using a one-month tenor.</font></markup>
 dseq(today, 1, 12);
 <markup><font color="DarkGreen">-- Same as above, but using end-of-month rolling.</font><br/>
 <font color="DarkCyan"><b>dseq::</b></font></markup>eom(today, 1, 12);
-</code>
+              </code>
+              <para>The dates in the sequence are not adjusted, but you can use a calendar to move dates to valid business dates:</para>
+			  <code language="Austra">
+<markup><font color="DarkGreen">-- Read holidays from a CSV file.</font><br/>
+<b><font color="RoyalBlue">let</font></b> file = csv(<font color="DarkRed">"euta.csv"</font>)
+        .withHeader.withSeparator(<font color="DarkRed">","</font>).withFormat(<font color="DarkRed">"EN-US"</font>),
+    holidays = dvec(file, <font color="DarkRed">"Date"</font>);
+<font color="DarkGreen">-- Create a calendar.</font><br/>
+<font color="RoyalBlue"><b>let</b></font> cal = calendar(<font color="DarkRed">"EUTA"</font>, holidays);
+<font color="DarkGreen">-- Generate the schedule and adjust dates.</font><br/>
+<font color="DarkCyan"><b>dseq</b></font>::eom(today, <font color="Blue">1</font>, <font color="Blue">12</font>).map(d => cal.modFollowing(d));</markup>
+              </code>
             </content>
           </section>
           <section address="dateseqMethods">

@@ -488,6 +488,49 @@ Newton-Raphson algorithm.</para>
 [d &lt;- today..today+<markup><font color="Blue">365</font></markup> : d.dow = <markup><font color="DarkRed">"Saturday"</font></markup>]
         </code>
         <para>All enumerative values in Austra allow this conversion.</para>
+        <sections>
+          <section address="calendars">
+            <title>Calendars</title>
+            <content>
+              <para>The <codeInline>calendar</codeInline> class supports day adjustments to business days. A calendar instance stores a set of holidays and provides methods for moving dates that coincide with holidays.</para>
+              <para>There are two methods for creating a calendar:</para>
+	          <code language="Austra">
+<markup><font color="RoyalBlue"><b>let</b></font></markup> c1 = calendar(<markup><font color="DarkRed">"EUTA"</font></markup>, holidays);
+<markup><font color="RoyalBlue"><b>let</b></font></markup> c2 = calendar(holidays);
+              </code>
+              <para>The <legacyItalic>holidays</legacyItalic> variable must contain a vector of dates. It does not need to be sorted, nor do the dates need to be unique. The first variant creates a calendar with a name. In our example, we are calling EUTA our calendar, for the official European Target calendar used by banks in the euro zone. The second call creates an anonymous calendar. The name of the calendar has no further relevance since it is only a trick for identifying an existing instance when needed.</para>
+              <para>The date vector with the holidays must be created elsewhere. Holidays, for example, can be read from a CSV file. Another trick is to use <codeInline>dseq::expand</codeInline> to create holidays from a list of date templates. This method ignores the year of the supplied dates and generates actual dates for a range of years:</para>
+	          <code language="Austra">
+<markup><font color="RoyalBlue"><b>let</b></font></markup> holidays = <markup><b><font color="DarkCyan">dseq</font></b></markup>::expand(<markup><font color="Blue">2000</font>, <font color="Blue">2050</font>, [<font color="Blue">4</font>@jul26, <font color="Blue">25</font></markup>@dec26]),
+    myCal = calendar(holidays.toVector);
+              </code>
+              <para>You can also mix both techniques. For instance, you can read dates such as Good Friday, which falls on a different date each year, from a file, and then add template dates generated as a sequence.</para>
+              <para>The power of calendars comes from the rolling methods:</para>
+	          <table>
+      	        <row>
+		          <entry><para><codeInline>following</codeInline></para></entry>
+		          <entry><para>If the date supplied as the argument is a holiday, it re-turns the next valid business day. Otherwise, the supplied date is echoed.</para></entry>
+		        </row>
+      	        <row>
+		          <entry><para><codeInline>modFollowing</codeInline></para></entry>
+		          <entry><para>Works as the above method, except that when the date is moved to the next month, it rollbacks the change and choose the previous business day.</para></entry>
+		        </row>
+      	        <row>
+		          <entry><para><codeInline>modPrevious</codeInline></para></entry>
+		          <entry><para>A variant of <codeInline>previous</codeInline> that rollbacks to the next business day if rolling moves a date to the previous month.</para></entry>
+		        </row>
+      	        <row>
+		          <entry><para><codeInline>previous</codeInline></para></entry>
+		          <entry><para>If the date supplied as the argument is a holiday, it returns the previous valid business day. Otherwise, the supplied date is echoed.</para></entry>
+		        </row>
+      	        <row>
+		          <entry><para><codeInline>roll</codeInline></para></entry>
+		          <entry><para>Receives a date and an integer. If the integer is positive, it rolls the date forward using the same criterion as following. When the integer is negative, rolling takes place backwards.</para></entry>
+		        </row>
+		      </table>
+            </content>
+          </section>
+        </sections>
       </content>
     </section>
     <section address="Section5">

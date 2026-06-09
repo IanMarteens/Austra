@@ -12,10 +12,6 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>Constructor for <see cref="Range"/>.</summary>
     private static readonly ConstructorInfo RangeCtor =
         typeof(Range).GetConstructor([typeof(Index), typeof(Index)])!;
-    /// <summary>The <see cref="Expression"/> for <see langword="false"/>.</summary>
-    private static readonly ConstantExpression FalseExpr = Expression.Constant(false);
-    /// <summary>The <see cref="Expression"/> for <see langword="true"/>.</summary>
-    private static readonly ConstantExpression TrueExpr = Expression.Constant(true);
     /// <summary>The <see cref="Expression"/> for <c>0</c>.</summary>
     private static readonly ConstantExpression ZeroExpr = Expression.Constant(0);
     /// <summary>The <see cref="Expression"/> for <see cref="Complex.ImaginaryOne"/>.</summary>
@@ -1154,11 +1150,9 @@ internal sealed partial class Parser : Scanner, IDisposable
                 e = CreateConstant(new Date((uint)asInt));
                 break;
             case Token.False:
-                Move();
-                return FalseExpr;
+                return CreateConstant(false);
             case Token.True:
-                Move();
-                return TrueExpr;
+                return CreateConstant(true);
             case Token.LPar:
                 Move();
                 e = ParseConditional();
@@ -1394,11 +1388,11 @@ internal sealed partial class Parser : Scanner, IDisposable
                     e2 = Expression.New(IndexCtor, e2, Expression.Constant(fromEnd21));
                 e2 = Expression.New(RangeCtor, e2, e22);
                 if (!isRange && fromEnd11)
-                    e1 = Expression.New(IndexCtor, e1!, TrueExpr);
+                    e1 = Expression.New(IndexCtor, e1!, Expression.Constant(true));
                 isRange = true;
             }
             else if (isRange && fromEnd21)
-                e2 = Expression.New(IndexCtor, e2, TrueExpr);
+                e2 = Expression.New(IndexCtor, e2, Expression.Constant(true));
             CheckAndMove(Token.RBra, "] expected");
         }
         if (isRange)
@@ -1433,7 +1427,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                 {
                     Move();
                     return Expression.Property(e, "Item", fromEnd1
-                        ? Expression.New(IndexCtor, e1, TrueExpr)
+                        ? Expression.New(IndexCtor, e1, Expression.Constant(true))
                         : e1);
                 }
             }

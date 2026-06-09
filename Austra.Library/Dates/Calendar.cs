@@ -35,6 +35,12 @@ public sealed class Calendar
         this("Calendar ", Date.Today, (Date[])holidays)
     { }
 
+    /// <summary>Initializes a business days calendar.</summary>
+    /// <param name="holidays">A collection of dates.</param>
+    public Calendar(Date[] holidays) :
+        this("Calendar ", Date.Today, holidays)
+    { }
+
     /// <summary>Creates a new calendar by merging two existing ones.</summary>
     /// <param name="c1">First calendar to merge.</param>
     /// <param name="c2">Second calendar to merge.</param>
