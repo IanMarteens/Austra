@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Windows.Markup;
 
 namespace Austra.Parser;
 
@@ -14,10 +13,6 @@ internal sealed partial class Parser : Scanner, IDisposable
         typeof(Range).GetConstructor([typeof(Index), typeof(Index)])!;
     /// <summary>The <see cref="Expression"/> for <c>0</c>.</summary>
     private static readonly ConstantExpression ZeroExpr = Expression.Constant(0);
-    /// <summary>The <see cref="Expression"/> for <see cref="Complex.ImaginaryOne"/>.</summary>
-    private static readonly ConstantExpression ImExpr = Expression.Constant(Complex.ImaginaryOne);
-    /// <summary>The <see cref="Expression"/> for <see cref="Math.PI"/>.</summary>
-    private static readonly ConstantExpression PiExpr = Expression.Constant(Math.PI);
     /// <summary>The <see cref="Expression"/> for <see langword="null"/>.</summary>
     private static readonly ConstantExpression NullExpr = Expression.Constant(null);
     /// <summary>Reference to the <see cref="Random.Shared"/> property.</summary>
@@ -26,29 +21,6 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>Reference to the <see cref="NormalRandom.Shared"/> property.</summary>
     private static readonly Expression NormalRandomExpr =
         Expression.Property(null, typeof(NormalRandom), nameof(NormalRandom.Shared));
-    /// <summary>Method for multiplying by a transposed matrix.</summary>
-    private static readonly MethodInfo MatrixMultiplyTranspose =
-        typeof(Matrix).GetMethod(nameof(Matrix.MultiplyTranspose), [typeof(Matrix)])!;
-    /// <summary>Method for multiplying a vector by a transposed matrix.</summary>
-    private static readonly MethodInfo MatrixTransposeMultiply =
-        typeof(Matrix).Get(nameof(Matrix.TransposeMultiply));
-    /// <summary>Method for linear vector combinations.</summary>
-    private static readonly MethodInfo VectorCombine2 =
-        typeof(DVector).GetMethod(nameof(DVector.Combine2),
-            [typeof(double), typeof(double), typeof(DVector), typeof(DVector)])!;
-    /// <summary>Method for linear vector combinations.</summary>
-    private static readonly MethodInfo MatrixCombine =
-        typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
-            [typeof(DVector), typeof(double), typeof(DVector)])!;
-    /// <summary>Method for squaring a matrix.</summary>
-    private static readonly MethodInfo MatrixSquare =
-        typeof(Matrix).GetMethod(nameof(Matrix.Square))!;
-    /// <summary>Method for squaring a lower-triangular matrix.</summary>
-    private static readonly MethodInfo LMatrixSquare =
-        typeof(LMatrix).GetMethod(nameof(LMatrix.Square))!;
-    /// <summary>Method for squaring an upper-triangular matrix.</summary>
-    private static readonly MethodInfo RMatrixSquare =
-        typeof(RMatrix).GetMethod(nameof(RMatrix.Square))!;
 
     /// <summary>Predefined classes and methods.</summary>
     private readonly Bindings bindings;
@@ -87,7 +59,7 @@ internal sealed partial class Parser : Scanner, IDisposable
     /// <summary>New session variables that are not yet defined in the data source.</summary>
     private readonly Dictionary<string, Expression> pendingSets =
         new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>Controls that only persisted values are used.</summary>
+    /// <summary>Verifies that only persisted values are used.</summary>
     private bool isParsingDefinition;
     /// <summary>Are we parsing a lambda header?</summary>
     private bool parsingLambdaHeader;
@@ -860,10 +832,11 @@ internal sealed partial class Parser : Scanner, IDisposable
                         e2 = opMul == Token.Times && e2.Type == typeof(Matrix)
                             ? (e3.Type == typeof(DVector) && e2 is MethodCallExpression
                             { Method.Name: nameof(Matrix.Transpose) } mca
-                                ? Expression.Call(mca.Object, MatrixTransposeMultiply, e3)
+                                ? Expression.Call(mca.Object, typeof(Matrix).Get(nameof(Matrix.TransposeMultiply)), e3)
                                 : e3.Type == typeof(Matrix) && e3 is MethodCallExpression
                                 { Method.Name: nameof(Matrix.Transpose) } mcb
-                                ? Expression.Call(e2, MatrixMultiplyTranspose, mcb.Object!)
+                                ? Expression.Call(e2, typeof(Matrix).GetMethod(
+                                    nameof(Matrix.MultiplyTranspose), [typeof(Matrix)])!, mcb.Object!)
                                 : e2 == e3
                                 ? Expression.Call(e2, typeof(Matrix).Get(nameof(Matrix.Square)))
                                 : Expression.Multiply(e2, e3))
@@ -965,14 +938,17 @@ internal sealed partial class Parser : Scanner, IDisposable
                 else if (b1.Left.Type == typeof(double)
                         && b2.Left.Type == typeof(double))
                     // d1 * v1 + d2 * v2
-                    return Expression.Call(VectorCombine2,
+                    return Expression.Call(
+                        typeof(DVector).Get(nameof(DVector.Combine2)),
                         b1.Left,
                         opAdd == Token.Plus ? b2.Left : Negate(b2.Left),
                         b1.Right, b2.Right);
                 else if (b1.Left.Type == typeof(Matrix)
                     && b2.Left.Type == typeof(double))
                     // m * v1 + d * v2
-                    return Expression.Call(b1.Left, MatrixCombine,
+                    return Expression.Call(b1.Left, 
+                        typeof(Matrix).GetMethod(nameof(Matrix.MultiplyAdd),
+                            [typeof(DVector), typeof(double), typeof(DVector)])!,
                         b1.Right,
                         opAdd == Token.Plus ? b2.Left : Negate(b2.Left),
                         b2.Right);
@@ -1088,11 +1064,11 @@ internal sealed partial class Parser : Scanner, IDisposable
         }
         else if (k == Token.Caret2 || e1 is ConstantExpression { Value: 2 })
             if (e.Type == typeof(Matrix))
-                return Expression.Call(e, MatrixSquare);
+                return Expression.Call(e, typeof(Matrix).Get(nameof(Matrix.Square)));
             else if (e.Type == typeof(LMatrix))
-                return Expression.Call(e, LMatrixSquare);
+                return Expression.Call(e, typeof(LMatrix).Get(nameof(LMatrix.Square)));
             else if (e.Type == typeof(RMatrix))
-                return Expression.Call(e, RMatrixSquare);
+                return Expression.Call(e, typeof(RMatrix).Get(nameof(RMatrix.Square)));
         return e.Type == typeof(DVector) && e1.Type == typeof(DVector)
             ? Expression.ExclusiveOr(e, e1)
             : throw Error("Operands must be numeric", pos);
@@ -1849,7 +1825,7 @@ internal sealed partial class Parser : Scanner, IDisposable
             expected == typeof(Series<Date>) && e.Type == typeof(Series) ||
             expected.IsClass && e.Type.IsAssignableTo(expected)
             ? e
-            : expected == typeof(double) && (e.Type == typeof(int) || e.Type == typeof(long))
+            : expected == typeof(double) && e.Type.IsInteger()
             ? e.ToDouble
             : expected == typeof(long) && e.Type == typeof(int)
             ? e.ToLong
@@ -1896,7 +1872,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                     j < info.Methods.Length; j++, m <<= 1)
                     if ((mask & m) != 0 && info.Methods[j] is MethodData md)
                         if (md.ExpectedArgs < i || md.GetMask(i) >= MethodData.Mλ1 ||
-                            !CanConvert(last.Type, md.Args[Math.Min(i, md.Args.Length - 1)]))
+                            !last.Type.CanConvert(md.Args[Math.Min(i, md.Args.Length - 1)]))
                             mask &= ~m;
                 if (mask == 0)
                     throw Error("Invalid argument type");
@@ -1930,7 +1906,7 @@ internal sealed partial class Parser : Scanner, IDisposable
                         mask &= ~(1 << mth2);
                     else if (t0 == tm2)
                         mask &= ~(1 << mth1);
-                    else if (IsInteger(t0))
+                    else if (t0.IsInteger())
                         // Favor double over Complex where actual parameter is integer.
                         if (tm1 == typeof(double))
                             mask &= ~(1 << mth2);
@@ -1961,10 +1937,10 @@ internal sealed partial class Parser : Scanner, IDisposable
             Type expected = mth.Args[i], actual = args[i].Type;
             if (actual != expected)
             {
-                if (expected == typeof(double) && IsInteger(actual))
+                if (expected == typeof(double) && actual.IsInteger())
                     args[i] = args[i].ToDouble;
                 else if (expected == typeof(Complex) &&
-                    (IsInteger(actual) || actual == typeof(double)))
+                    (actual.IsInteger() || actual == typeof(double)))
                     args[i] = Expression.Convert(args[i].ToDouble, typeof(Complex));
                 else if (expected.IsArray && expected.GetElementType() is Type et)
                 {
@@ -1986,18 +1962,6 @@ internal sealed partial class Parser : Scanner, IDisposable
             : mth.GetExpression(instance, args);
         source.Return(args);
         return result;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static bool IsInteger(Type type) =>
-            type == typeof(int) || type == typeof(long);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static bool CanConvert(Type actual, Type expected) =>
-            expected == actual ||
-            expected == typeof(double) && IsInteger(actual) ||
-            expected == typeof(Complex) && (actual == typeof(double) || IsInteger(actual)) ||
-            expected.IsArray && expected.GetElementType() is var et
-                && (actual == et || et == typeof(double) && actual == typeof(int));
     }
 
     /// <summary>Parses a vector or matrix literal, or a list comprehension.</summary>
@@ -2436,8 +2400,8 @@ internal sealed partial class Parser : Scanner, IDisposable
         ident.ToLower() switch
         {
             "e" => Expression.Constant(Math.E),
-            "i" => ImExpr,
-            "pi" or "π" => PiExpr,
+            "i" => Expression.Constant(Complex.ImaginaryOne),
+            "pi" or "π" => Expression.Constant(Math.PI),
             "tau" or "τ" => Expression.Constant(Math.Tau),
             "today" => Expression.Constant(Date.Today),
             "pearl" => Expression.Call(typeof(Functions).Get(nameof(Functions.Austra))),

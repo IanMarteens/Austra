@@ -176,5 +176,17 @@ internal static class Extensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public MethodCallExpression Call(string method, Expression a1, Expression a2) =>
             Expression.Call(type.GetMethod(method, [a1.Type, a2.Type])!, a1, a2);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsInteger() =>
+            type == typeof(int) || type == typeof(long);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool CanConvert(Type expected) =>
+            expected == type ||
+            expected == typeof(double) && type.IsInteger() ||
+            expected == typeof(Complex) && (type == typeof(double) || type.IsInteger()) ||
+            expected.IsArray && expected.GetElementType() is var et
+                && (type == et || et == typeof(double) && type == typeof(int));
     }
 }
