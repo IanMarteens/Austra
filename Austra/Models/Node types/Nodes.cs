@@ -290,6 +290,8 @@ public sealed class DefinitionNode(AllDefinitionsNode parent, Definition def) :
         ? "LinearModel"
         : def.Type == typeof(FftCModel) || def.Type == typeof(FftRModel)
         ? "FFT Model"
+        : def.Type == typeof(bool)
+        ? "bool"
         : def.Type.IsAssignableTo(typeof(Delegate))
         ? "Function"
         : def.Type.Name;
