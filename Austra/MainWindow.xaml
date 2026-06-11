@@ -273,13 +273,15 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="245" />
+                    <ColumnDefinition Width="1"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <local:HierarchyView Grid.Column="0"/>
-                <Grid Grid.Column="1">
+                <GridSplitter Grid.Column="1" Width="2" HorizontalAlignment="Stretch" Background="#FF767676"/>
+                <Grid Grid.Column="2">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="{Binding FormulaRowHeight}"/>
-                        <RowDefinition Height="3"/>
+                        <RowDefinition Height="2"/>
                         <RowDefinition Height="8*"/>
                     </Grid.RowDefinitions>
                     <Grid>
@@ -357,7 +359,7 @@
                             <TextBlock Foreground="White" Padding="8,1" FontSize="12" Text="{Binding ErrorText}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
-                    <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" Visibility="{Binding ShowFormulaEditor}" Background="#FF262626"/>
+                    <GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch" Visibility="{Binding ShowFormulaEditor}" Background="#FF767676"/>
                     <FlowDocumentScrollViewer Grid.Row="2" x:Name="document" HorizontalScrollBarVisibility="Auto" Foreground="Black">
                         <FlowDocument Background="#FF161616" Foreground="White" PageWidth="1800">
                             <Section x:Name="mainSection" FontFamily="Fira Code,Cascadia Code,Courier New" FontSize="10pt">

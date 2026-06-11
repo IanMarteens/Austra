@@ -2043,13 +2043,13 @@ internal readonly struct MethodData
 
     public bool IsMatch(Type inputType, Type returnType) =>
         Args.Length == 1
-        && (Args[0] == inputType || Args[0] == typeof(double) && inputType == typeof(int))
+        && (Args[0] == inputType || Args[0] == typeof(double) && inputType.IsInteger())
         && mInfo is MethodInfo m && m.ReturnType == returnType;
 
     public bool IsMatch(Type inputType1, Type inputType2, Type returnType) =>
         Args.Length == 2
-        && (Args[0] == inputType1 || Args[0] == typeof(double) && inputType1 == typeof(int))
-        && (Args[1] == inputType2|| Args[1] == typeof(double) && inputType2 == typeof(int))
+        && (Args[0] == inputType1 || Args[0] == typeof(double) && inputType1.IsInteger())
+        && (Args[1] == inputType2|| Args[1] == typeof(double) && inputType2.IsInteger())
         && mInfo is MethodInfo m && m.ReturnType == returnType;
 
     public LambdaExpression GetAsLambda(Type inputType)
@@ -2135,7 +2135,7 @@ internal readonly struct MethodData
             [typeof(bool)] = "bool",
             [typeof(int)] = "int",
             [typeof(long)] = "long",
-            [typeof(double)] = "real",
+            [typeof(double)] = "real",      // Prefer "real" over "double"!
             [typeof(string)] = "string",
             [typeof(Date)] = "date",
             [typeof(Complex)] = "Complex",

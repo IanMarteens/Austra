@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System.IO;
+using System.Windows.Media;
 
 namespace Austra;
 
@@ -85,7 +86,12 @@ public static class Help
         {
             string fileName = GetFilename(sender);
             if (!string.IsNullOrEmpty(fileName))
+            {
+                fileName = Path.Combine(
+                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!,
+                    fileName);
                 return fileName;
+            }
             sender = VisualTreeHelper.GetParent(sender);
         }
         return null;
