@@ -2,18 +2,18 @@
 <topic id="1800e13a-baf2-48f8-aefa-746082fe23df" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>The most important data type in AUSTRA is the <newTerm>time series</newTerm>: a sorted collection of pairs date/value.</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%"><b>The most</b> distinctive data type in Austra</span></markup> is the <newTerm>time series</newTerm>: a sorted collection of pairs date/value.</para>
     </introduction>
     <section address="Section1">
       <title>Time series come from external sources</title>
       <content>
-        <para>Since time series represents data from the real world, most of the times, time series come from persistent variables, that can be stored in an external file or database, and may be periodically updated, either by AUSTRA or by another process.</para>
+        <para>Since time series represents data from the real world, most of the times, time series come from persistent variables, that can be stored in an external file or database, and may be periodically updated, either by Austra or by another process.</para>
       </content>
       <sections>
         <section address="addInfo">
           <title>Additional information in series</title>
           <content>
-            <para>Since one of the goals of AUSTRA is to deal with financial time series, there is a number of optional properties that can be stored in a series:</para>
+            <para>Since one of the goals of Austra is to deal with financial time series, there is a number of optional properties that can be stored in a series:</para>
             <definitionTable>
 			  <definedTerm>Name</definedTerm>
 			  <definition><para>The name of the series is the name that is used by the parser to locate a series. For this reason, the series' name must be a valid identifier.</para></definition>
@@ -56,15 +56,15 @@ and still, it could be interesting to mix them.</para>
 			<para>The first parameter of <codeInline>series::new</codeInline> must be a vector of weights, and from that point on, a list of series must be included. This class method creates a linear combination of series. The length of the weights
 vector can be equal to the number of series or the number of series plus one. For instance:</para>
 			<code language="Austra">
-series([0.1, 0.9], aapl, msft);
-<markup><font color="DarkGreen">-- The above code is equivalent to this:</font></markup>
-0.1 * aapl + 0.9 * msft
+series([<markup><font color="Blue">0.1</font>, <font color="Blue">0.9</font></markup>], aapl, msft);
+<markup><font color="DarkGreen">-- The above code is equivalent to this:</font><br/>
+<font color="Blue">0.1</font> * aapl + <font color="Blue">0.9</font> * msft</markup>
 			</code>
 			<para>If we add another item to the vector, it will act as an independent term:</para>
 			<code language="Austra">
-series([0.5, 0.1, 0.9], aapl, msft);
-<markup><font color="DarkGreen">-- The above code is equivalent to this:</font></markup>
-0.5 + 0.1 * aapl + 0.9 * msft
+series([<markup><font color="Blue">0.5</font>, <font color="Blue">0.1</font>, <font color="Blue">0.9</font></markup>], aapl, msft);
+<markup><font color="DarkGreen">-- The above code is equivalent to this:</font><br/>
+<font color="Blue">0.5</font> + <font color="Blue">0.1</font> * aapl + <font color="Blue">0.9</font> * msft</markup>
 			</code>
             <para>We can also import a series from any CSV file that has a date and a double-valued column:</para>
             <code language="Austra">
@@ -72,7 +72,7 @@ series([0.5, 0.1, 0.9], aapl, msft);
     .withHeader.withSeparator(<markup><font color="DarkRed">","</font></markup>).withFormat(<markup><font color="DarkRed">"EN-US"</font></markup>);
 <markup><font color="DarkGreen">-- You can use both column names and column indexes.</font></markup>
 series(<markup><font color="DarkRed">"SONIA"</font></markup>, curves.withFilter(<markup><font color="DarkRed">"Curve Name"</font></markup>, <markup><font color="DarkRed">"SONIA"</font></markup>),
-    11, 15);
+    <markup><font color="Blue">11</font>, <font color="Blue">15</font></markup>);
 series(<markup><font color="DarkRed">"SONIA"</font></markup>, curves.withFilter(<markup><font color="DarkRed">"Curve Name"</font></markup>, <markup><font color="DarkRed">"SONIA"</font></markup>),
     <markup><font color="DarkRed">"Curve Maturity Date"</font></markup>, <markup><font color="DarkRed">"Zero Rate Curve value"</font></markup>);
             </code>
@@ -345,20 +345,20 @@ series(<markup><font color="DarkRed">"SONIA"</font></markup>, curves.withFilter(
       <content>
 		<para>Points in a series can be access using an index expression between brackets:</para>
 		<code language="Austra">
-aapl[0];
-aapl[appl.count - 1].value = aapl.last.value;
-aapl[^2] = aapl[aapl.count - 2]
+aapl[<markup><font color="Blue">0</font></markup>];
+aapl[appl.count - <markup><font color="Blue">1</font></markup>].value = aapl.last.value;
+aapl[^<markup><font color="Blue">2</font>] = aapl[aapl.count - <font color="Blue">2</font></markup>]
 		</code>
 		<para>Series also supports extracting a slice using dates or indexes. In the first case, you must provide two dates inside brackets, separated by a range operator (<codeInline>..</codeInline>), and one of the bounds can be omitted:</para>
 		<code language="Austra">
 aapl[jan20..jan21];
-aapl[jan20..15@jan21];
+aapl[jan20..<markup><font color="Blue">15</font></markup>@jan21];
 aapl[jan20..];
 aapl[..jan21]
 		</code>
 		<para>The upper bound is excluded from the result, as usual. Date arguments in a series index do not support the caret (<codeInline>^</codeInline>) operator for relative indexes. When using numerical indexes in a slice, the behaviour is similar to the one of vectors:</para>
 		<code language="Austra">
-aapl[1..aapl.count - 1].count = aapl[1..^1].count
+aapl[<markup><font color="Blue">1</font>..aapl.count - <font color="Blue">1</font>].count = aapl[<font color="Blue">1</font>..^<font color="Blue">1</font>].count</markup>
 		</code>
       </content>
     </section>
@@ -509,13 +509,13 @@ aaa.stats + aab.stats
 			<para>The return type of properties like <codeInline>acf</codeInline> and <codeInline>pacf</codeInline> is <codeInline>series&lt;int&gt;</codeInline>: instead of the usual pairs containing date/value, here we return pairs containing lag/value. Unfortunately, the control used for the chart does not have all the whistles and bells we would want. So, lets manually zoom on the first lags, to see what is happening.</para>
 			<para>Since series stores their values in reverse order, what we really want is a slice from the end of a series, so we will evaluate this formula:</para>
 			<code language="Austra">
-aaa.pacf[^20..^0]
+aaa.pacf[<markup>^<font color="Blue">20</font>..^<font color="Blue">0</font></markup>]
 			</code>
 			<para>And this is the new chart we get:</para>
 			<mediaLink><image placement="near" xlink:href="pacf2"/></mediaLink>
 			<para>The first value of both the ACF and the PACF functions corresponds always to the lag zero, so it is always one. The value for the lag one is near one, and then, all the rest of the partial autocorrelations are negligible. We will bet that we can model the series with an autoregressive model of degree 1, and we are pretty sure that the coefficient will be high enough to generate a random walk instead of a stationary series. We will use the more nuanced method <codeInline>arModel</codeInline> to get as information as possible:</para>
 			<code language="Austra">
-aaa.arModel(1)
+aaa.arModel(<markup><font color="Blue">1</font></markup>)
 			</code>
 			<para>And voilà, here we have the estimated model:</para>
 			<mediaLink><image placement="near" xlink:href="ar001"/></mediaLink>

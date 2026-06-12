@@ -40,7 +40,8 @@ internal sealed class Bindings
         typeof(Plot<CVector>).MD(typeof(CVector), typeof(CVector)),
         typeof(Plot<CVector>).MD(typeof(CVector)),
         typeof(Plot<Series>).MD(typeof(Series), typeof(Series)),
-        typeof(Plot<Series>).MD(typeof(Series)));
+        typeof(Plot<Series>).MD(typeof(Series)),
+        typeof(ChartSource).MD(typeof(double), typeof(double), typeof(Func<double, double>)));
     private static readonly MethodList PolyDerivative = new(
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), DVArg),
         typeof(Polynomials).MD(nameof(Polynomials.PolyDerivative), typeof(double), typeof(double[])),
@@ -198,7 +199,7 @@ internal sealed class Bindings
                 new("mvo(", "Creates a model for a Mean Variance Optimizer"),
                 new("simplex(", "Creates a model for a Linear Programming problem"),
                 new("simplexMin(", "Creates a model for a Linear Programming problem minimizing its objective function"),
-                new("plot(", "Plots vectors, series and sequences"),
+                new("plot(", "Plots vectors, series, sequences, and lambda functions"),
             ],
             ["seq"] = [
                 new("ar(", "Creates an autoregressive (AR) sequence"),

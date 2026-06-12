@@ -2,7 +2,7 @@
 <topic id="008dce7e-55cd-4c37-997b-b0463d7c24d0" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>Splines are piecewise defined functions, using cubic polynomials, for interpolating or smoothing curves. Austra can create splines for time series, using dates as arguments, or for any pair of vectors containing abscissas and coordinates, respectively. There is also a shortcut for creating this second kind of splines given a grid on an interval and an arbitrary function.</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%"><b>Splines</b> are piecewise defined</span></markup> functions, using cubic polynomials, for interpolating or smoothing curves. Austra can create splines for time series, using dates as arguments, or for any pair of vectors containing abscissas and coordinates, respectively. There is also a shortcut for creating this second kind of splines given a grid on an interval and an arbitrary function.</para>
     </introduction>
     <section address="Splines">
       <title>Creating splines</title>
@@ -20,7 +20,7 @@
     s[appl.last.date - <markup><font color="Blue">15</font></markup>]
 		</code>
 		<para>The example creates a spline based on the series values, and then the spline is used to interpolate the value fifteen days before the last date stored in the series.</para>
-		<para>At a first glance, it may seem than interpolating a daily series does not make sense, since AUSTRA dates do not include a time fraction. Nevertheless:</para>
+		<para>At a first glance, it may seem than interpolating a daily series does not make sense, since Austra dates do not include a time fraction. Nevertheless:</para>
 		<list class="bullet">
 		<listItem>Even daily series have gaps corresponding to holidays.</listItem>
 		<listItem>You can still use a real value for interpolating a spline with date arguments.</listItem>
@@ -38,8 +38,8 @@
 s1[π/<markup><font color="Blue">4</font></markup>] - sqrt(<markup><font color="Blue">0.5</font></markup>);
 s1.derivative(π/<markup><font color="Blue">4</font></markup>);
 <markup><font color="DarkGreen">-- Use two arbitrary vectors with the same length.</font><br/>
-<font color="RoyalBlue"><b>let</b></font></markup> s2 = spline([1, 3, 4, 5], [0, 1, 0.8, 0]);
-s2[2]
+<font color="RoyalBlue"><b>let</b></font></markup> s2 = spline([<markup><font color="Blue">1</font>, <font color="Blue">3</font>, <font color="Blue">4</font>, <font color="Blue">5</font>], [<font color="Blue">0</font>, <font color="Blue">1</font>, <font color="Blue">0.8</font>, <font color="Blue">0</font></markup>]);
+s2[<font color="Blue">2</font>]
 		</code>
 		<sections>
 		  <section address="splineMethods">
@@ -67,7 +67,7 @@ s2[2]
 			  <para>For instance, we can use it to approximate the area below a normal distribution:</para>
 			  <code language="Austra">
 <markup><font color="DarkGreen">-- The integral over a reasonable interval.</font></markup>
-spline(-10, 10, 10000, x => exp(-x²)).area;
+spline(<markup><font color="Blue">-10</font>, <font color="Blue">10</font>, <font color="Blue">10000</font>, x => exp(-x<font color="Blue">²</font></markup>)).area;
 <markup><font color="DarkGreen">-- The expected result.</font></markup>
 sqrt(π)
 			  </code>
@@ -88,12 +88,12 @@ sqrt(π)
 		  	  <para>The <codeInline>poly</codeInline> method has two overloads: one receives an integer, and the other allows a C# <codeInline>Index</codeInline> as its argument:</para>
 			  <code language="Austra">
 <markup><font color="DarkGreen">-- Let’s define a spline with a function over a uniform grid.</font><br/>
-<font color="RoyalBlue"><b>let</b></font></markup> s1 = spline(0, τ, 1024, cos);
+<font color="RoyalBlue"><b>let</b></font></markup> s1 = spline(<markup><font color="Blue">0</font>, τ, <font color="Blue">1024</font></markup>, cos);
 <markup><font color="DarkGreen">-- Retrieve the polynomial for the first segment of the spline.</font></markup>
-s1.poly(0);
+s1.poly(<markup><font color="Blue">0</font></markup>);
 <markup><font color="DarkGreen">-- Two alternatives for retrieving the last polynomial:</font></markup>
-s1.poly(s1.length - 1);
-s1.poly(^1);
+s1.poly(s1.length - <markup><font color="Blue">1</font></markup>);
+s1.poly(^<markup><font color="Blue">1</font></markup>);
 			  </code>
 			  <para>Polynomials retrieved with the <codeInline>poly</codeInline> method accepts values in the closed interval [0,1]. The spline interpolator must find the polynomial, subtract the initial argument for the corresponding segment and scale the remaining offset according to the length covered by the segment.</para>
 			  <para>Each polynomial provides two methods, for evaluating its value and its derivative at a point in the closed interval [0,1], and one property, <codeInline>area</codeInline>, for evaluating the definitive interval of the polynomial over its valid interval:</para>

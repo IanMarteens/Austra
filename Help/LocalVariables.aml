@@ -2,7 +2,7 @@
 <topic id="8b381718-bf08-4762-a51b-1516af27bef2" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA is a functional language, so it has a functional technique for declaring what in a procedural language would be temporal or local variables.</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%"><b>AUSTRA</b> is a functional</span></markup> language, so it has a functional technique for declaring what in a procedural language would be temporal or local variables.</para>
     </introduction>
     <section address="Section1">
       <title>LET clauses</title>
@@ -47,7 +47,7 @@ m
         </code>
 		<alert class="note">
 			<para>Some functional languages, as Haskell, feature another construct for abstracting sub-expressions. Haskell, for instance, offers both <legacyBold>let</legacyBold> and <legacyBold>where</legacyBold>. <legacyBold>let</legacyBold> is located before the expressions that make use of it, and <legacyBold>where</legacyBold> comes after the main expression.</para>
-			<para>In AUSTRA, we prefer <codeInline>let</codeInline>, for the sake of Code Completion. So far, I cannot think of any use for <legacyBold>where</legacyBold> that cannot be solved better with <codeInline>let</codeInline>.</para>
+			<para>In Austra, we prefer <codeInline>let</codeInline>, for the sake of Code Completion. So far, I cannot think of any use for <legacyBold>where</legacyBold> that cannot be solved better with <codeInline>let</codeInline>.</para>
 		</alert>
       </content>
     </section>

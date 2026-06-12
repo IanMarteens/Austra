@@ -1,5 +1,38 @@
 ﻿namespace Austra;
 
+public sealed class ChartNode : VarNode<ChartSource>
+{
+    public ChartNode(string formula, ChartSource model) : base(formula, model)
+    { }
+
+    public ChartNode(ClassNode? parent, string name, ChartSource model)
+        : base(parent, name, model)
+    { }
+
+    public override Visibility ImageVisibility => Visibility.Visible;
+
+    public override string ImageSource => "/images/compare.png";
+
+    public override string TypeName => "2D-Chart";
+
+    public override void Show() =>
+        RootModel.Instance.AppendControl(Formula, "",
+            new ChartView() { DataContext = new ChartViewModel(this) });
+}
+
+public sealed class ChartViewModel : Entity
+{
+    public ChartViewModel(ChartNode node)
+    {
+        Node = node;
+        OxyModel = VarNode.CreateOxyModel().CreateSeries(node.Model.GetSpline().Original);
+    }
+
+    public ChartNode Node { get; }
+
+    public OxyPlot.PlotModel? OxyModel { get; private set; }
+}
+
 /// <summary>Base class for comparing series and vectors.</summary>
 /// <typeparam name="T">The type of the compared items.</typeparam>
 public abstract class PlotNode<T> : VarNode<Plot<T>> where T : IFormattable

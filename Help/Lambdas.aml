@@ -2,7 +2,7 @@
 <topic id="9ebcc778-37a1-4313-87f9-1ea37494d2c8" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para><legacyBold>Lambda functions</legacyBold> are inline-defined anonymous functions that can be used as parameters in normal methods and class method calls.</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%"><b>LAMBDA FUNCTIONS</b> are inline-defined</span></markup> anonymous functions that can be used as parameters in normal methods and class method calls.</para>
     </introduction>
     <section address="MonoLambda">
       <title>Lambda functions with one parameter</title>
@@ -34,7 +34,7 @@ values from a series, so that no one is greater than 1000:</para>
         <code language="Austra">
 prices.map(x => min(x, <markup><font color="Blue">1000</font></markup>))
 		</code>
-		<para>In all cases, the type of the parameter of the lambda is determined by the method the lambda is passed, and so is the returned type. AUSTRA adds any required conversion, as when a double is required for the result and an integer expression is being returned. Regarding the name of the lambda's parameter, you can use any name you like, keeping in mind that it will shadow any predefined identifier inside the lambda function's body.</para>
+		<para>In all cases, the type of the parameter of the lambda is determined by the method the lambda is passed, and so is the returned type. Austra adds any required conversion, as when a double is required for the result and an integer expression is being returned. Regarding the name of the lambda's parameter, you can use any name you like, keeping in mind that it will shadow any predefined identifier inside the lambda function's body.</para>
 		<sections>
 		  <section address="pointfree">
 		  	<title>Function names as lambdas</title>

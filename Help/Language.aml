@@ -2,7 +2,7 @@
 <topic id="04ea4168-169f-488a-9250-41bdab54e5e6" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para><legacyBold>AUSTRA</legacyBold> is a small functional language designed to handle financial series and common econometric models. It also implements vectors, matrices and the most frequently used operations from linear algebra, statistics, and probabilities.</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%"><b>AUSTRA</b> is a small functional</span></markup> language designed to handle financial series and common econometric models. It also implements vectors, matrices and the most frequently used operations from linear algebra, statistics, and probabilities.</para>
       <para>Austra formulas are efficiently parsed by a .NET Engine, and they are translated into fast-running native code that calls routines also implemented in .NET that take advantage of multicore systems and SIMD extensions.</para>
       <para>This topic introduces the basic syntax of the language.</para>
     </introduction>

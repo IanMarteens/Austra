@@ -5,7 +5,7 @@
 		<table>
 			<row>
 			<entry>
-              <para><legacyBold>AUSTRA</legacyBold> is an efficient mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models.</para>
+              <para><markup><span style="font-variant:small-caps;font-size:120%"><b>AUSTRA</b> is an efficient</span></markup> mathematical library, written in C# and running on .NET Core, which is also used by a small functional language designed to handle financial series and common econometric models.</para>
               <para>Both library and language, also support vectors, matrices, transforms, and the most frequently used operations from linear algebra, statistics, and probability.</para>
               <para>The library code is hardware-accelerated, using all resources provided by the CPU. The language compiler is also an optimizing compiler, detecting common expression patterns and substituting them by more efficient method calls, whenever possible.</para>
         <para>Austra contains three main components:</para>

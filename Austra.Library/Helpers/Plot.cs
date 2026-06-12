@@ -44,3 +44,37 @@ public class Plot<T> : IFormattable where T: IFormattable
             ? s.Replace('<', '(').Replace('>', ')') : s;
     }
 }
+
+/// <summary>
+/// Contains the information necessary to plot a function, including the range of x values,
+/// the resolution, and the function itself.
+/// </summary>
+/// <param name="lowX">Low X bound.</param>
+/// <param name="highX">High X bound.</param>
+/// <param name="resolution">Number of points to plot.</param>
+/// <param name="function">The function to plot.</param>
+public class ChartSource(double lowX, double highX, int resolution, Func<double, double> function)
+{
+    /// <summary>Creates a new <see cref="ChartSource"/> with a predefined resolution.</summary>
+    /// <param name="lowX">Low X bound.</param>
+    /// <param name="highX">High X bound.</param>
+    /// <param name="function">The function to plot.</param>
+    public ChartSource(double lowX, double highX, Func<double, double> function) :
+        this(lowX, highX, 512, function)
+    { }
+
+    /// <summary>Low X bound.</summary>
+    public double LowX { get; } = lowX;
+    /// <summary>High X bound.</summary>
+    public double HighX { get; } = highX;
+    /// <summary>Number of points to plot.</summary>
+    public int Resolution { get; } = resolution;
+    /// <summary>The function to plot.</summary>
+    public Func<double, double> Function { get; } = function;
+
+    /// <summary>
+    /// Creates a spline interpolation of the function defined by this <see cref="ChartSource"/>.
+    /// </summary>
+    /// <returns>A <see cref="VectorSpline"/> representing the interpolated function.</returns>
+    public VectorSpline GetSpline() => new(LowX, HighX, Resolution, Function);
+}

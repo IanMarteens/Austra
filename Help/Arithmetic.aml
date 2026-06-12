@@ -2,7 +2,7 @@
 <topic id="e22b4127-e7a9-47ca-bd1c-7ac81efcc051" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA arithmetic is basically the same as on most programming languages. The language supports:</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%"><b>AUSTRA</b> arithmetic is</span></markup> basically the same as on most programming languages. The language supports:</para>
       <list class="bullet">
         <listItem><para>32 bits integers, represented by the <codeInline>int</codeInline> type.</para></listItem>
         <listItem><para>64 bits integers, represented by the <codeInline>long</codeInline> type.</para></listItem>
@@ -55,11 +55,11 @@ integer and it is immediately followed by an identifier:</para>
 <markup><font color="Blue">2</font></markup>x^<markup><font color="Blue">2</font></markup> + <markup><font color="Blue">3</font></markup>x + <markup><font color="Blue">1</font></markup> = <markup><font color="Blue">2</font></markup>*x^<markup><font color="Blue">2</font></markup> + <markup><font color="Blue">3</font></markup>*x + <markup><font color="Blue">1</font></markup>
 <markup><font color="Blue">1</font></markup>/<markup><font color="Blue">2</font></markup>x = <markup><font color="Blue">1</font></markup> / (<markup><font color="Blue">2</font></markup>*x)
 		</code>
-		<para>AUSTRA also recognizes a superscript <math>2</math> (<codeInline>²</codeInline>) as an operator to square a value:</para>
+		<para>Austra also recognizes a superscript <math>2</math> (<codeInline>²</codeInline>) as an operator to square a value:</para>
 		<code language="Austra">
 <markup><font color="Blue">2</font></markup>x² + <markup><font color="Blue">3</font></markup>x + <markup><font color="Blue">1</font></markup> = <markup><font color="Blue">2</font></markup>*x^<markup><font color="Blue">2</font></markup> + <markup><font color="Blue">3</font></markup>*x + <markup><font color="Blue">1</font></markup>
 		</code>
-		<para>The AUSTRA code editor simplifies typing this operator with the keys combination (Ctrl+G, 2).</para>
+		<para>The Austra code editor simplifies typing this operator with the keys combination (Ctrl+G, 2).</para>
 		<sections>
 		  <section address="Section2">
 		    <title>Comparisons</title>
@@ -528,6 +528,9 @@ Newton-Raphson algorithm.</para>
 		          <entry><para>Receives a date and an integer. If the integer is positive, it rolls the date forward using the same criterion as following. When the integer is negative, rolling takes place backwards.</para></entry>
 		        </row>
 		      </table>
+    	  		<alert class="note">
+    			  <para>Calendars automatically consider weekends, that is, Saturdays and Sundays, as holidays. Since this is a culturally biased assumption, the next version of the library will add constructors to configure this behaviour when it is needed.</para>
+    	  		</alert>
             </content>
           </section>
         </sections>
@@ -557,7 +560,7 @@ Newton-Raphson algorithm.</para>
           <section address="Section5A">
             <title>Conditional expressions</title>
             <content>
-              <para>Since AUSTRA is a functional language, it doesn't have "statements". However, it
+              <para>Since Austra is a functional language, it doesn't have "statements". However, it
 provides an <codeInline>if/then/else</codeInline> ternary operator, equivalent to the also included 
 <codeInline>iff()</codeInline> function:</para>
 		    <code language="Austra">

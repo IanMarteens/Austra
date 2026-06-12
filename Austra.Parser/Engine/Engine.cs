@@ -130,6 +130,9 @@ public interface IAustraEngine : IVariableListener
     /// <summary>Gets or sets if formulas should be debugged, showing the generated code.</summary>
     public bool DebugFormulas { get; set; }
 
+    /// <summary>Gets the source corresponding to <see cref="LastFormula"/>.</summary>
+    public string LastSource { get; }
+
     /// <summary>Gets the serialized tree of the last evaluated formula.</summary>
     public string LastFormula { get; }
 }
@@ -165,6 +168,9 @@ public partial class AustraEngine : IAustraEngine
 
     /// <summary>Gets or sets if formulas should be debugged, showing the generated code.</summary>
     public bool DebugFormulas { get; set; } = false;
+
+    /// <summary>Gets the source corresponding to <see cref="LastFormula"/>.</summary>
+    public string LastSource { get; private set; } = "";
 
     /// <summary>Gets the serialized tree of the last evaluated formula.</summary>
     public string LastFormula { get; private set;  } = "";
@@ -203,7 +209,10 @@ public partial class AustraEngine : IAustraEngine
             Source.CreateLambda(parser.Parse());
         sw.Stop();
         if (DebugFormulas)
+        {
+            LastSource = formula;
             LastFormula = expression.Format();
+        }
         CompileTime = sw.ElapsedTicks * 1E9 / Stopwatch.Frequency;
         sw.Restart();
         Action<IDataSource> lambda = expression.Compile();

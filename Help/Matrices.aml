@@ -2,8 +2,8 @@
 <topic id="e9d3be4d-ac7d-4b8e-b892-c47a5a0beb49" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA matrices are represented by the <codeInline>matrix</codeInline> class. They are implemented as row-first, double precision dense matrices.</para>
-      <para>The AUSTRA <codeInline>matrix</codeInline> class is based on three different C# structures: <codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference>, <codeEntityReference qualifyHint="false">T:Austra.Library.LMatrix</codeEntityReference>, and <codeEntityReference qualifyHint="false">T:Austra.Library.RMatrix</codeEntityReference>. The compiler takes automatically care of any conversions when needed.</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%"><b>AUSTRA matrices</b> are represented</span></markup> by the <codeInline>matrix</codeInline> class. They are implemented as row-first, double precision dense matrices.</para>
+      <para>The Austra <codeInline>matrix</codeInline> class is based on three different C# structures: <codeEntityReference qualifyHint="false">T:Austra.Library.Matrix</codeEntityReference>, <codeEntityReference qualifyHint="false">T:Austra.Library.LMatrix</codeEntityReference>, and <codeEntityReference qualifyHint="false">T:Austra.Library.RMatrix</codeEntityReference>. The compiler takes automatically care of any conversions when needed.</para>
     </introduction>
     <section address="matLiterals">
       <title>Matrix construction</title>
@@ -315,7 +315,7 @@ mat[<markup>^<font color="Blue">1</font>, <font color="Blue">1</font>..^<font co
 		<para>An eigenvalue <codeInline>λ</codeInline> and its associated eigenvector <codeInline>ν</codeInline> are any pair of values that satisfy this equation for a square matrix <codeInline>M</codeInline>:</para>
 		<para><math>Mν=λv</math></para>
 		<para>It means that, when the matrix transforms an eigenvector, the result is the same vector, except for a scale factor.</para>
-		<para>The Eigenvalue Decomposition of a matrix is an algorithm that identifies all the pairs of eigenvalues and eigenvector for a given square matrix. You can efficiently find eigenvalues and eigenvectors in AUSTRA applying the <codeInline>evd</codeInline> method on a matrix:</para>
+		<para>The Eigenvalue Decomposition of a matrix is an algorithm that identifies all the pairs of eigenvalues and eigenvector for a given square matrix. You can efficiently find eigenvalues and eigenvectors in Austra applying the <codeInline>evd</codeInline> method on a matrix:</para>
 		<code language="Austra">
 <markup><font color="RoyalBlue"><b>let</b></font></markup> m = <markup><b><font color="DarkCyan">matrix::</font></b></markup>random(<markup><font color="Blue">10</font></markup>);
 <markup><font color="RoyalBlue"><b>let</b></font></markup> e = mat.evd;
@@ -348,7 +348,7 @@ ans ∊ ℝ(4⨯4)
 		<code language="Austra">
 m * m.evd.vectors = m.evd.vectors * m.evd.d
 		</code>
-		<para>In practice, however, we must take the lost of precision into account. For verifying an EVD, you can use this formula in AUSTRA:</para>
+		<para>In practice, however, we must take the lost of precision into account. For verifying an EVD, you can use this formula in Austra:</para>
 		<code language="Austra">
 <markup><font color="RoyalBlue"><b>let</b></font></markup> m = matrix::random(<markup><font color="Blue">32</font></markup>), e = m.evd <markup><font color="RoyalBlue"><b>in</b></font></markup>
   (m * e.vectors - e.vectors * e.d).amax &lt;= <markup><font color="Blue">1e-12</font></markup>;

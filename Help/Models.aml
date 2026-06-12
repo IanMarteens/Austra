@@ -2,13 +2,13 @@
 <topic id="e7993a1e-f2c5-4eb0-aa47-0a3f620375fc" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>The <codeInline>model</codeInline> class is a general-purpose container for algorithms that do not fit well as members of other classes. These models are generally shown by the Austra Desktop application as interactive controls, allowing users to explore the whole range of solutions available for each model.</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%">The <b>model</b> class is</span></markup> a general-purpose container for algorithms that do not fit well as members of other classes. These models are generally shown by the Austra Desktop application as interactive controls, allowing users to explore the whole range of solutions available for each model.</para>
     </introduction>
     <section address="MVO">
       <title>Mean Variance Optimiser</title>
       <content>
         <para>Mean variance optimisation (MVO) is a mathematical optimisation for maximising the expected return of a portfolio given a level of risk. Inside a polytope, the fundamental algorithm is an optimizer for a quadratic objective function. A <legacyItalic>polytope</legacyItalic> is just a fancy name for a polyhedron in a high-dimensional space.</para>
-        <para>The MVO is implemented by the <codeEntityReference qualifyHint="false">T:Austra.Library.MVO.MvoModel</codeEntityReference> class from the Austra library, and it is available for the AUSTRA language by executing the <codeInline>model::mvo</codeInline> class method.</para>
+        <para>The MVO is implemented by the <codeEntityReference qualifyHint="false">T:Austra.Library.MVO.MvoModel</codeEntityReference> class from the Austra library, and it is available for the Austra language by executing the <codeInline>model::mvo</codeInline> class method.</para>
         <para>Let us assume we have a portfolio with three assets, and we want to find the three optimal weights, one for each asset. The most general method overload of the MVO would be like this:</para>
         <code language="Austra">
 <markup><font color="DarkGreen">-- This example assumes we are dealing with three assets.</font><br/>

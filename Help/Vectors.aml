@@ -2,7 +2,7 @@
 <topic id="aae4328b-9ead-40dc-b407-54e8d0614cd5" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
     <introduction>
-      <para>AUSTRA provides double-precision vectors, identified by the class <codeInline>vec</codeInline>, complex double-precision vectors, <codeInline>cvec</codeInline>, vectors of integers, <codeInline>ivec</codeInline>, and vectors of dates, <codeInline>dvec</codeInline>. All these data types are implemented using dense storage.</para>
+      <para><markup><span style="font-variant:small-caps;font-size:120%"><b>AUSTRA</b> provides double-precision vectors</span></markup>, identified by the class <codeInline>vec</codeInline>, complex double-precision vectors, <codeInline>cvec</codeInline>, vectors of integers, <codeInline>ivec</codeInline>, and vectors of dates, <codeInline>dvec</codeInline>. All these data types are implemented using dense storage.</para>
     </introduction>
     <section address="Section1">
       <title>Real vectors</title>
@@ -805,8 +805,8 @@ vec[^5..^2].length = 3
     <section address="vecfft">
       <title>The Fast Fourier Transform</title>
       <content>
-		<para>AUSTRA provides a Discrete Fourier Transform for real and complex vectors, sequences, and series. The core result of the transformation, which is implemented by the <codeInline>fft</codeInline> property is a complex vector, but this vector is commonly wrapped inside a <codeInline>FftModel</codeInline> class instance, which provides additional helping methods and properties and, among them, a method for inverting the transform and getting back the original samples.</para>
-		<para>The other function of <codeInline>FftModel</codeInline> is to act a semantic marker on behalf of any application that is using the AUSTRA parser. When you execute something like <codeInline>aaa.fft</codeInline> in the Austra Desktop application, where <codeInline>aaa</codeInline> is a time series, you get a special view for the Fast Fourier Transform based on the returned <codeInline>FftModel</codeInline>:</para>
+		<para>Austra provides a Discrete Fourier Transform for real and complex vectors, sequences, and series. The core result of the transformation, which is implemented by the <codeInline>fft</codeInline> property is a complex vector, but this vector is commonly wrapped inside a <codeInline>FftModel</codeInline> class instance, which provides additional helping methods and properties and, among them, a method for inverting the transform and getting back the original samples.</para>
+		<para>The other function of <codeInline>FftModel</codeInline> is to act a semantic marker on behalf of any application that is using the Austra parser. When you execute something like <codeInline>aaa.fft</codeInline> in the Austra Desktop application, where <codeInline>aaa</codeInline> is a time series, you get a special view for the Fast Fourier Transform based on the returned <codeInline>FftModel</codeInline>:</para>
         <mediaLink>
 			<image placement="near" xlink:href="fft1"/>
 		</mediaLink>

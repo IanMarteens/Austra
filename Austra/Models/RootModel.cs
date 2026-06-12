@@ -297,6 +297,7 @@ public sealed partial class RootModel : Entity
             CVector cv => new CVectorNode(cNode, name, cv),
             EVD evd => new EvdNode(cNode, name, evd),
             MvoModel m => new MvoNode(cNode, name, m),
+            ChartSource chart => new ChartNode(cNode, name, chart),
             _ => new MiscNode(cNode, name, type, value?.ToString() ?? "")
         };
         allVars[name] = vNode;
@@ -354,7 +355,10 @@ public sealed partial class RootModel : Entity
 
     public void AppendControl(string variable, string text, UIElement element)
     {
-        MainSection?.ContentEnd.InsertTextInRun($"> {variable}\n{text}");
+        if (string.IsNullOrEmpty(text))
+            MainSection?.ContentEnd.InsertTextInRun($"> {variable}");
+        else
+            MainSection?.ContentEnd.InsertTextInRun($"> {variable}\n{text}");
         MainSection?.Blocks.Add(new BlockUIContainer(element));
         Scroller?.ScrollToEnd();
     }
@@ -404,6 +408,10 @@ public sealed partial class RootModel : Entity
             Editor.SelectedText = text;
     }
 
+    /// <summary>
+    /// Parses the text parameter and displays the resulting types in the results pane.
+    /// </summary>
+    /// <param name="text">The text to parse.</param>
     private void CheckType(string text)
     {
         CleanBeforeParsing();
@@ -556,6 +564,7 @@ public sealed partial class RootModel : Entity
                             CVector v => new CVectorNode(form, v),
                             EVD evd => new EvdNode(form, evd),
                             MvoModel mvo => new MvoNode(form, mvo),
+                            ChartSource chart => new ChartNode(form, chart),
                             _ => null
                         };
                         if (node != null)
@@ -673,9 +682,14 @@ public sealed partial class RootModel : Entity
 
     private void ExecuteDebugFormula(object? _)
     {
-        if (environment?.Engine.DebugFormulas == true)
-            Message = environment.Engine.LastFormula;
-    }
+        if (environment?.Engine.DebugFormulas == true &&
+            !string.IsNullOrWhiteSpace(environment.Engine.LastSource))
+        {
+            AppendResult(
+                CleanFormula(environment.Engine.LastSource),
+                environment.Engine.LastFormula);
+        }
+    }           
 
     private void CleanBeforeParsing()
     {
