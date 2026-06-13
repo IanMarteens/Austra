@@ -45,6 +45,7 @@ internal static class GreekSymbols
         [Key.A] = '∀',
         [Key.E] = '∃',
         [Key.I] = '∈',
+        [Key.D2] = '²',
     };
 
     /// <summary>Checks if a key can be transformed into a Greek letter. </summary>
