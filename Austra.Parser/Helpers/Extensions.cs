@@ -128,13 +128,24 @@ internal static class Extensions
     private static string DescribeVariables(BlockExpression b) =>
         string.Join(", ", b.Variables.Select(v => $"{v.Type.Name} {v.Name}"));
 
+    private static string DescribeAssignedVariable(ParameterExpression v, BinaryExpression b) =>
+        $"{v.Type.Name} {v.Name} = {AsStrippedString(b.Right)}";
+
     private static string DescribeBlock(BlockExpression b) =>
         string.Join("; ", b.Expressions.Select(AsStrippedString));
 
     private static string Describe(BlockExpression b) =>
         b.Variables.Count == 0
         ? "{" + DescribeBlock(b) + "}"
-        : "{" + DescribeVariables(b) + "; " + DescribeBlock(b) + "}";
+        : b.Variables.Count == 1 && b.Expressions[0] is BinaryExpression be
+            && be.NodeType == ExpressionType.Assign && be.Left == b.Variables[0]
+        ? $"{{{DescribeAssignedVariable(b.Variables[0], be)}; {string.Join("; ", b.Expressions.Skip(1).Select(AsStrippedString))}}}"
+        : b.Variables.Count == 2 && b.Expressions[0] is BinaryExpression be1
+            && be1.NodeType == ExpressionType.Assign && be1.Left == b.Variables[0]
+            && b.Expressions[1] is BinaryExpression be2
+            && be2.NodeType == ExpressionType.Assign && be2.Left == b.Variables[1]
+        ? $"{{{DescribeAssignedVariable(b.Variables[0], be1)}; {DescribeAssignedVariable(b.Variables[1], be2)}; {string.Join("; ", b.Expressions.Skip(2).Select(AsStrippedString))}}}"
+        : $"{{{DescribeVariables(b)}; {DescribeBlock(b)}}}";
 
     /// <summary>
     /// Extension methods for <see cref="Type"/> to create expressions.
