@@ -28,9 +28,16 @@ internal static class Extensions
                     Operand: var operand
                 } => $"({t.Name}){AsString(operand)}",
                 BlockExpression b => Describe(b),
-                MethodCallExpression m => $"{DescribeInstance(m.Object)}{m.Method.Name}({string.Join(", ", m.Arguments.Select(AsString))})",
+                MethodCallExpression m => $"{DescribeInstance(m.Object)}{m.Method.Name}({string.Join(", ", m.Arguments.Select(AsStrippedString))})",
+                InvocationExpression inv => $"{AsString(inv.Expression)}({string.Join(", ", inv.Arguments.Select(AsStrippedString))})",
                 _ => e.ToString(),
             };
+
+        private static string AsStrippedString(Expression exp) => Strip(AsString(exp));
+
+        private static string Strip(string s) =>
+            s.StartsWith('(') && s.EndsWith(')') && !s.StartsWith("(Object)")
+            ? s[1..^1] : s;
 
         /// <summary>Checks if the expression's type is either a double or an integer.</summary>
         public bool IsArithmetic
@@ -122,12 +129,12 @@ internal static class Extensions
         string.Join(", ", b.Variables.Select(v => $"{v.Type.Name} {v.Name}"));
 
     private static string DescribeBlock(BlockExpression b) =>
-        string.Join("; ", b.Expressions.Select(AsString));
+        string.Join("; ", b.Expressions.Select(AsStrippedString));
 
     private static string Describe(BlockExpression b) =>
         b.Variables.Count == 0
         ? "{" + DescribeBlock(b) + "}"
-        : "{" + DescribeVariables(b) + "; " + DescribeBlock(b) + " }";
+        : "{" + DescribeVariables(b) + "; " + DescribeBlock(b) + "}";
 
     /// <summary>
     /// Extension methods for <see cref="Type"/> to create expressions.
