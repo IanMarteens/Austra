@@ -1,7 +1,7 @@
 ﻿namespace Austra.Parser;
 
 /// <summary>Extension methods for <see cref="Expression"/>.</summary>
-internal static class Extensions
+internal static partial class Extensions
 {
     extension(Expression e)
     {
@@ -20,7 +20,7 @@ internal static class Extensions
         public string AsString() =>
             e switch
             {
-                LambdaExpression lambda => $"({string.Join(", ", lambda.Parameters.Select(p => p.Name))} => {AsString(lambda.Body)})",
+                LambdaExpression lambda => $"({string.Join(", ", lambda.Parameters.Select(p => p.Name))} => {AsStrippedString(lambda.Body)})",
                 UnaryExpression
                 {
                     NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked,
@@ -36,7 +36,7 @@ internal static class Extensions
         private static string AsStrippedString(Expression exp) => Strip(AsString(exp));
 
         private static string Strip(string s) =>
-            s.StartsWith('(') && s.EndsWith(')') && !s.StartsWith("(Object)")
+            s.StartsWith('(') && s.EndsWith(')') && !RxTypecast().IsMatch(s)
             ? s[1..^1] : s;
 
         /// <summary>Checks if the expression's type is either a double or an integer.</summary>
@@ -120,7 +120,11 @@ internal static class Extensions
                 e2.Type.GetMethod(nameof(IContainer<>.Contains), [e.Type])!, e);
             return true;
         }
+
     }
+
+    [GeneratedRegex(@"^\([A-Za-z0-9_]+\)$")]
+    private static partial Regex RxTypecast();
 
     private static string DescribeInstance(Expression? e) =>
         e is null ? "" : $"{AsString(e)}.";
