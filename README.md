@@ -46,6 +46,7 @@ The online Austra help covers both the library and the language, and is availabl
 
 ## Last changes
 
+* Very important: series, vectors, and matrices can all be read from external files. Check the new static functions (those are the constructors in Austra), or the new constructors and static generators in the underlying library.
 * Support for 64 bits integers.
 * Date vectors and sequences. Time series arguments are available now as date vectors.
 * Functions! We have user-defined functions now. Even recursive ones.
@@ -59,8 +60,8 @@ The online Austra help covers both the library and the language, and is availabl
 
 Most compelling needs are, not necessarily in that order:
 
-* We should have control on formatting output and sending it to external files (Excel, JSON, CSV). It could be interesting formatting some kind of outputs to C# format, for retrofitting.
-* Connectors, to access external data sources with real time series, such as stock prices, meteorological data, etc.
+* I'll try to add symbolic operations, such as derivation, using the .NET Expression Trees format, to see how far it let me go. That way, I should save extra work as in other mathematical and symbolic libraries, that need a separate parser and internal representation.
+* Connectors, to access external data sources with real time series, such as stock prices, meteorological data, etc. TwelveData will be the first target.
 * More matrix decompositions (SVD, e.g.).
 
 In fact, we already have code for storing series in SQL Server, and it will be added to the repository in the near future, after some cleaning.
